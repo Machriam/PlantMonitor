@@ -1,1 +1,1 @@
-- Add WLAN Hotspot: (Link)[https://www.raspberryconnect.com/projects/65-raspberrypi-hotspot-accesspoints/168-raspberry-pi-hotspot-access-point-dhcpcd-method]
+- Add WLAN Hotspot: [Link](https://www.raspberryconnect.com/projects/65-raspberrypi-hotspot-accesspoints/168-raspberry-pi-hotspot-access-point-dhcpcd-method)
