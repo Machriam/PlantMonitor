@@ -1,0 +1,1 @@
+﻿var image = File.ReadAllBytes("../../../PflanzschrankBilder\\pflanzschrankBilder\\images\\test_0.png");
