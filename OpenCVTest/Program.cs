@@ -1,6 +1,8 @@
 ﻿using OpenCvSharp;
 using System.Text.Json;
 
+var demosaicing = new Demosaicing();
+demosaicing.Demosaice();
 const string testImage = "../../../../../PflanzschrankBilder\\pflanzschrankBilder\\images\\test_0.png";
 using var src = new Mat(testImage, ImreadModes.Color);
 using var testMat = new Mat();
