@@ -6,3 +6,5 @@
 /**/bin
 /**/dist
 /**/obj
+/GatewayApp/Frontend/node_modules
+/GatewayApp/Frontend/.svelte-kit
