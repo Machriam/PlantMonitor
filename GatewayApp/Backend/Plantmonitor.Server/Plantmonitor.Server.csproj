@@ -9,6 +9,7 @@
 	<ItemGroup>
 		<PackageReference Include="NSwag.AspNetCore" Version="14.0.3" />
 		<PackageReference Include="NSwag.MSBuild" Version="14.0.3" />
+		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
 	</ItemGroup>
 
@@ -19,8 +20,7 @@
 	</PropertyGroup>
 
 	<Target Name="NSwag" AfterTargets="PostBuildEvent" Condition=" '$(Configuration)' == 'Debug' ">
-		<Exec WorkingDirectory="$(ProjectDir)" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development"
-			  Command="$(NSwagExe_Net80) run ../ApiCodeGen.nswag /variables:Configuration=$(Configuration)" />
+		<Exec WorkingDirectory="$(ProjectDir)" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="$(NSwagExe_Net80) run ../ApiCodeGen.nswag /variables:Configuration=$(Configuration)" />
 	</Target>
 
 </Project>

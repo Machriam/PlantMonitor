@@ -1,9 +1,14 @@
-var builder = WebApplication.CreateBuilder(args);
+using Serilog;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
+
+Log.Information("Starting Gatewayserver");
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 if (builder.Environment.IsDevelopment())
