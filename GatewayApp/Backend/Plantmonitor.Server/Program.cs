@@ -1,3 +1,4 @@
+using Plantmonitor.Server.Features.AppConfiguration;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,8 @@ Log.Logger = new LoggerConfiguration()
 
 Log.Information("Starting Gatewayserver");
 builder.Host.UseSerilog();
+
+builder.Services.AddTransient<IEnvironmentConfiguration, EnvironmentConfiguration>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

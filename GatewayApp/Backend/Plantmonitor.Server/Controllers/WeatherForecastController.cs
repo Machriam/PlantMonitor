@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
 namespace Plantmonitor.Server.Controllers;
-
 [ApiController]
 [Route("[controller]")]
 public class WeatherForecastController : ControllerBase
