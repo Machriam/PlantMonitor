@@ -8,3 +8,4 @@
 /**/obj
 /GatewayApp/Frontend/node_modules
 /GatewayApp/Frontend/.svelte-kit
+/GatewayApp/Backend/swagger.json
