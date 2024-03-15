@@ -1,8 +1,5 @@
 ﻿using FluentAssertions;
-using NSubstitute;
 using Plantmonitor.Server.Features.DeviceConfiguration;
-using System;
-using Xunit;
 
 namespace Plantmonitor.Server.Tests.Features.DeviceConfiguration
 {

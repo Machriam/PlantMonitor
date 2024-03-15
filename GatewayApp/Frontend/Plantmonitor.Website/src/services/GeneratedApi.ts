@@ -27,7 +27,7 @@ export class DeviceConfigurationClient extends ClientBase implements IDeviceConf
     }
 
     getDevices(): Promise<string[]> {
-        let url_ = this.baseUrl + "/DeviceConfiguration/devices";
+        let url_ = this.baseUrl + "/api/DeviceConfiguration/devices";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -87,7 +87,7 @@ export class WeatherForecastClient extends ClientBase implements IWeatherForecas
     }
 
     get(): Promise<WeatherForecast[]> {
-        let url_ = this.baseUrl + "/WeatherForecast";
+        let url_ = this.baseUrl + "/api/WeatherForecast";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
