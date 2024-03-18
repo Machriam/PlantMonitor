@@ -1,47 +1,75 @@
 <script>
-	import Header from './app/Header.svelte';
+	import Header from './app/Navbar.svelte';
 	import './styles.css';
 </script>
 
-<div class="app">
-	<Header />
+<div class="page">
+	<div class="sidebar">
+		<Header />
+	</div>
 
 	<main>
-		<slot />
+		<div class="top-row px-4"></div>
+		<article class="content px-4">
+			<slot />
+		</article>
 	</main>
 
 	<footer></footer>
 </div>
 
 <style>
-	.app {
+	.page {
+		position: relative;
 		display: flex;
 		flex-direction: column;
-		min-height: 100vh;
 	}
 
 	main {
 		flex: 1;
-		display: flex;
-		flex-direction: column;
-		padding: 1rem;
-		width: 100%;
-		max-width: 64rem;
-		margin: 0 auto;
-		box-sizing: border-box;
 	}
 
-	footer {
+	.sidebar {
+		background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+	}
+
+	.top-row {
+		background-color: #f7f7f7;
+		border-bottom: 1px solid #d6d5d5;
+		justify-content: flex-end;
+		height: 3.5rem;
 		display: flex;
-		flex-direction: column;
-		justify-content: center;
 		align-items: center;
-		padding: 12px;
 	}
 
-	@media (min-width: 480px) {
-		footer {
-			padding: 12px 0;
+	@media (max-width: 640.98px) {
+		.top-row {
+			justify-content: space-between;
+		}
+	}
+
+	@media (min-width: 641px) {
+		.page {
+			flex-direction: row;
+		}
+
+		.sidebar {
+			width: 250px;
+			height: 100vh;
+			position: sticky;
+			top: 0;
+		}
+
+		.top-row {
+			position: sticky;
+			top: 0;
+			z-index: 1;
+		}
+
+		.top-row,
+		article {
+			padding-left: 2rem !important;
+			padding-right: 1.5rem !important;
 		}
 	}
 </style>
