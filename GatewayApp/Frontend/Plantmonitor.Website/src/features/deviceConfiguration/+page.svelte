@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { DeviceConfigurationClient } from '../../services/GeneratedApi';
+	import '~/types/stringExtensions.d.ts';
+	import { Task } from '~/types/task';
 
 	let devices: string[] = [];
 	let searchingForDevices = true;
@@ -10,8 +12,10 @@
 		devices = await configurationClient.getDevices();
 		searchingForDevices = false;
 	});
-	function openConsole(ip: string): void {
-		webSshLink = `http://localhost:8888/?hostname=${ip}&username=plantmonitor&password=${ip.asBase64()}`;
+	async function openConsole(ip: string): Promise<void> {
+		webSshLink = '';
+		await Task.delay(100);
+		webSshLink = `http://localhost:8888/?hostname=${ip}&username=plantmonitor&password=${'plantmonitor'.asBase64()}`;
 	}
 </script>
 
@@ -47,8 +51,8 @@
 		{/each}
 	</div>
 	{#if !webSshLink.isEmpty()}
-		<div class="col-md-8">
-			<iframe title="Web SSH" src={webSshLink}></iframe>
+		<div class="col-md-8" style="height:100vh;">
+			<iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>
 		</div>
 	{/if}
 </div>

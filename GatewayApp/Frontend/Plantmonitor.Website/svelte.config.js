@@ -6,12 +6,15 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
+		alias: {
+			'~': './src'
+		},
 		files: {
-			routes: "src/features"
+			routes: 'src/features'
 		},
 		adapter: adapter({
-			pages: "build",
-			assets: "build",
+			pages: 'build',
+			assets: 'build',
 			fallback: undefined,
 			precompress: false,
 			strict: true
