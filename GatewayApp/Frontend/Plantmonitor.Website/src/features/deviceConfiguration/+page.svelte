@@ -1,5 +1,54 @@
 <script lang="ts">
-	let words: string[] = ['asdf', 'bla'];
+	import { onMount } from 'svelte';
+	import { DeviceConfigurationClient } from '../../services/GeneratedApi';
+
+	let devices: string[] = [];
+	let searchingForDevices = true;
+	let webSshLink = '';
+	onMount(async () => {
+		let configurationClient = new DeviceConfigurationClient();
+		devices = await configurationClient.getDevices();
+		searchingForDevices = false;
+	});
+	function openConsole(ip: string): void {
+		webSshLink = `http://localhost:8888/?hostname=${ip}&username=plantmonitor&password=${ip.asBase64()}`;
+	}
 </script>
 
-<h3>Configuration</h3>
+<div class="col-md-12 row">
+	<h3>
+		{#if searchingForDevices}
+			Searching for devices
+		{:else}
+			Found devices:
+		{/if}
+	</h3>
+	<div class="col-md-4">
+		{#each devices as device}
+			<table class="table">
+				<thead>
+					<tr>
+						<th>IP</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>{device}</td>
+						<td class="d-flex flex-row justify-content-between">
+							<button class="btn btn-primary">Configure</button>
+							<button on:click={() => openConsole(device)} class="btn btn-primary">
+								Open Console
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		{/each}
+	</div>
+	{#if !webSshLink.isEmpty()}
+		<div class="col-md-8">
+			<iframe title="Web SSH" src={webSshLink}></iframe>
+		</div>
+	{/if}
+</div>

@@ -1,6 +1,6 @@
 export class ClientBase {
     getBaseUrl(_: string, defaultUrl: string | undefined): string {
-        return "https://localhost:7005";
+        return defaultUrl ?? "https://localhost:7005";
     }
     transformOptions(options: RequestInit): Promise<RequestInit> {
         return Promise.resolve(options);
