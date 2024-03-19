@@ -1,10 +1,7 @@
-/// <reference types="svelte" />
-declare global {
-	interface String {
-		isEmpty(): boolean;
-		asBase64(): string;
-		fromBase64(): string;
-	}
+interface String {
+	isEmpty(): boolean;
+	asBase64(): string;
+	fromBase64(): string;
 }
 
 String.prototype.isEmpty = function (this: string) {
@@ -16,4 +13,3 @@ String.prototype.asBase64 = function (this: string) {
 String.prototype.fromBase64 = function (this: string) {
 	return atob(this);
 }
-export { };
