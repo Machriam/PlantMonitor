@@ -3,7 +3,7 @@
 curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version latest --verbose 
 
 cd ~/PlantMonitor/PlantMonitorControl
-sudo ln -sf "$(pwd)"/.dotnet/dotnet /srv/dotnet
+sudo ln -sf "$HOME"/.dotnet/dotnet /srv/dotnet
 
 sudo /srv/dotnet build -c Release -o /srv/dist -r linux-arm --no-self-contained
 
