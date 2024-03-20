@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { DeviceConfigurationClient } from '../../services/GeneratedApi';
-	import '~/types/stringExtensions.d.ts';
+	import 'typeExtensions';
 	import { Task } from '~/types/task';
 
 	let devices: string[] = [];
