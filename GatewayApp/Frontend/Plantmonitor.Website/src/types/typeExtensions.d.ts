@@ -2,6 +2,7 @@ interface String {
 	isEmpty(): boolean;
 	asBase64(): string;
 	fromBase64(): string;
+	urlEncoded(): string;
 }
 
 String.prototype.isEmpty = function (this: string) {
@@ -12,4 +13,7 @@ String.prototype.asBase64 = function (this: string) {
 }
 String.prototype.fromBase64 = function (this: string) {
 	return atob(this);
+}
+String.prototype.urlEncoded = function (this: string) {
+	return encodeURIComponent(this);
 }

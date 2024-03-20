@@ -8,14 +8,16 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-import { ClientBase } from "./ClientBase";
+import { GatewayAppApiBase } from "./GatewayAppApiBase";
 
 export interface IDeviceConfigurationClient {
+
+    getWebSshCredentials(): Promise<WebSshCredentials>;
 
     getDevices(): Promise<string[]>;
 }
 
-export class DeviceConfigurationClient extends ClientBase implements IDeviceConfigurationClient {
+export class DeviceConfigurationClient extends GatewayAppApiBase implements IDeviceConfigurationClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -24,6 +26,42 @@ export class DeviceConfigurationClient extends ClientBase implements IDeviceConf
         super();
         this.http = http ? http : window as any;
         this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    getWebSshCredentials(): Promise<WebSshCredentials> {
+        let url_ = this.baseUrl + "/api/DeviceConfiguration/websshcredentials";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetWebSshCredentials(_response));
+        });
+    }
+
+    protected processGetWebSshCredentials(response: Response): Promise<WebSshCredentials> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WebSshCredentials.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WebSshCredentials>(null as any);
     }
 
     getDevices(): Promise<string[]> {
@@ -75,7 +113,7 @@ export interface IWeatherForecastClient {
     get(): Promise<WeatherForecast[]>;
 }
 
-export class WeatherForecastClient extends ClientBase implements IWeatherForecastClient {
+export class WeatherForecastClient extends GatewayAppApiBase implements IWeatherForecastClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -128,6 +166,57 @@ export class WeatherForecastClient extends ClientBase implements IWeatherForecas
         }
         return Promise.resolve<WeatherForecast[]>(null as any);
     }
+}
+
+export class WebSshCredentials implements IWebSshCredentials {
+    url?: string;
+    password?: string;
+    user?: string;
+
+    constructor(data?: IWebSshCredentials) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.url = _data["url"];
+            this.password = _data["password"];
+            this.user = _data["user"];
+        }
+    }
+
+    static fromJS(data: any): WebSshCredentials {
+        data = typeof data === 'object' ? data : {};
+        let result = new WebSshCredentials();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["url"] = this.url;
+        data["password"] = this.password;
+        data["user"] = this.user;
+        return data;
+    }
+
+    clone(): WebSshCredentials {
+        const json = this.toJSON();
+        let result = new WebSshCredentials();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IWebSshCredentials {
+    url?: string;
+    password?: string;
+    user?: string;
 }
 
 export class WeatherForecast implements IWeatherForecast {

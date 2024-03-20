@@ -1,21 +1,29 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { DeviceConfigurationClient } from '../../services/GeneratedApi';
+	import { DeviceConfigurationClient, WebSshCredentials } from '../../services/GatewayAppApi';
 	import 'typeExtensions';
 	import { Task } from '~/types/task';
 
 	let devices: string[] = [];
 	let searchingForDevices = true;
 	let webSshLink = '';
+	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
 		let configurationClient = new DeviceConfigurationClient();
 		devices = await configurationClient.getDevices();
+		webSshCredentials = await configurationClient.getWebSshCredentials();
 		searchingForDevices = false;
 	});
 	async function openConsole(ip: string): Promise<void> {
 		webSshLink = '';
 		await Task.delay(100);
-		webSshLink = `http://localhost:8888/?hostname=${ip}&username=plantmonitor&password=${'plantmonitor'.asBase64()}`;
+		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
+	}
+	async function configureDevice(ip: string): Promise<void> {
+		webSshLink = '';
+		await Task.delay(100);
+		const command = 'sudo apt-get update;sudo apt-get install -y git;git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor;sudo chmod -R 755 *;cd RaspberryApp/Install;./install.sh;';
+		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
 	}
 </script>
 
@@ -40,7 +48,9 @@
 					<tr>
 						<td>{device}</td>
 						<td class="d-flex flex-row justify-content-between">
-							<button class="btn btn-primary">Configure</button>
+							<button on:click={() => configureDevice(device)} class="btn btn-primary">
+								Configure
+							</button>
 							<button on:click={() => openConsole(device)} class="btn btn-primary">
 								Open Console
 							</button>
