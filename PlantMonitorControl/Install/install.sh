@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version latest --verbose --dry-run
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version latest --verbose 
 
 cd ~/PlantMonitor/PlantMonitorControl
 sudo ln -sf "$(pwd)"/.dotnet/dotnet /srv/dotnet
