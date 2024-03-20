@@ -57,7 +57,7 @@
       "useLeafType": false,
       "classTypes": [],
       "extendedClasses": [],
-      "extensionCode": "../Frontend/Plantmonitor.Website/src/services/NswagImport.ts",
+      "extensionCode": "../Frontend/Plantmonitor.Website/src/services/GatewayAppNswagImport.ts",
       "generateDefaultValues": true,
       "excludedTypeNames": [],
       "excludedParameterNames": [],

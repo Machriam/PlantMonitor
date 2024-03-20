@@ -8,7 +8,7 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-import { GatewayAppApiBase } from "./GatewayAppApiBase";
+import { GatewayAppApiBase } from './GatewayAppApiBase';
 
 export interface IDeviceConfigurationClient {
 
