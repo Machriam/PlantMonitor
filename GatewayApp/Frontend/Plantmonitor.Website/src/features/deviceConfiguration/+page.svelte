@@ -61,7 +61,7 @@
 		{/each}
 	</div>
 	{#if !webSshLink.isEmpty()}
-		<div class="col-md-8" style="height:100vh;">
+		<div class="col-md-8" style="height:80vh;">
 			<iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>
 		</div>
 	{/if}
