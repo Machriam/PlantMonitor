@@ -34,12 +34,15 @@
 	}
 	async function getDeviceStatus() {
 		for (var i = 0; i < devices.length; i++) {
-			const weatherForecastClient = new WeatherForecastClient(`https://${devices[i]}`);
+			const weatherForecastClient = new WeatherForecastClient(`https://${devices[i]}`).withTimeout(
+				2000
+			);
 			let result: WeatherForecast[] | undefined;
 			try {
 				result = await weatherForecastClient.get();
 				weatherData.set(devices[i], result);
 			} catch (ex) {
+				console.log(ex);
 				weatherData.set(devices[i], []);
 			}
 		}
