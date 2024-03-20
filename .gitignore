@@ -10,3 +10,4 @@
 /GatewayApp/Frontend/.svelte-kit
 /GatewayApp/Backend/swagger.json
 /GatewayApp/Backend/Plantmonitor.Server/appsettings.Development.json
+/PlantMonitorControl/swagger.json
