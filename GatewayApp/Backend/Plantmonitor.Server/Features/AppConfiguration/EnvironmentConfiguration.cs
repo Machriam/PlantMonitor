@@ -11,10 +11,26 @@
         string DeviceUsername();
 
         string DevicePassword();
+
+        string Certificate();
+
+        string CertificateKey();
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration) : IEnvironmentConfiguration
     {
+        public string Certificate()
+        {
+            var certPath = configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Path").Value;
+            return File.ReadAllText(certPath ?? throw new Exception("A certificate must be defined in appsettings.json"));
+        }
+
+        public string CertificateKey()
+        {
+            var keyPath = configuration.GetSection("Kestrel:Endpoints:Https:Certificate:KeyPath").Value;
+            return File.ReadAllText(keyPath ?? throw new Exception("A certificate must be defined in appsettings.json"));
+        }
+
         public string IpScanRange_From() =>
             configuration.GetConnectionString(nameof(IpScanRange_From)) ??
                 throw new Exception(nameof(IpScanRange_From) + " must be defined in appsettings.json");

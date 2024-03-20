@@ -10,6 +10,13 @@ public record struct DeviceConnection(string Ip, bool SshIsOpen);
 public class DeviceConfigurationController(IDeviceConnectionTester connectionTester, IEnvironmentConfiguration configuration)
 {
     public record struct WebSshCredentials(string Url, string Password, string User);
+    public record struct CertificateData(string Certificate, string Key);
+
+    [HttpGet("certificates")]
+    public CertificateData GetCertificateData()
+    {
+        return new CertificateData(configuration.Certificate(), configuration.CertificateKey());
+    }
 
     [HttpGet("websshcredentials")]
     public WebSshCredentials GetWebSshCredentials()

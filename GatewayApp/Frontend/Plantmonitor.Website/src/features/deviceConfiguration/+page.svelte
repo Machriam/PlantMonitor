@@ -4,12 +4,13 @@
 	import 'typeExtensions';
 	import { Task } from '~/types/task';
 
+	let configurationClient: DeviceConfigurationClient;
 	let devices: string[] = [];
 	let searchingForDevices = true;
 	let webSshLink = '';
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
-		let configurationClient = new DeviceConfigurationClient();
+		configurationClient = new DeviceConfigurationClient();
 		devices = await configurationClient.getDevices();
 		webSshCredentials = await configurationClient.getWebSshCredentials();
 		searchingForDevices = false;
@@ -22,7 +23,11 @@
 	async function configureDevice(ip: string): Promise<void> {
 		webSshLink = '';
 		await Task.delay(100);
-		const command = 'sudo apt-get update;sudo apt-get install -y git;git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor;sudo chmod -R 755 *;cd RaspberryApp/Install;./install.sh;';
+		var certificate = await configurationClient.getCertificateData();
+		const command =
+			`sudo mkdir /srv/certs/;echo '${certificate.certificate}' | sudo tee /srv/certs/plantmonitor.crt;echo '${certificate.key}' | sudo tee /srv/certs/plantmonitor.key;` +
+			` sudo apt-get update;sudo apt-get install -y git;` +
+			` git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor; sudo chmod -R 755 *;cd RaspberryApp/Install;./install.sh;`;
 		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
 	}
 </script>
