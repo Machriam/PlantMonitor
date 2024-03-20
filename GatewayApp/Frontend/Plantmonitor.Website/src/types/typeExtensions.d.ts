@@ -4,6 +4,9 @@ interface String {
 	fromBase64(): string;
 	urlEncoded(): string;
 }
+interface Object {
+	asJson(): string;
+}
 
 String.prototype.isEmpty = function (this: string) {
 	return this === undefined || this === null || this.length == 0;
@@ -16,4 +19,8 @@ String.prototype.fromBase64 = function (this: string) {
 }
 String.prototype.urlEncoded = function (this: string) {
 	return encodeURIComponent(this);
+}
+
+Object.prototype.asJson = function (this: object) {
+	return JSON.stringify(this);
 }

@@ -3,9 +3,11 @@
 	import { DeviceConfigurationClient, WebSshCredentials } from '../../services/GatewayAppApi';
 	import 'typeExtensions';
 	import { Task } from '~/types/task';
+	import { WeatherForecast, WeatherForecastClient } from '~/services/PlantMonitorControlApi';
 
 	let configurationClient: DeviceConfigurationClient;
 	let devices: string[] = [];
+	let weatherData: Map<string, WeatherForecast[]> = new Map<string, WeatherForecast[]>();
 	let searchingForDevices = true;
 	let webSshLink = '';
 	let webSshCredentials: WebSshCredentials;
@@ -27,8 +29,20 @@
 		const command =
 			`sudo mkdir /srv/certs/;echo '${certificate.certificate}' | sudo tee /srv/certs/plantmonitor.crt;echo '${certificate.key}' | sudo tee /srv/certs/plantmonitor.key;` +
 			` sudo apt-get update;sudo apt-get install -y git;` +
-			` git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor; sudo chmod -R 755 *;cd RaspberryApp/Install;./install.sh;`;
+			` git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;`;
 		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
+	}
+	async function getDeviceStatus() {
+		for (var i = 0; i < devices.length; i++) {
+			const weatherForecastClient = new WeatherForecastClient(`https://${devices[i]}`);
+			let result: WeatherForecast[] | undefined;
+			try {
+				result = await weatherForecastClient.get();
+				weatherData.set(devices[i], result);
+			} catch (ex) {
+				weatherData.set(devices[i], []);
+			}
+		}
 	}
 </script>
 
@@ -47,6 +61,7 @@
 					<tr>
 						<th>IP</th>
 						<th>Action</th>
+						<th>Data</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -60,10 +75,12 @@
 								Open Console
 							</button>
 						</td>
+						<td>{weatherData.get(device)?.asJson()}</td>
 					</tr>
 				</tbody>
 			</table>
 		{/each}
+		<button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
 	</div>
 	{#if !webSshLink.isEmpty()}
 		<div class="col-md-8" style="height:80vh;">
