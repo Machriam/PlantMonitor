@@ -3,7 +3,7 @@
   "defaultVariables": null,
   "documentGenerator": {
     "aspNetCoreToOpenApi": {
-      "project": "Plantmonitor.Server/Plantmonitor.Server.csproj",
+      "project": "PlantMonitorControl.csproj",
       "documentName": "v1",
       "msBuildProjectExtensionsPath": null,
       "configuration": null,
@@ -39,7 +39,7 @@
       "exportTypes": true,
       "wrapDtoExceptions": false,
       "exceptionClass": "ApiException",
-      "clientBaseClass": "GatewayAppApiBase",
+      "clientBaseClass": "PlantMonitorControlApiBase",
       "wrapResponses": false,
       "wrapResponseMethods": [],
       "generateResponseClasses": true,
@@ -57,7 +57,7 @@
       "useLeafType": false,
       "classTypes": [],
       "extendedClasses": [],
-      "extensionCode": "../Frontend/Plantmonitor.Website/src/services/GatewayAppNswagImport.ts",
+      "extensionCode": "../GatewayApp/Frontend/Plantmonitor.Website/src/services/PlantMonitorControlNswagImport.ts",
       "generateDefaultValues": true,
       "excludedTypeNames": [],
       "excludedParameterNames": [],
@@ -76,7 +76,7 @@
       "templateDirectory": null,
       "serviceHost": null,
       "serviceSchemes": null,
-      "output": "../Frontend/Plantmonitor.Website/src/services/GatewayAppApi.ts",
+      "output": "../GatewayApp/Frontend/Plantmonitor.Website/src/services/PlantMonitorControlApi.ts",
       "newLineBehavior": "Auto"
     }
   }

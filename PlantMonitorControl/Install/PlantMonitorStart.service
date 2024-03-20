@@ -1,0 +1,10 @@
+[Unit]
+Description = Plantmonitor Server
+After = multi-user.target
+
+[Service]
+Type = idle
+ExecStart=sudo /srv/dotnet /srv/dist/PlantMonitorControl.dll
+
+[Install]
+WantedBy = multi-user.target

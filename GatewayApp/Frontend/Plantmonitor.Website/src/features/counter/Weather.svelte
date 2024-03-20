@@ -4,7 +4,7 @@
 	let _weatherData: WeatherForecast[] = [];
 
 	onMount(async () => {
-		let forecastService = new WeatherForecastClient('https://localhost:7005');
+		let forecastService = new WeatherForecastClient();
 		_weatherData = await forecastService.get();
 	});
 	function log() {}

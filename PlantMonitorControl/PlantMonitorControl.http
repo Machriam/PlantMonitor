@@ -1,0 +1,6 @@
+@PlantMonitorControl_HostAddress = http://localhost:5193
+
+GET {{PlantMonitorControl_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -8,14 +8,14 @@
 /* eslint-disable */
 // ReSharper disable InconsistentNaming
 
-import { ClientBase } from "./ClientBase";
+import { PlantMonitorControlApiBase } from "./PlantMonitorControlApiBase";
 
 export interface IWeatherForecastClient {
 
     get(): Promise<WeatherForecast[]>;
 }
 
-export class WeatherForecastClient extends ClientBase implements IWeatherForecastClient {
+export class WeatherForecastClient extends PlantMonitorControlApiBase implements IWeatherForecastClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;

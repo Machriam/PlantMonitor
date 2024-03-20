@@ -5,6 +5,10 @@ VisualStudioVersion = 17.9.34701.34
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plantmonitor.Server", "Plantmonitor.Server.csproj", "{3A1A6480-1668-4FD9-8BDB-6E0AA728D666}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plantmonitor.Server.Tests", "..\Plantmonitor.Server.Tests\Plantmonitor.Server.Tests.csproj", "{DD04286D-833C-4841-AEEE-494BEAE8C04F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plantmonitor.Shared", "..\Plantmonitor.Shared\Plantmonitor.Shared.csproj", "{29EEF4E2-F6B7-491B-AC9B-AF75E4744B3F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{3A1A6480-1668-4FD9-8BDB-6E0AA728D666}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A1A6480-1668-4FD9-8BDB-6E0AA728D666}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A1A6480-1668-4FD9-8BDB-6E0AA728D666}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD04286D-833C-4841-AEEE-494BEAE8C04F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD04286D-833C-4841-AEEE-494BEAE8C04F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD04286D-833C-4841-AEEE-494BEAE8C04F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD04286D-833C-4841-AEEE-494BEAE8C04F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29EEF4E2-F6B7-491B-AC9B-AF75E4744B3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29EEF4E2-F6B7-491B-AC9B-AF75E4744B3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29EEF4E2-F6B7-491B-AC9B-AF75E4744B3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29EEF4E2-F6B7-491B-AC9B-AF75E4744B3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

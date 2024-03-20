@@ -37,32 +37,16 @@
    4. Under Services Enable SSH with password authentication
    5. Press save and press Yes to the dialog to apply OS customisation settings
 
+# Gateway Server Installation
 
-- Add WLAN Hotspot: [Link](https://www.raspberryconnect.com/projects/65-raspberrypi-hotspot-accesspoints/168-raspberry-pi-hotspot-access-point-dhcpcd-method)
+## Generate in a Linux environment the following certificate
 
-### Initial Config
-
-- /etc/hostapd/hostapd.conf
 ```
-interface=wlan0
-driver=nl80211
-ssid=PlantMonitorSpot
-hw_mode=g
-channel=6
-wmm_enabled=0
-macaddr_acl=0
-auth_algs=1
-ignore_broadcast_ssid=0
-wpa=2
-wpa_passphrase=plantmonitor
-wpa_key_mgmt=WPA-PSK
-rsn_pairwise=CCMP
+openssl req -newkey rsa:2048 -x509 -nodes -keyout ./plantmonitor.key -new -out ./plantmonitor.crt \
+    -subj /CN=PlantMonitor/C=DE/ST=PM/L=PM/OU=Plantmonitor/O=Plantmonitor/emailAddress=plant@monitor.com/ -reqexts SAN -extensions SAN -config <(cat /etc/ssl/openssl.cnf \
+    <(printf '[SAN]\nsubjectAltName=IP:127.0.0.1, DNS:localhost, ') <(for i in {1..255}; do echo -n "IP:192.168.0.$i, "; done | sed 's/, $//')) -sha256 -days 3650 -addext basicConstraints=CA:true
 ```
 
-- /etc/dhcpcd.conf
-```
-interface wlan0
-nohook wpa_supplicant
-static ip_address=192.168.50.10/24
-static routers=192.168.50.1
-```
+1. The generated certificate paths must be added in the appsettings file of the Gateway Server
+2. The certificate can be installed by clicking on the crt file
+3. During the installation place the certificate into the `Trusted Root Certification Authorities`
