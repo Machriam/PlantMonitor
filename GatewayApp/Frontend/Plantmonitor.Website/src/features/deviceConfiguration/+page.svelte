@@ -43,6 +43,7 @@
 				weatherData.set(devices[i], []);
 			}
 		}
+		weatherData = weatherData;
 	}
 </script>
 
@@ -75,7 +76,7 @@
 								Open Console
 							</button>
 						</td>
-						<td>{weatherData.get(device)?.asJson()}</td>
+						<td>{weatherData.get(device)?.length}</td>
 					</tr>
 				</tbody>
 			</table>
