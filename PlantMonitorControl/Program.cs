@@ -13,6 +13,15 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 });
+if (builder.Environment.IsProduction())
+{
+    Log.Logger.Information("Using Kestrel from Code");
+    //builder.WebHost.UseUrls("https://0.0.0.0:443");
+    builder.WebHost.UseKestrel(options =>
+    {
+        options.ListenAnyIP(443, listenOptions => listenOptions.UseHttps("/srv/certs/plantmonitor.pfx"));
+    });
+}
 
 builder.Services.AddOpenApiDocument(options =>
 {
