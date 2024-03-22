@@ -9,8 +9,9 @@ namespace PlantMonitorControl.Features.MotorMovement;
 public class MotorMovementController(IEnvironmentConfiguration configuration) : ControllerBase
 {
     [HttpPost()]
-    public async Task MoveMotor()
+    public async Task MoveMotor(int steps)
     {
+        var rampFunction = steps.CreateRampFunction(1, 100);
         using var controller = new GpioController(PinNumberingScheme.Board);
         var pinout = configuration.MotorPinout;
         controller.OpenPin(pinout.Direction, PinMode.Output);
@@ -22,12 +23,14 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
         var released = PinValue.Low;
 
         controller.Write(pinout.Enable, locked);
-        controller.Write(pinout.Direction, left);
-        for (var i = 0; i < 10; i++)
+        controller.Write(pinout.Direction, steps < 0 ? left : right);
+        steps = Math.Abs(steps);
+        for (var i = 0; i < steps; i++)
         {
             controller.Write(pinout.Pulse, PinValue.High);
-            await Task.Delay(100);
+            await Task.Delay((int)(rampFunction(i) * 0.5f));
             controller.Write(pinout.Pulse, PinValue.Low);
+            await Task.Delay((int)(rampFunction(i) * 0.5f));
         }
         controller.Write(pinout.Enable, released);
     }

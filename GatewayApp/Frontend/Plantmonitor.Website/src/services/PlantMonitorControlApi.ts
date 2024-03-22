@@ -108,7 +108,7 @@ export class ImageTakingClient extends PlantMonitorControlApiBase implements IIm
 
 export interface IMotorMovementClient {
 
-    moveMotor(direction?: boolean | undefined, enable?: boolean | undefined, pulse?: boolean | undefined): Promise<void>;
+    moveMotor(steps?: number | undefined): Promise<void>;
 }
 
 export class MotorMovementClient extends PlantMonitorControlApiBase implements IMotorMovementClient {
@@ -122,20 +122,12 @@ export class MotorMovementClient extends PlantMonitorControlApiBase implements I
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    moveMotor(direction?: boolean | undefined, enable?: boolean | undefined, pulse?: boolean | undefined): Promise<void> {
+    moveMotor(steps?: number | undefined): Promise<void> {
         let url_ = this.baseUrl + "/MotorMovement?";
-        if (direction === null)
-            throw new Error("The parameter 'direction' cannot be null.");
-        else if (direction !== undefined)
-            url_ += "direction=" + encodeURIComponent("" + direction) + "&";
-        if (enable === null)
-            throw new Error("The parameter 'enable' cannot be null.");
-        else if (enable !== undefined)
-            url_ += "enable=" + encodeURIComponent("" + enable) + "&";
-        if (pulse === null)
-            throw new Error("The parameter 'pulse' cannot be null.");
-        else if (pulse !== undefined)
-            url_ += "pulse=" + encodeURIComponent("" + pulse) + "&";
+        if (steps === null)
+            throw new Error("The parameter 'steps' cannot be null.");
+        else if (steps !== undefined)
+            url_ += "steps=" + encodeURIComponent("" + steps) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
