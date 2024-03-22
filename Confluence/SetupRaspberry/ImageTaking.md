@@ -1,7 +1,7 @@
 ### Packed Still Images
 
 ```
-libcamera-raw -n -t 5000 --segment 1 -o test_%04d.raw --mode 4608:2592:10:P --brightness 0.0 --contrast 0.7 --exposure normal --framerate 15 --gain 0 --awb auto --metering centre --saturation 1.0 --sharpness 1.5 --denoise off
+rpicam-raw -n -t 5000 --segment 1 -o test_%04d.raw --mode 4608:2592:10:P --brightness 0.0 --contrast 0.7 --exposure normal --framerate 15 --gain 0 --awb auto --metering centre --saturation 1.0 --sharpness 1.5 --denoise off
 ```
 - Packed in 10 Bits has the following Format:
   - Raw stream: 4608x2592 stride 5760 format SBGGR10_CSI2P
