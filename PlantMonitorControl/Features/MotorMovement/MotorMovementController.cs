@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using System.Device.Gpio;
+using System.Diagnostics;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -11,7 +12,9 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
     [HttpPost()]
     public async Task MoveMotor(int steps)
     {
-        var rampFunction = steps.CreateRampFunction(1, 100);
+        var sw = new Stopwatch();
+        var microSecondsPerTick = 1000L * 1000L / Stopwatch.Frequency;
+        Console.WriteLine(Stopwatch.IsHighResolution + ", Ticks per second: " + Stopwatch.Frequency + ", Microseconds per Tick: " + microSecondsPerTick);
         using var controller = new GpioController(PinNumberingScheme.Board);
         var pinout = configuration.MotorPinout;
         controller.OpenPin(pinout.Direction, PinMode.Output);
@@ -25,12 +28,16 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
         controller.Write(pinout.Enable, locked);
         controller.Write(pinout.Direction, steps < 0 ? left : right);
         steps = Math.Abs(steps);
+        var rampFunction = steps.CreateRampFunction(500, 20000);
         for (var i = 0; i < steps; i++)
         {
+            var delay = (int)(rampFunction(i) * 0.5f);
             controller.Write(pinout.Pulse, PinValue.High);
-            await Task.Delay((int)(rampFunction(i) * 0.5f));
+            sw.Restart();
+            while (sw.ElapsedTicks * microSecondsPerTick < delay) { }
             controller.Write(pinout.Pulse, PinValue.Low);
-            await Task.Delay((int)(rampFunction(i) * 0.5f));
+            sw.Restart();
+            while (sw.ElapsedTicks * microSecondsPerTick < delay) { }
         }
         controller.Write(pinout.Enable, released);
     }
