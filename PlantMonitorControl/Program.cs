@@ -1,3 +1,4 @@
+using PlantMonitorControl.Features.AppsettingsConfiguration;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,8 @@ Log.Logger = new LoggerConfiguration()
 Log.Information("Starting PlantMonitor");
 builder.Host.UseSerilog();
 
+var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
+builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());

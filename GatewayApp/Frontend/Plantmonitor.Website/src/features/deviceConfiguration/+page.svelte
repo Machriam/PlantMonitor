@@ -40,7 +40,7 @@
 	}
 	async function showPreviewImage(device: string) {
 		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
-		previewImage = await (await imageTakingClient.captureImage()).data.asBase64();
+		previewImage = await (await imageTakingClient.captureImage()).data.asBase64Url();
 	}
 	async function getDeviceStatus() {
 		for (var i = 0; i < devices.length; i++) {
