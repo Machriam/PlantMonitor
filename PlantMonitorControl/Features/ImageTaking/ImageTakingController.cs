@@ -1,6 +1,7 @@
 ﻿using Iot.Device.Camera;
 using Iot.Device.Camera.Settings;
 using Iot.Device.Common;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Net.Http.Headers;
@@ -13,7 +14,7 @@ namespace PlantMonitorControl.Features.MotorMovement;
 public class ImageTakingController : ControllerBase
 {
     [HttpPost("previewimage")]
-    public async Task<IActionResult> CaptureImage()
+    public async Task<IResult> CaptureImage()
     {
         var builder = new CommandOptionsBuilder()
             .WithTimeout(1)
@@ -24,9 +25,10 @@ public class ImageTakingController : ControllerBase
         var args = builder.GetArguments();
         using var process = new ProcessRunner(ProcessSettingsFactory.CreateForLibcamerastill());
 
-        await using var ms = new MemoryStream();
-        await process.ExecuteAsync(args, Response.Body);
-        return Ok(ms);
+        var ms = new MemoryStream();
+        await process.ExecuteAsync(args, ms);
+        ms.Position = 0;
+        return Results.File(ms, "image/png");
     }
 
     [HttpGet("camerainfo")]
