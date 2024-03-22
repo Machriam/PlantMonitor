@@ -6,6 +6,7 @@
 	import { Task } from '~/types/task';
 	import {
 		ImageTakingClient,
+		MotorMovementClient,
 		WeatherForecast,
 		WeatherForecastClient
 	} from '~/services/PlantMonitorControlApi';
@@ -41,6 +42,10 @@
 	async function showPreviewImage(device: string) {
 		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
 		previewImage = await (await imageTakingClient.captureImage()).data.asBase64Url();
+	}
+	async function testMovement(device: string) {
+		const motorMovementClient = new MotorMovementClient(`https://${device}`).withTimeout(10000);
+		await motorMovementClient.moveMotor(true, true, true);
 	}
 	async function getDeviceStatus() {
 		for (var i = 0; i < devices.length; i++) {
@@ -84,6 +89,9 @@
 							</button>
 							<button on:click={() => showPreviewImage(device)} class="btn btn-primary">
 								Preview Image
+							</button>
+							<button on:click={() => testMovement(device)} class="btn btn-primary">
+								Test Movement
 							</button>
 							<button on:click={() => openConsole(device)} class="btn btn-primary">
 								Open Console

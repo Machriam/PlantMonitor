@@ -9,7 +9,7 @@ namespace PlantMonitorControl.Features.MotorMovement;
 public class MotorMovementController(IEnvironmentConfiguration configuration) : ControllerBase
 {
     [HttpPost()]
-    public void MoveMotor()
+    public void MoveMotor(bool direction, bool enable, bool pulse)
     {
         using var controller = new GpioController(PinNumberingScheme.Board);
         var pinout = configuration.MotorPinout;
@@ -17,6 +17,8 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
         controller.OpenPin(pinout.Enable);
         controller.OpenPin(pinout.Pulse);
 
-        controller.Write(pinout.Enable, PinValue.High);
+        controller.Write(pinout.Direction, direction ? PinValue.High : PinValue.Low);
+        controller.Write(pinout.Enable, enable ? PinValue.High : PinValue.Low);
+        controller.Write(pinout.Pulse, pulse ? PinValue.High : PinValue.Low);
     }
 }
