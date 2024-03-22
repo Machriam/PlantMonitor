@@ -1,15 +1,21 @@
 <script lang="ts">
+	'@hmr:keep-all';
 	import { onMount } from 'svelte';
 	import { DeviceConfigurationClient, WebSshCredentials } from '../../services/GatewayAppApi';
 	import 'typeExtensions';
 	import { Task } from '~/types/task';
-	import { WeatherForecast, WeatherForecastClient } from '~/services/PlantMonitorControlApi';
+	import {
+		ImageTakingClient,
+		WeatherForecast,
+		WeatherForecastClient
+	} from '~/services/PlantMonitorControlApi';
 
 	let configurationClient: DeviceConfigurationClient;
 	let devices: string[] = [];
-	let weatherData: Map<string, WeatherForecast[]> = new Map<string, WeatherForecast[]>();
+	let cameraStatus: Map<string, string> = new Map<string, string>();
+	let previewImage = '';
 	let searchingForDevices = true;
-	let webSshLink = '';
+	let webSshLink = ''; // @hmr:keep
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
 		configurationClient = new DeviceConfigurationClient();
@@ -32,21 +38,22 @@
 			` git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;`;
 		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
 	}
+	async function showPreviewImage(device: string) {
+		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
+		previewImage = 'data:image/png;base64,' + (await imageTakingClient.captureImage());
+	}
 	async function getDeviceStatus() {
 		for (var i = 0; i < devices.length; i++) {
-			const weatherForecastClient = new WeatherForecastClient(`https://${devices[i]}`).withTimeout(
-				2000
-			);
-			let result: WeatherForecast[] | undefined;
+			const imageTakingClient = new ImageTakingClient(`https://${devices[i]}`).withTimeout(10000);
+			let result: string | undefined;
 			try {
-				result = await weatherForecastClient.get();
-				weatherData.set(devices[i], result);
+				result = await imageTakingClient.getCameras();
+				cameraStatus.set(devices[i], result);
 			} catch (ex) {
-				console.log(ex);
-				weatherData.set(devices[i], []);
+				cameraStatus.set(devices[i], 'NA');
 			}
 		}
-		weatherData = weatherData;
+		cameraStatus = cameraStatus;
 	}
 </script>
 
@@ -58,7 +65,7 @@
 			Found devices:
 		{/if}
 	</h3>
-	<div class="col-md-4">
+	<div class="col-md-12">
 		{#each devices as device}
 			<table class="table">
 				<thead>
@@ -75,20 +82,29 @@
 							<button on:click={() => configureDevice(device)} class="btn btn-primary">
 								Configure
 							</button>
+							<button on:click={() => showPreviewImage(device)} class="btn btn-primary">
+								Preview Image
+							</button>
 							<button on:click={() => openConsole(device)} class="btn btn-primary">
 								Open Console
 							</button>
 						</td>
-						<td>{weatherData.get(device)?.length}</td>
+						<td>{cameraStatus.get(device)}</td>
 					</tr>
 				</tbody>
 			</table>
 		{/each}
 		<button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
 	</div>
-	{#if !webSshLink.isEmpty()}
-		<div class="col-md-8" style="height:80vh;">
+	<div class="col-md-12"></div>
+	<div class="col-md-4">
+		{#if !previewImage.isEmpty()}
+			<img alt="Preview" src={previewImage} />
+		{/if}
+	</div>
+	<div class="col-md-8" style="height:80vh;">
+		{#if !webSshLink.isEmpty()}
 			<iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>

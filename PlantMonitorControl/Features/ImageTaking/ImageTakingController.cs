@@ -23,19 +23,19 @@ public class ImageTakingController : ControllerBase
         using var process = new ProcessRunner(ProcessSettingsFactory.CreateForLibcamerastill());
 
         var filename = "test.png";
+        System.IO.File.Delete(filename);
         using var file = System.IO.File.OpenWrite("test.png");
         await process.ExecuteAsync(args, file);
         return System.IO.File.ReadAllBytes(filename);
     }
 
     [HttpGet("camerainfo")]
-    public async Task<IEnumerable<CameraInfo>> GetCameras()
+    public async Task<string> GetCameras()
     {
         var builder = new CommandOptionsBuilder().WithListCameras();
         var args = builder.GetArguments();
 
         using var process = new ProcessRunner(ProcessSettingsFactory.CreateForLibcamerastill());
-        var text = await process.ExecuteReadOutputAsStringAsync(args);
-        return await CameraInfo.From(text);
+        return await process.ExecuteReadOutputAsStringAsync(args);
     }
 }
