@@ -10,11 +10,10 @@ namespace PlantMonitorControl.Features.MotorMovement;
 public class MotorMovementController(IEnvironmentConfiguration configuration) : ControllerBase
 {
     [HttpPost()]
-    public async Task MoveMotor(int steps)
+    public void MoveMotor(int steps)
     {
         var sw = new Stopwatch();
-        var microSecondsPerTick = 1000L * 1000L / Stopwatch.Frequency;
-        Console.WriteLine(Stopwatch.IsHighResolution + ", Ticks per second: " + Stopwatch.Frequency + ", Microseconds per Tick: " + microSecondsPerTick);
+        var microSecondsPerTick = 1000d * 1000d / Stopwatch.Frequency;
         using var controller = new GpioController(PinNumberingScheme.Board);
         var pinout = configuration.MotorPinout;
         controller.OpenPin(pinout.Direction, PinMode.Output);
@@ -28,7 +27,7 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
         controller.Write(pinout.Enable, locked);
         controller.Write(pinout.Direction, steps < 0 ? left : right);
         steps = Math.Abs(steps);
-        var rampFunction = steps.CreateRampFunction(500, 20000);
+        var rampFunction = steps.CreateRampFunction(500, 5000, 300);
         for (var i = 0; i < steps; i++)
         {
             var delay = (int)(rampFunction(i) * 0.5f);
