@@ -45,7 +45,7 @@
 	}
 	async function testMovement(device: string) {
 		const motorMovementClient = new MotorMovementClient(`https://${device}`).withTimeout(10000);
-		await motorMovementClient.moveMotor(10, 1000, 5000, 100);
+		await motorMovementClient.moveMotor(-1500, 1000, 10000, 300, false);
 	}
 	async function getDeviceStatus() {
 		for (var i = 0; i < devices.length; i++) {
