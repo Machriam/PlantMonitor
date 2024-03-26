@@ -26,7 +26,7 @@ public class DeviceConnectionTester(IEnvironmentConfiguration configuration) : I
     private static async Task<DeviceConnection> PingIp(string ip)
     {
         DeviceConnection deviceConnection = new();
-        for (var i = 0; i < 3; i++)
+        for (var i = 0; i < 30; i++)
         {
             var ping = new Ping();
             var pingResult = await ping.SendPingAsync(ip, 100);
@@ -36,7 +36,7 @@ public class DeviceConnectionTester(IEnvironmentConfiguration configuration) : I
                 return new DeviceConnection(ip, success);
             }
             ping.Dispose();
-            await Task.Delay(10);
+            await Task.Delay(100);
         }
         return deviceConnection;
     }
