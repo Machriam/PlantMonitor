@@ -108,7 +108,7 @@ export class ImageTakingClient extends PlantMonitorControlApiBase implements IIm
 
 export interface IMotorMovementClient {
 
-    moveMotor(steps?: number | undefined): Promise<void>;
+    moveMotor(steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void>;
 }
 
 export class MotorMovementClient extends PlantMonitorControlApiBase implements IMotorMovementClient {
@@ -122,12 +122,24 @@ export class MotorMovementClient extends PlantMonitorControlApiBase implements I
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    moveMotor(steps?: number | undefined): Promise<void> {
+    moveMotor(steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void> {
         let url_ = this.baseUrl + "/MotorMovement?";
         if (steps === null)
             throw new Error("The parameter 'steps' cannot be null.");
         else if (steps !== undefined)
             url_ += "steps=" + encodeURIComponent("" + steps) + "&";
+        if (minTime === null)
+            throw new Error("The parameter 'minTime' cannot be null.");
+        else if (minTime !== undefined)
+            url_ += "minTime=" + encodeURIComponent("" + minTime) + "&";
+        if (maxTime === null)
+            throw new Error("The parameter 'maxTime' cannot be null.");
+        else if (maxTime !== undefined)
+            url_ += "maxTime=" + encodeURIComponent("" + maxTime) + "&";
+        if (rampLength === null)
+            throw new Error("The parameter 'rampLength' cannot be null.");
+        else if (rampLength !== undefined)
+            url_ += "rampLength=" + encodeURIComponent("" + rampLength) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {

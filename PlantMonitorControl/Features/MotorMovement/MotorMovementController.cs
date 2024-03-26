@@ -10,7 +10,7 @@ namespace PlantMonitorControl.Features.MotorMovement;
 public class MotorMovementController(IEnvironmentConfiguration configuration) : ControllerBase
 {
     [HttpPost()]
-    public void MoveMotor(int steps)
+    public void MoveMotor(int steps, int minTime, int maxTime, int rampLength)
     {
         var sw = new Stopwatch();
         var microSecondsPerTick = 1000d * 1000d / Stopwatch.Frequency;
@@ -27,7 +27,7 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
         controller.Write(pinout.Enable, locked);
         controller.Write(pinout.Direction, steps < 0 ? left : right);
         steps = Math.Abs(steps);
-        var rampFunction = steps.CreateRampFunction(500, 5000, 300);
+        var rampFunction = steps.CreateRampFunction(minTime, maxTime, rampLength);
         for (var i = 0; i < steps; i++)
         {
             var delay = (int)(rampFunction(i) * 0.5f);
