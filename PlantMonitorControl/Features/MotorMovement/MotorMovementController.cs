@@ -27,7 +27,7 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
         controller.Write(pinout.Enable, locked);
         controller.Write(pinout.Direction, steps < 0 ? left : right);
         steps = Math.Abs(steps);
-        var rampFunction = steps.CreateRampFunction(minTime, maxTime, rampLength);
+        var rampFunction = steps.CreateLinearRampFunction(minTime, maxTime, rampLength);
         for (var i = 0; i < steps; i++)
         {
             var delay = (int)(rampFunction(i) * 0.5f);
