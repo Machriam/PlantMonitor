@@ -11,6 +11,12 @@ rpicam-raw -n -t 5000 --segment 1 -o test_%04d.raw --mode 4608:2592:10:P --brigh
   - 4 Byte: MSB R
   - 5 Byte: LSB BGGR, each 2 Bits
 
+### Image Taking Flir Lepton
+- `cvlc -vvv v4l2://dev/video0 --v4l2-width 160 --v4l2-height 120 --sout "#transcode{vcodec=mp2v,acodec=mpga,fps=30}:rtp{mux=ts,sdp=rtsp://:8080/test.sdp}"`
+- https://cdn.sparkfun.com/assets/f/6/3/4/c/Lepton_Engineering_Datasheet_Rev200.pdf
+- https://media.digikey.com/pdf/Data%20Sheets/GroupGets%20PDFs/PURETHERMAL-3_Rev2_Oct2022.pdf
+- https://github.com/rob-coco/leptonic/tree/bookworm-update
+- https://github.com/groupgets/LeptonModule/wiki
 
 ### Example Conversion
 - [Forum Link](https://forums.raspberrypi.com/viewtopic.php?t=345908)
