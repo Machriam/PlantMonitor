@@ -10,6 +10,8 @@ public interface IDeviceConnectionTester
     Task<DeviceHealth> CheckHealth(string ip);
 
     Task<IEnumerable<string>> GetSSHDevices(HashSet<string> ipsToExclude);
+
+    Task<DeviceConnection> PingIp(string ip, int retryTimes = 30);
 }
 
 public class DeviceConnectionTester(IEnvironmentConfiguration configuration) : IDeviceConnectionTester
@@ -33,10 +35,10 @@ public class DeviceConnectionTester(IEnvironmentConfiguration configuration) : I
             .Select(pt => pt.Result.Ip);
     }
 
-    private static async Task<DeviceConnection> PingIp(string ip)
+    public async Task<DeviceConnection> PingIp(string ip, int retryTimes = 30)
     {
         DeviceConnection deviceConnection = new();
-        for (var i = 0; i < 30; i++)
+        for (var i = 0; i < retryTimes; i++)
         {
             var ping = new Ping();
             var pingResult = await ping.SendPingAsync(ip, 100);

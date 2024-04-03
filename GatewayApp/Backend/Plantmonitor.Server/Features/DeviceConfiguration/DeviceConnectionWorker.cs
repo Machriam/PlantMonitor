@@ -36,7 +36,11 @@ public class DeviceConnectionWorker(IDeviceConnectionTester tester, IDeviceConne
             var (result, error) = await tester.CheckHealth(ip).Try();
             if (result != null && error.IsEmpty()) _deviceList[ip] = new(result, 0, ip);
             else logger.Log(LogLevel.Information, errorTemplate, ip, error);
-            if (_deviceList[ip].RetryTimes >= 5) _deviceList.Remove(ip, out _);
+            if (_deviceList[ip].RetryTimes >= 5)
+            {
+                var (_, success) = await tester.PingIp(ip, 5);
+                if (!success) _deviceList.Remove(ip, out _);
+            }
         }
         lock (_httpPingLock) _currentlyDevicePinging = false;
         eventBus.UpdateDeviceHealths(_deviceList.Values);
