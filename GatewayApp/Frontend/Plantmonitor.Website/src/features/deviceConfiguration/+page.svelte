@@ -35,8 +35,10 @@
 		var certificate = await configurationClient.getCertificateData();
 		const command =
 			`sudo mkdir /srv/certs/;echo '${certificate.certificate}' | sudo tee /srv/certs/plantmonitor.crt;echo '${certificate.key}' | sudo tee /srv/certs/plantmonitor.key;` +
-			` sudo apt-get update;sudo apt-get install -y git;` +
-			` git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;`;
+			`sudo apt-get update;sudo apt-get install -y tmux;tmux new '` +
+			`sudo apt-get install -y git;` +
+			` git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;` +
+			`exec bash;'`;
 		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
 	}
 	async function showPreviewImage(device: string) {
@@ -45,7 +47,7 @@
 	}
 	async function testMovement(device: string) {
 		const motorMovementClient = new MotorMovementClient(`https://${device}`).withTimeout(10000);
-		await motorMovementClient.moveMotor(-1500, 1000, 10000, 300, false);
+		await motorMovementClient.moveMotor(-1500, 1000, 10000, 300);
 	}
 	async function getDeviceStatus() {
 		for (var i = 0; i < devices.length; i++) {
