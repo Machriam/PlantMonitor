@@ -7,7 +7,7 @@ public record struct DeviceConnection(string Ip, bool SshIsOpen);
 
 [ApiController]
 [Route("api/[controller]")]
-public class DeviceConfigurationController(IDeviceConnectionTester connectionTester, IEnvironmentConfiguration configuration)
+public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, IEnvironmentConfiguration configuration)
 {
     public record struct WebSshCredentials(string Url, string Password, string User);
     public record struct CertificateData(string Certificate, string Key);
@@ -25,8 +25,8 @@ public class DeviceConfigurationController(IDeviceConnectionTester connectionTes
     }
 
     [HttpGet("devices")]
-    public async Task<IEnumerable<string>> GetDevices()
+    public IEnumerable<DeviceHealthState> GetDevices()
     {
-        return await connectionTester.GetSSHDevices();
+        return eventBus.GetDeviceHealthInformation();
     }
 }

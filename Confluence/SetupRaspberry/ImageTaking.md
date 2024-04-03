@@ -1,7 +1,7 @@
 ### Packed Still Images
 
 ```
-libcamera-raw -n -t 5000 --segment 1 -o test_%04d.raw --mode 4608:2592:10:P --brightness 0.0 --contrast 0.7 --exposure normal --framerate 15 --gain 0 --awb auto --metering centre --saturation 1.0 --sharpness 1.5 --denoise off
+rpicam-raw -n -t 5000 --segment 1 -o test_%04d.raw --mode 4608:2592:10:P --brightness 0.0 --contrast 0.7 --exposure normal --framerate 15 --gain 0 --awb auto --metering centre --saturation 1.0 --sharpness 1.5 --denoise off
 ```
 - Packed in 10 Bits has the following Format:
   - Raw stream: 4608x2592 stride 5760 format SBGGR10_CSI2P
@@ -11,6 +11,18 @@ libcamera-raw -n -t 5000 --segment 1 -o test_%04d.raw --mode 4608:2592:10:P --br
   - 4 Byte: MSB R
   - 5 Byte: LSB BGGR, each 2 Bits
 
+### Image Taking Flir Lepton
+- `cvlc -vvv v4l2://dev/video0 --v4l2-width 160 --v4l2-height 120 --sout "#transcode{vcodec=mp2v,acodec=mpga,fps=30}:rtp{mux=ts,sdp=rtsp://:8080/test.sdp}"`
+  - Documentation of Producer does not work correctly, only vlc with a desktop environment worked. Over SSH opening of /dev/video0 was not possible
+  - The documentation says, that over SPI metadata can be read out like current module temperature 
+  - https://forums.openmv.io/t/lepton-3-5-disabling-enabling-shutter-ffc-manually/7413/15
+  - AGC must be deactivated to read exact temperatures [See here](https://hackaday.io/project/159615-lepton-35-thermal-imaging-camera/log/149651-lepton-agc)
+    - Complete Hacker.io project logs: https://hackaday.io/project/159615/logs?sort=oldest
+- https://cdn.sparkfun.com/assets/f/6/3/4/c/Lepton_Engineering_Datasheet_Rev200.pdf
+  - https://cdn.sparkfun.com/assets/0/6/d/2/e/16465-FLIRLepton-SoftwareIDD.pdf
+- https://media.digikey.com/pdf/Data%20Sheets/GroupGets%20PDFs/PURETHERMAL-3_Rev2_Oct2022.pdf
+- https://github.com/rob-coco/leptonic/tree/bookworm-update
+- https://github.com/groupgets/LeptonModule/wiki
 
 ### Example Conversion
 - [Forum Link](https://forums.raspberrypi.com/viewtopic.php?t=345908)

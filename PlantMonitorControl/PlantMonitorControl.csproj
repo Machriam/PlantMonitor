@@ -7,10 +7,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Iot.Device.Bindings" Version="3.1.0" />
 		<PackageReference Include="NSwag.AspNetCore" Version="14.0.3" />
 		<PackageReference Include="NSwag.MSBuild" Version="14.0.3" />
 		<PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+		<PackageReference Include="System.Device.Gpio" Version="3.1.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\GatewayApp\Backend\Plantmonitor.Shared\Plantmonitor.Shared.csproj" />
 	</ItemGroup>
 
 	<PropertyGroup>

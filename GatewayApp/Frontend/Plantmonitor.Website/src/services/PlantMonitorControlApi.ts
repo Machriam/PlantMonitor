@@ -10,6 +10,220 @@
 
 import { PlantMonitorControlApiBase } from "./PlantMonitorControlApiBase";
 
+export interface IImageTakingClient {
+
+    captureImage(): Promise<FileResponse>;
+
+    getCameras(): Promise<string>;
+}
+
+export class ImageTakingClient extends PlantMonitorControlApiBase implements IImageTakingClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    captureImage(): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/ImageTaking/previewimage";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/octet-stream"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processCaptureImage(_response));
+        });
+    }
+
+    protected processCaptureImage(response: Response): Promise<FileResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200 || status === 206) {
+            const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
+            if (fileName) {
+                fileName = decodeURIComponent(fileName);
+            } else {
+                fileNameMatch = contentDisposition ? /filename="?([^"]*?)"?(;|$)/g.exec(contentDisposition) : undefined;
+                fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[1] : undefined;
+            }
+            return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FileResponse>(null as any);
+    }
+
+    getCameras(): Promise<string> {
+        let url_ = this.baseUrl + "/ImageTaking/camerainfo";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetCameras(_response));
+        });
+    }
+
+    protected processGetCameras(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+}
+
+export interface IMotorMovementClient {
+
+    moveMotor(steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void>;
+}
+
+export class MotorMovementClient extends PlantMonitorControlApiBase implements IMotorMovementClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    moveMotor(steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/MotorMovement?";
+        if (steps === null)
+            throw new Error("The parameter 'steps' cannot be null.");
+        else if (steps !== undefined)
+            url_ += "steps=" + encodeURIComponent("" + steps) + "&";
+        if (minTime === null)
+            throw new Error("The parameter 'minTime' cannot be null.");
+        else if (minTime !== undefined)
+            url_ += "minTime=" + encodeURIComponent("" + minTime) + "&";
+        if (maxTime === null)
+            throw new Error("The parameter 'maxTime' cannot be null.");
+        else if (maxTime !== undefined)
+            url_ += "maxTime=" + encodeURIComponent("" + maxTime) + "&";
+        if (rampLength === null)
+            throw new Error("The parameter 'rampLength' cannot be null.");
+        else if (rampLength !== undefined)
+            url_ += "rampLength=" + encodeURIComponent("" + rampLength) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processMoveMotor(_response));
+        });
+    }
+
+    protected processMoveMotor(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
+export interface IHealthClient {
+
+    getDeviceHealth(): Promise<DeviceHealth>;
+}
+
+export class HealthClient extends PlantMonitorControlApiBase implements IHealthClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    getDeviceHealth(): Promise<DeviceHealth> {
+        let url_ = this.baseUrl + "/api/Health";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetDeviceHealth(_response));
+        });
+    }
+
+    protected processGetDeviceHealth(response: Response): Promise<DeviceHealth> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DeviceHealth.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DeviceHealth>(null as any);
+    }
+}
+
 export interface IWeatherForecastClient {
 
     get(): Promise<WeatherForecast[]>;
@@ -68,6 +282,66 @@ export class WeatherForecastClient extends PlantMonitorControlApiBase implements
         }
         return Promise.resolve<WeatherForecast[]>(null as any);
     }
+}
+
+export class DeviceHealth implements IDeviceHealth {
+    deviceName?: string;
+    deviceId?: string;
+    state?: HealthState;
+
+    constructor(data?: IDeviceHealth) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.deviceName = _data["deviceName"];
+            this.deviceId = _data["deviceId"];
+            this.state = _data["state"];
+        }
+    }
+
+    static fromJS(data: any): DeviceHealth {
+        data = typeof data === 'object' ? data : {};
+        let result = new DeviceHealth();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["deviceName"] = this.deviceName;
+        data["deviceId"] = this.deviceId;
+        data["state"] = this.state;
+        return data;
+    }
+
+    clone(): DeviceHealth {
+        const json = this.toJSON();
+        let result = new DeviceHealth();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDeviceHealth {
+    deviceName?: string;
+    deviceId?: string;
+    state?: HealthState;
+}
+
+export enum HealthState {
+    NA = 0,
+    NoirCameraFound = 1,
+    ThermalCameraFound = 2,
+    NoirCameraFunctional = 4,
+    ThermalCameraFunctional = 8,
+    SystemCalibrated = 16,
 }
 
 export class WeatherForecast implements IWeatherForecast {
@@ -131,6 +405,13 @@ function formatDate(d: Date) {
         (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate());
 }
 
+export interface FileResponse {
+    data: Blob;
+    status: number;
+    fileName?: string;
+    headers?: { [name: string]: any };
+}
+
 export class ApiException extends Error {
     override message: string;
     status: number;
@@ -161,3 +442,5 @@ function throwException(message: string, status: number, response: string, heade
     else
         throw new ApiException(message, status, response, headers, null);
 }
+
+/* eslint-disable @typescript-eslint/no-unused-vars */

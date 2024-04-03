@@ -12,6 +12,8 @@ builder.Host.UseSerilog();
 
 builder.Services.AddTransient<IEnvironmentConfiguration, EnvironmentConfiguration>();
 builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>();
+builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
+builder.Services.AddHostedService<DeviceConnectionWorker>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

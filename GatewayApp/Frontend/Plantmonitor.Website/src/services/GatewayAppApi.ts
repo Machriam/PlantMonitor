@@ -16,7 +16,7 @@ export interface IDeviceConfigurationClient {
 
     getWebSshCredentials(): Promise<WebSshCredentials>;
 
-    getDevices(): Promise<string[]>;
+    getDevices(): Promise<DeviceHealthState[]>;
 }
 
 export class DeviceConfigurationClient extends GatewayAppApiBase implements IDeviceConfigurationClient {
@@ -102,7 +102,7 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
         return Promise.resolve<WebSshCredentials>(null as any);
     }
 
-    getDevices(): Promise<string[]> {
+    getDevices(): Promise<DeviceHealthState[]> {
         let url_ = this.baseUrl + "/api/DeviceConfiguration/devices";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -120,7 +120,7 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
         });
     }
 
-    protected processGetDevices(response: Response): Promise<string[]> {
+    protected processGetDevices(response: Response): Promise<DeviceHealthState[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -130,7 +130,7 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(item);
+                    result200!.push(DeviceHealthState.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -142,7 +142,7 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<string[]>(null as any);
+        return Promise.resolve<DeviceHealthState[]>(null as any);
     }
 }
 
@@ -302,6 +302,117 @@ export interface IWebSshCredentials {
     url?: string;
     password?: string;
     user?: string;
+}
+
+export class DeviceHealthState implements IDeviceHealthState {
+    health?: DeviceHealth;
+    retryTimes?: number;
+    ip?: string;
+
+    constructor(data?: IDeviceHealthState) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.health = _data["health"] ? DeviceHealth.fromJS(_data["health"]) : <any>undefined;
+            this.retryTimes = _data["retryTimes"];
+            this.ip = _data["ip"];
+        }
+    }
+
+    static fromJS(data: any): DeviceHealthState {
+        data = typeof data === 'object' ? data : {};
+        let result = new DeviceHealthState();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["health"] = this.health ? this.health.toJSON() : <any>undefined;
+        data["retryTimes"] = this.retryTimes;
+        data["ip"] = this.ip;
+        return data;
+    }
+
+    clone(): DeviceHealthState {
+        const json = this.toJSON();
+        let result = new DeviceHealthState();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDeviceHealthState {
+    health?: DeviceHealth;
+    retryTimes?: number;
+    ip?: string;
+}
+
+export class DeviceHealth implements IDeviceHealth {
+    deviceName?: string;
+    deviceId?: string;
+    state?: HealthState;
+
+    constructor(data?: IDeviceHealth) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.deviceName = _data["deviceName"];
+            this.deviceId = _data["deviceId"];
+            this.state = _data["state"];
+        }
+    }
+
+    static fromJS(data: any): DeviceHealth {
+        data = typeof data === 'object' ? data : {};
+        let result = new DeviceHealth();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["deviceName"] = this.deviceName;
+        data["deviceId"] = this.deviceId;
+        data["state"] = this.state;
+        return data;
+    }
+
+    clone(): DeviceHealth {
+        const json = this.toJSON();
+        let result = new DeviceHealth();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDeviceHealth {
+    deviceName?: string;
+    deviceId?: string;
+    state?: HealthState;
+}
+
+export enum HealthState {
+    NA = 0,
+    NoirCameraFound = 1,
+    ThermalCameraFound = 2,
+    NoirCameraFunctional = 4,
+    ThermalCameraFunctional = 8,
+    SystemCalibrated = 16,
 }
 
 export class WeatherForecast implements IWeatherForecast {
