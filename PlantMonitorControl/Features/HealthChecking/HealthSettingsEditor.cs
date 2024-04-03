@@ -12,26 +12,27 @@ public interface IHealthSettingsEditor
 
 public class HealthSettingsEditor : IHealthSettingsEditor
 {
-    private const string HealthSettingsFile = "~/devicehealth.json";
+    private const string HealthSettingsFile = "devicehealth.json";
+    private static readonly string _filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), HealthSettingsFile);
 
     public DeviceHealth GetHealth()
     {
-        if (!File.Exists(HealthSettingsFile))
+        if (!File.Exists(_filePath))
         {
-            File.WriteAllText(HealthSettingsFile, new DeviceHealth()
+            File.WriteAllText(_filePath, new DeviceHealth()
             {
                 DeviceId = Guid.NewGuid().ToString(),
                 DeviceName = new PlantList().GetRandomPlant() + $" {Random.Shared.Next(1, 100)}",
                 State = HealthState.NA
             }.AsJson());
         }
-        return File.ReadAllText(HealthSettingsFile).FromJson<DeviceHealth>() ?? throw new Exception("Could not read devicehealth.json");
+        return File.ReadAllText(_filePath).FromJson<DeviceHealth>() ?? throw new Exception("Could not read devicehealth.json");
     }
 
     public void WriteHealthState(HealthState state)
     {
         var health = GetHealth();
         health.State = state;
-        File.WriteAllText(HealthSettingsFile, health.AsJson());
+        File.WriteAllText(_filePath, health.AsJson());
     }
 }
