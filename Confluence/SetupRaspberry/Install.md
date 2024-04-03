@@ -50,3 +50,4 @@ openssl req -newkey rsa:2048 -x509 -nodes -keyout ./plantmonitor.key -new -out .
 1. The generated certificate paths must be added in the appsettings file of the Gateway Server
 2. The certificate can be installed by clicking on the crt file
 3. During the installation place the certificate into the `Trusted Root Certification Authorities`
+
