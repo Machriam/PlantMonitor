@@ -1,6 +1,7 @@
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.HealthChecking;
 using Serilog;
+using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
 var logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "server.logs");
@@ -13,6 +14,10 @@ Log.Logger = new LoggerConfiguration()
 
 Log.Information("Starting PlantMonitor");
 builder.Host.UseSerilog();
+builder.Configuration
+    .SetBasePath(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? builder.Environment.ContentRootPath : "/srv/dist/")
+    .AddJsonFile("appsettings.json")
+    .AddJsonFile("appsettings.Development.json", optional: true);
 
 var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
