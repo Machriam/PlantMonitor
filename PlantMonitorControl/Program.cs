@@ -3,9 +3,12 @@ using PlantMonitorControl.Features.HealthChecking;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+var logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "server.logs");
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
+    .WriteTo.File(logFile, Serilog.Events.LogEventLevel.Information, fileSizeLimitBytes: 1024 * 1024 * 8,
+                  rollOnFileSizeLimit: true, retainedFileCountLimit: 4)
     .CreateLogger();
 
 Log.Information("Starting PlantMonitor");
