@@ -1,4 +1,5 @@
 ﻿using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Shared.Features.HealthChecking;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
@@ -6,17 +7,26 @@ namespace Plantmonitor.Server.Features.DeviceConfiguration;
 
 public interface IDeviceConnectionTester
 {
-    Task<IEnumerable<string>> GetSSHDevices();
+    Task<DeviceHealth> CheckHealth(string ip);
+
+    Task<IEnumerable<string>> GetSSHDevices(HashSet<string> ipsToExclude);
 }
 
 public class DeviceConnectionTester(IEnvironmentConfiguration configuration) : IDeviceConnectionTester
 {
-    public async Task<IEnumerable<string>> GetSSHDevices()
+    private static readonly HttpClient _client = new();
+
+    public async Task<DeviceHealth> CheckHealth(string ip)
+    {
+        return await _client.GetFromJsonAsync<DeviceHealth>($"https://{ip}/api/health") ?? new();
+    }
+
+    public async Task<IEnumerable<string>> GetSSHDevices(HashSet<string> ipsToExclude)
     {
         var from = configuration.IpScanRange_From();
         var to = configuration.IpScanRange_To();
         var pingTasks = new List<Task<DeviceConnection>>();
-        foreach (var ip in from.ToIpRange(to)) pingTasks.Add(PingIp(ip));
+        foreach (var ip in from.ToIpRange(to).Where(ip => !ipsToExclude.Contains(ip))) pingTasks.Add(PingIp(ip));
         await Task.WhenAll(pingTasks);
         return pingTasks
             .Where(pt => pt.Result.SshIsOpen && !pt.Result.Ip.IsEmpty())

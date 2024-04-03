@@ -1,19 +1,17 @@
 <script lang="ts">
 	'@hmr:keep-all';
 	import { onMount } from 'svelte';
-	import { DeviceConfigurationClient, WebSshCredentials } from '../../services/GatewayAppApi';
+	import {
+		DeviceConfigurationClient,
+		DeviceHealthState,
+		WebSshCredentials
+	} from '../../services/GatewayAppApi';
 	import 'typeExtensions';
 	import { Task } from '~/types/task';
-	import {
-		ImageTakingClient,
-		MotorMovementClient,
-		WeatherForecast,
-		WeatherForecastClient
-	} from '~/services/PlantMonitorControlApi';
+	import { ImageTakingClient, MotorMovementClient } from '~/services/PlantMonitorControlApi';
 
 	let configurationClient: DeviceConfigurationClient;
-	let devices: string[] = [];
-	let cameraStatus: Map<string, string> = new Map<string, string>();
+	let devices: DeviceHealthState[] = [];
 	let previewImage = '';
 	let searchingForDevices = true;
 	let webSshLink = ''; // @hmr:keep
@@ -24,12 +22,14 @@
 		webSshCredentials = await configurationClient.getWebSshCredentials();
 		searchingForDevices = false;
 	});
-	async function openConsole(ip: string): Promise<void> {
+	async function openConsole(ip: string | undefined): Promise<void> {
+		if (ip == undefined) return;
 		webSshLink = '';
 		await Task.delay(100);
 		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
 	}
-	async function configureDevice(ip: string): Promise<void> {
+	async function configureDevice(ip: string | undefined): Promise<void> {
+		if (ip == undefined) return;
 		webSshLink = '';
 		await Task.delay(100);
 		var certificate = await configurationClient.getCertificateData();
@@ -41,26 +41,23 @@
 			`exec bash;'`;
 		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
 	}
-	async function showPreviewImage(device: string) {
+	async function showPreviewImage(device: string | undefined) {
+		if (device == undefined) return;
 		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
 		previewImage = await (await imageTakingClient.captureImage()).data.asBase64Url();
 	}
-	async function testMovement(device: string) {
+	async function testMovement(device: string | undefined) {
+		if (device == undefined) return;
 		const motorMovementClient = new MotorMovementClient(`https://${device}`).withTimeout(10000);
 		await motorMovementClient.moveMotor(-1500, 1000, 10000, 300);
 	}
 	async function getDeviceStatus() {
-		for (var i = 0; i < devices.length; i++) {
-			const imageTakingClient = new ImageTakingClient(`https://${devices[i]}`).withTimeout(10000);
-			let result: string | undefined;
-			try {
-				result = await imageTakingClient.getCameras();
-				cameraStatus.set(devices[i], result);
-			} catch (ex) {
-				cameraStatus.set(devices[i], 'NA');
-			}
+		const client = new DeviceConfigurationClient();
+		try {
+			devices = await client.getDevices();
+		} catch (ex) {
+			devices = [];
 		}
-		cameraStatus = cameraStatus;
 	}
 </script>
 
@@ -84,22 +81,22 @@
 				</thead>
 				<tbody>
 					<tr>
-						<td>{device}</td>
+						<td>{device.ip}</td>
 						<td class="d-flex flex-row justify-content-between">
-							<button on:click={() => configureDevice(device)} class="btn btn-primary">
+							<button on:click={() => configureDevice(device.ip)} class="btn btn-primary">
 								Configure
 							</button>
-							<button on:click={() => showPreviewImage(device)} class="btn btn-primary">
+							<button on:click={() => showPreviewImage(device.ip)} class="btn btn-primary">
 								Preview Image
 							</button>
-							<button on:click={() => testMovement(device)} class="btn btn-primary">
+							<button on:click={() => testMovement(device.ip)} class="btn btn-primary">
 								Test Movement
 							</button>
-							<button on:click={() => openConsole(device)} class="btn btn-primary">
+							<button on:click={() => openConsole(device.ip)} class="btn btn-primary">
 								Open Console
 							</button>
 						</td>
-						<td>{cameraStatus.get(device)}</td>
+						<td>{device.health?.toJSON()}</td>
 					</tr>
 				</tbody>
 			</table>

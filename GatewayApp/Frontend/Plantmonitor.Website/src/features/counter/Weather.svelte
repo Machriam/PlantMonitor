@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { WeatherForecast, WeatherForecastClient } from '../../services/GeneratedApi';
+	import { WeatherForecast, WeatherForecastClient } from '~/services/GatewayAppApi';
 	let _weatherData: WeatherForecast[] = [];
 
 	onMount(async () => {
