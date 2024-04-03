@@ -35,9 +35,10 @@
 		var certificate = await configurationClient.getCertificateData();
 		const command =
 			`sudo mkdir /srv/certs/;echo '${certificate.certificate}' | sudo tee /srv/certs/plantmonitor.crt;echo '${certificate.key}' | sudo tee /srv/certs/plantmonitor.key;` +
+			`sudo echo -e "set -g mouse on\\nset -g history-limit 4096" > ~/.tmux.conf;` +
 			`sudo apt-get update;sudo apt-get install -y tmux;tmux new '` +
 			`sudo apt-get install -y git;` +
-			` git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;` +
+			` git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor;git reset --hard;git pull; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;` +
 			`exec bash;'`;
 		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
 	}
@@ -114,4 +115,5 @@
 			<iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>
 		{/if}
 	</div>
+	<div style="height: 20vh;"></div>
 </div>
