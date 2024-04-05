@@ -32,7 +32,7 @@ jobs:
               pull_number: context.issue.number
             });
 
-            const commitMessages = "\n-" + commits.map(commit => commit.commit.message).join("\n- ");
+            const commitMessages = "\n- " + commits.map(commit =>commit.sha + " " + commit.commit.message).join("\n- ");
 
             await github.rest.pulls.update({
               owner: context.repo.owner,
