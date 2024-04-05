@@ -32,11 +32,11 @@ jobs:
               pull_number: context.issue.number
             });
 
-            const commitMessages = commits.map(commit => commit.commit.message).join("\n");
+            const commitMessages = commits.map(commit => commit.commit.message).join("\n- ");
 
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: context.issue.number,
-              body: `${pullRequest.body}\n\nCommit messages:\n${commitMessages}`
+              body: `${pullRequest.body}\n\n### Commit messages for #{context.issue.number}\n${commitMessages}`
             });
