@@ -1,0 +1,68 @@
+﻿using Iot.Device.Camera.Settings;
+using Iot.Device.Common;
+using Plantmonitor.Shared.Extensions;
+
+namespace PlantMonitorControl.Features.MotorMovement;
+
+public interface ICameraInterop
+{
+    public const string VisCamera = nameof(VisCamera);
+    public const string IrCamera = nameof(IrCamera);
+
+    Task<bool> CameraFound();
+
+    Task<bool> CameraFunctional();
+
+    Task<string> CameraInfo();
+
+    Task<IResult> CaptureTestImage();
+}
+
+public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
+{
+    private bool _cameraFound;
+    private bool _deviceFunctional;
+
+    public async Task<bool> CameraFunctional()
+    {
+        if (!_deviceFunctional) await CaptureTestImage();
+        return _deviceFunctional;
+    }
+
+    public async Task<bool> CameraFound()
+    {
+        if (_cameraFound) return _cameraFound;
+        var info = await CameraInfo();
+        if (!info.Contains("no camera", StringComparison.InvariantCultureIgnoreCase) && info.Length > 10) _cameraFound = true;
+        return _cameraFound;
+    }
+
+    public async Task<string> CameraInfo()
+    {
+        var builder = new CommandOptionsBuilder().WithListCameras();
+        var args = builder.GetArguments();
+
+        using var process = new ProcessRunner(ProcessSettingsFactory.CreateForLibcamerastill());
+        return await process.ExecuteReadOutputAsStringAsync(args);
+    }
+
+    public async Task<IResult> CaptureTestImage()
+    {
+        var builder = new CommandOptionsBuilder()
+                .WithTimeout(1)
+                .WithVflip()
+                .WithHflip()
+                .WithPictureOptions(100, "png")
+                .WithResolution(640, 480);
+        var args = builder.GetArguments();
+        using var process = new ProcessRunner(ProcessSettingsFactory.CreateForLibcamerastill());
+
+        var ms = new MemoryStream();
+        await process.ExecuteAsync(args, ms);
+        ms.Position = 0;
+        var success = ms.Length > 1000;
+        _deviceFunctional = success;
+        _cameraFound |= success;
+        return Results.File(ms, "image/png");
+    }
+}

@@ -7,7 +7,7 @@ public interface IHealthSettingsEditor
 {
     DeviceHealth GetHealth();
 
-    void WriteHealthState(HealthState state);
+    DeviceHealth UpdateHealthState(params (HealthState state, bool isActive)[] data);
 }
 
 public class HealthSettingsEditor : IHealthSettingsEditor
@@ -29,10 +29,14 @@ public class HealthSettingsEditor : IHealthSettingsEditor
         return File.ReadAllText(_filePath).FromJson<DeviceHealth>() ?? throw new Exception("Could not read devicehealth.json");
     }
 
-    public void WriteHealthState(HealthState state)
+    public DeviceHealth UpdateHealthState(params (HealthState state, bool isActive)[] data)
     {
         var health = GetHealth();
-        health.State = state;
+        foreach (var (state, isActive) in data)
+        {
+            health.State |= (isActive ? state : ~state);
+        }
         File.WriteAllText(_filePath, health.AsJson());
+        return health;
     }
 }

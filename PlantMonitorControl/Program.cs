@@ -1,5 +1,6 @@
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.HealthChecking;
+using PlantMonitorControl.Features.MotorMovement;
 using Serilog;
 using System.Runtime.InteropServices;
 
@@ -22,6 +23,7 @@ builder.Configuration
 var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
+builder.Services.AddKeyedTransient<ICameraInterop, RaspberryCameraInterop>(ICameraInterop.VisCamera);
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
