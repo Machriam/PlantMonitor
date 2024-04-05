@@ -77,27 +77,35 @@
 					<tr>
 						<th>IP</th>
 						<th>Action</th>
-						<th>Data</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr>
-						<td>{device.ip}</td>
-						<td class="d-flex flex-row justify-content-between">
+						<td class="col-md-3">
+							{#if device.health != undefined}
+								<span class="badge bg-success">{device.ip}</span><br />
+								<span>{device.health.deviceName}</span><br />
+								<span>{device.health.deviceId}</span>
+							{:else}
+								<span class="badge bg-danger">{device.ip}</span>
+							{/if}
+						</td>
+						<td>
 							<button on:click={() => configureDevice(device.ip)} class="btn btn-primary">
 								Configure
 							</button>
-							<button on:click={() => showPreviewImage(device.ip)} class="btn btn-primary">
-								Preview Image
-							</button>
-							<button on:click={() => testMovement(device.ip)} class="btn btn-primary">
-								Test Movement
-							</button>
+							{#if device.health != undefined}
+								<button on:click={() => showPreviewImage(device.ip)} class="btn btn-primary">
+									Preview Image
+								</button>
+								<button on:click={() => testMovement(device.ip)} class="btn btn-primary">
+									Test Movement
+								</button>
+							{/if}
 							<button on:click={() => openConsole(device.ip)} class="btn btn-primary">
 								Open Console
 							</button>
 						</td>
-						<td>{device.health?.toJSON()}</td>
 					</tr>
 				</tbody>
 			</table>
