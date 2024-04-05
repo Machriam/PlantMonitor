@@ -6,6 +6,7 @@ on:
       - main
 permissions: 
   pull-requests: write
+  issues: write
 jobs:
   update-pr-description:
     runs-on: ubuntu-latest
