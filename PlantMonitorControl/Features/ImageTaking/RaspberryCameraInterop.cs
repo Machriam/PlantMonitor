@@ -16,12 +16,17 @@ public interface ICameraInterop
     Task<string> CameraInfo();
 
     Task<IResult> CaptureTestImage();
+
+    Task<IResult> VideoStream();
 }
 
-public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
+public class RaspberryCameraInterop() : ICameraInterop
 {
     private bool _cameraFound;
     private bool _deviceFunctional;
+
+    private readonly ProcessSettings _videoProcessSettings = new() { Filename = "rpicam-vid", WorkingDirectory = null };
+    private readonly ProcessSettings _imageProcessSettings = new() { Filename = "rpicam-still", WorkingDirectory = null };
 
     public async Task<bool> CameraFunctional()
     {
@@ -37,12 +42,35 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         return _cameraFound;
     }
 
+    public async Task<IResult> VideoStream()
+    {
+        var builder = new CommandOptionsBuilder()
+        .WithContinuousStreaming()
+        .WithVflip()
+        .WithHflip()
+        .WithH264VideoOptions("baseline", "4", 15)
+        .WithResolution(640, 480);
+        var args = builder.GetArguments();
+        using var process = new ProcessRunner(_videoProcessSettings);
+
+        var ms = new MemoryStream();
+        var task = await process.ContinuousRunAsync(args, ms);
+        await Task.Delay(2000);
+        process.Dispose();
+        await (task.Try(async (x) => await x, out _) ?? Task.CompletedTask);
+        ms.Position = 0;
+        var success = ms.Length > 1000;
+        _deviceFunctional = success;
+        _cameraFound |= success;
+        return Results.File(ms, "video/mp4");
+    }
+
     public async Task<string> CameraInfo()
     {
         var builder = new CommandOptionsBuilder().WithListCameras();
         var args = builder.GetArguments();
 
-        using var process = new ProcessRunner(ProcessSettingsFactory.CreateForLibcamerastill());
+        using var process = new ProcessRunner(_imageProcessSettings);
         return await process.ExecuteReadOutputAsStringAsync(args);
     }
 
@@ -55,7 +83,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
                 .WithPictureOptions(100, "png")
                 .WithResolution(640, 480);
         var args = builder.GetArguments();
-        using var process = new ProcessRunner(ProcessSettingsFactory.CreateForLibcamerastill());
+        using var process = new ProcessRunner(_imageProcessSettings);
 
         var ms = new MemoryStream();
         await process.ExecuteAsync(args, ms);

@@ -14,15 +14,16 @@
 	let configurationClient: DeviceConfigurationClient;
 	let devices: DeviceHealthState[] = [];
 	let previewImage = '';
+	let previewVideo = '';
 	let searchingForDevices = true;
 	let webSshLink = ''; // @hmr:keep
-	let healthStateFormatter = function (state: HealthState) {
+	function healthStateFormatter(state: HealthState) {
 		const result = Object.getOwnPropertyNames(HealthState)
 			.filter((x) => !parseInt(x) && x != '0')
 			.filter((x) => (HealthState as unknown as { [key: string]: number })[x] & state);
 		if (result.length == 0) return [HealthState[HealthState.NA]];
 		return result;
-	};
+	}
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
 		configurationClient = new DeviceConfigurationClient();
@@ -59,6 +60,11 @@
 		if (device == undefined) return;
 		const motorMovementClient = new MotorMovementClient(`https://${device}`).withTimeout(10000);
 		await motorMovementClient.moveMotor(-1500, 1000, 10000, 300);
+	}
+	async function showTestVideo(device: string | undefined) {
+		if (device == undefined) return;
+		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
+		previewVideo = await (await imageTakingClient.getVideoTest()).data.asBase64Url();
 	}
 	async function getDeviceStatus() {
 		const client = new DeviceConfigurationClient();
@@ -107,6 +113,9 @@
 								<button on:click={() => showPreviewImage(device.ip)} class="btn btn-primary">
 									Preview Image
 								</button>
+								<button on:click={() => showTestVideo(device.ip)} class="btn btn-primary">
+									Preview Video
+								</button>
 								<button on:click={() => testMovement(device.ip)} class="btn btn-primary">
 									Test Movement
 								</button>
@@ -125,6 +134,13 @@
 		<div class="col-md-12">
 			{#if !previewImage.isEmpty()}
 				<img alt="Preview" src={previewImage} />
+			{/if}
+		</div>
+		<div class="col-md-12">
+			{#if !previewVideo.isEmpty()}
+				<video src={previewVideo}>
+					<track kind="captions" />
+				</video>
 			{/if}
 		</div>
 		<div class="col-md-12" style="height:80vh;">
