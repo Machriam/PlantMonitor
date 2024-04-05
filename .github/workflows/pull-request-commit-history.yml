@@ -47,5 +47,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
-              body: `## Changes of Pull Request #${context.issue.number}\n\n{newDescription}`
+              body: `## Changes of Pull Request #${context.issue.number}\n\n${newDescription}`
             });
