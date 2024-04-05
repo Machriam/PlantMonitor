@@ -12,7 +12,7 @@ import { PlantMonitorControlApiBase } from "./PlantMonitorControlApiBase";
 
 export interface IImageTakingClient {
 
-    captureImage(): Promise<FileResponse>;
+    previewImage(): Promise<FileResponse>;
 
     getCameras(): Promise<string>;
 }
@@ -28,8 +28,8 @@ export class ImageTakingClient extends PlantMonitorControlApiBase implements IIm
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    captureImage(): Promise<FileResponse> {
-        let url_ = this.baseUrl + "/ImageTaking/previewimage";
+    previewImage(): Promise<FileResponse> {
+        let url_ = this.baseUrl + "/api/ImageTaking/previewimage";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -42,11 +42,11 @@ export class ImageTakingClient extends PlantMonitorControlApiBase implements IIm
         return this.transformOptions(options_).then(transformedOptions_ => {
             return this.http.fetch(url_, transformedOptions_);
         }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processCaptureImage(_response));
+            return this.transformResult(url_, _response, (_response: Response) => this.processPreviewImage(_response));
         });
     }
 
-    protected processCaptureImage(response: Response): Promise<FileResponse> {
+    protected processPreviewImage(response: Response): Promise<FileResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200 || status === 206) {
@@ -69,7 +69,7 @@ export class ImageTakingClient extends PlantMonitorControlApiBase implements IIm
     }
 
     getCameras(): Promise<string> {
-        let url_ = this.baseUrl + "/ImageTaking/camerainfo";
+        let url_ = this.baseUrl + "/api/ImageTaking/camerainfo";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -123,7 +123,7 @@ export class MotorMovementClient extends PlantMonitorControlApiBase implements I
     }
 
     moveMotor(steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/MotorMovement?";
+        let url_ = this.baseUrl + "/api/MotorMovement?";
         if (steps === null)
             throw new Error("The parameter 'steps' cannot be null.");
         else if (steps !== undefined)

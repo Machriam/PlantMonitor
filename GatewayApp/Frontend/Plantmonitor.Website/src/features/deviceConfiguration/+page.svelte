@@ -4,6 +4,7 @@
 	import {
 		DeviceConfigurationClient,
 		DeviceHealthState,
+		HealthState,
 		WebSshCredentials
 	} from '../../services/GatewayAppApi';
 	import 'typeExtensions';
@@ -15,6 +16,13 @@
 	let previewImage = '';
 	let searchingForDevices = true;
 	let webSshLink = ''; // @hmr:keep
+	let healthStateFormatter = function (state: HealthState) {
+		const result = Object.getOwnPropertyNames(HealthState)
+			.filter((x) => !parseInt(x) && x != '0')
+			.filter((x) => (HealthState as unknown as { [key: string]: number })[x] & state);
+		if (result.length == 0) return [HealthState[HealthState.NA]];
+		return result;
+	};
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
 		configurationClient = new DeviceConfigurationClient();
@@ -45,7 +53,7 @@
 	async function showPreviewImage(device: string | undefined) {
 		if (device == undefined) return;
 		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
-		previewImage = await (await imageTakingClient.captureImage()).data.asBase64Url();
+		previewImage = await (await imageTakingClient.previewImage()).data.asBase64Url();
 	}
 	async function testMovement(device: string | undefined) {
 		if (device == undefined) return;
@@ -85,7 +93,8 @@
 							{#if device.health != undefined}
 								<span class="badge bg-success">{device.ip}</span><br />
 								<span>{device.health.deviceName}</span><br />
-								<span>{device.health.deviceId}</span>
+								<span>{device.health.deviceId}</span><br />
+								<span>{healthStateFormatter(device.health.state ?? HealthState.NA)}</span>
 							{:else}
 								<span class="badge bg-danger">{device.ip}</span>
 							{/if}
