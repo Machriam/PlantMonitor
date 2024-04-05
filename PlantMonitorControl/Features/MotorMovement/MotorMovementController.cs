@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace PlantMonitorControl.Features.MotorMovement;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class MotorMovementController(IEnvironmentConfiguration configuration) : ControllerBase
 {
     [HttpPost()]
