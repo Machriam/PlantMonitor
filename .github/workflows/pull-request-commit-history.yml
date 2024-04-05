@@ -33,7 +33,7 @@ jobs:
             });
 
             const commitMessages = "\n- " + commits.map(commit =>commit.sha + " " + commit.commit.message).join("\n- ");
-            const issueNumber = commits.head.ref.split("-")[0];
+            const issueNumber = pullRequest.head.ref.split("-")[0];
             await github.rest.pulls.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
