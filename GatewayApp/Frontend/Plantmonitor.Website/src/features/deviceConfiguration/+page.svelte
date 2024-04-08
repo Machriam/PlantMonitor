@@ -65,6 +65,7 @@
 		if (device == undefined) return;
 		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
 		previewVideo = await (await imageTakingClient.getVideoTest()).data.asBase64Url();
+		console.log(previewVideo);
 	}
 	async function getDeviceStatus() {
 		const client = new DeviceConfigurationClient();
