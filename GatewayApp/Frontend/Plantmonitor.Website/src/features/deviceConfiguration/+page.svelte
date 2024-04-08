@@ -8,6 +8,7 @@
 		WebSshCredentials
 	} from '../../services/GatewayAppApi';
 	import 'typeExtensions';
+	import * as signalR from '@microsoft/signalr';
 	import { Task } from '~/types/task';
 	import { ImageTakingClient, MotorMovementClient } from '~/services/PlantMonitorControlApi';
 	import { CvInterop } from './CvInterop';
@@ -17,6 +18,7 @@
 	let devices: DeviceHealthState[] = [];
 	let previewImage = '';
 	let previewVideo = '';
+	let connection: signalR.HubConnection;
 	let searchingForDevices = true;
 	let webSshLink = ''; // @hmr:keep
 	function healthStateFormatter(state: HealthState) {
@@ -28,6 +30,9 @@
 	}
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
+		connection = new signalR.HubConnectionBuilder()
+			.withUrl('https://localhost:7127/hub/video', { withCredentials: false })
+			.build();
 		configurationClient = new DeviceConfigurationClient();
 		devices = await configurationClient.getDevices();
 		webSshCredentials = await configurationClient.getWebSshCredentials();
@@ -65,14 +70,12 @@
 	}
 	async function showTestVideo(device: string | undefined) {
 		if (device == undefined) return;
-		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
-		previewVideo = await (await imageTakingClient.getVideoTest()).data.asBase64Url();
-		const canvas = document.getElementById(videoCanvasId) as HTMLCanvasElement;
-		new CvInterop().displayVideo(
-			previewVideo,
-			document.getElementById(videoCanvasId) as HTMLImageElement
-		);
-		console.log(previewVideo);
+		await connection.start();
+		connection.stream('StreamVideo').subscribe({
+			next: (x) => console.log(1),
+			complete: () => console.log('complete'),
+			error: (x) => console.log(x)
+		});
 	}
 	async function getDeviceStatus() {
 		const client = new DeviceConfigurationClient();

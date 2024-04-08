@@ -24,6 +24,6 @@ public class ImageTakingController([FromKeyedServices(ICameraInterop.VisCamera)]
     [HttpGet("videotest")]
     public async Task<IResult> GetVideoTest()
     {
-        return await cameraInterop.VideoStream();
+        return await cameraInterop.TestVideoFile();
     }
 }

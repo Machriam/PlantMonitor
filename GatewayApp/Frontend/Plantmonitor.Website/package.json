@@ -35,6 +35,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@microsoft/signalr": "^8.0.0",
 		"mirada": "^0.0.15"
 	}
 }

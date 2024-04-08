@@ -17,7 +17,9 @@ public interface ICameraInterop
 
     Task<IResult> CaptureTestImage();
 
-    Task<IResult> VideoStream();
+    Task<IResult> TestVideoFile();
+
+    (MemoryStream Ms, Task ProcessTask) VideoStream();
 }
 
 public class RaspberryCameraInterop() : ICameraInterop
@@ -42,7 +44,7 @@ public class RaspberryCameraInterop() : ICameraInterop
         return _cameraFound;
     }
 
-    public async Task<IResult> VideoStream()
+    public async Task<IResult> TestVideoFile()
     {
         var builder = new CommandOptionsBuilder()
         .WithContinuousStreaming()
@@ -64,7 +66,24 @@ public class RaspberryCameraInterop() : ICameraInterop
         var success = ms.Length > 1000;
         _deviceFunctional = success;
         _cameraFound |= success;
-        return Results.File(ms, "video/mp4");
+        return Results.File(ms, "video/mpjeg");
+    }
+
+    public (MemoryStream Ms, Task ProcessTask) VideoStream()
+    {
+        var info = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
+        new Process() { StartInfo = info }.Start();
+        var builder = new CommandOptionsBuilder()
+        .WithContinuousStreaming()
+        .WithVflip()
+        .WithHflip()
+        .WithMJPEGVideoOptions(100)
+        .WithResolution(640, 480);
+        var args = builder.GetArguments();
+        var process = new ProcessRunner(_videoProcessSettings);
+
+        var ms = new MemoryStream();
+        return (ms, process.ContinuousRunAsync(args, ms));
     }
 
     public async Task<string> CameraInfo()

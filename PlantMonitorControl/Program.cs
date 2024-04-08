@@ -23,7 +23,14 @@ builder.Configuration
 var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
-builder.Services.AddKeyedTransient<ICameraInterop, RaspberryCameraInterop>(ICameraInterop.VisCamera);
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+{
+    builder.Services.AddKeyedTransient<ICameraInterop, DevelopCameraInterop>(ICameraInterop.VisCamera);
+}
+else
+{
+    builder.Services.AddKeyedTransient<ICameraInterop, RaspberryCameraInterop>(ICameraInterop.VisCamera);
+}
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
@@ -50,6 +57,7 @@ builder.Services.AddOpenApiDocument(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -68,5 +76,6 @@ app.UseCors();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<StreamingHub>("/hub/video");
 
 app.Run();
