@@ -10,7 +10,9 @@
 	import 'typeExtensions';
 	import { Task } from '~/types/task';
 	import { ImageTakingClient, MotorMovementClient } from '~/services/PlantMonitorControlApi';
+	import { CvInterop } from './CvInterop';
 
+	const videoCanvasId = 'videoCanvasId';
 	let configurationClient: DeviceConfigurationClient;
 	let devices: DeviceHealthState[] = [];
 	let previewImage = '';
@@ -65,6 +67,11 @@
 		if (device == undefined) return;
 		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
 		previewVideo = await (await imageTakingClient.getVideoTest()).data.asBase64Url();
+		const canvas = document.getElementById(videoCanvasId) as HTMLCanvasElement;
+		new CvInterop().displayVideo(
+			previewVideo,
+			document.getElementById(videoCanvasId) as HTMLImageElement
+		);
 		console.log(previewVideo);
 	}
 	async function getDeviceStatus() {
@@ -138,11 +145,7 @@
 			{/if}
 		</div>
 		<div class="col-md-12">
-			{#if !previewVideo.isEmpty()}
-				<video src={previewVideo}>
-					<track kind="captions" />
-				</video>
-			{/if}
+			<img alt="Video" id={videoCanvasId} />
 		</div>
 		<div class="col-md-12" style="height:80vh;">
 			{#if !webSshLink.isEmpty()}

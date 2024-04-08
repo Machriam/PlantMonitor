@@ -48,6 +48,7 @@ public class RaspberryCameraInterop() : ICameraInterop
         .WithContinuousStreaming()
         .WithVflip()
         .WithHflip()
+        .WithMJPEGVideoOptions(100)
         .WithResolution(640, 480);
         var args = builder.GetArguments();
         using var process = new ProcessRunner(_videoProcessSettings);
