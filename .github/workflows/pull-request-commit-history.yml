@@ -33,7 +33,10 @@ jobs:
               pull_number: context.issue.number
             });
 
-            const commitMessages = "\n- " + commits.map(commit =>commit.sha + " " + commit.commit.message).join("\n- ");
+            const commitMessages = "\n- " + commits
+              .filter(commit=>commit.commit.message.indexOf("IGNORE")<0)
+              .map(commit =>commit.sha + " " + commit.commit.message)
+              .join("\n- ");
             const issueNumber = pullRequest.head.ref.split("-")[0];
             const newDescription = `${pullRequest.body??""}\n\n### Commit messages for #${issueNumber}\n${commitMessages}`;
             await github.rest.pulls.update({
