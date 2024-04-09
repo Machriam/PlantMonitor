@@ -71,8 +71,15 @@
 	async function showTestVideo(device: string | undefined) {
 		if (device == undefined) return;
 		await connection.start();
+		const cvInterop = new CvInterop();
+		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
+		debugger;
+		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
 		connection.stream('StreamVideo').subscribe({
-			next: (x) => console.log(1),
+			next: (x) => {
+				const payload = x as String;
+				videoDisplayFunction(payload.base64ToByteArray());
+			},
 			complete: () => console.log('complete'),
 			error: (x) => console.log(x)
 		});

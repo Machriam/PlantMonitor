@@ -29,7 +29,7 @@ public class DevelopCameraInterop() : ICameraInterop
 
     public (MemoryStream Ms, Task ProcessTask) VideoStream()
     {
-        var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
+        using var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
         var ms = new MemoryStream();
         fs.CopyTo(ms);
         ms.Position = 0;
