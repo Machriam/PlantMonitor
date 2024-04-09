@@ -27,30 +27,7 @@ public class DevelopCameraInterop() : ICameraInterop
         throw new NotImplementedException();
     }
 
-    public Task<IResult> TestVideoFile()
-    {
-        throw new NotImplementedException();
-    }
-
-    public (MemoryStream Ms, Task ProcessTask) VideoStream()
-    {
-        var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
-        var ms = new MemoryStream();
-        var copyCount = 0;
-        var task = Task.Run(async () =>
-        {
-            while (true)
-            {
-                fs.Position = 0;
-                Console.WriteLine("CopyCount: " + copyCount++);
-                await fs.CopyToAsync(ms);
-                await Task.Delay(1000);
-            }
-        });
-        return (ms, task);
-    }
-
-    public (Pipe Pipe, Task ProcessTask) VideoStreamPipe()
+    public (Pipe Pipe, Task ProcessTask) VideoStream()
     {
         var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
         var pipe = new Pipe();
@@ -62,7 +39,7 @@ public class DevelopCameraInterop() : ICameraInterop
                 fs.Position = 0;
                 Console.WriteLine("CopyCount: " + copyCount++);
                 await fs.CopyToAsync(pipe.Writer.AsStream());
-                await Task.Delay(1000);
+                await Task.Delay(10);
             }
         });
         return (pipe, task);
