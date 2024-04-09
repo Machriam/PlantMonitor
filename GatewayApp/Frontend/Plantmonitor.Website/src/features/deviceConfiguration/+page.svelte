@@ -73,12 +73,10 @@
 		await connection.start();
 		const cvInterop = new CvInterop();
 		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
-		debugger;
 		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
 		connection.stream('StreamVideo').subscribe({
-			next: (x) => {
-				const payload = x as String;
-				videoDisplayFunction(payload.base64ToByteArray());
+			next: async (x) => {
+				await videoDisplayFunction('data:img/jpeg;base64,' + (x as String));
 			},
 			complete: () => console.log('complete'),
 			error: (x) => console.log(x)
