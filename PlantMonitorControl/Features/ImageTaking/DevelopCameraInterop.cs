@@ -1,4 +1,9 @@
-﻿namespace PlantMonitorControl.Features.MotorMovement;
+﻿using Iot.Device.Camera.Settings;
+using Iot.Device.Common;
+using System.Diagnostics;
+using System.IO.Pipelines;
+
+namespace PlantMonitorControl.Features.MotorMovement;
 
 public class DevelopCameraInterop() : ICameraInterop
 {
@@ -29,10 +34,37 @@ public class DevelopCameraInterop() : ICameraInterop
 
     public (MemoryStream Ms, Task ProcessTask) VideoStream()
     {
-        using var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
+        var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
         var ms = new MemoryStream();
-        fs.CopyTo(ms);
-        ms.Position = 0;
-        return (ms, Task.CompletedTask);
+        var copyCount = 0;
+        var task = Task.Run(async () =>
+        {
+            while (true)
+            {
+                fs.Position = 0;
+                Console.WriteLine("CopyCount: " + copyCount++);
+                await fs.CopyToAsync(ms);
+                await Task.Delay(1000);
+            }
+        });
+        return (ms, task);
+    }
+
+    public (Pipe Pipe, Task ProcessTask) VideoStreamPipe()
+    {
+        var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
+        var pipe = new Pipe();
+        var copyCount = 0;
+        var task = Task.Run(async () =>
+        {
+            while (true)
+            {
+                fs.Position = 0;
+                Console.WriteLine("CopyCount: " + copyCount++);
+                await fs.CopyToAsync(pipe.Writer.AsStream());
+                await Task.Delay(1000);
+            }
+        });
+        return (pipe, task);
     }
 }

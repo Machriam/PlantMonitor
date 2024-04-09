@@ -1,6 +1,8 @@
 ﻿using Iot.Device.Camera.Settings;
 using Iot.Device.Common;
 using System.Diagnostics;
+using System.IO.Pipelines;
+using System.IO.Pipes;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -20,6 +22,8 @@ public interface ICameraInterop
     Task<IResult> TestVideoFile();
 
     (MemoryStream Ms, Task ProcessTask) VideoStream();
+
+    (Pipe Pipe, Task ProcessTask) VideoStreamPipe();
 }
 
 public class RaspberryCameraInterop() : ICameraInterop
@@ -83,7 +87,25 @@ public class RaspberryCameraInterop() : ICameraInterop
         var process = new ProcessRunner(_videoProcessSettings);
 
         var ms = new MemoryStream();
-        return (ms, process.ContinuousRunAsync(args, ms));
+        var pipe = new Pipe();
+        return (ms, process.ContinuousRunAsync(args, pipe.Writer.AsStream(true)));
+    }
+
+    public (Pipe Pipe, Task ProcessTask) VideoStreamPipe()
+    {
+        var info = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
+        new Process() { StartInfo = info }.Start();
+        var builder = new CommandOptionsBuilder()
+        .WithContinuousStreaming()
+        .WithVflip()
+        .WithHflip()
+        .WithMJPEGVideoOptions(100)
+        .WithResolution(640, 480);
+        var args = builder.GetArguments();
+        var process = new ProcessRunner(_videoProcessSettings);
+
+        var pipe = new Pipe();
+        return (pipe, process.ContinuousRunAsync(args, pipe.Writer.AsStream(true)));
     }
 
     public async Task<string> CameraInfo()

@@ -30,9 +30,6 @@
 	}
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
-		connection = new signalR.HubConnectionBuilder()
-			.withUrl('https://localhost:7127/hub/video', { withCredentials: false })
-			.build();
 		configurationClient = new DeviceConfigurationClient();
 		devices = await configurationClient.getDevices();
 		webSshCredentials = await configurationClient.getWebSshCredentials();
@@ -70,6 +67,10 @@
 	}
 	async function showTestVideo(device: string | undefined) {
 		if (device == undefined) return;
+		await connection?.stop();
+		connection = new signalR.HubConnectionBuilder()
+			.withUrl(`https://${device}/hub/video`, { withCredentials: false })
+			.build();
 		await connection.start();
 		const cvInterop = new CvInterop();
 		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
@@ -100,6 +101,9 @@
 			Found devices:
 		{/if}
 	</h3>
+	<button class="btn btn-primary" on:click={() => showTestVideo('localhost:7127')}
+		>Local Streaming Test</button
+	>
 	<div class="col-md-6">
 		{#each devices as device}
 			<table class="table">

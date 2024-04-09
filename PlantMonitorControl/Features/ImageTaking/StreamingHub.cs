@@ -1,7 +1,9 @@
 ﻿using Iot.Device.Camera.Settings;
 using Iot.Device.Common;
 using Microsoft.AspNetCore.SignalR;
+using Plantmonitor.Shared.Extensions;
 using System.Diagnostics;
+using System.IO.Pipelines;
 using System.Threading.Channels;
 
 namespace PlantMonitorControl.Features.MotorMovement;
@@ -14,8 +16,8 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
     {
         var channel = Channel.CreateUnbounded<byte[]>();
         var findHeader = BuildHeaderFinder();
-        var (ms, _) = cameraInterop.VideoStream();
-        _ = WriteItemsAsync(channel, ms, token);
+        var (pipe, _) = cameraInterop.VideoStreamPipe();
+        _ = WriteItemsAsync(channel, pipe.Reader, token);
         return channel.Reader;
     }
 
@@ -32,27 +34,37 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         };
     }
 
-    private async Task WriteItemsAsync(ChannelWriter<byte[]> writer, MemoryStream ms, CancellationToken token)
+    private async Task WriteItemsAsync(ChannelWriter<byte[]> writer, PipeReader reader, CancellationToken token)
     {
-        var imageBuffer = new byte[1024 * 1024 * 1024];
-        var imageIndex = 0;
-        var buffer = new byte[1024];
-        var headerFinder = BuildHeaderFinder();
-        while (true)
+        try
         {
-            if (ms.Length <= ms.Position) ms.Position = 0;
-            var length = await ms.ReadAsync(buffer, token);
-            for (var i = 0; i < length; i++)
+            var imageBuffer = new byte[1024 * 1024];
+            var imageIndex = 0;
+            var buffer = new byte[1024];
+            var headerFinder = BuildHeaderFinder();
+            while (true)
             {
-                imageBuffer[imageIndex++] = buffer[i];
-                if (!headerFinder(buffer[i])) continue;
-                var sendBuffer = imageBuffer[0..(imageIndex - _headerBytes.Length)];
-                imageIndex = 0;
-                await writer.WriteAsync(sendBuffer, token);
-                imageBuffer = new byte[1024 * 1024 * 1024];
-                for (var j = 0; j < _headerBytes.Length; j++) imageBuffer[imageIndex++] = _headerBytes[j];
+                var result = await reader.ReadAsync();
+                foreach (var buff in result.Buffer)
+                {
+                    for (var i = 0; i < buff.Length; i++)
+                    {
+                        imageBuffer[imageIndex++] = buff.Span[i];
+                        if (!headerFinder(buff.Span[i])) continue;
+                        var sendBuffer = imageBuffer[0..(imageIndex - _headerBytes.Length)];
+                        imageIndex = 0;
+                        await writer.WriteAsync(sendBuffer, token);
+                        imageBuffer = new byte[1024 * 1024];
+                        for (var j = 0; j < _headerBytes.Length; j++) imageBuffer[imageIndex++] = _headerBytes[j];
+                        await Task.Delay(10);
+                    }
+                }
+                reader.AdvanceTo(result.Buffer.Start, result.Buffer.End);
             }
-            await Task.Yield();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
     }
 }
