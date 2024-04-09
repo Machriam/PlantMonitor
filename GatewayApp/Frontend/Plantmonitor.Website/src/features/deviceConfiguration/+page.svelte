@@ -8,13 +8,18 @@
 		WebSshCredentials
 	} from '../../services/GatewayAppApi';
 	import 'typeExtensions';
+	import * as signalR from '@microsoft/signalr';
 	import { Task } from '~/types/task';
 	import { ImageTakingClient, MotorMovementClient } from '~/services/PlantMonitorControlApi';
+	import { CvInterop } from './CvInterop';
 
+	const videoCanvasId = 'videoCanvasId';
 	let configurationClient: DeviceConfigurationClient;
 	let devices: DeviceHealthState[] = [];
 	let previewImage = '';
 	let previewVideo = '';
+	let frameCounter = 0;
+	let connection: signalR.HubConnection;
 	let searchingForDevices = true;
 	let webSshLink = ''; // @hmr:keep
 	function healthStateFormatter(state: HealthState) {
@@ -63,8 +68,22 @@
 	}
 	async function showTestVideo(device: string | undefined) {
 		if (device == undefined) return;
-		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
-		previewVideo = await (await imageTakingClient.getVideoTest()).data.asBase64Url();
+		await connection?.stop();
+		connection = new signalR.HubConnectionBuilder()
+			.withUrl(`https://${device}/hub/video`, { withCredentials: false })
+			.build();
+		await connection.start();
+		const cvInterop = new CvInterop();
+		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
+		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
+		connection.stream('StreamVideo').subscribe({
+			next: async (x) => {
+				frameCounter++;
+				await videoDisplayFunction('data:img/jpeg;base64,' + (x as String));
+			},
+			complete: () => console.log('complete'),
+			error: (x) => console.log(x)
+		});
 	}
 	async function getDeviceStatus() {
 		const client = new DeviceConfigurationClient();
@@ -84,6 +103,10 @@
 			Found devices:
 		{/if}
 	</h3>
+	<div>{frameCounter}</div>
+	<button class="btn btn-primary" on:click={() => showTestVideo('localhost:7127')}
+		>Local Streaming Test</button
+	>
 	<div class="col-md-6">
 		{#each devices as device}
 			<table class="table">
@@ -137,11 +160,7 @@
 			{/if}
 		</div>
 		<div class="col-md-12">
-			{#if !previewVideo.isEmpty()}
-				<video src={previewVideo}>
-					<track kind="captions" />
-				</video>
-			{/if}
+			<img alt="Video" id={videoCanvasId} />
 		</div>
 		<div class="col-md-12" style="height:80vh;">
 			{#if !webSshLink.isEmpty()}

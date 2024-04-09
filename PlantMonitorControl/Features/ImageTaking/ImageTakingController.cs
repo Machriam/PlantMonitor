@@ -2,6 +2,7 @@
 using Iot.Device.Common;
 using Iot.Device.Media;
 using Microsoft.AspNetCore.Mvc;
+using System.IO.Pipelines;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -19,11 +20,5 @@ public class ImageTakingController([FromKeyedServices(ICameraInterop.VisCamera)]
     public async Task<string> GetCameras()
     {
         return await cameraInterop.CameraInfo();
-    }
-
-    [HttpGet("videotest")]
-    public async Task<IResult> GetVideoTest()
-    {
-        return await cameraInterop.VideoStream();
     }
 }

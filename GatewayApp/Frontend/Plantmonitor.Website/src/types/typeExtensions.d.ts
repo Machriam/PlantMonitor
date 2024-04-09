@@ -3,6 +3,7 @@ interface String {
 	asBase64(): string;
 	fromBase64(): string;
 	urlEncoded(): string;
+	base64ToByteArray(): Uint8Array;
 }
 interface Blob {
 	asBase64Url(): Promise<string>;
@@ -15,6 +16,9 @@ String.prototype.asBase64 = function (this: string) {
 }
 String.prototype.fromBase64 = function (this: string) {
 	return atob(this);
+}
+String.prototype.base64ToByteArray = function (this: string) {
+	return Uint8Array.from(atob(this), c => c.charCodeAt(0));
 }
 String.prototype.urlEncoded = function (this: string) {
 	return encodeURIComponent(this);

@@ -1,6 +1,8 @@
 ﻿using Iot.Device.Camera.Settings;
 using Iot.Device.Common;
-using Plantmonitor.Shared.Extensions;
+using System.Diagnostics;
+using System.IO.Pipelines;
+using System.IO.Pipes;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -17,7 +19,7 @@ public interface ICameraInterop
 
     Task<IResult> CaptureTestImage();
 
-    Task<IResult> VideoStream();
+    (Pipe Pipe, Task ProcessTask) VideoStream();
 }
 
 public class RaspberryCameraInterop() : ICameraInterop
@@ -42,27 +44,21 @@ public class RaspberryCameraInterop() : ICameraInterop
         return _cameraFound;
     }
 
-    public async Task<IResult> VideoStream()
+    public (Pipe Pipe, Task ProcessTask) VideoStream()
     {
+        var info = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
+        new Process() { StartInfo = info }.Start();
         var builder = new CommandOptionsBuilder()
         .WithContinuousStreaming()
         .WithVflip()
         .WithHflip()
-        .WithH264VideoOptions("baseline", "4", 15)
+        .WithMJPEGVideoOptions(100)
         .WithResolution(640, 480);
         var args = builder.GetArguments();
-        using var process = new ProcessRunner(_videoProcessSettings);
+        var process = new ProcessRunner(_videoProcessSettings);
 
-        var ms = new MemoryStream();
-        var task = await process.ContinuousRunAsync(args, ms);
-        await Task.Delay(2000);
-        process.Dispose();
-        await (task.Try(async (x) => await x, out _) ?? Task.CompletedTask);
-        ms.Position = 0;
-        var success = ms.Length > 1000;
-        _deviceFunctional = success;
-        _cameraFound |= success;
-        return Results.File(ms, "video/mp4");
+        var pipe = new Pipe();
+        return (pipe, process.ContinuousRunAsync(args, pipe.Writer.AsStream(true)));
     }
 
     public async Task<string> CameraInfo()
