@@ -18,6 +18,7 @@
 	let devices: DeviceHealthState[] = [];
 	let previewImage = '';
 	let previewVideo = '';
+	let frameCounter = 0;
 	let connection: signalR.HubConnection;
 	let searchingForDevices = true;
 	let webSshLink = ''; // @hmr:keep
@@ -77,6 +78,7 @@
 		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
 		connection.stream('StreamVideo').subscribe({
 			next: async (x) => {
+				frameCounter++;
 				await videoDisplayFunction('data:img/jpeg;base64,' + (x as String));
 			},
 			complete: () => console.log('complete'),
@@ -101,6 +103,7 @@
 			Found devices:
 		{/if}
 	</h3>
+	<div>{frameCounter}</div>
 	<button class="btn btn-primary" on:click={() => showTestVideo('localhost:7127')}
 		>Local Streaming Test</button
 	>

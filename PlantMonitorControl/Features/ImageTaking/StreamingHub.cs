@@ -12,7 +12,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
 {
     private static readonly byte[] _headerBytes = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0];
     private const int FPS = 4;
-    private const float TimeBetweenImages = 1 / FPS * 1000f;
+    private const float TimeBetweenImages = 1f / FPS * 1000f;
 
     public ChannelReader<byte[]> StreamVideo(CancellationToken token)
     {
@@ -42,26 +42,34 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             var sw = new Stopwatch();
             var imageBuffer = new byte[1024 * 1024];
             var imageIndex = 0;
-            var buffer = new byte[1024];
             var headerFinder = BuildHeaderFinder();
+            var imageStarted = false;
             sw.Start();
             while (true)
             {
                 var result = await reader.ReadAsync(token);
                 foreach (var buff in result.Buffer)
                 {
+                    if (sw.ElapsedMilliseconds < TimeBetweenImages) break;
                     for (var i = 0; i < buff.Length; i++)
                     {
                         imageBuffer[imageIndex++] = buff.Span[i];
                         if (!headerFinder(buff.Span[i])) continue;
                         var sendBuffer = imageBuffer[0..(imageIndex - _headerBytes.Length)];
                         imageIndex = 0;
-                        if (sw.ElapsedMilliseconds >= TimeBetweenImages)
+                        if (imageStarted)
                         {
                             await writer.WriteAsync(sendBuffer, token);
+                            for (var j = 0; j < _headerBytes.Length; j++) imageBuffer[imageIndex++] = _headerBytes[j];
                             sw.Restart();
+                            imageStarted = false;
+                            break;
                         }
-                        for (var j = 0; j < _headerBytes.Length; j++) imageBuffer[imageIndex++] = _headerBytes[j];
+                        else
+                        {
+                            for (var j = 0; j < _headerBytes.Length; j++) imageBuffer[imageIndex++] = _headerBytes[j];
+                            imageStarted = true;
+                        }
                     }
                 }
                 reader.AdvanceTo(result.Buffer.End);
