@@ -27,7 +27,7 @@ public class DevelopCameraInterop() : ICameraInterop
         throw new NotImplementedException();
     }
 
-    public (Pipe Pipe, Task ProcessTask) VideoStream()
+    public Task<(Pipe Pipe, Task ProcessTask)> VideoStream(int width, int height, int quality)
     {
         var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
         var pipe = new Pipe();
@@ -42,6 +42,6 @@ public class DevelopCameraInterop() : ICameraInterop
                 await Task.Delay(10);
             }
         });
-        return (pipe, task);
+        return Task.FromResult((pipe, task));
     }
 }

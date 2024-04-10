@@ -9,6 +9,7 @@
 	} from '../../services/GatewayAppApi';
 	import 'typeExtensions';
 	import * as signalR from '@microsoft/signalr';
+	import * as signalRProtocols from '@microsoft/signalr-protocol-msgpack';
 	import { Task } from '~/types/task';
 	import { ImageTakingClient, MotorMovementClient } from '~/services/PlantMonitorControlApi';
 	import { CvInterop } from './CvInterop';
@@ -71,15 +72,18 @@
 		await connection?.stop();
 		connection = new signalR.HubConnectionBuilder()
 			.withUrl(`https://${device}/hub/video`, { withCredentials: false })
+			.withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
 			.build();
 		await connection.start();
 		const cvInterop = new CvInterop();
 		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
 		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
-		connection.stream('StreamVideo').subscribe({
+		connection.stream('StreamVideo', 1, 100).subscribe({
 			next: async (x) => {
 				frameCounter++;
-				await videoDisplayFunction('data:img/jpeg;base64,' + (x as String));
+				const payload = x as Uint8Array;
+				const blob = new Blob([payload], { type: 'image/jpeg' });
+				await videoDisplayFunction(await blob.asBase64Url());
 			},
 			complete: () => console.log('complete'),
 			error: (x) => console.log(x)
