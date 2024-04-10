@@ -15,12 +15,12 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
     private const int baseFps = 16;
     private const int resolutionHeight = 216;
 
-    public ChannelReader<byte[]> StreamVideo(CancellationToken token, float resolutionMultiplier, int quality)
+    public async Task<ChannelReader<byte[]>> StreamVideo(CancellationToken token, float resolutionMultiplier, int quality)
     {
         var fps = baseFps / resolutionMultiplier / resolutionMultiplier;
         var timeBetweenImages = 1f / fps * 1000f;
         var channel = Channel.CreateUnbounded<byte[]>();
-        var (pipe, _) = cameraInterop.VideoStream((int)(resolutionWidth * resolutionMultiplier), (int)(resolutionHeight * resolutionMultiplier), quality);
+        var (pipe, _) = await cameraInterop.VideoStream((int)(resolutionWidth * resolutionMultiplier), (int)(resolutionHeight * resolutionMultiplier), quality);
         _ = WriteItemsAsync(channel, pipe.Reader, token, (int)timeBetweenImages);
         return channel.Reader;
     }

@@ -19,7 +19,7 @@ public interface ICameraInterop
 
     Task<IResult> CaptureTestImage();
 
-    (Pipe Pipe, Task ProcessTask) VideoStream(int width, int height, int quality);
+    Task<(Pipe Pipe, Task ProcessTask)> VideoStream(int width, int height, int quality);
 }
 
 public class RaspberryCameraInterop() : ICameraInterop
@@ -44,10 +44,11 @@ public class RaspberryCameraInterop() : ICameraInterop
         return _cameraFound;
     }
 
-    public (Pipe Pipe, Task ProcessTask) VideoStream(int width, int height, int quality)
+    public async Task<(Pipe Pipe, Task ProcessTask)> VideoStream(int width, int height, int quality)
     {
         var info = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
         new Process() { StartInfo = info }.Start();
+        await Task.Delay(500);
         var builder = new CommandOptionsBuilder()
         .WithContinuousStreaming()
         .WithVflip()
