@@ -11,14 +11,17 @@ namespace PlantMonitorControl.Features.MotorMovement;
 public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop, ILogger<StreamingHub> logger) : Hub
 {
     private static readonly byte[] _headerBytes = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0];
-    private const int FPS = 4;
-    private const float TimeBetweenImages = 1f / FPS * 1000f;
+    private const int resolutionWidth = 384;
+    private const int baseFps = 16;
+    private const int resolutionHeight = 216;
 
-    public ChannelReader<byte[]> StreamVideo(CancellationToken token)
+    public ChannelReader<byte[]> StreamVideo(CancellationToken token, float resolutionMultiplier, int quality)
     {
+        var fps = baseFps / resolutionMultiplier / resolutionMultiplier;
+        var timeBetweenImages = 1f / fps * 1000f;
         var channel = Channel.CreateUnbounded<byte[]>();
-        var (pipe, _) = cameraInterop.VideoStream();
-        _ = WriteItemsAsync(channel, pipe.Reader, token);
+        var (pipe, _) = cameraInterop.VideoStream((int)(resolutionWidth * resolutionMultiplier), (int)(resolutionHeight * resolutionMultiplier), quality);
+        _ = WriteItemsAsync(channel, pipe.Reader, token, (int)timeBetweenImages);
         return channel.Reader;
     }
 
@@ -35,12 +38,12 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         };
     }
 
-    private async Task WriteItemsAsync(ChannelWriter<byte[]> writer, PipeReader reader, CancellationToken token)
+    private async Task WriteItemsAsync(ChannelWriter<byte[]> writer, PipeReader reader, CancellationToken token, int timeBetweenImages)
     {
         try
         {
             var sw = new Stopwatch();
-            var imageBuffer = new byte[1024 * 1024];
+            var imageBuffer = new byte[1024 * 1024 * 8];
             var imageIndex = 0;
             var headerFinder = BuildHeaderFinder();
             var imageStarted = false;
@@ -50,7 +53,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                 var result = await reader.ReadAsync(token);
                 foreach (var buff in result.Buffer)
                 {
-                    if (sw.ElapsedMilliseconds < TimeBetweenImages) break;
+                    if (sw.ElapsedMilliseconds < timeBetweenImages) break;
                     for (var i = 0; i < buff.Length; i++)
                     {
                         imageBuffer[imageIndex++] = buff.Span[i];
