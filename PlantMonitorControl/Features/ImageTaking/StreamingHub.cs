@@ -11,16 +11,16 @@ namespace PlantMonitorControl.Features.MotorMovement;
 public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop, ILogger<StreamingHub> logger) : Hub
 {
     private static readonly byte[] _headerBytes = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0];
-    private const int resolutionWidth = 384;
-    private const int baseFps = 16;
-    private const int resolutionHeight = 216;
+    private const float baseFps = 0.2f;
+    private const int maxWidth = 4600;
+    private const int maxHeight = 2560;
 
-    public async Task<ChannelReader<byte[]>> StreamVideo(CancellationToken token, float resolutionMultiplier, int quality)
+    public async Task<ChannelReader<byte[]>> StreamVideo(CancellationToken token, int resolutionDivider, int quality)
     {
-        var fps = baseFps / resolutionMultiplier / resolutionMultiplier;
+        var fps = baseFps * resolutionDivider * resolutionDivider;
         var timeBetweenImages = 1f / fps * 1000f;
         var channel = Channel.CreateUnbounded<byte[]>();
-        var (pipe, _) = await cameraInterop.VideoStream((int)(resolutionWidth * resolutionMultiplier), (int)(resolutionHeight * resolutionMultiplier), quality);
+        var (pipe, _) = await cameraInterop.VideoStream((int)(maxWidth / resolutionDivider), (int)(maxHeight / resolutionDivider), quality);
         _ = WriteItemsAsync(channel, pipe.Reader, token, (int)timeBetweenImages);
         return channel.Reader;
     }
