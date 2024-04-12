@@ -9,7 +9,7 @@ public record struct DeviceConnection(string Ip, bool SshIsOpen);
 [Route("api/[controller]")]
 public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, IEnvironmentConfiguration configuration)
 {
-    public record struct WebSshCredentials(string Url, string Password, string User);
+    public record struct WebSshCredentials(string Protocol, string Port, string Password, string User);
     public record struct CertificateData(string Certificate, string Key);
 
     [HttpGet("certificates")]
@@ -21,7 +21,9 @@ public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, I
     [HttpGet("websshcredentials")]
     public WebSshCredentials GetWebSshCredentials()
     {
-        return new WebSshCredentials(configuration.WebSshUrl(), configuration.DevicePassword(), configuration.DeviceUsername());
+        var urlParts = configuration.WebSshUrl().Split(",");
+        return new WebSshCredentials(urlParts[0], urlParts[1],
+            configuration.DevicePassword(), configuration.DeviceUsername());
     }
 
     [HttpGet("devices")]

@@ -254,7 +254,8 @@ export interface ICertificateData {
 }
 
 export class WebSshCredentials implements IWebSshCredentials {
-    url?: string;
+    protocol?: string;
+    port?: string;
     password?: string;
     user?: string;
 
@@ -269,7 +270,8 @@ export class WebSshCredentials implements IWebSshCredentials {
 
     init(_data?: any) {
         if (_data) {
-            this.url = _data["url"];
+            this.protocol = _data["protocol"];
+            this.port = _data["port"];
             this.password = _data["password"];
             this.user = _data["user"];
         }
@@ -284,7 +286,8 @@ export class WebSshCredentials implements IWebSshCredentials {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["url"] = this.url;
+        data["protocol"] = this.protocol;
+        data["port"] = this.port;
         data["password"] = this.password;
         data["user"] = this.user;
         return data;
@@ -299,7 +302,8 @@ export class WebSshCredentials implements IWebSshCredentials {
 }
 
 export interface IWebSshCredentials {
-    url?: string;
+    protocol?: string;
+    port?: string;
     password?: string;
     user?: string;
 }

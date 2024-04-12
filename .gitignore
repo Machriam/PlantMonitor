@@ -12,3 +12,4 @@
 /GatewayApp/Backend/Plantmonitor.Server/appsettings.Development.json
 /PlantMonitorControl/swagger.json
 /TestVideo.mjpeg
+GatewayApp/Backend/Plantmonitor.Server/wwwroot/*

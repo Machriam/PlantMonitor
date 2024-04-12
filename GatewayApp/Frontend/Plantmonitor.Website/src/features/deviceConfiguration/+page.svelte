@@ -41,7 +41,7 @@
 		if (ip == undefined) return;
 		webSshLink = '';
 		await Task.delay(100);
-		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
+		webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
 	}
 	async function configureDevice(ip: string | undefined): Promise<void> {
 		if (ip == undefined) return;
@@ -55,7 +55,7 @@
 			`sudo apt-get install -y git;` +
 			`git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor;git reset --hard;git pull; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;` +
 			`exec bash;'`;
-		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
+		webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
 	}
 	async function showPreviewImage(device: string | undefined) {
 		if (device == undefined) return;
