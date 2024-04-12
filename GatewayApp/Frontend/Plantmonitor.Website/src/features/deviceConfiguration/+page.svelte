@@ -78,7 +78,7 @@
 		const cvInterop = new CvInterop();
 		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
 		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
-		connection.stream('StreamVideo', 1, 100).subscribe({
+		connection.stream('StreamMjpeg', 1, 100).subscribe({
 			next: async (x) => {
 				frameCounter++;
 				const payload = x as Uint8Array;

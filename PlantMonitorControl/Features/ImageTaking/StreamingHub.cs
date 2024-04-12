@@ -1,8 +1,4 @@
-﻿using Iot.Device.Camera.Settings;
-using Iot.Device.Common;
-using Microsoft.AspNetCore.SignalR;
-using Plantmonitor.Shared.Extensions;
-using System.Diagnostics;
+﻿using Microsoft.AspNetCore.SignalR;
 using System.IO.Pipelines;
 using System.Threading.Channels;
 
@@ -11,17 +7,18 @@ namespace PlantMonitorControl.Features.MotorMovement;
 public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop, ILogger<StreamingHub> logger) : Hub
 {
     private static readonly byte[] _headerBytes = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0];
-    private const float baseFps = 0.2f;
-    private const int maxWidth = 4600;
-    private const int maxHeight = 2560;
 
-    public async Task<ChannelReader<byte[]>> StreamVideo(CancellationToken token, int resolutionDivider, int quality)
+    public async Task<ChannelReader<byte[]>> StreamMjpeg(float resolutionDivider, int quality, CancellationToken token)
     {
-        var fps = baseFps * resolutionDivider * resolutionDivider;
-        var timeBetweenImages = 1f / fps * 1000f;
-        var channel = Channel.CreateUnbounded<byte[]>();
-        var (pipe, _) = await cameraInterop.VideoStream((int)(maxWidth / resolutionDivider), (int)(maxHeight / resolutionDivider), quality);
-        _ = WriteItemsAsync(channel, pipe.Reader, token, (int)timeBetweenImages);
+        var channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
+        {
+            AllowSynchronousContinuations = false,
+            FullMode = BoundedChannelFullMode.DropWrite,
+            SingleReader = true,
+            SingleWriter = true,
+        });
+        var (pipe, _) = await cameraInterop.MjpegStream(resolutionDivider, quality);
+        _ = WriteItemsAsync(channel, pipe.Reader, token);
         return channel.Reader;
     }
 
@@ -38,22 +35,19 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         };
     }
 
-    private async Task WriteItemsAsync(ChannelWriter<byte[]> writer, PipeReader reader, CancellationToken token, int timeBetweenImages)
+    private async Task WriteItemsAsync(ChannelWriter<byte[]> writer, PipeReader reader, CancellationToken token)
     {
         try
         {
-            var sw = new Stopwatch();
-            var imageBuffer = new byte[1024 * 1024 * 8];
+            var imageBuffer = new byte[1024 * 1024 * 16];
             var imageIndex = 0;
             var headerFinder = BuildHeaderFinder();
             var imageStarted = false;
-            sw.Start();
             while (true)
             {
                 var result = await reader.ReadAsync(token);
                 foreach (var buff in result.Buffer)
                 {
-                    if (sw.ElapsedMilliseconds < timeBetweenImages) break;
                     for (var i = 0; i < buff.Length; i++)
                     {
                         imageBuffer[imageIndex++] = buff.Span[i];
@@ -64,7 +58,6 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                         {
                             await writer.WriteAsync(sendBuffer, token);
                             for (var j = 0; j < _headerBytes.Length; j++) imageBuffer[imageIndex++] = _headerBytes[j];
-                            sw.Restart();
                             imageStarted = false;
                             break;
                         }

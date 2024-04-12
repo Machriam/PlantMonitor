@@ -19,11 +19,13 @@ public interface ICameraInterop
 
     Task<IResult> CaptureTestImage();
 
-    Task<(Pipe Pipe, Task ProcessTask)> VideoStream(int width, int height, int quality);
+    Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality);
 }
 
 public class RaspberryCameraInterop() : ICameraInterop
 {
+    private const int maxWidth = 2304;
+    private const int maxHeight = 1296;
     private bool _cameraFound;
     private bool _deviceFunctional;
 
@@ -44,8 +46,10 @@ public class RaspberryCameraInterop() : ICameraInterop
         return _cameraFound;
     }
 
-    public async Task<(Pipe Pipe, Task ProcessTask)> VideoStream(int width, int height, int quality)
+    public async Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality)
     {
+        var width = (int)(maxWidth / resolutionDivider);
+        var height = (int)(maxHeight / resolutionDivider);
         var info = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
         new Process() { StartInfo = info }.Start();
         await Task.Delay(500);
