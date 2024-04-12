@@ -39,6 +39,24 @@
 
 # Gateway Server Installation
 
+## Debian Bookworm Setup
+
+- Install Debian
+- If DNS is not available --> resolvconf must be downloaded on a stick, if internet is not working: 
+    - `sudo apt install resolvconf`
+    - `resolvconf --enable-updates`
+    - `resolvconf -u`
+- Install SSH-Server if not available:
+  - `sudo apt install openssh-server`
+  - `sudo systemctl enable ssh`
+  - `sudo reboot now`
+- Install Git and pull Repo for starting install script
+  - `sudo apt install git`
+  - `git clone https://github.com/Machriam/PlantMonitor.git`
+  - `sudo chmod -R +x PlantMonitor`
+  - `cd PlantMonitor/Confluence/Setup`
+  - `./SetupGatewayMachine.sh`
+
 ## Generate in a Linux environment the following certificate
 
 ```

@@ -60,6 +60,7 @@
 	async function showPreviewImage(device: string | undefined) {
 		if (device == undefined) return;
 		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
+		await imageTakingClient.killCamera();
 		previewImage = await (await imageTakingClient.previewImage()).data.asBase64Url();
 	}
 	async function testMovement(device: string | undefined) {
@@ -78,7 +79,7 @@
 		const cvInterop = new CvInterop();
 		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
 		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
-		connection.stream('StreamMjpeg', 1, 100, 0.5).subscribe({
+		connection.stream('StreamMjpeg', 2, 100, 0.1).subscribe({
 			next: async (x) => {
 				frameCounter++;
 				const payload = x as Uint8Array;
