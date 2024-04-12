@@ -45,8 +45,9 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         return _cameraFound;
     }
 
-    public async Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality)
+    public async Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM)
     {
+        var focus = float.Round(1f / distanceInM, 2);
         var width = (int)(maxWidth / resolutionDivider);
         var height = (int)(maxHeight / resolutionDivider);
         var info = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
@@ -58,7 +59,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         .WithHflip()
         .WithMJPEGVideoOptions(quality)
         .WithResolution(width, height);
-        var args = builder.GetArguments();
+        var args = builder.GetArguments().Append("--autofocus-mode manual").Append($"--lens-position {focus}").ToArray();
         var process = new ProcessRunner(_videoProcessSettings);
 
         var pipe = new Pipe();
