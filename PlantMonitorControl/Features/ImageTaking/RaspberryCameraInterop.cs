@@ -2,7 +2,6 @@
 using Iot.Device.Common;
 using System.Diagnostics;
 using System.IO.Pipelines;
-using System.IO.Pipes;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -19,11 +18,15 @@ public interface ICameraInterop
 
     Task<IResult> CaptureTestImage();
 
-    Task<(Pipe Pipe, Task ProcessTask)> VideoStream(int width, int height, int quality);
+    Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM);
+
+    Task KillImageTaking();
 }
 
-public class RaspberryCameraInterop() : ICameraInterop
+public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
 {
+    private const int maxWidth = 2304;
+    private const int maxHeight = 1296;
     private bool _cameraFound;
     private bool _deviceFunctional;
 
@@ -44,21 +47,32 @@ public class RaspberryCameraInterop() : ICameraInterop
         return _cameraFound;
     }
 
-    public async Task<(Pipe Pipe, Task ProcessTask)> VideoStream(int width, int height, int quality)
+    public async Task KillImageTaking()
     {
-        var info = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
-        new Process() { StartInfo = info }.Start();
+        var killVideo = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
+        new Process() { StartInfo = killVideo }.Start();
+        var killImaging = new ProcessStartInfo("pkill", $"-9 -f {_imageProcessSettings.Filename}");
+        new Process() { StartInfo = killImaging }.Start();
         await Task.Delay(500);
+    }
+
+    public async Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM)
+    {
+        var focus = float.Round(1f / distanceInM, 2);
+        var width = (int)(maxWidth / resolutionDivider);
+        var height = (int)(maxHeight / resolutionDivider);
+        await KillImageTaking();
         var builder = new CommandOptionsBuilder()
         .WithContinuousStreaming()
         .WithVflip()
         .WithHflip()
         .WithMJPEGVideoOptions(quality)
         .WithResolution(width, height);
-        var args = builder.GetArguments();
+        var args = builder.GetArguments().Append("--autofocus-mode manual").Append($"--lens-position {focus}").ToArray();
         var process = new ProcessRunner(_videoProcessSettings);
 
         var pipe = new Pipe();
+        logger.LogInformation("Starting Mjpeg stream with: {arguments}", args.Concat(" "));
         return (pipe, process.ContinuousRunAsync(args, pipe.Writer.AsStream(true)));
     }
 

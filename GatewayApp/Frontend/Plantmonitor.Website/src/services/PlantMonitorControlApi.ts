@@ -15,6 +15,8 @@ export interface IImageTakingClient {
     previewImage(): Promise<FileResponse>;
 
     getCameras(): Promise<string>;
+
+    killCamera(): Promise<void>;
 }
 
 export class ImageTakingClient extends PlantMonitorControlApiBase implements IImageTakingClient {
@@ -103,6 +105,38 @@ export class ImageTakingClient extends PlantMonitorControlApiBase implements IIm
             });
         }
         return Promise.resolve<string>(null as any);
+    }
+
+    killCamera(): Promise<void> {
+        let url_ = this.baseUrl + "/api/ImageTaking/killcamera";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processKillCamera(_response));
+        });
+    }
+
+    protected processKillCamera(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 }
 

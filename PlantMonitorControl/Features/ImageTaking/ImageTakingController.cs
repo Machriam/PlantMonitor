@@ -1,8 +1,4 @@
-﻿using Iot.Device.Camera.Settings;
-using Iot.Device.Common;
-using Iot.Device.Media;
-using Microsoft.AspNetCore.Mvc;
-using System.IO.Pipelines;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -20,5 +16,11 @@ public class ImageTakingController([FromKeyedServices(ICameraInterop.VisCamera)]
     public async Task<string> GetCameras()
     {
         return await cameraInterop.CameraInfo();
+    }
+
+    [HttpPost("killcamera")]
+    public async Task KillCamera()
+    {
+        await cameraInterop.KillImageTaking();
     }
 }
