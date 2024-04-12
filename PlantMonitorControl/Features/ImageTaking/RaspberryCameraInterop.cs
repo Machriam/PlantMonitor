@@ -18,7 +18,9 @@ public interface ICameraInterop
 
     Task<IResult> CaptureTestImage();
 
-    Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality);
+    Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM);
+
+    Task KillImageTaking();
 }
 
 public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
@@ -45,14 +47,21 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         return _cameraFound;
     }
 
+    public async Task KillImageTaking()
+    {
+        var killVideo = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
+        new Process() { StartInfo = killVideo }.Start();
+        var killImaging = new ProcessStartInfo("pkill", $"-9 -f {_imageProcessSettings.Filename}");
+        new Process() { StartInfo = killImaging }.Start();
+        await Task.Delay(500);
+    }
+
     public async Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM)
     {
         var focus = float.Round(1f / distanceInM, 2);
         var width = (int)(maxWidth / resolutionDivider);
         var height = (int)(maxHeight / resolutionDivider);
-        var info = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
-        new Process() { StartInfo = info }.Start();
-        await Task.Delay(500);
+        await KillImageTaking();
         var builder = new CommandOptionsBuilder()
         .WithContinuousStreaming()
         .WithVflip()

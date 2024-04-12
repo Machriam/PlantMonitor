@@ -27,7 +27,12 @@ public class DevelopCameraInterop() : ICameraInterop
         throw new NotImplementedException();
     }
 
-    public Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality)
+    public Task KillImageTaking()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM)
     {
         var fs = new FileStream("../TestVideo.mjpeg", FileMode.Open);
         var pipe = new Pipe();

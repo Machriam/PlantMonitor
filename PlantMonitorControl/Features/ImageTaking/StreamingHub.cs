@@ -8,7 +8,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
 {
     private static readonly byte[] _headerBytes = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0];
 
-    public async Task<ChannelReader<byte[]>> StreamMjpeg(float resolutionDivider, int quality, CancellationToken token)
+    public async Task<ChannelReader<byte[]>> StreamMjpeg(float resolutionDivider, int quality, float distanceInM, CancellationToken token)
     {
         var channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
         {
@@ -17,7 +17,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             SingleReader = true,
             SingleWriter = true,
         });
-        var (pipe, _) = await cameraInterop.MjpegStream(resolutionDivider, quality);
+        var (pipe, _) = await cameraInterop.MjpegStream(resolutionDivider, quality, distanceInM);
         _ = WriteItemsAsync(channel, pipe.Reader, token);
         return channel.Reader;
     }
