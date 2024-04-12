@@ -7,8 +7,9 @@ RUN npm run build
 
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0
-WORKDIR "/PlantMonitor/GatewayApp/Backend"
+COPY --from=frontend /PlantMonitor /PlantMonitor
+WORKDIR "/PlantMonitor/GatewayApp/Backend/Plantmonitor.Server"
 RUN dotnet build -c Release -o ./dist -r linux-x64 --no-self-contained ./Plantmonitor.Server.csproj
-COPY --from=frontend /PlantMonitor/GatewayApp/Frontend/Plantmonitor.Website/build /PlantMonitor/GatewayApp/Backend/dist/wwwroot
+COPY --from=frontend /PlantMonitor/GatewayApp/Frontend/Plantmonitor.Website/build /PlantMonitor/GatewayApp/Backend/Plantmonitor.Server/wwwroot
 
-ENTRYPOINT [ "dotnet", "/PlantMonitor/GatewayApp/Backend/dist/Plantmonitor.Server.dll" ]
+ENTRYPOINT [ "dotnet", "/PlantMonitor/GatewayApp/Backend/Plantmonitor.Server/dist/Plantmonitor.Server.dll" ]
