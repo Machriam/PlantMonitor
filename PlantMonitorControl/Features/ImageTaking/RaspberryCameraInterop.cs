@@ -2,7 +2,6 @@
 using Iot.Device.Common;
 using System.Diagnostics;
 using System.IO.Pipelines;
-using System.IO.Pipes;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -22,7 +21,7 @@ public interface ICameraInterop
     Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality);
 }
 
-public class RaspberryCameraInterop() : ICameraInterop
+public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
 {
     private const int maxWidth = 2304;
     private const int maxHeight = 1296;
@@ -63,6 +62,7 @@ public class RaspberryCameraInterop() : ICameraInterop
         var process = new ProcessRunner(_videoProcessSettings);
 
         var pipe = new Pipe();
+        logger.LogInformation("Starting Mjpeg stream with: {arguments}", args.Concat(" "));
         return (pipe, process.ContinuousRunAsync(args, pipe.Writer.AsStream(true)));
     }
 
