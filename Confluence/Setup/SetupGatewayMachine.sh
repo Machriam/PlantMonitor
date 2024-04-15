@@ -31,5 +31,5 @@ certutil -d ~/.pki/nssdb/ -A -t "TC,," -n "PlantMonitor" -i /srv/secrets/plantmo
 
 cd ../Dockerfiles
 sudo docker-compose down
-sudo docker-compose build
+sudo docker-compose build --no-cache
 sudo docker-compose up --detach
