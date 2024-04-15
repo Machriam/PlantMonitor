@@ -18,6 +18,7 @@
 	const videoCanvasId = 'videoCanvasId';
 	let configurationClient: DeviceConfigurationClient;
 	let devices: DeviceHealthState[] = [];
+	let gatewayUrl: string;
 	let previewImage = '';
 	let previewVideo = '';
 	let frameCounter = 0;
@@ -33,7 +34,9 @@
 	}
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
-		configurationClient = new DeviceConfigurationClient();
+		if (dev) gatewayUrl = '';
+		else gatewayUrl = `https://${location.hostname}`;
+		configurationClient = new DeviceConfigurationClient(gatewayUrl);
 		devices = await configurationClient.getDevices();
 		webSshCredentials = await configurationClient.getWebSshCredentials();
 		searchingForDevices = false;
@@ -92,9 +95,7 @@
 		});
 	}
 	async function getDeviceStatus() {
-		let client: DeviceConfigurationClient;
-		if (dev) client = new DeviceConfigurationClient();
-		else client = new DeviceConfigurationClient(`https://${location.hostname}`);
+		const client = new DeviceConfigurationClient(gatewayUrl);
 		try {
 			devices = await client.getDevices();
 		} catch (ex) {
