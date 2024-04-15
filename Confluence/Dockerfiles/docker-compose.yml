@@ -1,0 +1,26 @@
+services:
+  webssh:
+    container_name: webssh
+    build: https://github.com/huashengdun/webssh.git
+    restart: always
+    ports:
+      - "8888"
+  plantmonitor:
+    container_name: plantmonitor
+    build: .
+    restart: always
+    ports:
+      - "8000"
+  reverse-proxy:
+    container_name: proxy
+    image: nginx
+    restart: always
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /srv/secrets:/srv/secrets:ro
+    ports:
+      - "443:443"
+      - "450:450"
+      - "80:80"
+
+  

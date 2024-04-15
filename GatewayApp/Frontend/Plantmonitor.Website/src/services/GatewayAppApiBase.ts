@@ -1,6 +1,6 @@
 export class GatewayAppApiBase {
     getBaseUrl(_: string, defaultUrl: string | undefined): string {
-        return defaultUrl ?? "https://localhost:7005";
+        return defaultUrl?.isEmpty() ?? true ? "https://localhost:7005" : defaultUrl!;
     }
     transformOptions(options: RequestInit): Promise<RequestInit> {
         return Promise.resolve(options);

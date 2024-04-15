@@ -14,7 +14,7 @@ public interface IDeviceConnectionTester
     Task<DeviceConnection> PingIp(string ip, int retryTimes = 30);
 }
 
-public class DeviceConnectionTester(IEnvironmentConfiguration configuration) : IDeviceConnectionTester
+public class DeviceConnectionTester(IEnvironmentConfiguration configuration, ILogger<DeviceConnectionTester> logger) : IDeviceConnectionTester
 {
     private static readonly HttpClient _client = new();
 
@@ -28,6 +28,7 @@ public class DeviceConnectionTester(IEnvironmentConfiguration configuration) : I
         var from = configuration.IpScanRange_From();
         var to = configuration.IpScanRange_To();
         var pingTasks = new List<Task<DeviceConnection>>();
+        logger.LogInformation("Pinging IPs from {from} to {to}", from, to);
         foreach (var ip in from.ToIpRange(to).Where(ip => !ipsToExclude.Contains(ip))) pingTasks.Add(PingIp(ip));
         await Task.WhenAll(pingTasks);
         return pingTasks
@@ -44,7 +45,8 @@ public class DeviceConnectionTester(IEnvironmentConfiguration configuration) : I
             var pingResult = await ping.SendPingAsync(ip, 100);
             if (pingResult.Status == IPStatus.Success)
             {
-                var (success, _) = await TestSSH(ip).TryAsyncTask();
+                var (success, error) = await TestSSH(ip).TryAsyncTask();
+                logger.LogWarning("Ping Error {ip}: {error}", ip, error);
                 return new DeviceConnection(ip, success);
             }
             ping.Dispose();

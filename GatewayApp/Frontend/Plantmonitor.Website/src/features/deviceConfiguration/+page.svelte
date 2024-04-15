@@ -13,10 +13,12 @@
 	import { Task } from '~/types/task';
 	import { ImageTakingClient, MotorMovementClient } from '~/services/PlantMonitorControlApi';
 	import { CvInterop } from './CvInterop';
+	import { dev } from '$app/environment';
 
 	const videoCanvasId = 'videoCanvasId';
 	let configurationClient: DeviceConfigurationClient;
 	let devices: DeviceHealthState[] = [];
+	let gatewayUrl: string;
 	let previewImage = '';
 	let previewVideo = '';
 	let frameCounter = 0;
@@ -32,7 +34,9 @@
 	}
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
-		configurationClient = new DeviceConfigurationClient();
+		if (dev) gatewayUrl = '';
+		else gatewayUrl = `https://${location.hostname}`;
+		configurationClient = new DeviceConfigurationClient(gatewayUrl);
 		devices = await configurationClient.getDevices();
 		webSshCredentials = await configurationClient.getWebSshCredentials();
 		searchingForDevices = false;
@@ -41,7 +45,7 @@
 		if (ip == undefined) return;
 		webSshLink = '';
 		await Task.delay(100);
-		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
+		webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
 	}
 	async function configureDevice(ip: string | undefined): Promise<void> {
 		if (ip == undefined) return;
@@ -55,11 +59,12 @@
 			`sudo apt-get install -y git;` +
 			`git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor;git reset --hard;git pull; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;` +
 			`exec bash;'`;
-		webSshLink = `${webSshCredentials.url}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
+		webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
 	}
 	async function showPreviewImage(device: string | undefined) {
 		if (device == undefined) return;
 		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
+		await imageTakingClient.killCamera();
 		previewImage = await (await imageTakingClient.previewImage()).data.asBase64Url();
 	}
 	async function testMovement(device: string | undefined) {
@@ -78,7 +83,7 @@
 		const cvInterop = new CvInterop();
 		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
 		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
-		connection.stream('StreamMjpeg', 1, 100, 0.5).subscribe({
+		connection.stream('StreamMjpeg', 2, 100, 0.1).subscribe({
 			next: async (x) => {
 				frameCounter++;
 				const payload = x as Uint8Array;
@@ -90,7 +95,7 @@
 		});
 	}
 	async function getDeviceStatus() {
-		const client = new DeviceConfigurationClient();
+		const client = new DeviceConfigurationClient(gatewayUrl);
 		try {
 			devices = await client.getDevices();
 		} catch (ex) {
