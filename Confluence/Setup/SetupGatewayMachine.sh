@@ -28,4 +28,4 @@ sudo cp /srv/secrets/plantmonitor.crt /usr/share/ca-certificates/
 sudo dpkg-reconfigure ca-certificates # Gives a prompt to confirm adding of the new certificate
 
 cd ../Dockerfiles
-sudo docker-compose start
+sudo docker-compose -f docker-compose-linux.yml start
