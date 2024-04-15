@@ -1,14 +1,17 @@
 services:
   webssh:
     build: https://github.com/huashengdun/webssh.git
+    restart: always
     ports:
       - "8888"
   gatewayserver:
     build: .
+    restart: always
     ports:
       - "8000"
   reverse-proxy:
     image: nginx
+    restart: always
     volumes:
       - ./default.conf:/etc/nginx/conf.d/default.conf:ro
       - /srv/secrets:/srv/secrets:ro
