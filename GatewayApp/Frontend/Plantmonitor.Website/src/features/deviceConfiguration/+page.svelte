@@ -13,6 +13,7 @@
 	import { Task } from '~/types/task';
 	import { ImageTakingClient, MotorMovementClient } from '~/services/PlantMonitorControlApi';
 	import { CvInterop } from './CvInterop';
+	import { dev } from '$app/environment';
 
 	const videoCanvasId = 'videoCanvasId';
 	let configurationClient: DeviceConfigurationClient;
@@ -91,7 +92,9 @@
 		});
 	}
 	async function getDeviceStatus() {
-		const client = new DeviceConfigurationClient();
+		let client: DeviceConfigurationClient;
+		if (dev) client = new DeviceConfigurationClient();
+		else client = new DeviceConfigurationClient(`https://${location.hostname}`);
 		try {
 			devices = await client.getDevices();
 		} catch (ex) {
