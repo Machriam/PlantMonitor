@@ -149,6 +149,8 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
 export interface IAppConfigurationClient {
 
     updateDeviceSettings(password?: string | undefined, user?: string | undefined): Promise<void>;
+
+    updateIpRanges(ipFrom?: string | undefined, ipTo?: string | undefined): Promise<void>;
 }
 
 export class AppConfigurationClient extends GatewayAppApiBase implements IAppConfigurationClient {
@@ -188,6 +190,46 @@ export class AppConfigurationClient extends GatewayAppApiBase implements IAppCon
     }
 
     protected processUpdateDeviceSettings(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    updateIpRanges(ipFrom?: string | undefined, ipTo?: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/AppConfiguration/updateipranges?";
+        if (ipFrom === null)
+            throw new Error("The parameter 'ipFrom' cannot be null.");
+        else if (ipFrom !== undefined)
+            url_ += "ipFrom=" + encodeURIComponent("" + ipFrom) + "&";
+        if (ipTo === null)
+            throw new Error("The parameter 'ipTo' cannot be null.");
+        else if (ipTo !== undefined)
+            url_ += "ipTo=" + encodeURIComponent("" + ipTo) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdateIpRanges(_response));
+        });
+    }
+
+    protected processUpdateIpRanges(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

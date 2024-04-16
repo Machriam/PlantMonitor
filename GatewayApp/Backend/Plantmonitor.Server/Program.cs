@@ -1,5 +1,6 @@
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Server.Features.RestApiFilter;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +38,10 @@ builder.Services.AddOpenApiDocument(options =>
             Description = "Server to manage sensors and the corresponding Raspberry Pis"
         };
     };
+});
+builder.Services.AddMvc(options =>
+{
+    options.Filters.Add<ModelAttributeErrorFilter>();
 });
 
 var app = builder.Build();

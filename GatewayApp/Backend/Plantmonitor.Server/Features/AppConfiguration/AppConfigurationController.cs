@@ -13,5 +13,13 @@ namespace Plantmonitor.Server.Features.AppConfiguration
             configuration.DeviceData = new(password, user);
             storage.UpdateConfiguration(configuration);
         }
+
+        [HttpPost("updateipranges")]
+        public void UpdateIpRanges(string ipFrom, string ipTo)
+        {
+            var configuration = storage.GetConfiguration();
+            configuration.DeviceScanRange = new(ipFrom, ipTo);
+            storage.UpdateConfiguration(configuration);
+        }
     }
 }
