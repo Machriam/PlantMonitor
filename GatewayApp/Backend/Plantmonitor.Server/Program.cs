@@ -12,6 +12,7 @@ builder.Host.UseSerilog();
 
 builder.Services.AddTransient<IEnvironmentConfiguration, EnvironmentConfiguration>();
 builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>();
+builder.Services.AddTransient<IConfigurationStorage, ConfigurationStorage>();
 builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
 builder.Services.AddHostedService<DeviceConnectionWorker>();
 
@@ -39,6 +40,7 @@ builder.Services.AddOpenApiDocument(options =>
 });
 
 var app = builder.Build();
+app.Services.GetRequiredService<IConfigurationStorage>().InitializeConfiguration();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

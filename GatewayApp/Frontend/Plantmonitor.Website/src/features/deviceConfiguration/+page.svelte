@@ -132,7 +132,11 @@
 								<span class="badge bg-success">{device.ip}</span><br />
 								<span>{device.health.deviceName}</span><br />
 								<span>{device.health.deviceId}</span><br />
-								<span>{healthStateFormatter(device.health.state ?? HealthState.NA)}</span>
+								<span>
+									{#each healthStateFormatter(device.health.state ?? HealthState.NA) as state}
+										<span>{state}<br /></span>
+									{/each}
+								</span>
 							{:else}
 								<span class="badge bg-danger">{device.ip}</span>
 							{/if}

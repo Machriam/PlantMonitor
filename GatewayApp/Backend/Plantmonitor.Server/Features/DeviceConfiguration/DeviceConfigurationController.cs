@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Plantmonitor.Server.Features.AppConfiguration;
 
 namespace Plantmonitor.Server.Features.DeviceConfiguration;
@@ -21,9 +20,8 @@ public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, I
     [HttpGet("websshcredentials")]
     public WebSshCredentials GetWebSshCredentials()
     {
-        var urlParts = configuration.WebSshUrl().Split(",");
-        return new WebSshCredentials(urlParts[0], urlParts[1],
-            configuration.DevicePassword(), configuration.DeviceUsername());
+        var (protocol, port) = configuration.WebSshUrl();
+        return new WebSshCredentials(protocol, port, configuration.DevicePassword(), configuration.DeviceUsername());
     }
 
     [HttpGet("devices")]
