@@ -45,8 +45,8 @@ public class DeviceConnectionTester(IEnvironmentConfiguration configuration, ILo
             var pingResult = await ping.SendPingAsync(ip, 100);
             if (pingResult.Status == IPStatus.Success)
             {
-                var (success, error) = await TestSSH(ip).TryAsyncTask();
-                logger.LogWarning("Ping Error {ip}: {error}", ip, error);
+                var (success, _) = await TestSSH(ip).TryAsyncTask();
+                logger.LogInformation("Ping Error {ip}: {success}", ip, success);
                 return new DeviceConnection(ip, success);
             }
             ping.Dispose();
