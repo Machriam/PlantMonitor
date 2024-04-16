@@ -28,6 +28,8 @@ sudo mv ~/plantmonitor.* /srv/secrets
 # Trusting self signed certificate in Chrome
 sudo apt install -y libnss3-tools debconf
 certutil -d ~/.pki/nssdb/ -A -t "TC,," -n "PlantMonitor" -i /srv/secrets/plantmonitor.crt
+sudo cp /srv/secrets/plantmonitor.crt /usr/share/ca-certificates/
+sudo update-ca-certificates
 
 
 cd ../Dockerfiles
