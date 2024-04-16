@@ -15,6 +15,7 @@ echo \
 sudo apt-get update
 
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
+sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 
 cd ~
 # Create Self Signed Certificate for IP-Range 1-255

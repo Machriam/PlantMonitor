@@ -9,6 +9,9 @@ services:
     container_name: plantmonitor
     build: .
     restart: always
+    volumes:
+      - ./PlantmonitorData:/srv/PlantmonitorData
+      - /srv/secrets:/srv/secrets:ro
     ports:
       - "8000"
   reverse-proxy:

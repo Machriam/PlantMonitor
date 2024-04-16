@@ -1,5 +1,6 @@
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Server.Features.RestApiFilter;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,7 @@ builder.Host.UseSerilog();
 
 builder.Services.AddTransient<IEnvironmentConfiguration, EnvironmentConfiguration>();
 builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>();
+builder.Services.AddTransient<IConfigurationStorage, ConfigurationStorage>();
 builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
 builder.Services.AddHostedService<DeviceConnectionWorker>();
 
@@ -37,8 +39,13 @@ builder.Services.AddOpenApiDocument(options =>
         };
     };
 });
+builder.Services.AddMvc(options =>
+{
+    options.Filters.Add<ModelAttributeErrorFilter>();
+});
 
 var app = builder.Build();
+app.Services.GetRequiredService<IConfigurationStorage>().InitializeConfiguration();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

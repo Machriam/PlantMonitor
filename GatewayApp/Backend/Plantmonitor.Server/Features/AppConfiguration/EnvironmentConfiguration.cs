@@ -6,8 +6,6 @@
 
         string IpScanRange_To();
 
-        string WebSshUrl();
-
         string DeviceUsername();
 
         string DevicePassword();
@@ -15,40 +13,40 @@
         string Certificate();
 
         string CertificateKey();
+
+        (string Protocol, string Port) WebSshUrl();
     }
 
-    public class EnvironmentConfiguration(IConfiguration configuration) : IEnvironmentConfiguration
+    public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
     {
+        private const string CertificateFolder = nameof(CertificateFolder);
+
         public string Certificate()
         {
-            var certPath = configuration.GetSection("Kestrel:Endpoints:Https:Certificate:Path").Value;
-            return File.ReadAllText(certPath ?? throw new Exception("A certificate must be defined in appsettings.json"));
+            var path = Path.Combine(configuration.GetConnectionString(CertificateFolder) ?? throw new Exception($"Appsettings must define {CertificateFolder}"), "plantmonitor.crt");
+            return File.ReadAllText(path ?? throw new Exception($"A certificate could not be found under {path}"));
         }
 
         public string CertificateKey()
         {
-            var keyPath = configuration.GetSection("Kestrel:Endpoints:Https:Certificate:KeyPath").Value;
-            return File.ReadAllText(keyPath ?? throw new Exception("A certificate must be defined in appsettings.json"));
+            var path = Path.Combine(configuration.GetConnectionString(CertificateFolder) ?? throw new Exception($"Appsettings must define {CertificateFolder}"), "plantmonitor.key");
+            return File.ReadAllText(path ?? throw new Exception($"A certificate could not be found under {path}"));
         }
 
-        public string IpScanRange_From() =>
-            configuration.GetConnectionString(nameof(IpScanRange_From)) ??
-                throw new Exception(nameof(IpScanRange_From) + " must be defined in appsettings.json");
+        public string IpScanRange_From() => configurationStorage.GetConfiguration().DeviceScanRange.IpFrom;
 
-        public string IpScanRange_To() =>
-            configuration.GetConnectionString(nameof(IpScanRange_To)) ??
-                throw new Exception(nameof(IpScanRange_To) + " must be defined in appsettings.json");
+        public string IpScanRange_To() => configurationStorage.GetConfiguration().DeviceScanRange.IpTo;
 
-        public string WebSshUrl() =>
-            configuration.GetConnectionString(nameof(WebSshUrl)) ??
+        public (string Protocol, string Port) WebSshUrl()
+        {
+            var result = configuration.GetConnectionString(nameof(WebSshUrl)) ??
                 throw new Exception(nameof(WebSshUrl) + " must be defined in appsettings.json");
+            var split = result.Split(",");
+            return (split[0], split[1]);
+        }
 
-        public string DeviceUsername() =>
-            configuration.GetConnectionString(nameof(DeviceUsername)) ??
-                throw new Exception(nameof(DeviceUsername) + " must be defined in appsettings.json");
+        public string DeviceUsername() => configurationStorage.GetConfiguration().DeviceData.DeviceUser;
 
-        public string DevicePassword() =>
-            configuration.GetConnectionString(nameof(DevicePassword)) ??
-                throw new Exception(nameof(DevicePassword) + " must be defined in appsettings.json");
+        public string DevicePassword() => configurationStorage.GetConfiguration().DeviceData.DevicePassword;
     }
 }

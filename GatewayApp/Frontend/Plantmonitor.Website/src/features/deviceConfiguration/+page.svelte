@@ -1,40 +1,49 @@
 <script lang="ts">
-	'@hmr:keep-all';
-	import { onMount } from 'svelte';
+	"@hmr:keep-all";
+	import {onMount} from "svelte";
 	import {
+		AppConfigurationClient,
 		DeviceConfigurationClient,
 		DeviceHealthState,
 		HealthState,
 		WebSshCredentials
-	} from '../../services/GatewayAppApi';
-	import 'typeExtensions';
-	import * as signalR from '@microsoft/signalr';
-	import * as signalRProtocols from '@microsoft/signalr-protocol-msgpack';
-	import { Task } from '~/types/task';
-	import { ImageTakingClient, MotorMovementClient } from '~/services/PlantMonitorControlApi';
-	import { CvInterop } from './CvInterop';
-	import { dev } from '$app/environment';
+	} from "../../services/GatewayAppApi";
+	import "typeExtensions";
+	import * as signalR from "@microsoft/signalr";
+	import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
+	import {Task} from "~/types/task";
+	import {ImageTakingClient, MotorMovementClient} from "~/services/PlantMonitorControlApi";
+	import {CvInterop} from "./CvInterop";
+	import {dev} from "$app/environment";
+	import TextInput from "../reuseableComponents/TextInput.svelte";
+	import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
 
-	const videoCanvasId = 'videoCanvasId';
+	const videoCanvasId = "videoCanvasId";
+	let configurationData: {ipFrom: string; ipTo: string; userName: string; userPassword: string} =
+		{
+			ipFrom: "",
+			ipTo: "",
+			userName: "",
+			userPassword: ""
+		};
 	let configurationClient: DeviceConfigurationClient;
 	let devices: DeviceHealthState[] = [];
 	let gatewayUrl: string;
-	let previewImage = '';
-	let previewVideo = '';
+	let previewImage = "";
 	let frameCounter = 0;
 	let connection: signalR.HubConnection;
 	let searchingForDevices = true;
-	let webSshLink = ''; // @hmr:keep
+	let webSshLink = ""; // @hmr:keep
 	function healthStateFormatter(state: HealthState) {
 		const result = Object.getOwnPropertyNames(HealthState)
-			.filter((x) => !parseInt(x) && x != '0')
-			.filter((x) => (HealthState as unknown as { [key: string]: number })[x] & state);
+			.filter((x) => !parseInt(x) && x != "0")
+			.filter((x) => (HealthState as unknown as {[key: string]: number})[x] & state);
 		if (result.length == 0) return [HealthState[HealthState.NA]];
 		return result;
 	}
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
-		if (dev) gatewayUrl = '';
+		if (dev) gatewayUrl = "";
 		else gatewayUrl = `https://${location.hostname}`;
 		configurationClient = new DeviceConfigurationClient(gatewayUrl);
 		devices = await configurationClient.getDevices();
@@ -43,13 +52,13 @@
 	});
 	async function openConsole(ip: string | undefined): Promise<void> {
 		if (ip == undefined) return;
-		webSshLink = '';
+		webSshLink = "";
 		await Task.delay(100);
 		webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
 	}
 	async function configureDevice(ip: string | undefined): Promise<void> {
 		if (ip == undefined) return;
-		webSshLink = '';
+		webSshLink = "";
 		await Task.delay(100);
 		var certificate = await configurationClient.getCertificateData();
 		const command =
@@ -76,23 +85,40 @@
 		if (device == undefined) return;
 		await connection?.stop();
 		connection = new signalR.HubConnectionBuilder()
-			.withUrl(`https://${device}/hub/video`, { withCredentials: false })
+			.withUrl(`https://${device}/hub/video`, {withCredentials: false})
 			.withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
 			.build();
 		await connection.start();
 		const cvInterop = new CvInterop();
 		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
 		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
-		connection.stream('StreamMjpeg', 2, 100, 0.1).subscribe({
+		connection.stream("StreamMjpeg", 2, 100, 0.1).subscribe({
 			next: async (x) => {
 				frameCounter++;
 				const payload = x as Uint8Array;
-				const blob = new Blob([payload], { type: 'image/jpeg' });
+				const blob = new Blob([payload], {type: "image/jpeg"});
 				await videoDisplayFunction(await blob.asBase64Url());
 			},
-			complete: () => console.log('complete'),
+			complete: () => console.log("complete"),
 			error: (x) => console.log(x)
 		});
+	}
+	async function updateIpRange() {
+		const client = new AppConfigurationClient(gatewayUrl);
+		client.updateIpRanges(configurationData.ipFrom, configurationData.ipTo);
+		configurationData.ipFrom = "";
+		configurationData.ipTo = "";
+	}
+	async function updateDeviceSettings() {
+		const client = new AppConfigurationClient(gatewayUrl);
+		await client.updateDeviceSettings(
+			configurationData.userPassword,
+			configurationData.userName
+		);
+		configurationClient = new DeviceConfigurationClient(gatewayUrl);
+		webSshCredentials = await configurationClient.getWebSshCredentials();
+		configurationData.userName = "";
+		configurationData.userPassword = "";
 	}
 	async function getDeviceStatus() {
 		const client = new DeviceConfigurationClient(gatewayUrl);
@@ -105,6 +131,22 @@
 </script>
 
 <div class="col-md-12 row">
+	<h3>Plantmonitor Configuration</h3>
+	<div class="col-md-12 row">
+		<TextInput class="col-md-2" bind:value={configurationData.ipFrom} label="IP From"
+		></TextInput>
+		<TextInput class="col-md-2" bind:value={configurationData.ipTo} label="IP To"></TextInput>
+		<button on:click={updateIpRange} class="btn btn-primary col-md-2">Update IP</button>
+		<div class="col-md-12 mt-2"></div>
+		<TextInput class="col-md-2" bind:value={configurationData.userName} label="Device SSH User"
+		></TextInput>
+		<PasswordInput
+			class="col-md-2"
+			bind:value={configurationData.userPassword}
+			label="Device SSH Password"></PasswordInput>
+		<button on:click={updateDeviceSettings} class="btn btn-primary col-md-2"
+			>Update Password</button>
+	</div>
 	<h3>
 		{#if searchingForDevices}
 			Searching for devices
@@ -113,18 +155,10 @@
 		{/if}
 	</h3>
 	<div>{frameCounter}</div>
-	<button class="btn btn-primary" on:click={() => showTestVideo('localhost:7127')}
-		>Local Streaming Test</button
-	>
 	<div class="col-md-6">
 		{#each devices as device}
 			<table class="table">
-				<thead>
-					<tr>
-						<th>IP</th>
-						<th>Action</th>
-					</tr>
-				</thead>
+				<thead> <tr> <th>IP</th> <th>Action</th> </tr> </thead>
 				<tbody>
 					<tr>
 						<td class="col-md-3">
@@ -132,23 +166,35 @@
 								<span class="badge bg-success">{device.ip}</span><br />
 								<span>{device.health.deviceName}</span><br />
 								<span>{device.health.deviceId}</span><br />
-								<span>{healthStateFormatter(device.health.state ?? HealthState.NA)}</span>
+								<span>
+									{#each healthStateFormatter(device.health.state ?? HealthState.NA) as state}
+										<span>{state}<br /></span>
+									{/each}
+								</span>
 							{:else}
 								<span class="badge bg-danger">{device.ip}</span>
 							{/if}
 						</td>
 						<td>
-							<button on:click={() => configureDevice(device.ip)} class="btn btn-primary">
+							<button
+								on:click={() => configureDevice(device.ip)}
+								class="btn btn-primary">
 								Configure
 							</button>
 							{#if device.health != undefined}
-								<button on:click={() => showPreviewImage(device.ip)} class="btn btn-primary">
+								<button
+									on:click={() => showPreviewImage(device.ip)}
+									class="btn btn-primary">
 									Preview Image
 								</button>
-								<button on:click={() => showTestVideo(device.ip)} class="btn btn-primary">
+								<button
+									on:click={() => showTestVideo(device.ip)}
+									class="btn btn-primary">
 									Preview Video
 								</button>
-								<button on:click={() => testMovement(device.ip)} class="btn btn-primary">
+								<button
+									on:click={() => testMovement(device.ip)}
+									class="btn btn-primary">
 									Test Movement
 								</button>
 							{/if}
@@ -160,7 +206,8 @@
 				</tbody>
 			</table>
 		{/each}
-		<button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
+		<button on:click={async () => await getDeviceStatus()} class="btn btn-primary"
+			>Update</button>
 	</div>
 	<div class="col-md-6">
 		<div class="col-md-12">
@@ -168,9 +215,7 @@
 				<img alt="Preview" src={previewImage} />
 			{/if}
 		</div>
-		<div class="col-md-12">
-			<img alt="Video" id={videoCanvasId} />
-		</div>
+		<div class="col-md-12"><img alt="Video" id={videoCanvasId} /></div>
 		<div class="col-md-12" style="height:80vh;">
 			{#if !webSshLink.isEmpty()}
 				<iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>
