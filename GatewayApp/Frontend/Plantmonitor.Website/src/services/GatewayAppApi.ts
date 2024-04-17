@@ -18,6 +18,10 @@ export interface IDeviceClient {
 
     cameraInfo(ip?: string | undefined): Promise<string>;
 
+    currentPosition(ip?: string | undefined): Promise<number>;
+
+    toggleMotorEngage(ip?: string | undefined, engage?: boolean | undefined): Promise<void>;
+
     move(ip?: string | undefined, steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void>;
 }
 
@@ -151,6 +155,87 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
             });
         }
         return Promise.resolve<string>(null as any);
+    }
+
+    currentPosition(ip?: string | undefined): Promise<number> {
+        let url_ = this.baseUrl + "/api/Device/currentposition?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processCurrentPosition(_response));
+        });
+    }
+
+    protected processCurrentPosition(response: Response): Promise<number> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
+    }
+
+    toggleMotorEngage(ip?: string | undefined, engage?: boolean | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Device/togglemotorengage?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        if (engage === null)
+            throw new Error("The parameter 'engage' cannot be null.");
+        else if (engage !== undefined)
+            url_ += "engage=" + encodeURIComponent("" + engage) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processToggleMotorEngage(_response));
+        });
+    }
+
+    protected processToggleMotorEngage(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     move(ip?: string | undefined, steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void> {

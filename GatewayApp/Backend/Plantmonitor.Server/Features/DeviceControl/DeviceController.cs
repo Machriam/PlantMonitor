@@ -27,10 +27,21 @@ public class DeviceController(IDeviceApiFactory apiFactory)
     {
         return await apiFactory.ImageTakingClient(ip).CamerainfoAsync();
     }
+    [HttpGet("currentposition")]
+    public async Task<int> CurrentPosition(string ip)
+    {
+        return await apiFactory.MovementClient(ip).CurrentpositionAsync();
+    }
+
+    [HttpPost("togglemotorengage")]
+    public async Task ToggleMotorEngage(string ip, bool engage)
+    {
+        await apiFactory.MovementClient(ip).TogglemotorengageAsync(engage);
+    }
 
     [HttpPost("move")]
     public async Task Move(string ip, int steps, int minTime, int maxTime, int rampLength)
     {
-        await apiFactory.MovementClient(ip).MotorMovementAsync(steps, minTime, maxTime, rampLength);
+        await apiFactory.MovementClient(ip).MovemotorAsync(steps, minTime, maxTime, rampLength);
     }
 }
