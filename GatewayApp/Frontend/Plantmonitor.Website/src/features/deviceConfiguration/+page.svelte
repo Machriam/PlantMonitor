@@ -17,6 +17,8 @@
 	import {dev} from "$app/environment";
 	import TextInput from "../reuseableComponents/TextInput.svelte";
 	import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
+	import {GatewayAppApiBase} from "~/services/GatewayAppApiBase";
+	import {DeviceStreaming as DeviceStreamingApi} from "~/services/DeviceStreaming";
 
 	const videoCanvasId = "videoCanvasId";
 	let configurationData: {ipFrom: string; ipTo: string; userName: string; userPassword: string} =
@@ -31,7 +33,7 @@
 	let gatewayUrl: string;
 	let previewImage = "";
 	let frameCounter = 0;
-	let connection: signalR.HubConnection;
+
 	let searchingForDevices = true;
 	let webSshLink = ""; // @hmr:keep
 	function healthStateFormatter(state: HealthState) {
@@ -83,24 +85,13 @@
 	}
 	async function showTestVideo(device: string | undefined) {
 		if (device == undefined) return;
-		await connection?.stop();
-		connection = new signalR.HubConnectionBuilder()
-			.withUrl(`https://${device}/hub/video`, {withCredentials: false})
-			.withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
-			.build();
-		await connection.start();
+		const connection = new DeviceStreamingApi().buildVideoConnection(device);
 		const cvInterop = new CvInterop();
 		const image = document.getElementById(videoCanvasId) as HTMLImageElement;
 		const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
-		connection.stream("StreamMjpeg", 2, 100, 0.1).subscribe({
-			next: async (x) => {
-				frameCounter++;
-				const payload = x as Uint8Array;
-				const blob = new Blob([payload], {type: "image/jpeg"});
-				await videoDisplayFunction(await blob.asBase64Url());
-			},
-			complete: () => console.log("complete"),
-			error: (x) => console.log(x)
+		connection.start(async (image) => {
+			frameCounter++;
+			await videoDisplayFunction(image);
 		});
 	}
 	async function updateIpRange() {

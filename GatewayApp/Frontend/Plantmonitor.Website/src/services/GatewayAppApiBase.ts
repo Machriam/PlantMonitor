@@ -1,8 +1,9 @@
 import { ApiException } from "./GatewayAppApi";
 
 export class GatewayAppApiBase {
+    readonly developmentUrl = "https://localhost:7005";
     getBaseUrl(_: string, defaultUrl: string | undefined): string {
-        return defaultUrl?.isEmpty() ?? true ? "https://localhost:7005" : defaultUrl!;
+        return defaultUrl?.isEmpty() ?? true ? this.developmentUrl : defaultUrl!;
     }
     transformOptions(options: RequestInit): Promise<RequestInit> {
         return Promise.resolve(options);
