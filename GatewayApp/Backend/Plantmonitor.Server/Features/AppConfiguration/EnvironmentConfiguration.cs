@@ -15,12 +15,20 @@
         string CertificateKey();
 
         (string Protocol, string Port) WebSshUrl();
+        string PicturePath(string device);
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
     {
         private const string CertificateFolder = nameof(CertificateFolder);
 
+        public string PicturePath(string device)
+        {
+            var imageFolder = Path.Combine(Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
+                throw new Exception("No App configuration path found"), $"Images_{device}");
+            Directory.CreateDirectory(imageFolder);
+            return imageFolder;
+        }
         public string Certificate()
         {
             var path = Path.Combine(configuration.GetConnectionString(CertificateFolder) ?? throw new Exception($"Appsettings must define {CertificateFolder}"), "plantmonitor.crt");

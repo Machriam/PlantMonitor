@@ -1,5 +1,6 @@
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Server.Features.RestApiFilter;
 using Serilog;
 
@@ -14,12 +15,14 @@ builder.Host.UseSerilog();
 builder.Services.AddTransient<IEnvironmentConfiguration, EnvironmentConfiguration>();
 builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>();
 builder.Services.AddTransient<IConfigurationStorage, ConfigurationStorage>();
+builder.Services.AddTransient<IDeviceApiFactory, DeviceApiFactory>();
 builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
 builder.Services.AddHostedService<DeviceConnectionWorker>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR().AddMessagePackProtocol();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddCors(options =>
@@ -62,5 +65,6 @@ app.UseStaticFiles();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<PictureStreamingHub>("/hub/video");
 
 app.Run();

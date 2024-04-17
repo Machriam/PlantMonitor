@@ -16,6 +16,19 @@ public static class ObjectExtensions
         }
     }
 
+    public static async ValueTask<string> Try(this ValueTask obj)
+    {
+        try
+        {
+            await obj;
+            return "";
+        }
+        catch (Exception ex)
+        {
+            return ex.Message;
+        }
+    }
+
     public static async Task<(T? Result, string Error)> Try<T>(this Task<T> obj)
     {
         try

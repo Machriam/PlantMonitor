@@ -12,6 +12,7 @@
         void UpdateConfiguration(ConfigurationData newData);
 
         void InitializeConfiguration();
+        string AppConfigurationPath();
     }
 
     public class ConfigurationStorage(IConfiguration configuration) : IConfigurationStorage
@@ -19,7 +20,7 @@
         private const string DataFolder = nameof(DataFolder);
         private const string AppConfiguration = "AppConfiguration.json";
 
-        private string AppConfigurationPath()
+        public string AppConfigurationPath()
         {
             return Path.Combine(configuration.GetConnectionString(DataFolder) ?? throw new Exception($"Appsettings must define {DataFolder}"), AppConfiguration);
         }
