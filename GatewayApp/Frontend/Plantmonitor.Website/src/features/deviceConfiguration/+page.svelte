@@ -3,21 +3,17 @@
 	import {onMount} from "svelte";
 	import {
 		AppConfigurationClient,
+		DeviceClient,
 		DeviceConfigurationClient,
 		DeviceHealthState,
 		HealthState,
 		WebSshCredentials
 	} from "../../services/GatewayAppApi";
 	import "typeExtensions";
-	import * as signalR from "@microsoft/signalr";
-	import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 	import {Task} from "~/types/task";
-	import {ImageTakingClient, MotorMovementClient} from "~/services/PlantMonitorControlApi";
 	import {CvInterop} from "./CvInterop";
-	import {dev} from "$app/environment";
 	import TextInput from "../reuseableComponents/TextInput.svelte";
 	import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
-	import {GatewayAppApiBase} from "~/services/GatewayAppApiBase";
 	import {DeviceStreaming as DeviceStreamingApi} from "~/services/DeviceStreaming";
 
 	const videoCanvasId = "videoCanvasId";
@@ -30,7 +26,6 @@
 		};
 	let configurationClient: DeviceConfigurationClient;
 	let devices: DeviceHealthState[] = [];
-	let gatewayUrl: string;
 	let previewImage = "";
 	let frameCounter = 0;
 
@@ -45,9 +40,7 @@
 	}
 	let webSshCredentials: WebSshCredentials;
 	onMount(async () => {
-		if (dev) gatewayUrl = "";
-		else gatewayUrl = `https://${location.hostname}`;
-		configurationClient = new DeviceConfigurationClient(gatewayUrl);
+		configurationClient = new DeviceConfigurationClient();
 		devices = await configurationClient.getDevices();
 		webSshCredentials = await configurationClient.getWebSshCredentials();
 		searchingForDevices = false;
@@ -74,14 +67,14 @@
 	}
 	async function showPreviewImage(device: string | undefined) {
 		if (device == undefined) return;
-		const imageTakingClient = new ImageTakingClient(`https://${device}`).withTimeout(10000);
-		await imageTakingClient.killCamera();
-		previewImage = await (await imageTakingClient.previewImage()).data.asBase64Url();
+		const deviceClient = new DeviceClient();
+		await deviceClient.killCamera(device);
+		previewImage = await (await deviceClient.previewImage(device)).data.asBase64Url();
 	}
 	async function testMovement(device: string | undefined) {
 		if (device == undefined) return;
-		const motorMovementClient = new MotorMovementClient(`https://${device}`).withTimeout(10000);
-		await motorMovementClient.moveMotor(-1500, 1000, 10000, 300);
+		const deviceClient = new DeviceClient();
+		await deviceClient.move(device, -1500, 1000, 10000, 300);
 	}
 	async function showTestVideo(device: string | undefined) {
 		if (device == undefined) return;
@@ -95,24 +88,24 @@
 		});
 	}
 	async function updateIpRange() {
-		const client = new AppConfigurationClient(gatewayUrl);
+		const client = new AppConfigurationClient();
 		client.updateIpRanges(configurationData.ipFrom, configurationData.ipTo);
 		configurationData.ipFrom = "";
 		configurationData.ipTo = "";
 	}
 	async function updateDeviceSettings() {
-		const client = new AppConfigurationClient(gatewayUrl);
+		const client = new AppConfigurationClient();
 		await client.updateDeviceSettings(
 			configurationData.userPassword,
 			configurationData.userName
 		);
-		configurationClient = new DeviceConfigurationClient(gatewayUrl);
+		configurationClient = new DeviceConfigurationClient();
 		webSshCredentials = await configurationClient.getWebSshCredentials();
 		configurationData.userName = "";
 		configurationData.userPassword = "";
 	}
 	async function getDeviceStatus() {
-		const client = new DeviceConfigurationClient(gatewayUrl);
+		const client = new DeviceConfigurationClient();
 		try {
 			devices = await client.getDevices();
 		} catch (ex) {
