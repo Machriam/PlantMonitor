@@ -31,6 +31,10 @@ certutil -d ~/.pki/nssdb/ -A -t "TC,," -n "PlantMonitor" -i /srv/secrets/plantmo
 sudo cp /srv/secrets/plantmonitor.crt /usr/share/ca-certificates/
 sudo update-ca-certificates
 
+sudo apt-get install uuid-runtime -y
+postgresMasterPassword=$(uuidgen)
+echo -e "POSTGRES_PASSWORD=$postgresMasterPassword" | sudo tee ../DockerFiles/database.env
+
 
 cd ../Dockerfiles
 sudo docker-compose down

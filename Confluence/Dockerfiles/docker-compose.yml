@@ -1,4 +1,13 @@
 services:
+  database:
+    container_name: postgres
+    restart: always
+    volumes:
+      - /srv/PlantmonitorDatabase:/var/lib/postgresql/data
+    env_file:
+      - ./database.env
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
   webssh:
     container_name: webssh
     build: https://github.com/huashengdun/webssh.git
@@ -9,6 +18,10 @@ services:
     container_name: plantmonitor
     build: .
     restart: always
+    env_file:
+      - ./database.env
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - ./PlantmonitorData:/srv/PlantmonitorData
       - /srv/secrets:/srv/secrets:ro
