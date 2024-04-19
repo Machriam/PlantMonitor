@@ -50,7 +50,7 @@
       "useTransformResultMethod": true,
       "generateDtoTypes": true,
       "operationGenerationMode": "MultipleClientsFromOperationId",
-      "markOptionalProperties": true,
+      "markOptionalProperties": false,
       "generateCloneMethod": true,
       "typeStyle": "Class",
       "enumStyle": "Enum",

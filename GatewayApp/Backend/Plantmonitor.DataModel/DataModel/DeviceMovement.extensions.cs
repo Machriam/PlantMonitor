@@ -7,7 +7,8 @@ namespace Plantmonitor.DataModel.DataModel;
 public class MovementPlan
 {
     public List<int> StepPoints { get; set; } = [];
-    public int Speed { get; set; }
+    public float FocusInCentimeter { get; set; } = 100f;
+    public int Speed { get; set; } = 100;
 }
 
 public partial class DeviceMovement

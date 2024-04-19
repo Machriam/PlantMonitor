@@ -12,7 +12,7 @@ import { GatewayAppApiBase } from './GatewayAppApiBase';
 
 export interface IMovementProgrammingClient {
 
-    getPlans(): Promise<DeviceMovement[]>;
+    getPlan(deviceId?: string | undefined): Promise<DeviceMovement>;
 
     addPlan(movement: DeviceMovement): Promise<void>;
 
@@ -30,8 +30,12 @@ export class MovementProgrammingClient extends GatewayAppApiBase implements IMov
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    getPlans(): Promise<DeviceMovement[]> {
-        let url_ = this.baseUrl + "/api/MovementProgramming/getplans";
+    getPlan(deviceId?: string | undefined): Promise<DeviceMovement> {
+        let url_ = this.baseUrl + "/api/MovementProgramming/getplan?";
+        if (deviceId === null)
+            throw new Error("The parameter 'deviceId' cannot be null.");
+        else if (deviceId !== undefined)
+            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -44,25 +48,18 @@ export class MovementProgrammingClient extends GatewayAppApiBase implements IMov
         return this.transformOptions(options_).then(transformedOptions_ => {
             return this.http.fetch(url_, transformedOptions_);
         }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processGetPlans(_response));
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetPlan(_response));
         });
     }
 
-    protected processGetPlans(response: Response): Promise<DeviceMovement[]> {
+    protected processGetPlan(response: Response): Promise<DeviceMovement> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(DeviceMovement.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
+            result200 = DeviceMovement.fromJS(resultData200);
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -70,7 +67,7 @@ export class MovementProgrammingClient extends GatewayAppApiBase implements IMov
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<DeviceMovement[]>(null as any);
+        return Promise.resolve<DeviceMovement>(null as any);
     }
 
     addPlan(movement: DeviceMovement): Promise<void> {
@@ -723,11 +720,11 @@ export class WeatherForecastClient extends GatewayAppApiBase implements IWeather
 }
 
 export class DeviceMovement implements IDeviceMovement {
-    id?: number;
-    deviceId?: string;
-    movementPlanJson?: string;
-    name?: string;
-    movementPlan?: MovementPlan;
+    id!: number;
+    deviceId!: string;
+    movementPlanJson!: string;
+    name!: string;
+    movementPlan!: MovementPlan;
 
     constructor(data?: IDeviceMovement) {
         if (data) {
@@ -774,16 +771,17 @@ export class DeviceMovement implements IDeviceMovement {
 }
 
 export interface IDeviceMovement {
-    id?: number;
-    deviceId?: string;
-    movementPlanJson?: string;
-    name?: string;
-    movementPlan?: MovementPlan;
+    id: number;
+    deviceId: string;
+    movementPlanJson: string;
+    name: string;
+    movementPlan: MovementPlan;
 }
 
 export class MovementPlan implements IMovementPlan {
-    stepPoints?: number[];
-    speed?: number;
+    stepPoints!: number[];
+    focusInCentimeter!: number;
+    speed!: number;
 
     constructor(data?: IMovementPlan) {
         if (data) {
@@ -801,6 +799,7 @@ export class MovementPlan implements IMovementPlan {
                 for (let item of _data["stepPoints"])
                     this.stepPoints!.push(item);
             }
+            this.focusInCentimeter = _data["focusInCentimeter"];
             this.speed = _data["speed"];
         }
     }
@@ -819,6 +818,7 @@ export class MovementPlan implements IMovementPlan {
             for (let item of this.stepPoints)
                 data["stepPoints"].push(item);
         }
+        data["focusInCentimeter"] = this.focusInCentimeter;
         data["speed"] = this.speed;
         return data;
     }
@@ -832,13 +832,14 @@ export class MovementPlan implements IMovementPlan {
 }
 
 export interface IMovementPlan {
-    stepPoints?: number[];
-    speed?: number;
+    stepPoints: number[];
+    focusInCentimeter: number;
+    speed: number;
 }
 
 export class CertificateData implements ICertificateData {
-    certificate?: string;
-    key?: string;
+    certificate!: string;
+    key!: string;
 
     constructor(data?: ICertificateData) {
         if (data) {
@@ -879,15 +880,15 @@ export class CertificateData implements ICertificateData {
 }
 
 export interface ICertificateData {
-    certificate?: string;
-    key?: string;
+    certificate: string;
+    key: string;
 }
 
 export class WebSshCredentials implements IWebSshCredentials {
-    protocol?: string;
-    port?: string;
-    password?: string;
-    user?: string;
+    protocol!: string;
+    port!: string;
+    password!: string;
+    user!: string;
 
     constructor(data?: IWebSshCredentials) {
         if (data) {
@@ -932,16 +933,16 @@ export class WebSshCredentials implements IWebSshCredentials {
 }
 
 export interface IWebSshCredentials {
-    protocol?: string;
-    port?: string;
-    password?: string;
-    user?: string;
+    protocol: string;
+    port: string;
+    password: string;
+    user: string;
 }
 
 export class DeviceHealthState implements IDeviceHealthState {
-    health?: DeviceHealth;
-    retryTimes?: number;
-    ip?: string;
+    health!: DeviceHealth;
+    retryTimes!: number;
+    ip!: string;
 
     constructor(data?: IDeviceHealthState) {
         if (data) {
@@ -984,15 +985,15 @@ export class DeviceHealthState implements IDeviceHealthState {
 }
 
 export interface IDeviceHealthState {
-    health?: DeviceHealth;
-    retryTimes?: number;
-    ip?: string;
+    health: DeviceHealth;
+    retryTimes: number;
+    ip: string;
 }
 
 export class DeviceHealth implements IDeviceHealth {
-    deviceName?: string;
-    deviceId?: string;
-    state?: HealthState;
+    deviceName!: string;
+    deviceId!: string;
+    state!: HealthState;
 
     constructor(data?: IDeviceHealth) {
         if (data) {
@@ -1035,9 +1036,9 @@ export class DeviceHealth implements IDeviceHealth {
 }
 
 export interface IDeviceHealth {
-    deviceName?: string;
-    deviceId?: string;
-    state?: HealthState;
+    deviceName: string;
+    deviceId: string;
+    state: HealthState;
 }
 
 export enum HealthState {
@@ -1050,10 +1051,10 @@ export enum HealthState {
 }
 
 export class WeatherForecast implements IWeatherForecast {
-    date?: Date;
-    temperatureC?: number;
-    temperatureF?: number;
-    summary?: string | undefined;
+    date!: Date;
+    temperatureC!: number;
+    temperatureF!: number;
+    summary!: string | undefined;
 
     constructor(data?: IWeatherForecast) {
         if (data) {
@@ -1098,10 +1099,10 @@ export class WeatherForecast implements IWeatherForecast {
 }
 
 export interface IWeatherForecast {
-    date?: Date;
-    temperatureC?: number;
-    temperatureF?: number;
-    summary?: string | undefined;
+    date: Date;
+    temperatureC: number;
+    temperatureF: number;
+    summary: string | undefined;
 }
 
 function formatDate(d: Date) {

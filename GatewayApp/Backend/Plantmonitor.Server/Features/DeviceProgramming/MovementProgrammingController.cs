@@ -7,10 +7,11 @@ namespace Plantmonitor.Server.Features.DeviceProgramming;
 [Route("api/[controller]")]
 public class MovementProgrammingController(DataContext context)
 {
-    [HttpGet("getplans")]
-    public IEnumerable<DeviceMovement> GetPlans()
+    [HttpGet("getplan")]
+    public DeviceMovement GetPlan(string deviceId)
     {
-        return context.DeviceMovements;
+        var guid = Guid.Parse(deviceId);
+        return context.DeviceMovements.FirstOrDefault(dm => dm.DeviceId == guid) ?? new();
     }
 
     [HttpPost("addplan")]

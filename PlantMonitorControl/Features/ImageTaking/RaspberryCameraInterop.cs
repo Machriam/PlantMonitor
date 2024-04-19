@@ -58,6 +58,8 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
 
     public async Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM)
     {
+        if (distanceInM == 0) distanceInM = 0.01f;
+        if (resolutionDivider == 0) resolutionDivider = 2;
         var focus = float.Round(1f / distanceInM, 2);
         var width = (int)(maxWidth / resolutionDivider);
         var height = (int)(maxHeight / resolutionDivider);

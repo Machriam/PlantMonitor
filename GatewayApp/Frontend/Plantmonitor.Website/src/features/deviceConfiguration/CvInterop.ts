@@ -1,5 +1,3 @@
-import { Task } from "~/types/task";
-
 export class CvInterop {
     extractImages(source: string, dest: HTMLCanvasElement) {
         const video = new cv.VideoCapture(source);
