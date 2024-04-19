@@ -9,7 +9,7 @@ public partial class DeviceMovement
 
     public Guid DeviceId { get; set; }
 
-    public string MovementPlan { get; set; } = null!;
+    public string MovementPlanJson { get; set; } = null!;
 
     public string Name { get; set; } = null!;
 }

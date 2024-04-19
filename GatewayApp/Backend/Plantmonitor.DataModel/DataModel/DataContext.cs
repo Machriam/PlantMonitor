@@ -40,9 +40,9 @@ public partial class DataContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.DeviceId).HasColumnName("device_id");
-            entity.Property(e => e.MovementPlan)
+            entity.Property(e => e.MovementPlanJson)
                 .HasColumnType("jsonb")
-                .HasColumnName("movement_plan");
+                .HasColumnName("movement_plan_json");
             entity.Property(e => e.Name).HasColumnName("name");
         });
 

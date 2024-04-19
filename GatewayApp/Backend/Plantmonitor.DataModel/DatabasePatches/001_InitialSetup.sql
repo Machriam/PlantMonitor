@@ -15,7 +15,7 @@ CREATE TABLE plantmonitor.device_movement
 (
     id bigserial,
     device_id uuid NOT NULL,
-    movement_plan jsonb NOT NULL,
+    movement_plan_json jsonb NOT NULL,
     name text NOT NULL,
     PRIMARY KEY (id),
     UNIQUE (device_id, name)
