@@ -19,11 +19,22 @@
         string PicturePath(string device);
 
         string DatabaseConnection();
+
+        string RepoRootPath();
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
     {
         private const string CertificateFolder = nameof(CertificateFolder);
+
+        public string RepoRootPath()
+        {
+#if DEBUG || NOSWAG
+            return Path.GetFullPath("../../../");
+#else
+            return Path.GetFullPath("/PlantMonitor");
+#endif
+        }
 
         public string PicturePath(string device)
         {

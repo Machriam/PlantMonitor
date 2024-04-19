@@ -1,3 +1,7 @@
+using MessagePack.Resolvers;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
@@ -12,12 +16,24 @@ Log.Logger = new LoggerConfiguration()
 Log.Information("Starting Gatewayserver");
 builder.Host.UseSerilog();
 
-builder.Services.AddTransient<IEnvironmentConfiguration, EnvironmentConfiguration>();
+var configurationStorage = new ConfigurationStorage(builder.Configuration);
+var environmentConfiguration = new EnvironmentConfiguration(builder.Configuration, new ConfigurationStorage(builder.Configuration));
+builder.Services.AddSingleton<IEnvironmentConfiguration>(environmentConfiguration);
+builder.Services.AddSingleton<IConfigurationStorage>(configurationStorage);
 builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>();
-builder.Services.AddTransient<IConfigurationStorage, ConfigurationStorage>();
+builder.Services.AddTransient<IDatabaseUpgrader, DatabaseUpgrader>();
 builder.Services.AddTransient<IDeviceApiFactory, DeviceApiFactory>();
 builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
 builder.Services.AddHostedService<DeviceConnectionWorker>();
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(environmentConfiguration.DatabaseConnection());
+var dataSource = dataSourceBuilder.Configure().Build();
+builder.Services.AddDbContext<DataContext>(options =>
+{
+    options.UseNpgsql(dataSource, npg =>
+    {
+        npg.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+    });
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -49,6 +65,7 @@ builder.Services.AddMvc(options =>
 
 var app = builder.Build();
 app.Services.GetRequiredService<IConfigurationStorage>().InitializeConfiguration();
+CreateOrUpdateDatabase();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -68,3 +85,39 @@ app.MapControllers();
 app.MapHub<PictureStreamingHub>("/hub/video");
 
 app.Run();
+
+void CreateOrUpdateDatabase()
+{
+    using var scope = app.Services.CreateScope();
+    var schemas = new List<string>();
+    var databaseUpgrader = scope.ServiceProvider.GetRequiredService<IDatabaseUpgrader>();
+    using var connection = dataSource.OpenConnection();
+    using var command = connection.CreateCommand();
+    command.CommandText = "SELECT schema_name FROM information_schema.schemata;";
+    using var reader = command.ExecuteReader(System.Data.CommandBehavior.Default);
+    while (reader.Read()) schemas.Add(reader.GetString(0));
+    connection.Close();
+    if (!schemas.Contains("plantmonitor"))
+    {
+        var lastPatch = 0;
+        foreach (var patch in databaseUpgrader.GetPatchesToApply())
+        {
+            connection.Open();
+            using var patchCommand = connection.CreateCommand();
+            patchCommand.CommandText = patch.Sql;
+            patchCommand.ExecuteNonQuery();
+            connection.Close();
+            lastPatch = patch.Number;
+        }
+        using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+        dataContext.ConfigurationData.First(cd => cd.Key == Enum.GetName(ConfigurationDatumKeys.PatchNumber)).Value = lastPatch.ToString();
+        dataContext.SaveChanges();
+    }
+    else
+    {
+        using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+        var patchNumberText = dataContext.ConfigurationData.First(cd => cd.Key == Enum.GetName(ConfigurationDatumKeys.PatchNumber)).Value;
+        var patchNumber = int.Parse(patchNumberText);
+        foreach (var patch in databaseUpgrader.GetPatchesToApply(patchNumber)) dataContext.Database.ExecuteSqlRaw(patch.Sql);
+    }
+}
