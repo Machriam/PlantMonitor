@@ -23,7 +23,7 @@
         string RepoRootPath();
     }
 
-    public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage, ILogger<EnvironmentConfiguration> logger) : IEnvironmentConfiguration
+    public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
     {
         private const string CertificateFolder = nameof(CertificateFolder);
 
@@ -72,7 +72,6 @@
         {
             var connection = configuration.GetConnectionString(nameof(DatabaseConnection));
             var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
-            logger.LogInformation("PW: {PW}", password);
             return connection?.Replace("{POSTGRES_ROOT_PASSWORD}", password) ?? throw new Exception("DatabaseConnection not found in appsettings");
         }
 
