@@ -26,7 +26,7 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
     [HttpGet("currentposition")]
     public int CurrentPosition()
     {
-        return int.Parse(System.IO.File.ReadAllText(_filePath));
+        return System.IO.File.Exists(_filePath) ? int.Parse(System.IO.File.ReadAllText(_filePath)) : 0;
     }
 
     [HttpPost("movemotor")]
@@ -43,7 +43,7 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
 
         controller.Write(pinout.Direction, steps < 0 ? left : right);
         var stepsToMove = Math.Abs(steps);
-        var rampFunction = steps.CreateLogisticRampFunction(minTime, maxTime, rampLength);
+        var rampFunction = stepsToMove.CreateLogisticRampFunction(minTime, maxTime, rampLength);
         for (var i = 0; i < stepsToMove; i++)
         {
             var delay = (int)(rampFunction(i) * 0.5f);
