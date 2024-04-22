@@ -1,12 +1,13 @@
+import { dev } from "$app/environment";
 import * as signalR from "@microsoft/signalr";
 import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 import { Constants } from "~/Constants";
 
 export class DeviceStreaming {
     buildVideoConnection(device: string, sizeDivider = 4, focusInMeter = 10) {
-        const developmentUrl = Constants.developmentUrl;
+        const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
-            .withUrl(`${developmentUrl}/hub/video`, { withCredentials: false })
+            .withUrl(`${url}/hub/video`, { withCredentials: false })
             .withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
             .build();
         return {
