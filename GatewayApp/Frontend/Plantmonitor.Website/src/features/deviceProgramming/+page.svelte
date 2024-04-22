@@ -18,6 +18,7 @@
     let devices: DeviceHealthState[] = [];
     let hubconnection: HubConnection | undefined;
     let selectedDevice: DeviceHealthState | undefined;
+    let moveSteps = 100;
     //@ts-ignore
     let movementPlan: DeviceMovement = new DeviceMovement({movementPlan: {focusInCentimeter: 50, stepPoints: [], speed: 100}});
     onMount(async () => {
@@ -39,10 +40,15 @@
         await new DeviceClient().killCamera(selectedDevice.ip);
         previewEnabled = false;
     }
-    async function move() {
+    async function move(steps: number) {
         if (selectedDevice?.ip == undefined) return;
         const client = new DeviceClient();
-        await client.move(selectedDevice.ip, 100, 500, 4000, 200);
+        await client.move(selectedDevice.ip, steps, 500, 4000, 200);
+    }
+    async function toggleMotorEngage(shouldBeEngaged: boolean) {
+        if (selectedDevice?.ip == undefined) return;
+        const client = new DeviceClient();
+        await client.toggleMotorEngage(selectedDevice.ip, shouldBeEngaged);
     }
     async function showPreview() {
         if (selectedDevice?.ip == undefined) return;
@@ -75,6 +81,8 @@
         <NumberInput label="Focus in cm" bind:value={movementPlan.movementPlan.focusInCentimeter}></NumberInput>
         {#if previewEnabled}
             <button on:click={async () => await stopPreview()} class="btn btn-danger">Stop Preview</button>
+            <NumberInput bind:value={moveSteps} label="Move Steps"></NumberInput>
+            <button on:click={async () => await move(moveSteps)} class="btn btn-primary">Move</button>
         {:else}
             <button on:click={async () => await showPreview()} class="btn btn-primary">Start Preview</button>
         {/if}
