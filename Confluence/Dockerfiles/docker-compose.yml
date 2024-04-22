@@ -7,6 +7,8 @@ services:
       - /srv/PlantmonitorDatabase:/var/lib/postgresql/data
     env_file:
       - ./database.env
+    ports:
+      - "5432:5432"
   webssh:
     container_name: webssh
     build: https://github.com/huashengdun/webssh.git
