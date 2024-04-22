@@ -10,6 +10,139 @@
 
 import { GatewayAppApiBase } from './GatewayAppApiBase';
 
+export interface IMovementProgrammingClient {
+
+    getPlan(deviceId?: string | undefined): Promise<DeviceMovement>;
+
+    addPlan(movement: DeviceMovement): Promise<void>;
+
+    updatePlan(movement: DeviceMovement): Promise<void>;
+}
+
+export class MovementProgrammingClient extends GatewayAppApiBase implements IMovementProgrammingClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    getPlan(deviceId?: string | undefined): Promise<DeviceMovement> {
+        let url_ = this.baseUrl + "/api/MovementProgramming/getplan?";
+        if (deviceId === null)
+            throw new Error("The parameter 'deviceId' cannot be null.");
+        else if (deviceId !== undefined)
+            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetPlan(_response));
+        });
+    }
+
+    protected processGetPlan(response: Response): Promise<DeviceMovement> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DeviceMovement.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DeviceMovement>(null as any);
+    }
+
+    addPlan(movement: DeviceMovement): Promise<void> {
+        let url_ = this.baseUrl + "/api/MovementProgramming/addplan";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(movement);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processAddPlan(_response));
+        });
+    }
+
+    protected processAddPlan(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    updatePlan(movement: DeviceMovement): Promise<void> {
+        let url_ = this.baseUrl + "/api/MovementProgramming/updateplan";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(movement);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdatePlan(_response));
+        });
+    }
+
+    protected processUpdatePlan(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export interface IDeviceClient {
 
     previewImage(ip?: string | undefined): Promise<FileResponse>;
@@ -17,6 +150,10 @@ export interface IDeviceClient {
     killCamera(ip?: string | undefined): Promise<void>;
 
     cameraInfo(ip?: string | undefined): Promise<string>;
+
+    currentPosition(ip?: string | undefined): Promise<number>;
+
+    toggleMotorEngage(ip?: string | undefined, engage?: boolean | undefined): Promise<void>;
 
     move(ip?: string | undefined, steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void>;
 }
@@ -151,6 +288,87 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
             });
         }
         return Promise.resolve<string>(null as any);
+    }
+
+    currentPosition(ip?: string | undefined): Promise<number> {
+        let url_ = this.baseUrl + "/api/Device/currentposition?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processCurrentPosition(_response));
+        });
+    }
+
+    protected processCurrentPosition(response: Response): Promise<number> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<number>(null as any);
+    }
+
+    toggleMotorEngage(ip?: string | undefined, engage?: boolean | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Device/togglemotorengage?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        if (engage === null)
+            throw new Error("The parameter 'engage' cannot be null.");
+        else if (engage !== undefined)
+            url_ += "engage=" + encodeURIComponent("" + engage) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processToggleMotorEngage(_response));
+        });
+    }
+
+    protected processToggleMotorEngage(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     move(ip?: string | undefined, steps?: number | undefined, minTime?: number | undefined, maxTime?: number | undefined, rampLength?: number | undefined): Promise<void> {
@@ -501,9 +719,127 @@ export class WeatherForecastClient extends GatewayAppApiBase implements IWeather
     }
 }
 
+export class DeviceMovement implements IDeviceMovement {
+    id!: number;
+    deviceId!: string;
+    movementPlanJson!: string;
+    name!: string;
+    movementPlan!: MovementPlan;
+
+    constructor(data?: IDeviceMovement) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.deviceId = _data["deviceId"];
+            this.movementPlanJson = _data["movementPlanJson"];
+            this.name = _data["name"];
+            this.movementPlan = _data["movementPlan"] ? MovementPlan.fromJS(_data["movementPlan"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): DeviceMovement {
+        data = typeof data === 'object' ? data : {};
+        let result = new DeviceMovement();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["deviceId"] = this.deviceId;
+        data["movementPlanJson"] = this.movementPlanJson;
+        data["name"] = this.name;
+        data["movementPlan"] = this.movementPlan ? this.movementPlan.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): DeviceMovement {
+        const json = this.toJSON();
+        let result = new DeviceMovement();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDeviceMovement {
+    id: number;
+    deviceId: string;
+    movementPlanJson: string;
+    name: string;
+    movementPlan: MovementPlan;
+}
+
+export class MovementPlan implements IMovementPlan {
+    stepPoints!: number[];
+    focusInCentimeter!: number;
+    speed!: number;
+
+    constructor(data?: IMovementPlan) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["stepPoints"])) {
+                this.stepPoints = [] as any;
+                for (let item of _data["stepPoints"])
+                    this.stepPoints!.push(item);
+            }
+            this.focusInCentimeter = _data["focusInCentimeter"];
+            this.speed = _data["speed"];
+        }
+    }
+
+    static fromJS(data: any): MovementPlan {
+        data = typeof data === 'object' ? data : {};
+        let result = new MovementPlan();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.stepPoints)) {
+            data["stepPoints"] = [];
+            for (let item of this.stepPoints)
+                data["stepPoints"].push(item);
+        }
+        data["focusInCentimeter"] = this.focusInCentimeter;
+        data["speed"] = this.speed;
+        return data;
+    }
+
+    clone(): MovementPlan {
+        const json = this.toJSON();
+        let result = new MovementPlan();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMovementPlan {
+    stepPoints: number[];
+    focusInCentimeter: number;
+    speed: number;
+}
+
 export class CertificateData implements ICertificateData {
-    certificate?: string;
-    key?: string;
+    certificate!: string;
+    key!: string;
 
     constructor(data?: ICertificateData) {
         if (data) {
@@ -544,15 +880,15 @@ export class CertificateData implements ICertificateData {
 }
 
 export interface ICertificateData {
-    certificate?: string;
-    key?: string;
+    certificate: string;
+    key: string;
 }
 
 export class WebSshCredentials implements IWebSshCredentials {
-    protocol?: string;
-    port?: string;
-    password?: string;
-    user?: string;
+    protocol!: string;
+    port!: string;
+    password!: string;
+    user!: string;
 
     constructor(data?: IWebSshCredentials) {
         if (data) {
@@ -597,16 +933,16 @@ export class WebSshCredentials implements IWebSshCredentials {
 }
 
 export interface IWebSshCredentials {
-    protocol?: string;
-    port?: string;
-    password?: string;
-    user?: string;
+    protocol: string;
+    port: string;
+    password: string;
+    user: string;
 }
 
 export class DeviceHealthState implements IDeviceHealthState {
-    health?: DeviceHealth;
-    retryTimes?: number;
-    ip?: string;
+    health!: DeviceHealth;
+    retryTimes!: number;
+    ip!: string;
 
     constructor(data?: IDeviceHealthState) {
         if (data) {
@@ -649,15 +985,15 @@ export class DeviceHealthState implements IDeviceHealthState {
 }
 
 export interface IDeviceHealthState {
-    health?: DeviceHealth;
-    retryTimes?: number;
-    ip?: string;
+    health: DeviceHealth;
+    retryTimes: number;
+    ip: string;
 }
 
 export class DeviceHealth implements IDeviceHealth {
-    deviceName?: string;
-    deviceId?: string;
-    state?: HealthState;
+    deviceName!: string;
+    deviceId!: string;
+    state!: HealthState;
 
     constructor(data?: IDeviceHealth) {
         if (data) {
@@ -700,9 +1036,9 @@ export class DeviceHealth implements IDeviceHealth {
 }
 
 export interface IDeviceHealth {
-    deviceName?: string;
-    deviceId?: string;
-    state?: HealthState;
+    deviceName: string;
+    deviceId: string;
+    state: HealthState;
 }
 
 export enum HealthState {
@@ -715,10 +1051,10 @@ export enum HealthState {
 }
 
 export class WeatherForecast implements IWeatherForecast {
-    date?: Date;
-    temperatureC?: number;
-    temperatureF?: number;
-    summary?: string | undefined;
+    date!: Date;
+    temperatureC!: number;
+    temperatureF!: number;
+    summary!: string | undefined;
 
     constructor(data?: IWeatherForecast) {
         if (data) {
@@ -763,10 +1099,10 @@ export class WeatherForecast implements IWeatherForecast {
 }
 
 export interface IWeatherForecast {
-    date?: Date;
-    temperatureC?: number;
-    temperatureF?: number;
-    summary?: string | undefined;
+    date: Date;
+    temperatureC: number;
+    temperatureF: number;
+    summary: string | undefined;
 }
 
 function formatDate(d: Date) {

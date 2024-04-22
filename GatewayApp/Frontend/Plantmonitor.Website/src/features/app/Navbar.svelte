@@ -40,8 +40,8 @@
 			</a>
 		</div>
 		<div class="nav-item px-3">
-			<a class="nav-link" href="counter">
-				<span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Counter
+			<a class="nav-link" href="deviceProgramming">
+				<span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Program Device
 			</a>
 		</div>
 	</nav>

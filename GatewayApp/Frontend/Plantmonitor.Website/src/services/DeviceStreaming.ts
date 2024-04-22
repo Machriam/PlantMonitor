@@ -1,10 +1,10 @@
 import * as signalR from "@microsoft/signalr";
 import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
-import { GatewayAppApiBase } from "./GatewayAppApiBase";
+import { Constants } from "~/Constants";
 
 export class DeviceStreaming {
-    buildVideoConnection(device: string) {
-        const developmentUrl = new GatewayAppApiBase().developmentUrl;
+    buildVideoConnection(device: string, sizeDivider = 4, focusInMeter = 10) {
+        const developmentUrl = Constants.developmentUrl;
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${developmentUrl}/hub/video`, { withCredentials: false })
             .withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
@@ -13,7 +13,7 @@ export class DeviceStreaming {
             connection: connection,
             start: async (callback: (image: string) => Promise<void>) => {
                 await connection.start();
-                connection.stream("StreamPictures", 2, 100, 0.1, device).subscribe({
+                connection.stream("StreamPictures", sizeDivider, 100, focusInMeter, device).subscribe({
                     next: async (x) => {
                         const payload = x as Uint8Array;
                         const blob = new Blob([payload], { type: "image/jpeg" });

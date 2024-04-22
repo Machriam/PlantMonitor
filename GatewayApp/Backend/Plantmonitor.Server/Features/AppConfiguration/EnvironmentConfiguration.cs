@@ -15,12 +15,26 @@
         string CertificateKey();
 
         (string Protocol, string Port) WebSshUrl();
+
         string PicturePath(string device);
+
+        string DatabaseConnection();
+
+        string RepoRootPath();
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
     {
         private const string CertificateFolder = nameof(CertificateFolder);
+
+        public string RepoRootPath()
+        {
+#if DEBUG || NOSWAG
+            return Path.GetFullPath("../../../");
+#else
+            return Path.GetFullPath("/PlantMonitor");
+#endif
+        }
 
         public string PicturePath(string device)
         {
@@ -29,6 +43,7 @@
             Directory.CreateDirectory(imageFolder);
             return imageFolder;
         }
+
         public string Certificate()
         {
             var path = Path.Combine(configuration.GetConnectionString(CertificateFolder) ?? throw new Exception($"Appsettings must define {CertificateFolder}"), "plantmonitor.crt");
@@ -51,6 +66,13 @@
                 throw new Exception(nameof(WebSshUrl) + " must be defined in appsettings.json");
             var split = result.Split(",");
             return (split[0], split[1]);
+        }
+
+        public string DatabaseConnection()
+        {
+            var connection = configuration.GetConnectionString(nameof(DatabaseConnection));
+            var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
+            return connection?.Replace("{POSTGRES_ROOT_PASSWORD}", password) ?? throw new Exception("DatabaseConnection not found in appsettings");
         }
 
         public string DeviceUsername() => configurationStorage.GetConfiguration().DeviceData.DeviceUser;
