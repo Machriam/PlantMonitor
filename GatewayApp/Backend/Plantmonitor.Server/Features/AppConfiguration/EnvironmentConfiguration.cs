@@ -72,7 +72,7 @@
         {
             var connection = configuration.GetConnectionString(nameof(DatabaseConnection));
             var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD");
-            return connection?.Replace("{POSTGRES_ROOT_PASSWORD}", password) ?? throw new Exception("DatabaseConnection not found in appsettings");
+            return connection?.Replace("{POSTGRES_PASSWORD}", password) ?? throw new Exception("DatabaseConnection not found in appsettings");
         }
 
         public string DeviceUsername() => configurationStorage.GetConfiguration().DeviceData.DeviceUser;

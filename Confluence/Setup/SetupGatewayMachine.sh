@@ -17,13 +17,24 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
 sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 
-cd ~
 # Create Self Signed Certificate for IP-Range 1-255
 sudo apt install -y openssl
 sudo mkdir /srv/secrets
+
+echo "Enter IP of Gateway-PC, if not within 192.168.0.1 - 192.168.1.255"
+read -r ips
+additionalIps="IP: 127.0.0.1"
+
+for ip in $ips; do
+  additionalIps="$additionalIps, IP: $ip"
+done
+additionalIps="$additionalIps, "
+
+echo "Creating certificate with additional IPs: $additionalIps"
+
 openssl req -newkey rsa:2048 -x509 -nodes -keyout ~/plantmonitor.key -new -out ~/plantmonitor.crt \
     -subj /CN=PlantMonitor/C=DE/ST=PM/L=PM/OU=Plantmonitor/O=Plantmonitor/emailAddress=plant@monitor.com/ -reqexts SAN -extensions SAN -config <(cat /etc/ssl/openssl.cnf \
-    <(printf '[SAN]\nsubjectAltName=IP:127.0.0.1, DNS:localhost, ') <(for i in {1..255}; do echo -n "IP:192.168.0.$i, IP:192.168.1.$i, "; done | sed 's/, $//')) -sha256 -days 3650 -addext basicConstraints=CA:true
+    <(printf '[SAN]\nsubjectAltName=%s DNS:localhost, ' "$additionalIps") <(for i in {1..255}; do echo -n "IP:192.168.0.$i, IP:192.168.1.$i, "; done | sed 's/, $//')) -sha256 -days 3650 -addext basicConstraints=CA:true
 sudo mv ~/plantmonitor.* /srv/secrets
 # Trusting self signed certificate in Chrome
 sudo apt install -y libnss3-tools debconf
@@ -32,11 +43,12 @@ sudo cp /srv/secrets/plantmonitor.crt /usr/share/ca-certificates/
 sudo update-ca-certificates
 
 sudo apt-get install uuid-runtime -y
+envFile="$(pwd)/../Dockerfiles/database.env"
 postgresMasterPassword=$(uuidgen)
-echo -e "POSTGRES_PASSWORD=$postgresMasterPassword" | sudo tee ../DockerFiles/database.env
+echo -e "POSTGRES_PASSWORD=$postgresMasterPassword" | sudo tee "$envFile"
 
 
-cd ../Dockerfiles
+cd ../Dockerfiles || exit
 sudo docker-compose down
 sudo docker-compose build --no-cache
 sudo docker-compose up --detach
