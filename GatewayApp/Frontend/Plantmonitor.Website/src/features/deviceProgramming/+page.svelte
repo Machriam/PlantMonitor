@@ -83,6 +83,8 @@
             <button on:click={async () => await stopPreview()} class="btn btn-danger">Stop Preview</button>
             <NumberInput bind:value={moveSteps} label="Move Steps"></NumberInput>
             <button on:click={async () => await move(moveSteps)} class="btn btn-primary">Move</button>
+            <button on:click={async () => await toggleMotorEngage(false)} class="btn btn-primary">Disengage Motor</button>
+            <button on:click={async () => await toggleMotorEngage(true)} class="btn btn-primary">Engage Motor</button>
         {:else}
             <button on:click={async () => await showPreview()} class="btn btn-primary">Start Preview</button>
         {/if}
