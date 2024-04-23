@@ -27,10 +27,17 @@ public class DeviceController(IDeviceApiFactory apiFactory)
     {
         return await apiFactory.ImageTakingClient(ip).CamerainfoAsync();
     }
+
     [HttpGet("currentposition")]
     public async Task<int> CurrentPosition(string ip)
     {
         return await apiFactory.MovementClient(ip).CurrentpositionAsync();
+    }
+
+    [HttpPost("zeroposition")]
+    public async Task ZeroPosition(string ip)
+    {
+        await apiFactory.MovementClient(ip).ZeropositionAsync();
     }
 
     [HttpPost("togglemotorengage")]
