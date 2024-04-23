@@ -4,11 +4,11 @@ using System.Collections.Generic;
 
 namespace Plantmonitor.DataModel.DataModel;
 
+public record struct MovementPoint(int StepOffset, float FocusInCentimeter, int Speed, string Comment);
+
 public class MovementPlan
 {
-    public List<int> StepPoints { get; set; } = [];
-    public float FocusInCentimeter { get; set; } = 100f;
-    public int Speed { get; set; } = 100;
+    public List<MovementPoint> StepPoints { get; set; } = [];
 }
 
 public partial class DeviceMovement

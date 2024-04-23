@@ -14,17 +14,12 @@ public class MovementProgrammingController(DataContext context)
         return context.DeviceMovements.FirstOrDefault(dm => dm.DeviceId == guid) ?? new();
     }
 
-    [HttpPost("addplan")]
-    public void AddPlan([FromBody] DeviceMovement movement)
-    {
-        context.DeviceMovements.Add(movement);
-        context.SaveChanges();
-    }
-
     [HttpPost("updateplan")]
     public void UpdatePlan([FromBody] DeviceMovement movement)
     {
-        context.DeviceMovements.First(dm => dm.Id == movement.Id).MovementPlan = movement.MovementPlan;
+        var existingPlan = context.DeviceMovements.FirstOrDefault(dm => dm.Id == movement.Id);
+        if (existingPlan == null) context.DeviceMovements.Add(movement);
+        else existingPlan.MovementPlan = movement.MovementPlan;
         context.SaveChanges();
     }
 }

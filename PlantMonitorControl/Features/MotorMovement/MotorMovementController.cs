@@ -23,6 +23,12 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
         controller.Write(pinout.Enable, shouldEngage ? locked : released);
     }
 
+    [HttpPost("zeroposition")]
+    public void ZeroCurrentPosition()
+    {
+        System.IO.File.WriteAllText(_filePath, 0.ToString());
+    }
+
     [HttpGet("currentposition")]
     public int CurrentPosition()
     {

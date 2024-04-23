@@ -1,0 +1,24 @@
+.colm-1 > * {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.colm-2 > * {
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.colm-3 > * {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.colm-4 > * {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.colm-5 > * {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
