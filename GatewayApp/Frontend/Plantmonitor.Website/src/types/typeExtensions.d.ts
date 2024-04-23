@@ -16,10 +16,12 @@ interface Number {
 interface Blob {
 	asBase64Url(): Promise<string>;
 }
+
 Array.prototype.mean = function (this: Array<T>, selector: (x: T) => number) {
 	if (this.length == 0) return 0;
 	return this.reduce((a, x) => a += selector(x), 0) / this.length;
 }
+
 Number.prototype.roundTo = function (this: number, decimalPlaces: number): number {
 	return +this.toFixed(decimalPlaces);
 }
