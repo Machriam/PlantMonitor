@@ -46,7 +46,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
             Channel<byte[]> channel, HubConnection connection, CancellationToken token)
         {
             var stream = await connection.StreamAsChannelAsync<byte[]>("StreamMjpeg", resolutionDivider, quality, distanceInM, token);
-            var sequenceId = Convert.ToBase64String(Guid.NewGuid().ToByteArray())[0..10];
+            var sequenceId = DateTime.Now.ToString("yyyy-MM-dd HH-mm-s");
             var path = Path.Combine(picturePath, sequenceId);
             if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
             while (await stream.WaitToReadAsync(token))
