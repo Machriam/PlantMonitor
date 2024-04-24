@@ -61,8 +61,7 @@
     async function zeroPosition() {
         if (selectedDevice?.ip == undefined) return;
         const client = new DeviceClient();
-        if (!previewEnabled) await client.zeroPosition(selectedDevice.ip);
-        currentPosition = await client.currentPosition(selectedDevice.ip);
+        await client.zeroPosition(selectedDevice.ip);
     }
     async function toggleMotorEngage(shouldBeEngaged: boolean) {
         if (selectedDevice?.ip == undefined) return;
@@ -93,7 +92,7 @@
         if (selectedDevice?.ip == undefined) return;
         const connection = new DeviceStreaming().buildVideoConnection(
             selectedDevice.ip,
-            storePictures ? 2 : 4,
+            storePictures ? 1 : 4,
             defaultFocus,
             storePictures
         );
