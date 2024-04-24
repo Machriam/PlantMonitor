@@ -22,6 +22,7 @@ builder.Configuration
 
 var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
+builder.Services.AddSingleton<IMotorPositionCalculator, MotorPositionCalculator>();
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {

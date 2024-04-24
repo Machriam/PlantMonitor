@@ -4,7 +4,7 @@ using System.Threading.Channels;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
-public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop, ILogger<StreamingHub> logger) : Hub
+public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop, ILogger<StreamingHub> logger, IMotorPositionCalculator motorPosition) : Hub
 {
     private static readonly byte[] _headerBytes = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0];
 
@@ -63,6 +63,8 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                         }
                         else
                         {
+                            var positionBytes = BitConverter.GetBytes(motorPosition.CurrentPosition());
+                            for (var j = 0; j < positionBytes.Length; j++) imageBuffer[imageIndex++] = positionBytes[j];
                             for (var j = 0; j < _headerBytes.Length; j++) imageBuffer[imageIndex++] = _headerBytes[j];
                             imageStarted = true;
                         }

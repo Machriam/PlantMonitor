@@ -12,14 +12,14 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (image: string) => Promise<void>) => {
+            start: async (callback: (step: number, image: string) => Promise<void>) => {
                 await connection.start();
                 connection.stream("StreamPictures", sizeDivider, 100, focusInMeter, device).subscribe({
                     next: async (x) => {
                         const payload = x as Uint8Array;
-                        const blob = new Blob([payload], { type: "image/jpeg" });
+                        const blob = new Blob([payload.subarray(4)], { type: "image/jpeg" });
                         const imageUrl = await blob.asBase64Url();
-                        await callback(imageUrl);
+                        await callback(payload.subarray(0, 4).toInt32(), imageUrl);
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)

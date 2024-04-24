@@ -8,7 +8,6 @@
         DeviceConfigurationClient,
         DeviceHealthState,
         DeviceMovement,
-        MovementPlan,
         MovementPoint,
         MovementProgrammingClient
     } from "~/services/GatewayAppApi";
@@ -93,8 +92,9 @@
         const connection = new DeviceStreaming().buildVideoConnection(selectedDevice.ip, 4, defaultFocus);
         await hubconnection?.stop();
         hubconnection = connection.connection;
-        connection.start(async (data) => {
+        connection.start(async (step, data) => {
             const image = document.getElementById(videoCanvasId) as HTMLImageElement;
+            currentPosition = step;
             image.src = data;
         });
         previewEnabled = true;
