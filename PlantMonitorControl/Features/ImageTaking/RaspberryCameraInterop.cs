@@ -25,8 +25,8 @@ public interface ICameraInterop
 
 public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
 {
-    private const int maxWidth = 2304;
-    private const int maxHeight = 1296;
+    private const int MaxWidth = 3840;
+    private const int MaxHeight = 2160;
     private bool _cameraFound;
     private bool _deviceFunctional;
 
@@ -61,8 +61,8 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         if (distanceInM == 0) distanceInM = 0.01f;
         if (resolutionDivider == 0) resolutionDivider = 2;
         var focus = float.Round(1f / distanceInM, 2);
-        var width = (int)(maxWidth / resolutionDivider);
-        var height = (int)(maxHeight / resolutionDivider);
+        var width = (int)(MaxWidth / resolutionDivider);
+        var height = (int)(MaxHeight / resolutionDivider);
         await KillImageTaking();
         var builder = new CommandOptionsBuilder()
         .WithContinuousStreaming()
