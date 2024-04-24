@@ -16,6 +16,13 @@ interface Number {
 interface Blob {
 	asBase64Url(): Promise<string>;
 }
+interface Uint8Array {
+	toInt32(): number;
+}
+
+Uint8Array.prototype.toInt32 = function (this: Uint8Array): number {
+	return new DataView(this.buffer).getInt32(0, true);
+}
 
 Array.prototype.mean = function (this: Array<T>, selector: (x: T) => number) {
 	if (this.length == 0) return 0;

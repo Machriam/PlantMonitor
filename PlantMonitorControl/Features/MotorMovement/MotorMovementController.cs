@@ -7,11 +7,8 @@ namespace PlantMonitorControl.Features.MotorMovement;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MotorMovementController(IEnvironmentConfiguration configuration) : ControllerBase
+public class MotorMovementController(IEnvironmentConfiguration configuration, IMotorPositionCalculator motorPosition) : ControllerBase
 {
-    private const string CurrentPositionFile = "currentPosition.txt";
-    private static readonly string _filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), CurrentPositionFile);
-
     [HttpPost("togglemotorengage")]
     public void ToggleMotorEngage(bool shouldEngage)
     {
@@ -26,13 +23,13 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
     [HttpPost("zeroposition")]
     public void ZeroCurrentPosition()
     {
-        System.IO.File.WriteAllText(_filePath, 0.ToString());
+        motorPosition.ZeroPosition();
     }
 
     [HttpGet("currentposition")]
     public int CurrentPosition()
     {
-        return System.IO.File.Exists(_filePath) ? int.Parse(System.IO.File.ReadAllText(_filePath)) : 0;
+        return motorPosition.CurrentPosition();
     }
 
     [HttpPost("movemotor")]
@@ -48,6 +45,7 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
         var right = PinValue.High;
 
         controller.Write(pinout.Direction, steps < 0 ? left : right);
+        var stepUnit = steps < 0 ? -1 : 1;
         var stepsToMove = Math.Abs(steps);
         var rampFunction = stepsToMove.CreateLogisticRampFunction(minTime, maxTime, rampLength);
         for (var i = 0; i < stepsToMove; i++)
@@ -59,8 +57,8 @@ public class MotorMovementController(IEnvironmentConfiguration configuration) : 
             controller.Write(pinout.Pulse, PinValue.Low);
             sw.Restart();
             while (sw.ElapsedTicks * microSecondsPerTick < delay) { }
+            motorPosition.UpdatePosition(stepUnit);
         }
-        var currentPosition = CurrentPosition();
-        System.IO.File.WriteAllText(_filePath, (currentPosition + steps).ToString());
+        motorPosition.PersistCurrentPosition();
     }
 }
