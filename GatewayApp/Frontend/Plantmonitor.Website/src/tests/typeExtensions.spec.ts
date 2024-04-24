@@ -20,6 +20,10 @@ describe("Uint8Array to Int32 should work", () => {
 		const data = new Uint8Array([255, 255, 255, 255]);
 		expect(data.toInt32()).equal(-1);
 	});
+	test("with longer arrays", () => {
+		const data = new Uint8Array([139, 164, 0, 0, 1, 2, 3, 4]);
+		expect(data.toInt32()).equal(42123);
+	});
 	test("with positive integers", () => {
 		const data = new Uint8Array([139, 164, 0, 0]);
 		expect(data.toInt32()).equal(42123);
