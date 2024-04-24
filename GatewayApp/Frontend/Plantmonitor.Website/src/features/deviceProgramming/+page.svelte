@@ -14,6 +14,7 @@
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import type {HubConnection} from "@microsoft/signalr";
+    import Checkbox from "../reuseableComponents/Checkbox.svelte";
     let videoCanvasId = crypto.randomUUID();
     let previewEnabled = false;
     let devices: DeviceHealthState[] = [];
@@ -22,6 +23,7 @@
     let moveSteps = 100;
     let currentlyMoving = false;
     let removeSteps = false;
+    let storePictures = false;
     let currentPosition: number | undefined;
     let movementPlan = new DeviceMovement();
     let defaultFocus = 100;
@@ -53,13 +55,13 @@
         const client = new DeviceClient();
         currentlyMoving = true;
         await client.move(selectedDevice.ip, steps, 500, 4000, 200);
-        currentPosition = await client.currentPosition(selectedDevice.ip);
+        if (!previewEnabled) currentPosition = await client.currentPosition(selectedDevice.ip);
         currentlyMoving = false;
     }
     async function zeroPosition() {
         if (selectedDevice?.ip == undefined) return;
         const client = new DeviceClient();
-        await client.zeroPosition(selectedDevice.ip);
+        if (!previewEnabled) await client.zeroPosition(selectedDevice.ip);
         currentPosition = await client.currentPosition(selectedDevice.ip);
     }
     async function toggleMotorEngage(shouldBeEngaged: boolean) {
@@ -89,7 +91,12 @@
     }
     async function showPreview() {
         if (selectedDevice?.ip == undefined) return;
-        const connection = new DeviceStreaming().buildVideoConnection(selectedDevice.ip, 4, defaultFocus);
+        const connection = new DeviceStreaming().buildVideoConnection(
+            selectedDevice.ip,
+            storePictures ? 2 : 4,
+            defaultFocus,
+            storePictures
+        );
         await hubconnection?.stop();
         hubconnection = connection.connection;
         connection.start(async (step, data) => {
@@ -115,7 +122,9 @@
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>
         <div class="col-md-5">Current Position: {currentPosition}</div>
         {#if previewEnabled}
-            <button on:click={async () => await stopPreview()} class="btn btn-danger">Stop Preview</button>
+            <button on:click={async () => await stopPreview()} class="btn btn-danger col-md-8">Stop Preview</button>
+            <Checkbox disabledSelector={() => previewEnabled} class="col-md-4" label="Store Pictures" bind:value={storePictures}
+            ></Checkbox>
             <NumberInput bind:value={moveSteps} label="Move Steps"></NumberInput>
             <button disabled={currentlyMoving} on:click={async () => await move(moveSteps)} class="btn btn-primary col-md-3"
                 >Move</button>
@@ -124,7 +133,8 @@
             <button on:click={async () => await toggleMotorEngage(true)} class="btn btn-primary col-md-3">Engage Motor</button>
             <button class="btn btn-dark col-md-3" on:click={async () => await zeroPosition()}>Zero Position</button>
         {:else}
-            <button on:click={async () => await showPreview()} class="btn btn-primary">Start Preview</button>
+            <button on:click={async () => await showPreview()} class="btn btn-primary col-md-8">Start Preview</button>
+            <Checkbox class="col-md-4" label="Store Pictures" bind:value={storePictures}></Checkbox>
         {/if}
         <div style="height: 200px; overflow-y:scroll" class="col-md-12 row p-0">
             {#if movementPlan?.movementPlan?.stepPoints != undefined && movementPlan?.movementPlan?.stepPoints.length > 0}
@@ -183,7 +193,9 @@
             <button class="btn btn-success" on:click={async () => await updateSteps()}>Save Steps</button>
         </div>
     </div>
-    <div class="col-md-8">
-        <img style="height: 50vh;width:50vw" alt="preview" id={videoCanvasId} />
+    <div class="col-md-8 colm-3">
+        <div style="height: 50vh;width:50vw;">
+            <img style="height: 100%;width:100%" alt="preview" id={videoCanvasId} />
+        </div>
     </div>
 </div>

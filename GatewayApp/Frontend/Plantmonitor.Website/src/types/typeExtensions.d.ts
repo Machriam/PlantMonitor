@@ -21,7 +21,7 @@ interface Uint8Array {
 }
 
 Uint8Array.prototype.toInt32 = function (this: Uint8Array): number {
-	return new DataView(this.buffer).getInt32(0, true);
+	return new DataView(this.slice(0, 4).buffer).getInt32(0, true);
 }
 
 Array.prototype.mean = function (this: Array<T>, selector: (x: T) => number) {

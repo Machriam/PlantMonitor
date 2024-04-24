@@ -88,7 +88,7 @@
         const cvInterop = new CvInterop();
         const image = document.getElementById(videoCanvasId) as HTMLImageElement;
         const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
-        connection.start(async (image) => {
+        connection.start(async (_, image) => {
             frameCounter++;
             await videoDisplayFunction(image);
         });
