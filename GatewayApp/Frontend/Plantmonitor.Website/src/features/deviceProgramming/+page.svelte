@@ -2,7 +2,7 @@
     "@hmr:keep-all";
     import {onDestroy, onMount} from "svelte";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
-    import {calculateMoveTo} from "~/services/movementPointExtensions";
+    import {calculateMoveTo, stepsToReach} from "~/services/movementPointExtensions";
     import {
         DeviceClient,
         DeviceConfigurationClient,
@@ -15,6 +15,8 @@
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import type {HubConnection} from "@microsoft/signalr";
     import Checkbox from "../reuseableComponents/Checkbox.svelte";
+    import {Task} from "~/types/task";
+    import {dev} from "$app/environment";
     let videoCanvasId = crypto.randomUUID();
     let previewEnabled = false;
     let devices: DeviceHealthState[] = [];
@@ -53,10 +55,8 @@
     async function move(steps: number) {
         if (selectedDevice?.ip == undefined) return;
         const client = new DeviceClient();
-        currentlyMoving = true;
         await client.move(selectedDevice.ip, steps, 500, 4000, 200);
         if (!previewEnabled) currentPosition = await client.currentPosition(selectedDevice.ip);
-        currentlyMoving = false;
     }
     async function zeroPosition() {
         if (selectedDevice?.ip == undefined) return;
@@ -78,21 +78,27 @@
     async function moveTo(step: MovementPoint) {
         if (currentPosition == undefined) return;
         const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition);
+        currentlyMoving = true;
         await move(stepsToMove);
+        currentlyMoving = false;
     }
     async function moveToAll() {
         if (currentPosition == undefined) return;
+        currentlyMoving = true;
         for (let i = 0; i < movementPlan.movementPlan.stepPoints.length; i++) {
             const step = movementPlan.movementPlan.stepPoints[i];
             const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition);
             await move(stepsToMove);
+            const stepCountAfterMove = step[stepsToReach](movementPlan.movementPlan.stepPoints);
+            while (currentPosition != stepCountAfterMove) await Task.delay(100);
         }
+        currentlyMoving = false;
     }
     async function showPreview() {
         if (selectedDevice?.ip == undefined) return;
         const connection = new DeviceStreaming().buildVideoConnection(
             selectedDevice.ip,
-            storePictures ? 1 : 4,
+            storePictures ? 1 : dev ? 8 : 2,
             defaultFocus,
             storePictures
         );
