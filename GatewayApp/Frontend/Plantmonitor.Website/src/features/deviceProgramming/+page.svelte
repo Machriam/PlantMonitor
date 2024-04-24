@@ -98,8 +98,8 @@
         if (selectedDevice?.ip == undefined) return;
         const connection = new DeviceStreaming().buildVideoConnection(
             selectedDevice.ip,
-            storePictures ? 1 : dev ? 8 : 2,
-            defaultFocus,
+            storePictures ? 1 : dev ? 8 : 4,
+            defaultFocus / 100,
             storePictures
         );
         await hubconnection?.stop();
