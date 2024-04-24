@@ -25,8 +25,8 @@ public interface ICameraInterop
 
 public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
 {
-    private const int MaxWidth = 3840;
-    private const int MaxHeight = 2160;
+    private const int MaxWidth = 2304;
+    private const int MaxHeight = 1296;
     private bool _cameraFound;
     private bool _deviceFunctional;
 
@@ -70,7 +70,10 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         .WithHflip()
         .WithMJPEGVideoOptions(quality)
         .WithResolution(width, height);
-        var args = builder.GetArguments().Append("--autofocus-mode manual").Append($"--lens-position {focus}").ToArray();
+        var args = builder.GetArguments()
+            .Append("--autofocus-mode manual")
+            .Append("--mode 4608:2592")
+            .Append($"--lens-position {focus}").ToArray();
         var process = new ProcessRunner(_videoProcessSettings);
 
         var pipe = new Pipe();
