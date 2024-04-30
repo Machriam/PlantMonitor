@@ -2,6 +2,7 @@
 
 curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version latest --verbose 
 
+echo -e "\nRuntimeWatchdogSec=10\nRebootWatchdogSec=2min\nDefaultTimeoutStopSec=10s" | sudo tee -a /etc/systemd/system.conf
 cd ~/PlantMonitor/PlantMonitorControl
 sudo ln -sf "$HOME"/.dotnet/dotnet /srv/dotnet
 
