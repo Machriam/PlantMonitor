@@ -9,7 +9,6 @@
         HealthState,
         WebSshCredentials
     } from "../../services/GatewayAppApi";
-    import "typeExtensions";
     import {Task} from "~/types/task";
     import {CvInterop} from "./CvInterop";
     import TextInput from "../reuseableComponents/TextInput.svelte";
