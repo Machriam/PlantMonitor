@@ -9,6 +9,9 @@ interface String {
 interface Array<T> {
 	mean(selector: (x: T) => number): number;
 }
+interface BigInt {
+	fromTicksToDate(): Date;
+}
 interface Number {
 	roundTo(decimalPlaces: number): number;
 	isSuccessStatusCode(): boolean;
@@ -18,10 +21,15 @@ interface Blob {
 }
 interface Uint8Array {
 	toInt32(): number;
+	toInt64(): bigint;
 }
 
 Uint8Array.prototype.toInt32 = function (this: Uint8Array): number {
 	return new DataView(this.slice(0, 4).buffer).getInt32(0, true);
+}
+
+Uint8Array.prototype.toInt64 = function (this: Uint8Array): bigint {
+	return new DataView(this.slice(0, 8).buffer).getBigInt64(0, true);
 }
 
 Array.prototype.mean = function (this: Array<T>, selector: (x: T) => number) {
@@ -31,6 +39,12 @@ Array.prototype.mean = function (this: Array<T>, selector: (x: T) => number) {
 
 Number.prototype.roundTo = function (this: number, decimalPlaces: number): number {
 	return +this.toFixed(decimalPlaces);
+}
+BigInt.prototype.fromTicksToDate = function (this: bigint): Date {
+	const zeroTime = BigInt(new Date("0001-01-01T00:00:00Z").getTime());
+	const tickDivider = BigInt(10000);
+	const milliseconds = Number(this / tickDivider + zeroTime);
+	return new Date(milliseconds);
 }
 Number.prototype.isSuccessStatusCode = function (this: number): boolean {
 	return this == 200 || this == 204;
