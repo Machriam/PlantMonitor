@@ -10,6 +10,8 @@ public interface ICameraInterop
     public const string VisCamera = nameof(VisCamera);
     public const string IrCamera = nameof(IrCamera);
 
+    bool CameraIsRunning();
+
     Task<bool> CameraFound();
 
     Task<bool> CameraFunctional();
@@ -29,6 +31,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
     private const int MaxHeight = 1296;
     private bool _cameraFound;
     private bool _deviceFunctional;
+    private static bool s_cameraIsRunning;
 
     private readonly ProcessSettings _videoProcessSettings = new() { Filename = "rpicam-vid", WorkingDirectory = null };
     private readonly ProcessSettings _imageProcessSettings = new() { Filename = "rpicam-still", WorkingDirectory = null };
@@ -37,6 +40,11 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
     {
         if (!_deviceFunctional) await CaptureTestImage();
         return _deviceFunctional;
+    }
+
+    public bool CameraIsRunning()
+    {
+        return s_cameraIsRunning;
     }
 
     public async Task<bool> CameraFound()
@@ -53,6 +61,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         new Process() { StartInfo = killVideo }.Start();
         var killImaging = new ProcessStartInfo("pkill", $"-9 -f {_imageProcessSettings.Filename}");
         new Process() { StartInfo = killImaging }.Start();
+        s_cameraIsRunning = false;
         await Task.Delay(500);
     }
 
@@ -72,12 +81,14 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         .WithResolution(width, height);
         var args = builder.GetArguments()
             .Append("--autofocus-mode manual")
+            .Append($"--framerate {resolutionDivider}")
             .Append("--mode 4608:2592")
             .Append($"--lens-position {focus}").ToArray();
         var process = new ProcessRunner(_videoProcessSettings);
 
         var pipe = new Pipe();
         logger.LogInformation("Starting Mjpeg stream with: {arguments}", args.Concat(" "));
+        s_cameraIsRunning = true;
         return (pipe, process.ContinuousRunAsync(args, pipe.Writer.AsStream(true)));
     }
 
