@@ -8,10 +8,12 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
 {
     private static readonly byte[] s_headerBytes = [255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0];
     private static readonly string s_tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "tempImages");
+    private const string CounterFormat = "000000";
 
-    public async Task<ChannelReader<byte[]>> StreamStoredMjpeg(float resolutionDivider, int quality, float distanceInM, string sessionId, CancellationToken token)
+    public async Task<ChannelReader<byte[]>> StreamStoredMjpeg(float resolutionDivider, int quality, float distanceInM,
+        string sessionId, bool streamAfterCameraKill, CancellationToken token)
     {
-        Directory.Delete(s_tempImagePath, true);
+        if (Path.Exists(s_tempImagePath)) Directory.Delete(s_tempImagePath, true);
         var storagePath = Path.Combine(s_tempImagePath, sessionId);
         Directory.CreateDirectory(storagePath);
         var counter = 0;
@@ -23,18 +25,39 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             SingleWriter = true,
         });
         var (pipe, _) = await cameraInterop.MjpegStream(resolutionDivider, quality, distanceInM);
-        _ = WriteItemsAsync(async (b, t) => await File.WriteAllBytesAsync(Path.Combine(s_tempImagePath, $"{counter++}.data"), b, t), pipe.Reader, token);
-        _ = ReadImagesFromFiles(channel, storagePath, token);
+        _ = WriteItemsAsync(async (b, t) => await File.WriteAllBytesAsync(Path.Combine(storagePath, $"{counter++.ToString(CounterFormat)}.data"), b, t), pipe.Reader, token);
+        _ = ReadImagesFromFiles(channel, storagePath, streamAfterCameraKill, token);
         return channel.Reader;
     }
 
-    private static async Task ReadImagesFromFiles(Channel<byte[]> channel, string imagePath, CancellationToken token)
+    private async Task ReadImagesFromFiles(Channel<byte[]> channel, string imagePath, bool streamAfterCameraKill, CancellationToken token)
+    {
+        while (streamAfterCameraKill && cameraInterop.CameraIsRunning())
+        {
+            await Task.Delay(300, token);
+        }
+        if (!streamAfterCameraKill)
+        {
+            await StreamLive(channel, imagePath, token);
+        }
+        else
+        {
+            foreach (var file in Directory.EnumerateFiles(imagePath).OrderBy(x => x))
+            {
+                var bytesToSend = await File.ReadAllBytesAsync(file, token);
+                await channel.Writer.WriteAsync(bytesToSend, token);
+                File.Delete(file);
+            }
+        }
+    }
+
+    private static async Task StreamLive(Channel<byte[]> channel, string imagePath, CancellationToken token)
     {
         var counter = 0;
         while (true)
         {
             await Task.Delay(10, token);
-            var currentPath = Path.Combine(imagePath, $"{counter}.data");
+            var currentPath = Path.Combine(imagePath, $"{counter.ToString(CounterFormat)}.data");
             if (!Path.Exists(currentPath)) continue;
             var bytesToSend = await File.ReadAllBytesAsync(currentPath, token);
             await channel.Writer.WriteAsync(bytesToSend, token);

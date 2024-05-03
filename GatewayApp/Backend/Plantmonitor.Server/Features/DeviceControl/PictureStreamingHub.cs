@@ -73,16 +73,16 @@ namespace Plantmonitor.Server.Features.DeviceControl
                 .AddMessagePackProtocol()
                 .Build();
             await connection.StartAsync(token);
-            _ = StreamData(resolutionDivider, quality, distanceInM, picturePath, channel, connection, token);
+            _ = StreamData(resolutionDivider, quality, distanceInM, picturePath, storeData, channel, connection, token);
             return channel.Reader;
         }
 
-        private async Task StreamData(float resolutionDivider, int quality, float distanceInM, string picturePath,
+        private async Task StreamData(float resolutionDivider, int quality, float distanceInM, string picturePath, bool storeData,
             Channel<byte[]> channel, HubConnection connection, CancellationToken token)
         {
             var sequenceId = DateTime.Now.ToString("yyyy-MM-dd HH-mm-s");
             var stream = await connection.StreamAsChannelAsync<byte[]>("StreamStoredMjpeg", resolutionDivider, quality,
-                distanceInM, sequenceId, token);
+                distanceInM, sequenceId, storeData, token);
             var path = Path.Combine(picturePath, sequenceId);
             if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
             while (await stream.WaitToReadAsync(token))

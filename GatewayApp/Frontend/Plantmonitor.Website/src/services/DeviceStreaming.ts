@@ -23,7 +23,7 @@ export class DeviceStreaming {
                     next: async (x) => {
                         const payload = x as Uint8Array;
                         const blob = new Blob([payload.subarray(12)], { type: "image/jpeg" });
-                        const date = payload.subarray(4, 8).toInt64().fromTicksToDate();
+                        const date = payload.subarray(4, 12).toInt64().fromTicksToDate();
                         const imageUrl = await blob.asBase64Url();
                         await callback(payload.subarray(0, 4).toInt32(), imageUrl, date);
                     },
