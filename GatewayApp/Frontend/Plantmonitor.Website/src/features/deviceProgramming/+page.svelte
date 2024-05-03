@@ -8,7 +8,8 @@
         DeviceHealthState,
         DeviceMovement,
         MovementPoint,
-        MovementProgrammingClient
+        MovementProgrammingClient,
+        PictureClient
     } from "~/services/GatewayAppApi";
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
     import TextInput from "../reuseableComponents/TextInput.svelte";
@@ -20,12 +21,13 @@
     let videoCanvasId = crypto.randomUUID();
     let previewEnabled = false;
     let hubconnection: HubConnection | undefined;
-    let selectedDevice2: DeviceHealthState | undefined;
+    let selectedDeviceData: DeviceHealthState | undefined;
     let moveSteps = 100;
     let currentlyMoving = false;
     let removeSteps = false;
     let storePictures = false;
     let currentPosition: number | undefined;
+    let currentTime: Date | undefined;
     let movementPlan = new DeviceMovement();
     let defaultFocus = 100;
     let newStep = new MovementPoint({focusInCentimeter: defaultFocus, speed: 200, stepOffset: 500, comment: ""});
@@ -42,39 +44,39 @@
     });
     async function onDeviceSelected(device: DeviceHealthState) {
         if (previewEnabled) return;
-        selectedDevice2 = device;
+        selectedDeviceData = device;
         const client = new MovementProgrammingClient();
         movementPlan = await client.getPlan(device.health?.deviceId);
         const newFocus = movementPlan?.movementPlan?.stepPoints.mean((x) => x.focusInCentimeter).roundTo(1);
         const deviceClient = new DeviceClient();
-        currentPosition = await deviceClient.currentPosition(selectedDevice2.ip);
+        currentPosition = await deviceClient.currentPosition(selectedDeviceData.ip);
         defaultFocus = newFocus <= 0 ? defaultFocus : newFocus;
     }
     async function stopPreview() {
-        if (selectedDevice2?.ip == undefined) return;
-        await new DeviceClient().killCamera(selectedDevice2.ip);
+        if (selectedDeviceData?.ip == undefined) return;
+        await new DeviceClient().killCamera(selectedDeviceData.ip);
         previewEnabled = false;
     }
     async function move(steps: number) {
-        if (selectedDevice2?.ip == undefined) return;
+        if (selectedDeviceData?.ip == undefined) return;
         const client = new DeviceClient();
-        await client.move(selectedDevice2.ip, steps, 500, 4000, 200);
-        if (!previewEnabled) currentPosition = await client.currentPosition(selectedDevice2.ip);
+        await client.move(selectedDeviceData.ip, steps, 500, 4000, 200);
+        if (!previewEnabled) currentPosition = await client.currentPosition(selectedDeviceData.ip);
     }
     async function zeroPosition() {
-        if (selectedDevice2?.ip == undefined) return;
+        if (selectedDeviceData?.ip == undefined) return;
         const client = new DeviceClient();
-        await client.zeroPosition(selectedDevice2.ip);
+        await client.zeroPosition(selectedDeviceData.ip);
     }
     async function toggleMotorEngage(shouldBeEngaged: boolean) {
-        if (selectedDevice2?.ip == undefined) return;
+        if (selectedDeviceData?.ip == undefined) return;
         const client = new DeviceClient();
-        await client.toggleMotorEngage(selectedDevice2.ip, shouldBeEngaged);
+        await client.toggleMotorEngage(selectedDeviceData.ip, shouldBeEngaged);
     }
     async function updateSteps() {
-        if (selectedDevice2?.ip == undefined) return;
+        if (selectedDeviceData?.ip == undefined) return;
         const client = new MovementProgrammingClient();
-        movementPlan.deviceId = selectedDevice2.health.deviceId;
+        movementPlan.deviceId = selectedDeviceData.health.deviceId;
         movementPlan.movementPlanJson = "{}";
         await client.updatePlan(movementPlan);
     }
@@ -95,21 +97,24 @@
             const stepCountAfterMove = step[stepsToReach](movementPlan.movementPlan.stepPoints);
             while (currentPosition != stepCountAfterMove) await Task.delay(100);
         }
+        const pictureClient = new DeviceClient();
+        if (storePictures) await pictureClient.killCamera();
         currentlyMoving = false;
     }
     async function showPreview() {
-        if (selectedDevice2?.ip == undefined) return;
+        if (selectedDeviceData?.ip == undefined) return;
         const connection = new DeviceStreaming().buildVideoConnection(
-            selectedDevice2.ip,
+            selectedDeviceData.ip,
             storePictures ? 1 : dev ? 8 : 4,
             defaultFocus / 100,
             storePictures
         );
         await hubconnection?.stop();
         hubconnection = connection.connection;
-        connection.start(async (step, data) => {
+        connection.start(async (step, data, date) => {
             const image = document.getElementById(videoCanvasId) as HTMLImageElement;
             currentPosition = step;
+            currentTime = date;
             image.src = data;
         });
         previewEnabled = true;
@@ -119,7 +124,10 @@
 <div class="col-md-12 row">
     <div class="col-md-4 colm-2 row">
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>
-        <div class="col-md-5">Current Position: {currentPosition}</div>
+        <div class="col-md-6 d-flex flex-column">
+            <div>Current Position: {currentPosition}</div>
+            <div>Image Time: {currentTime?.toTimeString()}</div>
+        </div>
         {#if previewEnabled}
             <button on:click={async () => await stopPreview()} class="btn btn-danger col-md-8">Stop Preview</button>
             <Checkbox disabledSelector={() => previewEnabled} class="col-md-4" label="Store Pictures" bind:value={storePictures}

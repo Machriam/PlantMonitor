@@ -36,8 +36,8 @@ namespace Plantmonitor.Server.Features.DeviceControl
             });
             var directory = Path.Combine(configuration.PicturePath(deviceId), sequenceId);
             if (!Path.Exists(directory)) throw new Exception($"Path {directory} could not be found");
-            var files = Directory.EnumerateFiles(directory);
-            _ = StreamFiles(files.ToList(), channel);
+            var files = Directory.EnumerateFiles(directory).OrderBy(f => f).ToList();
+            _ = StreamFiles(files, channel);
             return channel.Reader;
         }
 
@@ -80,8 +80,9 @@ namespace Plantmonitor.Server.Features.DeviceControl
         private async Task StreamData(float resolutionDivider, int quality, float distanceInM, string picturePath,
             Channel<byte[]> channel, HubConnection connection, CancellationToken token)
         {
-            var stream = await connection.StreamAsChannelAsync<byte[]>("StreamMjpeg", resolutionDivider, quality, distanceInM, token);
             var sequenceId = DateTime.Now.ToString("yyyy-MM-dd HH-mm-s");
+            var stream = await connection.StreamAsChannelAsync<byte[]>("StreamStoredMjpeg", resolutionDivider, quality,
+                distanceInM, sequenceId, token);
             var path = Path.Combine(picturePath, sequenceId);
             if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
             while (await stream.WaitToReadAsync(token))
@@ -91,7 +92,8 @@ namespace Plantmonitor.Server.Features.DeviceControl
                     if (!picturePath.IsEmpty())
                     {
                         var steps = BitConverter.ToInt32(image.AsSpan()[0..4]);
-                        File.WriteAllBytes(Path.Combine(path, $"{DateTime.Now.ToUniversalTime().ToString(PictureDateFormat)}_{steps}.jpg"), image[4..]);
+                        var date = new DateTime(BitConverter.ToInt64(image.AsSpan()[4..12]));
+                        File.WriteAllBytes(Path.Combine(path, $"{date.ToUniversalTime().ToString(PictureDateFormat)}_{steps}.jpg"), image[12..]);
                     }
                     var result = await channel.Writer.WriteAsync(image, token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);
