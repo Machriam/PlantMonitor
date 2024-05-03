@@ -20,9 +20,9 @@ public interface ICameraInterop
 
     Task<IResult> CaptureTestImage();
 
-    Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM);
-
     Task KillImageTaking();
+
+    Task<string> StreamJpgToFolder(float resolutionDivider, int quality, float distanceInM);
 }
 
 public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
@@ -32,6 +32,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
     private bool _cameraFound;
     private bool _deviceFunctional;
     private static bool s_cameraIsRunning;
+    private static readonly string s_tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "tempImages");
 
     private readonly ProcessSettings _videoProcessSettings = new() { Filename = "rpicam-vid", WorkingDirectory = null };
     private readonly ProcessSettings _imageProcessSettings = new() { Filename = "rpicam-still", WorkingDirectory = null };
@@ -65,7 +66,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         await Task.Delay(500);
     }
 
-    public async Task<(Pipe Pipe, Task ProcessTask)> MjpegStream(float resolutionDivider, int quality, float distanceInM)
+    public async Task<string> StreamJpgToFolder(float resolutionDivider, int quality, float distanceInM)
     {
         if (distanceInM == 0) distanceInM = 0.01f;
         if (resolutionDivider == 0) resolutionDivider = 2;
@@ -73,23 +74,16 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         var width = (int)(MaxWidth / resolutionDivider);
         var height = (int)(MaxHeight / resolutionDivider);
         await KillImageTaking();
-        var builder = new CommandOptionsBuilder()
-        .WithContinuousStreaming()
-        .WithVflip()
-        .WithHflip()
-        .WithMJPEGVideoOptions(quality)
-        .WithResolution(width, height);
-        var args = builder.GetArguments()
-            .Append("--autofocus-mode manual")
-            .Append($"--framerate {resolutionDivider}")
-            .Append("--mode 4608:2592")
-            .Append($"--lens-position {focus}").ToArray();
-        var process = new ProcessRunner(_videoProcessSettings);
-
-        var pipe = new Pipe();
-        logger.LogInformation("Starting Mjpeg stream with: {arguments}", args.Concat(" "));
+        if (Path.Exists(s_tempImagePath)) Directory.Delete(s_tempImagePath, true);
+        Directory.CreateDirectory(s_tempImagePath);
+        var filePath = Path.Combine(s_tempImagePath, "%06d.jpg");
+        var startInfo = new ProcessStartInfo(
+            "rpicam-vid", $"-t 0 --width {width} --height {height} --mode 4608:2592 " +
+            $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath}");
+        logger.LogInformation("Program: {program}, arguments: {arguments}", startInfo.FileName, startInfo.ArgumentList.AsJson());
+        new Process() { StartInfo = startInfo }.Start();
         s_cameraIsRunning = true;
-        return (pipe, process.ContinuousRunAsync(args, pipe.Writer.AsStream(true)));
+        return s_tempImagePath;
     }
 
     public async Task<string> CameraInfo()
