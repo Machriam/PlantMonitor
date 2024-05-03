@@ -5,7 +5,6 @@
     import {calculateMoveTo, stepsToReach} from "~/services/movementPointExtensions";
     import {
         DeviceClient,
-        DeviceConfigurationClient,
         DeviceHealthState,
         DeviceMovement,
         MovementPoint,
@@ -17,11 +16,11 @@
     import Checkbox from "../reuseableComponents/Checkbox.svelte";
     import {Task} from "~/types/task";
     import {dev} from "$app/environment";
+    import {selectedDevice} from "../store";
     let videoCanvasId = crypto.randomUUID();
     let previewEnabled = false;
-    let devices: DeviceHealthState[] = [];
     let hubconnection: HubConnection | undefined;
-    let selectedDevice: DeviceHealthState | undefined;
+    let selectedDevice2: DeviceHealthState | undefined;
     let moveSteps = 100;
     let currentlyMoving = false;
     let removeSteps = false;
@@ -31,47 +30,51 @@
     let defaultFocus = 100;
     let newStep = new MovementPoint({focusInCentimeter: defaultFocus, speed: 200, stepOffset: 500, comment: ""});
     onMount(async () => {
-        const client = new DeviceConfigurationClient();
-        devices = await client.getDevices();
+        if ($selectedDevice != undefined) onDeviceSelected($selectedDevice);
+    });
+    const cancelSubscription = selectedDevice.subscribe((x) => {
+        if (x == undefined) return;
+        onDeviceSelected(x);
     });
     onDestroy(async () => {
+        cancelSubscription();
         await hubconnection?.stop();
     });
     async function onDeviceSelected(device: DeviceHealthState) {
         if (previewEnabled) return;
-        selectedDevice = device;
+        selectedDevice2 = device;
         const client = new MovementProgrammingClient();
         movementPlan = await client.getPlan(device.health?.deviceId);
         const newFocus = movementPlan?.movementPlan?.stepPoints.mean((x) => x.focusInCentimeter).roundTo(1);
         const deviceClient = new DeviceClient();
-        currentPosition = await deviceClient.currentPosition(selectedDevice.ip);
+        currentPosition = await deviceClient.currentPosition(selectedDevice2.ip);
         defaultFocus = newFocus <= 0 ? defaultFocus : newFocus;
     }
     async function stopPreview() {
-        if (selectedDevice?.ip == undefined) return;
-        await new DeviceClient().killCamera(selectedDevice.ip);
+        if (selectedDevice2?.ip == undefined) return;
+        await new DeviceClient().killCamera(selectedDevice2.ip);
         previewEnabled = false;
     }
     async function move(steps: number) {
-        if (selectedDevice?.ip == undefined) return;
+        if (selectedDevice2?.ip == undefined) return;
         const client = new DeviceClient();
-        await client.move(selectedDevice.ip, steps, 500, 4000, 200);
-        if (!previewEnabled) currentPosition = await client.currentPosition(selectedDevice.ip);
+        await client.move(selectedDevice2.ip, steps, 500, 4000, 200);
+        if (!previewEnabled) currentPosition = await client.currentPosition(selectedDevice2.ip);
     }
     async function zeroPosition() {
-        if (selectedDevice?.ip == undefined) return;
+        if (selectedDevice2?.ip == undefined) return;
         const client = new DeviceClient();
-        await client.zeroPosition(selectedDevice.ip);
+        await client.zeroPosition(selectedDevice2.ip);
     }
     async function toggleMotorEngage(shouldBeEngaged: boolean) {
-        if (selectedDevice?.ip == undefined) return;
+        if (selectedDevice2?.ip == undefined) return;
         const client = new DeviceClient();
-        await client.toggleMotorEngage(selectedDevice.ip, shouldBeEngaged);
+        await client.toggleMotorEngage(selectedDevice2.ip, shouldBeEngaged);
     }
     async function updateSteps() {
-        if (selectedDevice?.ip == undefined) return;
+        if (selectedDevice2?.ip == undefined) return;
         const client = new MovementProgrammingClient();
-        movementPlan.deviceId = selectedDevice.health.deviceId;
+        movementPlan.deviceId = selectedDevice2.health.deviceId;
         movementPlan.movementPlanJson = "{}";
         await client.updatePlan(movementPlan);
     }
@@ -95,9 +98,9 @@
         currentlyMoving = false;
     }
     async function showPreview() {
-        if (selectedDevice?.ip == undefined) return;
+        if (selectedDevice2?.ip == undefined) return;
         const connection = new DeviceStreaming().buildVideoConnection(
-            selectedDevice.ip,
+            selectedDevice2.ip,
             storePictures ? 1 : dev ? 8 : 4,
             defaultFocus / 100,
             storePictures
@@ -114,15 +117,6 @@
 </script>
 
 <div class="col-md-12 row">
-    <h3>Program Devices</h3>
-    <div class="col-md-12 d-flex flex-row">
-        {#each devices as device}
-            <button on:click={() => onDeviceSelected(device)} class="alert {selectedDevice?.ip == device.ip ? 'alert-info' : ''}">
-                {device.health?.deviceName}<br />
-                {device.ip}
-            </button>
-        {/each}
-    </div>
     <div class="col-md-4 colm-2 row">
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>
         <div class="col-md-5">Current Position: {currentPosition}</div>

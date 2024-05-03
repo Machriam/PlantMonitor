@@ -22,3 +22,28 @@
     margin-top: 10px;
     margin-bottom: 10px;
 }
+
+.rowm-1 > * {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
+.rowm-2 > * {
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+.rowm-3 > * {
+    margin-left: 6px;
+    margin-right: 6px;
+}
+
+.rowm-4 > * {
+    margin-left: 8px;
+    margin-right: 8px;
+}
+
+.rowm-5 > * {
+    margin-left: 10px;
+    margin-right: 10px;
+}

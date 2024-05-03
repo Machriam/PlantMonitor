@@ -1,4 +1,4 @@
-using MessagePack.Resolvers;
+﻿using MessagePack.Resolvers;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Plantmonitor.DataModel.DataModel;
@@ -76,8 +76,21 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
-app.UseDefaultFiles();
+
+app.Use(async (context, next) =>
+{
+    await next();
+    var path = context.Request.Path.Value;
+
+    if (path?.StartsWith("/api") == false && path?.StartsWith("/hub") == false)
+    {
+        context.Request.Path = "/index.html";
+        await next();
+    }
+});
+
 app.UseStaticFiles();
+app.UseDefaultFiles();
 
 app.UseAuthorization();
 
