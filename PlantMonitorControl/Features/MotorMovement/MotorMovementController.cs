@@ -12,8 +12,8 @@ public class MotorMovementController(IEnvironmentConfiguration configuration, IM
     [HttpPost("togglemotorengage")]
     public void ToggleMotorEngage(bool shouldEngage)
     {
-        var locked = PinValue.High;
-        var released = PinValue.Low;
+        var locked = PinValue.Low;
+        var released = PinValue.High;
         using var controller = new GpioController(PinNumberingScheme.Board);
         var pinout = configuration.MotorPinout;
         controller.OpenPin(pinout.Enable, PinMode.Output);
@@ -41,8 +41,8 @@ public class MotorMovementController(IEnvironmentConfiguration configuration, IM
         var pinout = configuration.MotorPinout;
         controller.OpenPin(pinout.Direction, PinMode.Output);
         controller.OpenPin(pinout.Pulse, PinMode.Output);
-        var left = PinValue.Low;
-        var right = PinValue.High;
+        var left = PinValue.High;
+        var right = PinValue.Low;
 
         controller.Write(pinout.Direction, steps < 0 ? left : right);
         var stepUnit = steps < 0 ? -1 : 1;
