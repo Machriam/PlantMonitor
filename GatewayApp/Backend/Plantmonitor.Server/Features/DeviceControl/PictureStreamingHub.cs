@@ -91,7 +91,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
                     if (!picturePath.IsEmpty())
                     {
                         var steps = BitConverter.ToInt32(image.AsSpan()[0..4]);
-                        File.WriteAllBytes(Path.Combine(path, $"{DateTime.Now.ToString(PictureDateFormat)}_{steps}.jpg"), image[4..]);
+                        File.WriteAllBytes(Path.Combine(path, $"{DateTime.Now.ToUniversalTime().ToString(PictureDateFormat)}_{steps}.jpg"), image[4..]);
                     }
                     var result = await channel.Writer.WriteAsync(image, token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);
