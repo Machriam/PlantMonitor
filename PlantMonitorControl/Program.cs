@@ -1,4 +1,4 @@
-using PlantMonitorControl.Features.AppsettingsConfiguration;
+﻿using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.HealthChecking;
 using PlantMonitorControl.Features.MotorMovement;
 using Serilog;

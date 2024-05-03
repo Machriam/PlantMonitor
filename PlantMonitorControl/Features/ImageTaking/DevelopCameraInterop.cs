@@ -22,6 +22,11 @@ public class DevelopCameraInterop() : ICameraInterop
         throw new NotImplementedException();
     }
 
+    public bool CameraIsRunning()
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<IResult> CaptureTestImage()
     {
         throw new NotImplementedException();
@@ -48,5 +53,10 @@ public class DevelopCameraInterop() : ICameraInterop
             }
         });
         return Task.FromResult((pipe, task));
+    }
+
+    public Task<string> StreamJpgToFolder(float resolutionDivider, int quality, float distanceInM)
+    {
+        throw new NotImplementedException();
     }
 }
