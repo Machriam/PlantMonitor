@@ -1,19 +1,13 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using System.IO.Pipelines;
 using System.Threading.Channels;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
-public class FileStreamingService
+public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop,
+    IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition) : Hub
 {
-}
-
-public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop, IMotorPositionCalculator motorPosition) : Hub
-{
-    private const string CounterFormat = "000000";
-
     public async Task<ChannelReader<byte[]>> StreamStoredMjpeg(float resolutionDivider, int quality, float distanceInM,
-        string sessionId, bool streamAfterCameraKill, CancellationToken token)
+        bool streamAfterCameraKill, CancellationToken token)
     {
         motorPosition.ResetHistory();
         var channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
@@ -59,26 +53,10 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         while (true)
         {
             await Task.Delay(10, token);
-            var outOfSyncPath = Path.Combine(imagePath, $"{(counter + 10).ToString(CounterFormat)}.jpg");
-            if (Path.Exists(outOfSyncPath))
-            {
-                for (var i = 0; i < 10; i++)
-                {
-                    var deletePath = Path.Combine(imagePath, $"{(counter + i).ToString(CounterFormat)}.jpg");
-                    if (Path.Exists(deletePath)) File.Delete(deletePath);
-                }
-                counter += 10;
-                continue;
-            }
-            var currentPath = Path.Combine(imagePath, $"{counter.ToString(CounterFormat)}.jpg");
-            var nextPath = Path.Combine(imagePath, $"{(counter + 1).ToString(CounterFormat)}.jpg");
-            if (!Path.Exists(nextPath)) continue;
-            var creationTime = BitConverter.GetBytes(File.GetCreationTimeUtc(currentPath).Ticks);
-            var bytesToSend = await File.ReadAllBytesAsync(currentPath, token);
+            (var creationTime, counter, var bytesToSend) = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, token);
             var steps = BitConverter.GetBytes(motorPosition.CurrentPosition());
-            File.Delete(currentPath);
-            counter++;
-            await channel.Writer.WriteAsync([.. steps, .. creationTime, .. bytesToSend], token);
+            var creationTimeBytes = BitConverter.GetBytes(creationTime.Ticks);
+            await channel.Writer.WriteAsync([.. steps, .. creationTimeBytes, .. bytesToSend], token);
         }
     }
 }
