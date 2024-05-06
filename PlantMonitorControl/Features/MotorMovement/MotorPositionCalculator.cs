@@ -1,4 +1,6 @@
-﻿namespace PlantMonitorControl.Features.MotorMovement;
+﻿using System.Collections.Concurrent;
+
+namespace PlantMonitorControl.Features.MotorMovement;
 
 public interface IMotorPositionCalculator
 {
@@ -9,13 +11,21 @@ public interface IMotorPositionCalculator
     void UpdatePosition(int stepsMoved);
 
     void ZeroPosition();
+
+    int StepForTime(long time);
+
+    void ResetHistory();
 }
+
+public record struct MotorPositionInfo(int StepCount, long Time);
 
 public class MotorPositionCalculator : IMotorPositionCalculator
 {
     private const string CurrentPositionFile = "currentPosition.txt";
     private static readonly string s_filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), CurrentPositionFile);
     private static int s_currentPosition;
+    private static readonly List<MotorPositionInfo> s_motorPositionHistory = [];
+    private static readonly Comparer<MotorPositionInfo> s_positionComparer = Comparer<MotorPositionInfo>.Create((a, b) => a.Time.CompareTo(b.Time));
     private static readonly object s_lock = new();
 
     public MotorPositionCalculator()
@@ -30,9 +40,30 @@ public class MotorPositionCalculator : IMotorPositionCalculator
         PersistCurrentPosition();
     }
 
+    public void ResetHistory()
+    {
+        lock (s_lock)
+        {
+            s_motorPositionHistory.Clear();
+        }
+    }
+
     public void UpdatePosition(int stepsMoved)
     {
-        lock (s_lock) s_currentPosition += stepsMoved;
+        var time = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds();
+        lock (s_lock)
+        {
+            s_currentPosition += stepsMoved;
+            s_motorPositionHistory.Add(new(s_currentPosition, time));
+        }
+    }
+
+    public int StepForTime(long time)
+    {
+        if (s_motorPositionHistory.Count == 0) return int.MinValue;
+        var index = s_motorPositionHistory.BinarySearch(new(0, time), s_positionComparer);
+        if (index == -1) return s_motorPositionHistory[0].StepCount;
+        return index >= 0 ? s_motorPositionHistory[index].StepCount : s_motorPositionHistory[(~index) - 1].StepCount;
     }
 
     public void PersistCurrentPosition()
