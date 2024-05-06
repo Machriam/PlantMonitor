@@ -26,7 +26,10 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
     {
         while (streamAfterCameraKill && cameraInterop.CameraIsRunning())
         {
-            await Task.Delay(300, token);
+            await Task.Delay(20, token);
+            var steps = BitConverter.GetBytes(motorPosition.CurrentPosition());
+            var tickBytes = BitConverter.GetBytes(DateTime.UtcNow.Ticks);
+            await channel.Writer.WriteAsync([.. steps, .. tickBytes], token);
         }
         if (!streamAfterCameraKill)
         {

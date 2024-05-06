@@ -93,7 +93,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
                     {
                         var steps = BitConverter.ToInt32(image.AsSpan()[0..4]);
                         var date = new DateTime(BitConverter.ToInt64(image.AsSpan()[4..12]));
-                        File.WriteAllBytes(Path.Combine(path, $"{date.ToUniversalTime().ToString(PictureDateFormat)}_{steps}.jpg"), image[12..]);
+                        if (image.Length > 12) File.WriteAllBytes(Path.Combine(path, $"{date.ToUniversalTime().ToString(PictureDateFormat)}_{steps}.jpg"), image[12..]);
                     }
                     var result = await channel.Writer.WriteAsync(image, token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);
