@@ -426,7 +426,7 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
 
 export interface IPictureClient {
 
-    getPictureSeries(deviceId?: string | undefined): Promise<string[]>;
+    getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]>;
 }
 
 export class PictureClient extends GatewayAppApiBase implements IPictureClient {
@@ -440,7 +440,7 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    getPictureSeries(deviceId?: string | undefined): Promise<string[]> {
+    getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]> {
         let url_ = this.baseUrl + "/api/Picture/pictureseriesnames?";
         if (deviceId === null)
             throw new Error("The parameter 'deviceId' cannot be null.");
@@ -462,7 +462,7 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
         });
     }
 
-    protected processGetPictureSeries(response: Response): Promise<string[]> {
+    protected processGetPictureSeries(response: Response): Promise<PictureSeriesData[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -472,7 +472,7 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(item);
+                    result200!.push(PictureSeriesData.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -484,7 +484,7 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<string[]>(null as any);
+        return Promise.resolve<PictureSeriesData[]>(null as any);
     }
 }
 
@@ -886,6 +886,53 @@ export interface IMovementPoint {
     focusInCentimeter: number;
     speed: number;
     comment: string;
+}
+
+export class PictureSeriesData implements IPictureSeriesData {
+    count!: number;
+    fileName!: string;
+
+    constructor(data?: IPictureSeriesData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.count = _data["count"];
+            this.fileName = _data["fileName"];
+        }
+    }
+
+    static fromJS(data: any): PictureSeriesData {
+        data = typeof data === 'object' ? data : {};
+        let result = new PictureSeriesData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["count"] = this.count;
+        data["fileName"] = this.fileName;
+        return data;
+    }
+
+    clone(): PictureSeriesData {
+        const json = this.toJSON();
+        let result = new PictureSeriesData();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPictureSeriesData {
+    count: number;
+    fileName: string;
 }
 
 export class CertificateData implements ICertificateData {

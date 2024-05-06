@@ -5,13 +5,13 @@
         imageUrl: string;
     }
     import {onDestroy, onMount} from "svelte";
-    import {PictureClient} from "~/services/GatewayAppApi";
+    import {PictureClient, PictureSeriesData} from "~/services/GatewayAppApi";
     import {selectedDevice} from "../store";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import type {HubConnection} from "@microsoft/signalr";
 
-    let pictureSeries: string[] = [];
-    let selectedSeries: string | undefined;
+    let pictureSeries: PictureSeriesData[] = [];
+    let selectedSeries: PictureSeriesData | undefined;
     let hubConnection: HubConnection | undefined;
     let selectedImage: ImageData | undefined;
     let currentImage: number = -1;
@@ -26,13 +26,13 @@
         const pictureClient = new PictureClient();
         if ($selectedDevice == undefined || $selectedDevice?.health.deviceId.isEmpty()) return;
         pictureSeries = await pictureClient.getPictureSeries($selectedDevice?.health.deviceId);
-        pictureSeries = pictureSeries.sort().toReversed();
+        pictureSeries = pictureSeries.sort((a, b) => a.fileName.localeCompare(b.fileName)).toReversed();
     }
-    function onSeriesSelected(series: string) {
+    function onSeriesSelected(series: PictureSeriesData) {
         if ($selectedDevice == undefined || $selectedDevice?.health.deviceId.isEmpty()) return;
         selectedSeries = series;
         const streamer = new DeviceStreaming();
-        const connection = streamer.replayPictures($selectedDevice.health.deviceId, series);
+        const connection = streamer.replayPictures($selectedDevice.health.deviceId, series.fileName);
         hubConnection?.stop();
         hubConnection = connection.connection;
         images = [];
@@ -64,14 +64,17 @@
             <button
                 on:click={() => onSeriesSelected(series)}
                 style="border-width: 1px;border-style: solid;border-color:grey"
-                class="col-md-12 alert border-0 m-0 p-0 {selectedSeries == series ? 'alert-info' : ''}">{series}</button>
+                class="col-md-12 row alert border-0 m-0 p-0 {selectedSeries == series ? 'alert-info' : ''}">
+                <span class="col-md-2">{series.count}</span>
+                <span class="col-md-10">{series.fileName}</span>
+            </button>
         {/each}
     </div>
     <div on:wheel={(x) => onScroll(x)}>
         {#if selectedImage != undefined}
             <img alt="" style="width: 100%;" src={selectedImage?.imageUrl} />
             <div>{selectedImage.date.toLocaleTimeString()}</div>
-	    <div>Position: {selectedImage.stepCount}</div>
+            <div>Position: {selectedImage.stepCount}</div>
         {/if}
     </div>
 </div>

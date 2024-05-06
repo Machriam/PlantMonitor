@@ -30,7 +30,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
             var channel = Channel.CreateBounded<StoredPictureData>(new BoundedChannelOptions(1)
             {
                 AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.DropWrite,
+                FullMode = BoundedChannelFullMode.Wait,
                 SingleReader = true,
                 SingleWriter = true,
             });
