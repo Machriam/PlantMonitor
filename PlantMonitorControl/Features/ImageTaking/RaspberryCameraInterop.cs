@@ -78,7 +78,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         Directory.CreateDirectory(s_tempImagePath);
         var filePath = Path.Combine(s_tempImagePath, "%06d.jpg");
         var startInfo = new ProcessStartInfo(
-            "rpicam-vid", $"-t 0 --width {width} --height {height} --mode 4608:2592 " +
+            "rpicam-vid", $"-t 0 -v 0 --width {width} --height {height} --mode 4608:2592 " +
             $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath}");
         logger.LogInformation("Program: {program}, arguments: {arguments}", startInfo.FileName, startInfo.ArgumentList.AsJson());
         new Process() { StartInfo = startInfo }.Start();

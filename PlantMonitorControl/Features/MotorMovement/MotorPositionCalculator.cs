@@ -45,6 +45,8 @@ public class MotorPositionCalculator : IMotorPositionCalculator
         lock (s_lock)
         {
             s_motorPositionHistory.Clear();
+            var time = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds();
+            s_motorPositionHistory.Add(new(s_currentPosition, time));
         }
     }
 
