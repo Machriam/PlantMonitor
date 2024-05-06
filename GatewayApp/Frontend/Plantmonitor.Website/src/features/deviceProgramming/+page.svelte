@@ -88,7 +88,7 @@
         currentlyMoving = false;
     }
     async function moveToAll() {
-        if (currentPosition == undefined) return;
+        if (currentPosition == undefined || selectedDeviceData == undefined) return;
         currentlyMoving = true;
         for (let i = 0; i < movementPlan.movementPlan.stepPoints.length; i++) {
             const step = movementPlan.movementPlan.stepPoints[i];
@@ -96,9 +96,10 @@
             await move(stepsToMove);
             const stepCountAfterMove = step[stepsToReach](movementPlan.movementPlan.stepPoints);
             while (currentPosition != stepCountAfterMove) await Task.delay(100);
+            await Task.delay(1000);
         }
         const pictureClient = new DeviceClient();
-        if (storePictures) await pictureClient.killCamera();
+        if (storePictures) await pictureClient.killCamera(selectedDeviceData?.ip);
         currentlyMoving = false;
     }
     async function showPreview() {
