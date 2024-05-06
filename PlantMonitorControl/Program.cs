@@ -24,6 +24,7 @@ var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Conf
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
 builder.Services.AddSingleton<IMotorPositionCalculator, MotorPositionCalculator>();
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
+builder.Services.AddTransient<IFileStreamingReader, FileStreamingReader>();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopCameraInterop>(ICameraInterop.VisCamera);
