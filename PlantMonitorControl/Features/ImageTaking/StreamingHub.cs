@@ -53,7 +53,9 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         while (true)
         {
             await Task.Delay(10, token);
+            if (!cameraInterop.CameraIsRunning()) break;
             (var creationTime, counter, var bytesToSend) = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, token);
+            if (bytesToSend == null) continue;
             var steps = BitConverter.GetBytes(motorPosition.CurrentPosition());
             var creationTimeBytes = BitConverter.GetBytes(creationTime.Ticks);
             await channel.Writer.WriteAsync([.. steps, .. creationTimeBytes, .. bytesToSend], token);

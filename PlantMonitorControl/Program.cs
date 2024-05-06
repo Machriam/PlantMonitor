@@ -9,7 +9,7 @@ var logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.U
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File(logFile, Serilog.Events.LogEventLevel.Information, fileSizeLimitBytes: 1024 * 1024 * 8,
+    .WriteTo.File(logFile, Serilog.Events.LogEventLevel.Information, fileSizeLimitBytes: 1024 * 1024,
                   rollOnFileSizeLimit: true, retainedFileCountLimit: 4)
     .CreateLogger();
 
