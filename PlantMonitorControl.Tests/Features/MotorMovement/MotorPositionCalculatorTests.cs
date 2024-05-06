@@ -40,7 +40,7 @@ namespace PlantMonitorControl.Tests.Features.MotorMovement
             var motorPositionCalculator = CreateMotorPositionCalculator();
             motorPositionCalculator.ResetHistory();
             var positionByTime = new List<(long Time, int Steps)>();
-            motorPositionCalculator.StepForTime(long.MinValue).Should().Be(int.MinValue);
+            motorPositionCalculator.StepForTime(long.MinValue).Should().Be(0);
             for (var i = 0; i < 5; i++)
             {
                 await Task.Delay(5);
@@ -50,7 +50,7 @@ namespace PlantMonitorControl.Tests.Features.MotorMovement
                 positionByTime.Add(new(time, positionByTime.LastOrDefault().Steps + step));
             }
             var testTime = ((positionByTime[3].Time - positionByTime[2].Time) / 2) + positionByTime[2].Time;
-            motorPositionCalculator.StepForTime(long.MinValue).Should().Be(positionByTime[0].Steps);
+            motorPositionCalculator.StepForTime(long.MinValue).Should().Be(0);
             motorPositionCalculator.StepForTime(testTime).Should().Be(positionByTime[2].Steps);
             motorPositionCalculator.StepForTime(long.MaxValue).Should().Be(positionByTime[^1].Steps);
         }

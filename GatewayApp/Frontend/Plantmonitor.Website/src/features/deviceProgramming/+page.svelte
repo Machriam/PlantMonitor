@@ -54,7 +54,7 @@
     }
     async function stopPreview() {
         if (selectedDeviceData?.ip == undefined) return;
-        await new DeviceClient().killCamera(selectedDeviceData.ip);
+        await hubconnection?.stop();
         previewEnabled = false;
     }
     async function move(steps: number) {
@@ -202,7 +202,9 @@
     </div>
     <div class="col-md-8 colm-3">
         <div style="height: 50vh;width:50vw;">
-            <img style="height: 100%;width:100%" alt="preview" id={videoCanvasId} />
+            {#if previewEnabled}
+                <img style="height: 100%;width:100%" alt="preview" id={videoCanvasId} />
+            {/if}
         </div>
     </div>
 </div>
