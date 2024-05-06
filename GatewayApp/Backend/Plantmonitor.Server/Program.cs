@@ -6,6 +6,7 @@ using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Server.Features.RestApiFilter;
+using Plantmonitor.Shared.Features.ImageStreaming;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -48,6 +49,7 @@ if (builder.Environment.IsDevelopment())
 }
 builder.Services.AddOpenApiDocument(options =>
 {
+    options.DocumentProcessors.Add(new AddAdditionalTypeProcessor<StreamingMetaData>());
     options.PostProcess = document =>
     {
         document.Info = new NSwag.OpenApiInfo()

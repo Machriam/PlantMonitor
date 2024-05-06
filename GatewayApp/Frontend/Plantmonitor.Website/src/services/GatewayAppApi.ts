@@ -1148,6 +1148,73 @@ export enum HealthState {
     SystemCalibrated = 16,
 }
 
+export class StreamingMetaData implements IStreamingMetaData {
+    resolutionDivider!: number;
+    quality!: number;
+    distanceInM!: number;
+    storeData!: boolean;
+    positionsToStream!: number[];
+
+    constructor(data?: IStreamingMetaData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.resolutionDivider = _data["resolutionDivider"];
+            this.quality = _data["quality"];
+            this.distanceInM = _data["distanceInM"];
+            this.storeData = _data["storeData"];
+            if (Array.isArray(_data["positionsToStream"])) {
+                this.positionsToStream = [] as any;
+                for (let item of _data["positionsToStream"])
+                    this.positionsToStream!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): StreamingMetaData {
+        data = typeof data === 'object' ? data : {};
+        let result = new StreamingMetaData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["resolutionDivider"] = this.resolutionDivider;
+        data["quality"] = this.quality;
+        data["distanceInM"] = this.distanceInM;
+        data["storeData"] = this.storeData;
+        if (Array.isArray(this.positionsToStream)) {
+            data["positionsToStream"] = [];
+            for (let item of this.positionsToStream)
+                data["positionsToStream"].push(item);
+        }
+        return data;
+    }
+
+    clone(): StreamingMetaData {
+        const json = this.toJSON();
+        let result = new StreamingMetaData();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IStreamingMetaData {
+    resolutionDivider: number;
+    quality: number;
+    distanceInM: number;
+    storeData: boolean;
+    positionsToStream: number[];
+}
+
 export interface FileResponse {
     data: Blob;
     status: number;
