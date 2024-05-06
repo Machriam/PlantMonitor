@@ -82,7 +82,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
         {
             var sequenceId = DateTime.Now.ToString("yyyy-MM-dd HH-mm-s");
             var stream = await connection.StreamAsChannelAsync<byte[]>("StreamStoredMjpeg", resolutionDivider, quality,
-                distanceInM, sequenceId, storeData, token);
+                distanceInM, storeData, token);
             var path = Path.Combine(picturePath, sequenceId);
             if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
             while (await stream.WaitToReadAsync(token))
