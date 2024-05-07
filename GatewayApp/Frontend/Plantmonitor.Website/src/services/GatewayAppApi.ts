@@ -741,11 +741,11 @@ export class DeviceMovement implements IDeviceMovement {
 
     init(_data?: any) {
         if (_data) {
-            this.id = _data["id"];
-            this.deviceId = _data["deviceId"];
-            this.movementPlanJson = _data["movementPlanJson"];
-            this.name = _data["name"];
-            this.movementPlan = _data["movementPlan"] ? MovementPlan.fromJS(_data["movementPlan"]) : <any>undefined;
+            this.id = _data["Id"];
+            this.deviceId = _data["DeviceId"];
+            this.movementPlanJson = _data["MovementPlanJson"];
+            this.name = _data["Name"];
+            this.movementPlan = _data["MovementPlan"] ? MovementPlan.fromJS(_data["MovementPlan"]) : <any>undefined;
         }
     }
 
@@ -758,11 +758,11 @@ export class DeviceMovement implements IDeviceMovement {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["deviceId"] = this.deviceId;
-        data["movementPlanJson"] = this.movementPlanJson;
-        data["name"] = this.name;
-        data["movementPlan"] = this.movementPlan ? this.movementPlan.toJSON() : <any>undefined;
+        data["Id"] = this.id;
+        data["DeviceId"] = this.deviceId;
+        data["MovementPlanJson"] = this.movementPlanJson;
+        data["Name"] = this.name;
+        data["MovementPlan"] = this.movementPlan ? this.movementPlan.toJSON() : <any>undefined;
         return data;
     }
 
@@ -796,9 +796,9 @@ export class MovementPlan implements IMovementPlan {
 
     init(_data?: any) {
         if (_data) {
-            if (Array.isArray(_data["stepPoints"])) {
+            if (Array.isArray(_data["StepPoints"])) {
                 this.stepPoints = [] as any;
-                for (let item of _data["stepPoints"])
+                for (let item of _data["StepPoints"])
                     this.stepPoints!.push(MovementPoint.fromJS(item));
             }
         }
@@ -814,9 +814,9 @@ export class MovementPlan implements IMovementPlan {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         if (Array.isArray(this.stepPoints)) {
-            data["stepPoints"] = [];
+            data["StepPoints"] = [];
             for (let item of this.stepPoints)
-                data["stepPoints"].push(item.toJSON());
+                data["StepPoints"].push(item.toJSON());
         }
         return data;
     }
@@ -850,10 +850,10 @@ export class MovementPoint implements IMovementPoint {
 
     init(_data?: any) {
         if (_data) {
-            this.stepOffset = _data["stepOffset"];
-            this.focusInCentimeter = _data["focusInCentimeter"];
-            this.speed = _data["speed"];
-            this.comment = _data["comment"];
+            this.stepOffset = _data["StepOffset"];
+            this.focusInCentimeter = _data["FocusInCentimeter"];
+            this.speed = _data["Speed"];
+            this.comment = _data["Comment"];
         }
     }
 
@@ -866,10 +866,10 @@ export class MovementPoint implements IMovementPoint {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["stepOffset"] = this.stepOffset;
-        data["focusInCentimeter"] = this.focusInCentimeter;
-        data["speed"] = this.speed;
-        data["comment"] = this.comment;
+        data["StepOffset"] = this.stepOffset;
+        data["FocusInCentimeter"] = this.focusInCentimeter;
+        data["Speed"] = this.speed;
+        data["Comment"] = this.comment;
         return data;
     }
 
@@ -903,8 +903,8 @@ export class PictureSeriesData implements IPictureSeriesData {
 
     init(_data?: any) {
         if (_data) {
-            this.count = _data["count"];
-            this.fileName = _data["fileName"];
+            this.count = _data["Count"];
+            this.fileName = _data["FileName"];
         }
     }
 
@@ -917,8 +917,8 @@ export class PictureSeriesData implements IPictureSeriesData {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["count"] = this.count;
-        data["fileName"] = this.fileName;
+        data["Count"] = this.count;
+        data["FileName"] = this.fileName;
         return data;
     }
 
@@ -950,8 +950,8 @@ export class CertificateData implements ICertificateData {
 
     init(_data?: any) {
         if (_data) {
-            this.certificate = _data["certificate"];
-            this.key = _data["key"];
+            this.certificate = _data["Certificate"];
+            this.key = _data["Key"];
         }
     }
 
@@ -964,8 +964,8 @@ export class CertificateData implements ICertificateData {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["certificate"] = this.certificate;
-        data["key"] = this.key;
+        data["Certificate"] = this.certificate;
+        data["Key"] = this.key;
         return data;
     }
 
@@ -999,10 +999,10 @@ export class WebSshCredentials implements IWebSshCredentials {
 
     init(_data?: any) {
         if (_data) {
-            this.protocol = _data["protocol"];
-            this.port = _data["port"];
-            this.password = _data["password"];
-            this.user = _data["user"];
+            this.protocol = _data["Protocol"];
+            this.port = _data["Port"];
+            this.password = _data["Password"];
+            this.user = _data["User"];
         }
     }
 
@@ -1015,10 +1015,10 @@ export class WebSshCredentials implements IWebSshCredentials {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["protocol"] = this.protocol;
-        data["port"] = this.port;
-        data["password"] = this.password;
-        data["user"] = this.user;
+        data["Protocol"] = this.protocol;
+        data["Port"] = this.port;
+        data["Password"] = this.password;
+        data["User"] = this.user;
         return data;
     }
 
@@ -1053,9 +1053,9 @@ export class DeviceHealthState implements IDeviceHealthState {
 
     init(_data?: any) {
         if (_data) {
-            this.health = _data["health"] ? DeviceHealth.fromJS(_data["health"]) : <any>undefined;
-            this.retryTimes = _data["retryTimes"];
-            this.ip = _data["ip"];
+            this.health = _data["Health"] ? DeviceHealth.fromJS(_data["Health"]) : <any>undefined;
+            this.retryTimes = _data["RetryTimes"];
+            this.ip = _data["Ip"];
         }
     }
 
@@ -1068,9 +1068,9 @@ export class DeviceHealthState implements IDeviceHealthState {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["health"] = this.health ? this.health.toJSON() : <any>undefined;
-        data["retryTimes"] = this.retryTimes;
-        data["ip"] = this.ip;
+        data["Health"] = this.health ? this.health.toJSON() : <any>undefined;
+        data["RetryTimes"] = this.retryTimes;
+        data["Ip"] = this.ip;
         return data;
     }
 
@@ -1104,9 +1104,9 @@ export class DeviceHealth implements IDeviceHealth {
 
     init(_data?: any) {
         if (_data) {
-            this.deviceName = _data["deviceName"];
-            this.deviceId = _data["deviceId"];
-            this.state = _data["state"];
+            this.deviceName = _data["DeviceName"];
+            this.deviceId = _data["DeviceId"];
+            this.state = _data["State"];
         }
     }
 
@@ -1119,9 +1119,9 @@ export class DeviceHealth implements IDeviceHealth {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["deviceName"] = this.deviceName;
-        data["deviceId"] = this.deviceId;
-        data["state"] = this.state;
+        data["DeviceName"] = this.deviceName;
+        data["DeviceId"] = this.deviceId;
+        data["State"] = this.state;
         return data;
     }
 
@@ -1166,13 +1166,13 @@ export class StreamingMetaData implements IStreamingMetaData {
 
     init(_data?: any) {
         if (_data) {
-            this.resolutionDivider = _data["resolutionDivider"];
-            this.quality = _data["quality"];
-            this.distanceInM = _data["distanceInM"];
-            this.storeData = _data["storeData"];
-            if (Array.isArray(_data["positionsToStream"])) {
+            this.resolutionDivider = _data["ResolutionDivider"];
+            this.quality = _data["Quality"];
+            this.distanceInM = _data["DistanceInM"];
+            this.storeData = _data["StoreData"];
+            if (Array.isArray(_data["PositionsToStream"])) {
                 this.positionsToStream = [] as any;
-                for (let item of _data["positionsToStream"])
+                for (let item of _data["PositionsToStream"])
                     this.positionsToStream!.push(item);
             }
         }
@@ -1187,14 +1187,14 @@ export class StreamingMetaData implements IStreamingMetaData {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["resolutionDivider"] = this.resolutionDivider;
-        data["quality"] = this.quality;
-        data["distanceInM"] = this.distanceInM;
-        data["storeData"] = this.storeData;
+        data["ResolutionDivider"] = this.resolutionDivider;
+        data["Quality"] = this.quality;
+        data["DistanceInM"] = this.distanceInM;
+        data["StoreData"] = this.storeData;
         if (Array.isArray(this.positionsToStream)) {
-            data["positionsToStream"] = [];
+            data["PositionsToStream"] = [];
             for (let item of this.positionsToStream)
-                data["positionsToStream"].push(item);
+                data["PositionsToStream"].push(item);
         }
         return data;
     }

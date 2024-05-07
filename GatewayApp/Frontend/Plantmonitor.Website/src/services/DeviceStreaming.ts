@@ -23,7 +23,7 @@ export class DeviceStreaming {
                 connection.stream("StreamPictures", new StreamingMetaData({
                     distanceInM: focusInMeter,
                     positionsToStream: [], quality: 100, resolutionDivider: sizeDivider, storeData: storeData
-                }), device).subscribe({
+                }).toJSON(), device).subscribe({
                     next: async (x) => {
                         const payload = x as Uint8Array;
                         const blob = new Blob([payload.subarray(12)], { type: "image/jpeg" });
