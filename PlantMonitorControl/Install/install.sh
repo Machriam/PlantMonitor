@@ -15,3 +15,4 @@ sudo chmod 644 /lib/systemd/system/PlantMonitorStart.service
 sudo systemctl daemon-reload
 sudo systemctl enable PlantMonitorStart.service
 sudo systemctl start PlantMonitorStart.service
+echo -e "\nover_voltage=4\n" | sudo tee -a /boot/config.txt
