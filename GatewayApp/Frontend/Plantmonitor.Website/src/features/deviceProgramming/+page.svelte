@@ -25,7 +25,6 @@
     let moveSteps = 100;
     let currentlyMoving = false;
     let removeSteps = false;
-    let storePictures = false;
     let currentPosition: number | undefined;
     let currentTime: Date | undefined;
     let movementPlan = new DeviceMovement();
@@ -98,17 +97,43 @@
             while (currentPosition != stepCountAfterMove) await Task.delay(100);
             await Task.delay(1000);
         }
-        const pictureClient = new DeviceClient();
-        if (storePictures) await pictureClient.killCamera(selectedDeviceData?.ip);
         currentlyMoving = false;
+    }
+    async function takePhotoTour() {
+        if (selectedDeviceData?.ip == undefined) return;
+        let positionsToReach = movementPlan.movementPlan.stepPoints.map((sp) =>
+            sp[stepsToReach](movementPlan.movementPlan.stepPoints)
+        );
+        const connection = new DeviceStreaming().buildVideoConnection(
+            selectedDeviceData.ip,
+            1,
+            defaultFocus / 100,
+            true,
+            positionsToReach
+        );
+        await hubconnection?.stop();
+        hubconnection = connection.connection;
+        let firstImageReceived = false;
+        connection.start(async (step, data, date) => {
+            const image = document.getElementById(videoCanvasId) as HTMLImageElement;
+            currentPosition = step;
+            currentTime = date;
+            firstImageReceived = true;
+            image.src = data;
+        });
+        previewEnabled = true;
+        while (!firstImageReceived) await Task.delay(100);
+        await moveToAll();
+        const pictureClient = new DeviceClient();
+        await pictureClient.killCamera(selectedDeviceData?.ip);
     }
     async function showPreview() {
         if (selectedDeviceData?.ip == undefined) return;
         const connection = new DeviceStreaming().buildVideoConnection(
             selectedDeviceData.ip,
-            storePictures ? 1 : dev ? 8 : 4,
+            dev ? 8 : 4,
             defaultFocus / 100,
-            storePictures
+            false
         );
         await hubconnection?.stop();
         hubconnection = connection.connection;
@@ -131,8 +156,6 @@
         </div>
         {#if previewEnabled}
             <button on:click={async () => await stopPreview()} class="btn btn-danger col-md-8">Stop Preview</button>
-            <Checkbox disabledSelector={() => previewEnabled} class="col-md-4" label="Store Pictures" bind:value={storePictures}
-            ></Checkbox>
             <NumberInput bind:value={moveSteps} label="Move Steps"></NumberInput>
             <button disabled={currentlyMoving} on:click={async () => await move(moveSteps)} class="btn btn-primary col-md-3"
                 >Move</button>
@@ -141,8 +164,9 @@
             <button on:click={async () => await toggleMotorEngage(true)} class="btn btn-primary col-md-3">Engage Motor</button>
             <button class="btn btn-dark col-md-3" on:click={async () => await zeroPosition()}>Zero Position</button>
         {:else}
-            <button on:click={async () => await showPreview()} class="btn btn-primary col-md-8">Start Preview</button>
-            <Checkbox class="col-md-4" label="Store Pictures" bind:value={storePictures}></Checkbox>
+            <button on:click={async () => await showPreview()} class="btn btn-primary col-md-4">Start Preview</button>
+            <div class="col-md-4"></div>
+            <button on:click={async () => await takePhotoTour()} class="btn btn-success col-md-4">Store Photo Tour</button>
         {/if}
         <div style="height: 200px; overflow-y:scroll" class="col-md-12 row p-0">
             {#if movementPlan?.movementPlan?.stepPoints != undefined && movementPlan?.movementPlan?.stepPoints.length > 0}

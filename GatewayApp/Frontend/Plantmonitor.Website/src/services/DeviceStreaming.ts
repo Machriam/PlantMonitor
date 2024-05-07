@@ -10,7 +10,7 @@ export interface IReplayedPicture {
     Steps: number;
 }
 export class DeviceStreaming {
-    buildVideoConnection(device: string, sizeDivider = 4, focusInMeter = 10, storeData = false) {
+    buildVideoConnection(device: string, sizeDivider = 4, focusInMeter = 10, storeData = false, positionsToStream: number[] = []) {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${url}/hub/video`, { withCredentials: false })
@@ -22,7 +22,7 @@ export class DeviceStreaming {
                 await connection.start();
                 connection.stream("StreamPictures", new StreamingMetaData({
                     distanceInM: focusInMeter,
-                    positionsToStream: [], quality: 100, resolutionDivider: sizeDivider, storeData: storeData
+                    positionsToStream: positionsToStream, quality: 100, resolutionDivider: sizeDivider, storeData: storeData
                 }).toJSON(), device).subscribe({
                     next: async (x) => {
                         const payload = x as Uint8Array;
