@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Shared.Features.ImageStreaming;
 using System.Collections.Concurrent;
 using System.Globalization;
 using System.Threading.Channels;
@@ -56,11 +57,11 @@ namespace Plantmonitor.Server.Features.DeviceControl
             Context.Abort();
         }
 
-        public async Task<ChannelReader<byte[]>> StreamPictures(float resolutionDivider, int quality, float distanceInM, string ip, bool storeData, CancellationToken token)
+        public async Task<ChannelReader<byte[]>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
         {
             var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
             _ipByConnectionId.TryAdd(Context.ConnectionId, ip);
-            var picturePath = storeData ? configuration.PicturePath(deviceId) : "";
+            var picturePath = data.StoreData ? configuration.PicturePath(deviceId) : "";
             var channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
             {
                 AllowSynchronousContinuations = false,
@@ -73,16 +74,14 @@ namespace Plantmonitor.Server.Features.DeviceControl
                 .AddMessagePackProtocol()
                 .Build();
             await connection.StartAsync(token);
-            _ = StreamData(resolutionDivider, quality, distanceInM, picturePath, storeData, channel, connection, token);
+            _ = StreamData(data, picturePath, channel, connection, token);
             return channel.Reader;
         }
 
-        private async Task StreamData(float resolutionDivider, int quality, float distanceInM, string picturePath, bool storeData,
-            Channel<byte[]> channel, HubConnection connection, CancellationToken token)
+        private async Task StreamData(StreamingMetaData data, string picturePath, Channel<byte[]> channel, HubConnection connection, CancellationToken token)
         {
             var sequenceId = DateTime.Now.ToString("yyyy-MM-dd HH-mm-s");
-            var stream = await connection.StreamAsChannelAsync<byte[]>("StreamStoredMjpeg", resolutionDivider, quality,
-                distanceInM, storeData, token);
+            var stream = await connection.StreamAsChannelAsync<byte[]>("StreamStoredMjpeg", data, token);
             var path = Path.Combine(picturePath, sequenceId);
             if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
             while (await stream.WaitToReadAsync(token))

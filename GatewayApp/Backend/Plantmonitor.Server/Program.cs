@@ -1,11 +1,11 @@
-﻿using MessagePack.Resolvers;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Server.Features.RestApiFilter;
+using Plantmonitor.Shared.Features.ImageStreaming;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,7 +35,10 @@ builder.Services.AddDbContext<DataContext>(options =>
     });
 });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR().AddMessagePackProtocol();
@@ -48,6 +51,8 @@ if (builder.Environment.IsDevelopment())
 }
 builder.Services.AddOpenApiDocument(options =>
 {
+    options.DocumentProcessors.Add(new AddAdditionalTypeProcessor<StreamingMetaData>());
+
     options.PostProcess = document =>
     {
         document.Info = new NSwag.OpenApiInfo()

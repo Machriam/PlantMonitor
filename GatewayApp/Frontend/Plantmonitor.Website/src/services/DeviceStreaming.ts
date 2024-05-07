@@ -2,6 +2,7 @@ import { dev } from "$app/environment";
 import * as signalR from "@microsoft/signalr";
 import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 import { Constants } from "~/Constants";
+import { StreamingMetaData } from "./GatewayAppApi";
 
 export interface IReplayedPicture {
     PictureDate: Date;
@@ -19,7 +20,10 @@ export class DeviceStreaming {
             connection: connection,
             start: async (callback: (step: number, image: string, date: Date) => Promise<void>) => {
                 await connection.start();
-                connection.stream("StreamPictures", sizeDivider, 100, focusInMeter, device, storeData).subscribe({
+                connection.stream("StreamPictures", new StreamingMetaData({
+                    distanceInM: focusInMeter,
+                    positionsToStream: [], quality: 100, resolutionDivider: sizeDivider, storeData: storeData
+                }).toJSON(), device).subscribe({
                     next: async (x) => {
                         const payload = x as Uint8Array;
                         const blob = new Blob([payload.subarray(12)], { type: "image/jpeg" });
