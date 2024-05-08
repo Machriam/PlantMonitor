@@ -23,6 +23,9 @@ rpicam-raw -n -t 5000 --segment 1 -o test_%04d.raw --mode 4608:2592:10:P --brigh
 - https://media.digikey.com/pdf/Data%20Sheets/GroupGets%20PDFs/PURETHERMAL-3_Rev2_Oct2022.pdf
 - https://github.com/rob-coco/leptonic/tree/bookworm-update
 - https://github.com/groupgets/LeptonModule/wiki
+- https://learn.sparkfun.com/tutorials/flir-lepton-hookup-guide/all --> Not working (SPI of board faulty?)
+- https://github.com/groupgets/purethermal1-uvc-capture Showing images with Guvcview working on bookworm --> https://github.com/jaswdr/guvcview
+- https://github.com/groupgets/purethermal1-firmware Firmware can be modified to change the behaviour of the camera
 
 ### Example Conversion
 - [Forum Link](https://forums.raspberrypi.com/viewtopic.php?t=345908)
