@@ -52,3 +52,7 @@ cd ../Dockerfiles || exit
 sudo docker-compose down
 sudo docker-compose build --no-cache
 sudo docker-compose up --detach
+
+### Optional QTCreator Setup
+# Enables using sudo over XRDP
+xhost si:localuser:root
