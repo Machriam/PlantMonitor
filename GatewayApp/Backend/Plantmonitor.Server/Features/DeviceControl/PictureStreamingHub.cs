@@ -80,9 +80,9 @@ namespace Plantmonitor.Server.Features.DeviceControl
 
         private async Task StreamData(StreamingMetaData data, string picturePath, Channel<byte[]> channel, HubConnection connection, CancellationToken token)
         {
-            var fileEnding = data.Type.Attribute<CameraTypeInfo>().FileEnding;
+            var cameraInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
             var sequenceId = DateTime.Now.ToString(PictureDateFormat);
-            var stream = await connection.StreamAsChannelAsync<byte[]>(data.Type.Attribute<CameraTypeInfo>().SignalRMethod, data, token);
+            var stream = await connection.StreamAsChannelAsync<byte[]>(cameraInfo.SignalRMethod, data, token);
             var path = Path.Combine(picturePath, sequenceId);
             if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
             while (await stream.WaitToReadAsync(token))
@@ -93,7 +93,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
                     {
                         var steps = BitConverter.ToInt32(image.AsSpan()[0..4]);
                         var date = new DateTime(BitConverter.ToInt64(image.AsSpan()[4..12]));
-                        if (image.Length > 12) File.WriteAllBytes(Path.Combine(path, $"{date.ToUniversalTime().ToString(PictureDateFormat)}_{steps}{fileEnding}"), image[12..]);
+                        if (image.Length > 12) File.WriteAllBytes(Path.Combine(path, $"{date.ToUniversalTime().ToString(PictureDateFormat)}_{steps}{cameraInfo.FileEnding}"), image[12..]);
                     }
                     var result = await channel.Writer.WriteAsync(image, token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);

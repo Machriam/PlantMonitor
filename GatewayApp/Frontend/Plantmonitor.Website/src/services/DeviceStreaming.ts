@@ -14,10 +14,9 @@ export class DeviceStreamingData {
     focusInMeter = 10;
     storeData = false;
     positionsToStream: number[] = [];
-    type: CameraType = CameraType.Vis;
 }
 export class DeviceStreaming {
-    buildVideoConnection(device: string, data = new DeviceStreamingData()) {
+    buildVideoConnection(device: string, type: CameraType, data = new DeviceStreamingData()) {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${url}/hub/video`, { withCredentials: false })
@@ -29,7 +28,7 @@ export class DeviceStreaming {
                 await connection.start();
                 connection.stream("StreamPictures", new StreamingMetaData({
                     distanceInM: data.focusInMeter,
-                    positionsToStream: data.positionsToStream, quality: 100, resolutionDivider: data.sizeDivider, storeData: data.storeData, type: data.type
+                    positionsToStream: data.positionsToStream, quality: 100, resolutionDivider: data.sizeDivider, storeData: data.storeData, type: CameraType[type]
                 }).toJSON(), device).subscribe({
                     next: async (x) => {
                         const payload = x as Uint8Array;

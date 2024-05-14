@@ -19,4 +19,8 @@ public enum CameraType
 }
 
 [KnownType(typeof(StreamingMetaData))]
-public record struct StreamingMetaData(float ResolutionDivider, int Quality, float DistanceInM, bool StoreData, int[] PositionsToStream, CameraType Type);
+public record struct StreamingMetaData(float ResolutionDivider, int Quality, float DistanceInM, bool StoreData, int[] PositionsToStream, string Type)
+{
+    private static readonly Dictionary<string, CameraType> s_cameraTypeByText = Enum.GetValues<CameraType>().Select(v => (Name: Enum.GetName(v) ?? "", Value: v)).ToDictionary(x => x.Name, x => x.Value);
+    public CameraType GetCameraType() => s_cameraTypeByText[Type];
+}

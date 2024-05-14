@@ -90,7 +90,7 @@
         if (device == undefined) return;
         let data = new DeviceStreamingData();
         data.type = CameraType.IR;
-        const connection = new DeviceStreamingApi().buildVideoConnection(device, data);
+        const connection = new DeviceStreamingApi().buildVideoConnection(device, CameraType.IR, data);
         await hubConnection?.stop();
         hubConnection = connection.connection;
         const cvInterop = new CvInterop();
@@ -103,7 +103,7 @@
     }
     async function showTestVideo(device: string | undefined) {
         if (device == undefined) return;
-        const connection = new DeviceStreamingApi().buildVideoConnection(device);
+        const connection = new DeviceStreamingApi().buildVideoConnection(device, CameraType.Vis);
         await hubConnection?.stop();
         hubConnection = connection.connection;
         const cvInterop = new CvInterop();

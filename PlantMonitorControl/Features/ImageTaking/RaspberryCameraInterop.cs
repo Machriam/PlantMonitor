@@ -1,7 +1,6 @@
 ﻿using Iot.Device.Camera.Settings;
 using Iot.Device.Common;
 using System.Diagnostics;
-using System.IO.Pipelines;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -58,12 +57,9 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
 
     public async Task KillImageTaking()
     {
-        var killVideo = new ProcessStartInfo("pkill", $"-USR2 {_videoProcessSettings.Filename}");
-        new Process() { StartInfo = killVideo }.Start();
-        var killImaging = new ProcessStartInfo("pkill", $"-USR2 {_imageProcessSettings.Filename}");
-        new Process() { StartInfo = killImaging }.Start();
+        await new Process().RunProcess("pkill", $"-9 -f {_videoProcessSettings.Filename}");
+        await new Process().RunProcess("pkill", $"-9 -f {_imageProcessSettings.Filename}");
         s_cameraIsRunning = false;
-        await Task.Delay(500);
     }
 
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
@@ -77,11 +73,9 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         if (Path.Exists(s_tempImagePath)) Directory.Delete(s_tempImagePath, true);
         Directory.CreateDirectory(s_tempImagePath);
         var filePath = Path.Combine(s_tempImagePath, "%06d.jpg");
-        var startInfo = new ProcessStartInfo(
-            "rpicam-vid", $"-t 0 -s -v 0 --width {width} --height {height} --mode 4608:2592 " +
+        _ = new Process().RunProcess(
+            "rpicam-vid", $"-t 0 -v 0 --width {width} --height {height} --mode 4608:2592 " +
             $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath}");
-        logger.LogInformation("Program: {program}, arguments: {arguments}", startInfo.FileName, startInfo.ArgumentList.AsJson());
-        new Process() { StartInfo = startInfo }.Start();
         s_cameraIsRunning = true;
         return s_tempImagePath;
     }
@@ -104,7 +98,6 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
                 .WithPictureOptions(100, "png")
                 .WithResolution(640, 480);
         var args = builder.GetArguments();
-        args = [.. args, "-s"];
         using var process = new ProcessRunner(_imageProcessSettings);
 
         var ms = new MemoryStream();

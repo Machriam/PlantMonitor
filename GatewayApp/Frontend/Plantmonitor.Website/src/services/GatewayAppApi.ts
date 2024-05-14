@@ -1175,7 +1175,7 @@ export class StreamingMetaData implements IStreamingMetaData {
     distanceInM!: number;
     storeData!: boolean;
     positionsToStream!: number[];
-    type!: CameraType;
+    type!: string;
 
     constructor(data?: IStreamingMetaData) {
         if (data) {
@@ -1237,7 +1237,7 @@ export interface IStreamingMetaData {
     distanceInM: number;
     storeData: boolean;
     positionsToStream: number[];
-    type: CameraType;
+    type: string;
 }
 
 export interface FileResponse {
