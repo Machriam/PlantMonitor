@@ -2,14 +2,23 @@
 
 public interface IDeviceApiFactory
 {
-    IImageTakingClient ImageTakingClient(string ip);
+    IVisImageTakingClient VisImageTakingClient(string ip);
+
+    IIrImageTakingClient IrImageTakingClient(string ip);
+
     IMotorMovementClient MovementClient(string ip);
 }
+
 public class DeviceApiFactory : IDeviceApiFactory
 {
-    public IImageTakingClient ImageTakingClient(string ip)
+    public IIrImageTakingClient IrImageTakingClient(string ip)
     {
-        return new ImageTakingClient($"https://{ip}");
+        return new IrImageTakingClient($"https://{ip}");
+    }
+
+    public IVisImageTakingClient VisImageTakingClient(string ip)
+    {
+        return new VisImageTakingClient($"https://{ip}");
     }
 
     public IMotorMovementClient MovementClient(string ip)

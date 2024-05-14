@@ -16,3 +16,11 @@ sudo systemctl daemon-reload
 sudo systemctl enable PlantMonitorStart.service
 sudo systemctl start PlantMonitorStart.service
 echo -e "\nover_voltage=4\n" | sudo tee -a /boot/config.txt
+sudo dphys-swapfile swapoff
+sudo sed -i 's/CONF_SWAPSIZE=100/CONF_SWAPSIZE=1024/g' /etc/dphys-swapfile
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
+
+sudo apt-get install -y libusb-1.0-0-dev
+sudo mkdir /srv/leptonPrograms
+sudo cp ./Install/Lepton/* /srv/leptonPrograms/

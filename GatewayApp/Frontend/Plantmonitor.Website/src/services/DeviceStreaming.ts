@@ -2,15 +2,22 @@ import { dev } from "$app/environment";
 import * as signalR from "@microsoft/signalr";
 import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 import { Constants } from "~/Constants";
-import { StreamingMetaData } from "./GatewayAppApi";
+import { CameraType, StreamingMetaData } from "./GatewayAppApi";
 
 export interface IReplayedPicture {
     PictureDate: Date;
     Picture: Uint8Array;
     Steps: number;
 }
+export class DeviceStreamingData {
+    sizeDivider = 4;
+    focusInMeter = 10;
+    storeData = false;
+    positionsToStream: number[] = [];
+    type: CameraType = CameraType.Vis;
+}
 export class DeviceStreaming {
-    buildVideoConnection(device: string, sizeDivider = 4, focusInMeter = 10, storeData = false, positionsToStream: number[] = []) {
+    buildVideoConnection(device: string, data = new DeviceStreamingData()) {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${url}/hub/video`, { withCredentials: false })
@@ -21,8 +28,8 @@ export class DeviceStreaming {
             start: async (callback: (step: number, image: string, date: Date) => Promise<void>) => {
                 await connection.start();
                 connection.stream("StreamPictures", new StreamingMetaData({
-                    distanceInM: focusInMeter,
-                    positionsToStream: positionsToStream, quality: 100, resolutionDivider: sizeDivider, storeData: storeData
+                    distanceInM: data.focusInMeter,
+                    positionsToStream: data.positionsToStream, quality: 100, resolutionDivider: data.sizeDivider, storeData: data.storeData, type: data.type
                 }).toJSON(), device).subscribe({
                     next: async (x) => {
                         const payload = x as Uint8Array;

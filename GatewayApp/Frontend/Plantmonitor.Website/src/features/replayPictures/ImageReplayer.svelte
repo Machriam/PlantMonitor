@@ -5,7 +5,7 @@
         imageUrl: string;
     }
     import {onDestroy, onMount} from "svelte";
-    import {PictureClient, PictureSeriesData} from "~/services/GatewayAppApi";
+    import {CameraType, PictureClient, PictureSeriesData} from "~/services/GatewayAppApi";
     import {selectedDevice} from "../store";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import type {HubConnection} from "@microsoft/signalr";
@@ -26,13 +26,13 @@
         const pictureClient = new PictureClient();
         if ($selectedDevice == undefined || $selectedDevice?.health.deviceId.isEmpty()) return;
         pictureSeries = await pictureClient.getPictureSeries($selectedDevice?.health.deviceId);
-        pictureSeries = pictureSeries.sort((a, b) => a.fileName.localeCompare(b.fileName)).toReversed();
+        pictureSeries = pictureSeries.sort((a, b) => a.folderName.localeCompare(b.folderName)).toReversed();
     }
     function onSeriesSelected(series: PictureSeriesData) {
         if ($selectedDevice == undefined || $selectedDevice?.health.deviceId.isEmpty()) return;
         selectedSeries = series;
         const streamer = new DeviceStreaming();
-        const connection = streamer.replayPictures($selectedDevice.health.deviceId, series.fileName);
+        const connection = streamer.replayPictures($selectedDevice.health.deviceId, series.folderName);
         hubConnection?.stop();
         hubConnection = connection.connection;
         images = [];
@@ -66,7 +66,8 @@
                 style="border-width: 1px;border-style: solid;border-color:grey"
                 class="col-md-12 row alert border-0 m-0 p-0 {selectedSeries == series ? 'alert-info' : ''}">
                 <span class="col-md-2">{series.count}</span>
-                <span class="col-md-10">{series.fileName}</span>
+                <span class="col-md-1">{series.type == CameraType.IR ? "IR" : "Vis"}</span>
+                <span class="col-md-9">{series.folderName}</span>
             </button>
         {/each}
     </div>
