@@ -28,10 +28,12 @@ builder.Services.AddTransient<IFileStreamingReader, FileStreamingReader>();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopCameraInterop>(ICameraInterop.VisCamera);
+    builder.Services.AddKeyedTransient<ICameraInterop, DevelopCameraInterop>(ICameraInterop.IrCamera);
 }
 else
 {
     builder.Services.AddKeyedTransient<ICameraInterop, RaspberryCameraInterop>(ICameraInterop.VisCamera);
+    builder.Services.AddKeyedTransient<ICameraInterop, FlirLeptonCameraInterop>(ICameraInterop.IrCamera);
 }
 builder.Services.AddCors(options =>
 {
