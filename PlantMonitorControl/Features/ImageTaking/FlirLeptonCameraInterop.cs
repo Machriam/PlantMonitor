@@ -25,17 +25,7 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
     public async Task<string> CameraInfo()
     {
         await KillImageTaking();
-        var captureProcess = new ProcessStartInfo(configuration.IRPrograms.DeviceHealth, s_tempImagePath)
-        {
-            RedirectStandardOutput = true
-        };
-        var process = new Process() { StartInfo = captureProcess };
-        StringBuilder result = new();
-        process.OutputDataReceived += (sender, args) => result.AppendLine(args.Data);
-        process.BeginOutputReadLine();
-        process.Start();
-        await process.WaitForExitAsync();
-        return result.ToString();
+        return await new Process().GetProcessStdout(configuration.IRPrograms.DeviceHealth, s_tempImagePath);
     }
 
     public bool CameraIsRunning()
@@ -47,12 +37,8 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
     {
         await KillImageTaking();
         InitializeFolder();
-        var captureProcess = new ProcessStartInfo(configuration.IRPrograms.CaptureImage, s_tempImagePath);
-        new Process() { StartInfo = captureProcess }.Start();
-        while (Directory.GetFiles(s_tempImagePath).Length == 0)
-        {
-            await Task.Delay(200);
-        }
+        await new Process().RunProcess(configuration.IRPrograms.CaptureImage, s_tempImagePath);
+        await Task.Delay(100);
         var files = Directory.GetFiles(s_tempImagePath);
         var bytes = File.ReadAllText(files[0])
             .Split(" ")
@@ -68,20 +54,17 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
         Directory.CreateDirectory(s_tempImagePath);
     }
 
-    public Task KillImageTaking()
+    public async Task KillImageTaking()
     {
-        var killVideo = new ProcessStartInfo("pkill", $"-USR2 {Path.GetFileName(configuration.IRPrograms.StreamData)}");
-        new Process() { StartInfo = killVideo }.Start();
+        await new Process().RunProcess("pkill", $"-USR2 {Path.GetFileName(configuration.IRPrograms.StreamData)}");
         s_cameraIsRunning = false;
-        return Task.CompletedTask;
     }
 
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
     {
         await KillImageTaking();
         InitializeFolder();
-        var captureProcess = new ProcessStartInfo(configuration.IRPrograms.StreamData, s_tempImagePath);
-        new Process() { StartInfo = captureProcess }.Start();
+        _ = new Process().RunProcess(configuration.IRPrograms.StreamData, s_tempImagePath);
         s_cameraIsRunning = true;
         return s_tempImagePath;
     }

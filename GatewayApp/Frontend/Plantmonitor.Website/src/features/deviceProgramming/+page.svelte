@@ -104,12 +104,11 @@
         let positionsToReach = movementPlan.movementPlan.stepPoints.map((sp) =>
             sp[stepsToReach](movementPlan.movementPlan.stepPoints)
         );
-        const connection = new DeviceStreaming().buildVideoConnection(selectedDeviceData.ip, {
+        const connection = new DeviceStreaming().buildVideoConnection(selectedDeviceData.ip, CameraType.Vis, {
             focusInMeter: defaultFocus / 100,
             storeData: true,
             positionsToStream: positionsToReach,
-            sizeDivider: 1,
-            type: CameraType.Vis
+            sizeDivider: 1
         });
         await hubconnection?.stop();
         hubconnection = connection.connection;
@@ -129,12 +128,11 @@
     }
     async function showPreview() {
         if (selectedDeviceData?.ip == undefined) return;
-        const connection = new DeviceStreaming().buildVideoConnection(selectedDeviceData.ip, {
+        const connection = new DeviceStreaming().buildVideoConnection(selectedDeviceData.ip, CameraType.Vis, {
             focusInMeter: defaultFocus / 100,
             storeData: false,
             positionsToStream: [],
-            sizeDivider: dev ? 8 : 4,
-            type: CameraType.Vis
+            sizeDivider: dev ? 8 : 4
         });
 
         await hubconnection?.stop();
