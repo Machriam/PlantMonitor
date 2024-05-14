@@ -107,11 +107,11 @@ export class MovementProgrammingClient extends GatewayAppApiBase implements IMov
 
 export interface IDeviceClient {
 
-    previewImage(ip?: string | undefined): Promise<FileResponse>;
+    previewImage(ip?: string | undefined, type?: CameraType | undefined): Promise<FileResponse>;
 
-    killCamera(ip?: string | undefined): Promise<void>;
+    killCamera(ip?: string | undefined, type?: CameraType | undefined): Promise<void>;
 
-    cameraInfo(ip?: string | undefined): Promise<string>;
+    cameraInfo(ip?: string | undefined, type?: CameraType | undefined): Promise<string>;
 
     currentPosition(ip?: string | undefined): Promise<number>;
 
@@ -133,12 +133,16 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    previewImage(ip?: string | undefined): Promise<FileResponse> {
+    previewImage(ip?: string | undefined, type?: CameraType | undefined): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Device/previewimage?";
         if (ip === null)
             throw new Error("The parameter 'ip' cannot be null.");
         else if (ip !== undefined)
             url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        if (type === null)
+            throw new Error("The parameter 'type' cannot be null.");
+        else if (type !== undefined)
+            url_ += "type=" + encodeURIComponent("" + type) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -177,12 +181,16 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    killCamera(ip?: string | undefined): Promise<void> {
+    killCamera(ip?: string | undefined, type?: CameraType | undefined): Promise<void> {
         let url_ = this.baseUrl + "/api/Device/killcamera?";
         if (ip === null)
             throw new Error("The parameter 'ip' cannot be null.");
         else if (ip !== undefined)
             url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        if (type === null)
+            throw new Error("The parameter 'type' cannot be null.");
+        else if (type !== undefined)
+            url_ += "type=" + encodeURIComponent("" + type) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -213,12 +221,16 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
         return Promise.resolve<void>(null as any);
     }
 
-    cameraInfo(ip?: string | undefined): Promise<string> {
+    cameraInfo(ip?: string | undefined, type?: CameraType | undefined): Promise<string> {
         let url_ = this.baseUrl + "/api/Device/camerainfo?";
         if (ip === null)
             throw new Error("The parameter 'ip' cannot be null.");
         else if (ip !== undefined)
             url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        if (type === null)
+            throw new Error("The parameter 'type' cannot be null.");
+        else if (type !== undefined)
+            url_ += "type=" + encodeURIComponent("" + type) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -888,9 +900,15 @@ export interface IMovementPoint {
     comment: string;
 }
 
+export enum CameraType {
+    Vis = 0,
+    IR = 1,
+}
+
 export class PictureSeriesData implements IPictureSeriesData {
     count!: number;
-    fileName!: string;
+    folderName!: string;
+    type!: CameraType | undefined;
 
     constructor(data?: IPictureSeriesData) {
         if (data) {
@@ -904,7 +922,8 @@ export class PictureSeriesData implements IPictureSeriesData {
     init(_data?: any) {
         if (_data) {
             this.count = _data["Count"];
-            this.fileName = _data["FileName"];
+            this.folderName = _data["FolderName"];
+            this.type = _data["Type"];
         }
     }
 
@@ -918,7 +937,8 @@ export class PictureSeriesData implements IPictureSeriesData {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["Count"] = this.count;
-        data["FileName"] = this.fileName;
+        data["FolderName"] = this.folderName;
+        data["Type"] = this.type;
         return data;
     }
 
@@ -932,7 +952,8 @@ export class PictureSeriesData implements IPictureSeriesData {
 
 export interface IPictureSeriesData {
     count: number;
-    fileName: string;
+    folderName: string;
+    type: CameraType | undefined;
 }
 
 export class CertificateData implements ICertificateData {
@@ -1154,6 +1175,7 @@ export class StreamingMetaData implements IStreamingMetaData {
     distanceInM!: number;
     storeData!: boolean;
     positionsToStream!: number[];
+    type!: CameraType;
 
     constructor(data?: IStreamingMetaData) {
         if (data) {
@@ -1175,6 +1197,7 @@ export class StreamingMetaData implements IStreamingMetaData {
                 for (let item of _data["PositionsToStream"])
                     this.positionsToStream!.push(item);
             }
+            this.type = _data["Type"];
         }
     }
 
@@ -1196,6 +1219,7 @@ export class StreamingMetaData implements IStreamingMetaData {
             for (let item of this.positionsToStream)
                 data["PositionsToStream"].push(item);
         }
+        data["Type"] = this.type;
         return data;
     }
 
@@ -1213,6 +1237,7 @@ export interface IStreamingMetaData {
     distanceInM: number;
     storeData: boolean;
     positionsToStream: number[];
+    type: CameraType;
 }
 
 export interface FileResponse {

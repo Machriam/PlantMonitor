@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.DeviceControl;
 
@@ -7,9 +8,9 @@ namespace Plantmonitor.Server.Features.DeviceControl;
 public class DeviceController(IDeviceApiFactory apiFactory)
 {
     [HttpGet("previewimage")]
-    public async Task<IResult> PreviewImage(string ip)
+    public async Task<IResult> PreviewImage(string ip, CameraType type)
     {
-        var result = await apiFactory.ImageTakingClient(ip).PreviewimageAsync();
+        var result = type == CameraType.Vis ? await apiFactory.VisImageTakingClient(ip).PreviewimageAsync() : await apiFactory.IrImageTakingClient(ip).PreviewimageAsync();
         var memoryStream = new MemoryStream();
         await result.Stream.CopyToAsync(memoryStream);
         memoryStream.Position = 0;
@@ -17,15 +18,16 @@ public class DeviceController(IDeviceApiFactory apiFactory)
     }
 
     [HttpPost("killcamera")]
-    public async Task KillCamera(string ip)
+    public async Task KillCamera(string ip, CameraType type)
     {
-        await apiFactory.ImageTakingClient(ip).KillcameraAsync();
+        if (type == CameraType.Vis) await apiFactory.VisImageTakingClient(ip).KillcameraAsync();
+        else await apiFactory.IrImageTakingClient(ip).KillcameraAsync();
     }
 
     [HttpGet("camerainfo")]
-    public async Task<string> CameraInfo(string ip)
+    public async Task<string> CameraInfo(string ip, CameraType type)
     {
-        return await apiFactory.ImageTakingClient(ip).CamerainfoAsync();
+        return type == CameraType.Vis ? await apiFactory.VisImageTakingClient(ip).CamerainfoAsync() : await apiFactory.IrImageTakingClient(ip).CamerainfoAsync();
     }
 
     [HttpGet("currentposition")]

@@ -17,7 +17,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         return channel.Reader;
     }
 
-    public async Task<ChannelReader<byte[]>> StreamStoredMjpeg(StreamingMetaData data, CancellationToken token)
+    public async Task<ChannelReader<byte[]>> StreamJpg(StreamingMetaData data, CancellationToken token)
     {
         motorPosition.ResetHistory();
         var channel = CreateChannel(data);

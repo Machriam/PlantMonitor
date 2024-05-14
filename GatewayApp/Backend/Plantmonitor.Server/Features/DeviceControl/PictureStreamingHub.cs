@@ -15,15 +15,36 @@ namespace Plantmonitor.Server.Features.DeviceControl
         IDeviceConnectionEventBus deviceConnections) : Hub
     {
         private const string PictureDateFormat = "yyyy-MM-dd HH-mm-ss-fff";
-        private static readonly ConcurrentDictionary<string, string> _ipByConnectionId = new();
+        private static readonly ConcurrentDictionary<string, string> s_ipByConnectionId = new();
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            if (_ipByConnectionId.TryGetValue(Context.ConnectionId, out var ip))
+            if (s_ipByConnectionId.TryGetValue(Context.ConnectionId, out var ip))
             {
-                await factory.ImageTakingClient(ip).KillcameraAsync();
+                await factory.VisImageTakingClient(ip).KillcameraAsync();
             };
             await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task<ChannelReader<byte[]>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
+        {
+            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
+            s_ipByConnectionId.TryAdd(Context.ConnectionId, ip);
+            var picturePath = data.StoreData ? configuration.PicturePath(deviceId) : "";
+            var channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
+            {
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.DropWrite,
+                SingleReader = true,
+                SingleWriter = true,
+            });
+            var connection = new HubConnectionBuilder()
+                .WithUrl($"https://{ip}/hub/video")
+                .AddMessagePackProtocol()
+                .Build();
+            await connection.StartAsync(token);
+            _ = StreamData(data, picturePath, channel, connection, token);
+            return channel.Reader;
         }
 
         public ChannelReader<StoredPictureData> StreamPictureSeries(string deviceId, string sequenceId)
@@ -57,31 +78,11 @@ namespace Plantmonitor.Server.Features.DeviceControl
             Context.Abort();
         }
 
-        public async Task<ChannelReader<byte[]>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
-        {
-            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
-            _ipByConnectionId.TryAdd(Context.ConnectionId, ip);
-            var picturePath = data.StoreData ? configuration.PicturePath(deviceId) : "";
-            var channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
-            {
-                AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.DropWrite,
-                SingleReader = true,
-                SingleWriter = true,
-            });
-            var connection = new HubConnectionBuilder()
-                .WithUrl($"https://{ip}/hub/video")
-                .AddMessagePackProtocol()
-                .Build();
-            await connection.StartAsync(token);
-            _ = StreamData(data, picturePath, channel, connection, token);
-            return channel.Reader;
-        }
-
         private async Task StreamData(StreamingMetaData data, string picturePath, Channel<byte[]> channel, HubConnection connection, CancellationToken token)
         {
-            var sequenceId = DateTime.Now.ToString("yyyy-MM-dd HH-mm-s");
-            var stream = await connection.StreamAsChannelAsync<byte[]>("StreamStoredMjpeg", data, token);
+            var fileEnding = data.Type.Attribute<CameraTypeInfo>().FileEnding;
+            var sequenceId = DateTime.Now.ToString(PictureDateFormat);
+            var stream = await connection.StreamAsChannelAsync<byte[]>(data.Type.Attribute<CameraTypeInfo>().SignalRMethod, data, token);
             var path = Path.Combine(picturePath, sequenceId);
             if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
             while (await stream.WaitToReadAsync(token))
@@ -92,7 +93,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
                     {
                         var steps = BitConverter.ToInt32(image.AsSpan()[0..4]);
                         var date = new DateTime(BitConverter.ToInt64(image.AsSpan()[4..12]));
-                        if (image.Length > 12) File.WriteAllBytes(Path.Combine(path, $"{date.ToUniversalTime().ToString(PictureDateFormat)}_{steps}.jpg"), image[12..]);
+                        if (image.Length > 12) File.WriteAllBytes(Path.Combine(path, $"{date.ToUniversalTime().ToString(PictureDateFormat)}_{steps}{fileEnding}"), image[12..]);
                     }
                     var result = await channel.Writer.WriteAsync(image, token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);
