@@ -4,6 +4,7 @@
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import {calculateMoveTo, stepsToReach} from "~/services/movementPointExtensions";
     import {
+        CameraType,
         DeviceClient,
         DeviceHealthState,
         DeviceMovement,
@@ -14,7 +15,6 @@
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import type {HubConnection} from "@microsoft/signalr";
-    import Checkbox from "../reuseableComponents/Checkbox.svelte";
     import {Task} from "~/types/task";
     import {dev} from "$app/environment";
     import {selectedDevice} from "../store";
@@ -104,13 +104,13 @@
         let positionsToReach = movementPlan.movementPlan.stepPoints.map((sp) =>
             sp[stepsToReach](movementPlan.movementPlan.stepPoints)
         );
-        const connection = new DeviceStreaming().buildVideoConnection(
-            selectedDeviceData.ip,
-            1,
-            defaultFocus / 100,
-            true,
-            positionsToReach
-        );
+        const connection = new DeviceStreaming().buildVideoConnection(selectedDeviceData.ip, {
+            focusInMeter: defaultFocus / 100,
+            storeData: true,
+            positionsToStream: positionsToReach,
+            sizeDivider: 1,
+            type: CameraType.Vis
+        });
         await hubconnection?.stop();
         hubconnection = connection.connection;
         let firstImageReceived = false;
@@ -125,16 +125,18 @@
         while (!firstImageReceived) await Task.delay(100);
         await moveToAll();
         const pictureClient = new DeviceClient();
-        await pictureClient.killCamera(selectedDeviceData?.ip);
+        await pictureClient.killCamera(selectedDeviceData?.ip, CameraType.Vis);
     }
     async function showPreview() {
         if (selectedDeviceData?.ip == undefined) return;
-        const connection = new DeviceStreaming().buildVideoConnection(
-            selectedDeviceData.ip,
-            dev ? 8 : 4,
-            defaultFocus / 100,
-            false
-        );
+        const connection = new DeviceStreaming().buildVideoConnection(selectedDeviceData.ip, {
+            focusInMeter: defaultFocus / 100,
+            storeData: false,
+            positionsToStream: [],
+            sizeDivider: dev ? 8 : 4,
+            type: CameraType.Vis
+        });
+
         await hubconnection?.stop();
         hubconnection = connection.connection;
         connection.start(async (step, data, date) => {

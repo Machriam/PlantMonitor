@@ -3,6 +3,7 @@
     import {onDestroy, onMount} from "svelte";
     import {
         AppConfigurationClient,
+        CameraType,
         DeviceClient,
         DeviceConfigurationClient,
         DeviceHealthState,
@@ -13,7 +14,7 @@
     import {CvInterop} from "./CvInterop";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
-    import {DeviceStreaming as DeviceStreamingApi} from "~/services/DeviceStreaming";
+    import {DeviceStreaming as DeviceStreamingApi, DeviceStreamingData} from "~/services/DeviceStreaming";
     import type {HubConnection} from "@microsoft/signalr";
 
     const videoCanvasId = "videoCanvasId";
@@ -71,13 +72,34 @@
     async function showPreviewImage(device: string | undefined) {
         if (device == undefined) return;
         const deviceClient = new DeviceClient();
-        await deviceClient.killCamera(device);
-        previewImage = await (await deviceClient.previewImage(device)).data.asBase64Url();
+        await deviceClient.killCamera(device, CameraType.Vis);
+        previewImage = await (await deviceClient.previewImage(device, CameraType.Vis)).data.asBase64Url();
+    }
+    async function showThermalImage(device: string | undefined) {
+        if (device == undefined) return;
+        const deviceClient = new DeviceClient();
+        await deviceClient.killCamera(device, CameraType.IR);
+        previewImage = await (await deviceClient.previewImage(device, CameraType.IR)).data.asBase64Url();
     }
     async function testMovement(device: string | undefined) {
         if (device == undefined) return;
         const deviceClient = new DeviceClient();
         await deviceClient.move(device, -1500, 1000, 10000, 300);
+    }
+    async function showThermalVideo(device: string | undefined) {
+        if (device == undefined) return;
+        let data = new DeviceStreamingData();
+        data.type = CameraType.IR;
+        const connection = new DeviceStreamingApi().buildVideoConnection(device, data);
+        await hubConnection?.stop();
+        hubConnection = connection.connection;
+        const cvInterop = new CvInterop();
+        const image = document.getElementById(videoCanvasId) as HTMLImageElement;
+        const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
+        connection.start(async (_, image) => {
+            frameCounter++;
+            await videoDisplayFunction(image);
+        });
     }
     async function showTestVideo(device: string | undefined) {
         if (device == undefined) return;
@@ -163,6 +185,12 @@
                                 </button>
                                 <button on:click={() => showTestVideo(device.ip)} class="btn btn-primary"> Preview Video </button>
                                 <button on:click={() => testMovement(device.ip)} class="btn btn-primary"> Test Movement </button>
+                                <button on:click={() => showThermalImage(device.ip)} class="btn btn-primary">
+                                    Preview IR Image
+                                </button>
+                                <button on:click={() => showThermalVideo(device.ip)} class="btn btn-primary">
+                                    Preview IR Video
+                                </button>
                             {/if}
                             <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
                         </td>
