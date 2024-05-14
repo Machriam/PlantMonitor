@@ -21,13 +21,6 @@ sudo sed -i 's/CONF_SWAPSIZE=100/CONF_SWAPSIZE=1024/g' /etc/dphys-swapfile
 sudo dphys-swapfile setup
 sudo dphys-swapfile swapon
 
-### Thermal Camera Libraries --> move libusv.so file to the following repo folder: https://github.com/groupgets/purethermal1-uvc-capture/tree/master/python
-### sudo python3 uvc-radiometry.py should work 
-cd ~
-git clone https://github.com/Machriam/ThermalLibuvc.git
-sudo apt-get install -y cmake libusb-1.0-0-dev
-cd ThermalLibuvc
-mkdir build
-cd build
-cmake ..
-make
+sudo apt-get install -y libusb-1.0-0-dev
+sudo mkdir /srv/leptonPrograms
+sudo cp ./Install/Lepton/* /srv/leptonPrograms/
