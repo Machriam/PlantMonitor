@@ -1,4 +1,11 @@
+
 export class CvInterop {
+    thermalDataToImage(source: Uint8Array, canvasId: string) {
+        const canvas = document.getElementById(canvasId) as HTMLElement;
+        const mat = cv.matFromArray(120, 160, cv.CV_8UC1, source,);
+        cv.imshow(canvas, mat);
+        mat.delete();
+    }
     extractImages(source: string, dest: HTMLCanvasElement) {
         const video = new cv.VideoCapture(source);
         const height = 480;

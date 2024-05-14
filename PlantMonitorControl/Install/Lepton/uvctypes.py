@@ -5,7 +5,7 @@ try:
   if platform.system() == 'Darwin':
     libuvc = cdll.LoadLibrary("libuvc.dylib")
   elif platform.system() == 'Linux':
-    libuvc = cdll.LoadLibrary("./libuvc.so")
+    libuvc = cdll.LoadLibrary("/srv/leptonPrograms/libuvc.so")
   else:
     libuvc = cdll.LoadLibrary("libuvc")
 except OSError:

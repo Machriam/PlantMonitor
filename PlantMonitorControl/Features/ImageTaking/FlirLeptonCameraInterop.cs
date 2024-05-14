@@ -40,9 +40,11 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
         await new Process().RunProcess(configuration.IRPrograms.CaptureImage, s_tempImagePath);
         await Task.Delay(100);
         var files = Directory.GetFiles(s_tempImagePath);
-        var bytes = File.ReadAllText(files[0])
+        var bytes = File.ReadAllText(files.FirstOrDefault() ?? "")
+            .Replace("\n", " ")
             .Split(" ")
-            .SelectMany(x => BitConverter.GetBytes(int.Parse(x)))
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .SelectMany(x => BitConverter.GetBytes(int.Parse(x.Trim())))
             .ToArray();
         if (bytes.Length > 0) s_cameraFound = true;
         return Results.File(bytes, "image/raw");
