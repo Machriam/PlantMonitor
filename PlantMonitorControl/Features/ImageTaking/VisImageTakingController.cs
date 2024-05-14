@@ -4,7 +4,7 @@ namespace PlantMonitorControl.Features.MotorMovement;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ImageTakingController([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop) : ControllerBase
+public class VisImageTakingController([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop) : ControllerBase
 {
     [HttpPost("previewimage")]
     public async Task<IResult> PreviewImage()

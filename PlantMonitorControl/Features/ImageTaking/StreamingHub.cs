@@ -4,27 +4,42 @@ using System.Threading.Channels;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
-public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop cameraInterop,
+public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop visCameraInterop,
+    [FromKeyedServices(ICameraInterop.IrCamera)] ICameraInterop irCameraInterop,
     IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition) : Hub
 {
+    public async Task<ChannelReader<byte[]>> StreamIrData(StreamingMetaData data, CancellationToken token)
+    {
+        motorPosition.ResetHistory();
+        var channel = CreateChannel(data);
+        var folder = await irCameraInterop.StreamPictureDataToFolder(data.ResolutionDivider, data.Quality, data.DistanceInM);
+        _ = ReadImagesFromFiles(channel, folder, data, irCameraInterop, token);
+        return channel.Reader;
+    }
+
     public async Task<ChannelReader<byte[]>> StreamStoredMjpeg(StreamingMetaData data, CancellationToken token)
     {
         motorPosition.ResetHistory();
-        var channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
+        var channel = CreateChannel(data);
+        var folder = await visCameraInterop.StreamPictureDataToFolder(data.ResolutionDivider, data.Quality, data.DistanceInM);
+        _ = ReadImagesFromFiles(channel, folder, data, visCameraInterop, token);
+        return channel.Reader;
+    }
+
+    private static Channel<byte[]> CreateChannel(StreamingMetaData data)
+    {
+        return Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
         {
             AllowSynchronousContinuations = false,
             FullMode = data.StoreData ? BoundedChannelFullMode.Wait : BoundedChannelFullMode.DropWrite,
             SingleReader = true,
             SingleWriter = true,
         });
-        var folder = await cameraInterop.StreamJpgToFolder(data.ResolutionDivider, data.Quality, data.DistanceInM);
-        _ = ReadImagesFromFiles(channel, folder, data, token);
-        return channel.Reader;
     }
 
-    private async Task ReadImagesFromFiles(Channel<byte[]> channel, string imagePath, StreamingMetaData data, CancellationToken token)
+    private async Task ReadImagesFromFiles(Channel<byte[]> channel, string imagePath, StreamingMetaData data, ICameraInterop camera, CancellationToken token)
     {
-        while (data.StoreData && cameraInterop.CameraIsRunning())
+        while (data.StoreData && camera.CameraIsRunning())
         {
             await Task.Delay(50, token);
             var steps = BitConverter.GetBytes(motorPosition.CurrentPosition());
@@ -33,7 +48,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         }
         if (!data.StoreData)
         {
-            await StreamLive(channel, imagePath, token);
+            await StreamLive(channel, imagePath, camera, token);
         }
         else
         {
@@ -54,13 +69,13 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         }
     }
 
-    private async Task StreamLive(Channel<byte[]> channel, string imagePath, CancellationToken token)
+    private async Task StreamLive(Channel<byte[]> channel, string imagePath, ICameraInterop camera, CancellationToken token)
     {
         var counter = 0;
         while (true)
         {
             await Task.Delay(10, token);
-            if (!cameraInterop.CameraIsRunning()) break;
+            if (!camera.CameraIsRunning()) break;
             (var creationTime, counter, var bytesToSend) = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, token);
             if (bytesToSend == null) continue;
             var steps = BitConverter.GetBytes(motorPosition.CurrentPosition());

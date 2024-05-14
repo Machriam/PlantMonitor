@@ -22,7 +22,7 @@ public interface ICameraInterop
 
     Task KillImageTaking();
 
-    Task<string> StreamJpgToFolder(float resolutionDivider, int quality, float distanceInM);
+    Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM);
 }
 
 public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
@@ -32,7 +32,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
     private bool _cameraFound;
     private bool _deviceFunctional;
     private static bool s_cameraIsRunning;
-    private static readonly string s_tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "tempImages");
+    private static readonly string s_tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "tempImages_VIS");
 
     private readonly ProcessSettings _videoProcessSettings = new() { Filename = "rpicam-vid", WorkingDirectory = null };
     private readonly ProcessSettings _imageProcessSettings = new() { Filename = "rpicam-still", WorkingDirectory = null };
@@ -58,15 +58,15 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
 
     public async Task KillImageTaking()
     {
-        var killVideo = new ProcessStartInfo("pkill", $"-9 -f {_videoProcessSettings.Filename}");
+        var killVideo = new ProcessStartInfo("pkill", $"-USR2 {_videoProcessSettings.Filename}");
         new Process() { StartInfo = killVideo }.Start();
-        var killImaging = new ProcessStartInfo("pkill", $"-9 -f {_imageProcessSettings.Filename}");
+        var killImaging = new ProcessStartInfo("pkill", $"-USR2 {_imageProcessSettings.Filename}");
         new Process() { StartInfo = killImaging }.Start();
         s_cameraIsRunning = false;
         await Task.Delay(500);
     }
 
-    public async Task<string> StreamJpgToFolder(float resolutionDivider, int quality, float distanceInM)
+    public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
     {
         if (distanceInM == 0) distanceInM = 0.01f;
         if (resolutionDivider == 0) resolutionDivider = 2;
@@ -78,7 +78,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         Directory.CreateDirectory(s_tempImagePath);
         var filePath = Path.Combine(s_tempImagePath, "%06d.jpg");
         var startInfo = new ProcessStartInfo(
-            "rpicam-vid", $"-t 0 -v 0 --width {width} --height {height} --mode 4608:2592 " +
+            "rpicam-vid", $"-t 0 -s -v 0 --width {width} --height {height} --mode 4608:2592 " +
             $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath}");
         logger.LogInformation("Program: {program}, arguments: {arguments}", startInfo.FileName, startInfo.ArgumentList.AsJson());
         new Process() { StartInfo = startInfo }.Start();
@@ -104,6 +104,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
                 .WithPictureOptions(100, "png")
                 .WithResolution(640, 480);
         var args = builder.GetArguments();
+        args = [.. args, "-s"];
         using var process = new ProcessRunner(_imageProcessSettings);
 
         var ms = new MemoryStream();

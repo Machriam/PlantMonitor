@@ -55,7 +55,7 @@ public class DevelopCameraInterop() : ICameraInterop
         return Task.FromResult((pipe, task));
     }
 
-    public Task<string> StreamJpgToFolder(float resolutionDivider, int quality, float distanceInM)
+    public Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
     {
         throw new NotImplementedException();
     }
