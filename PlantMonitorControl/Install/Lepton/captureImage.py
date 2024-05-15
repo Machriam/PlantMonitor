@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from uvctypes import *
+from changeProcessName import *
 import sys
 import numpy as np
 try:
@@ -78,7 +79,7 @@ def main():
       counter=0
       try:
         data = q.get(True, 500)
-        np.savetxt(f"{streamFolder}/{counter:06}.raw",data,fmt="%d")
+        np.savetxt(f"{streamFolder}/{counter:06}.rawir",data,fmt="%d")
       finally:
         libuvc.uvc_stop_streaming(devh)
 

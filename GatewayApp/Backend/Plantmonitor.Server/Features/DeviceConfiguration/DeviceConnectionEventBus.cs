@@ -1,4 +1,6 @@
-﻿namespace Plantmonitor.Server.Features.DeviceConfiguration;
+﻿using Plantmonitor.Shared.Features.HealthChecking;
+
+namespace Plantmonitor.Server.Features.DeviceConfiguration;
 
 public interface IDeviceConnectionEventBus
 {
@@ -18,6 +20,9 @@ public class DeviceConnectionEventBus : IDeviceConnectionEventBus
 
     public IEnumerable<DeviceHealthState> GetDeviceHealthInformation()
     {
+#if DEBUG
+        return DeviceHealths.Append(new DeviceHealthState(new DeviceHealth() { DeviceId = "test-id", DeviceName = "test", State = HealthState.NA }, 0, "localhost:7006"));
+#endif
         return DeviceHealths;
     }
 }

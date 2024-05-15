@@ -1,8 +1,9 @@
-﻿namespace PlantMonitorControl.Features.ImageTaking;
+﻿
+namespace PlantMonitorControl.Features.ImageTaking;
 
 public class DevelopIrCameraInterop() : ICameraInterop
 {
-    private const string IrDataFolder = "../PlantMonitorControl.Tests/TestData/IRData";
+    private const string DataFolder = "../PlantMonitorControl.Tests/TestData/IRData";
     private static bool s_isRunning;
 
     public Task<bool> CameraFound()
@@ -27,8 +28,8 @@ public class DevelopIrCameraInterop() : ICameraInterop
 
     public async Task<IResult> CaptureTestImage()
     {
-        var file = Directory.GetFiles(IrDataFolder);
-        var bytes = File.ReadAllBytes(file[0]);
+        var files = Directory.GetFiles(DataFolder);
+        var bytes = files[Random.Shared.Next(0, files.Length)].GetBytesFromIrFilePath();
         await Task.Yield();
         return Results.File(bytes, "image/raw");
     }
@@ -42,17 +43,25 @@ public class DevelopIrCameraInterop() : ICameraInterop
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
     {
         s_isRunning = true;
-        var files = Directory.GetFiles(IrDataFolder);
-        var copyToDir = Directory.CreateDirectory("./" + nameof(DevelopIrCameraInterop)).FullName;
+        var files = Directory.GetFiles(DataFolder);
+        const string CopyToFolder = "./" + nameof(DevelopIrCameraInterop);
+        if (Path.Exists(CopyToFolder)) Directory.Delete(CopyToFolder, true);
+        var copyToDir = Directory.CreateDirectory(CopyToFolder).FullName;
         var counter = 0;
-        while (s_isRunning)
+        await Task.Yield();
+        async Task CopyFiles()
         {
-            foreach (var file in files)
+            while (s_isRunning)
             {
-                await Task.Delay(20);
-                File.Copy(file, Path.Combine(copyToDir, counter++.ToString($"{FileStreamingReader.CounterFormat}.rawir")));
+                foreach (var file in files)
+                {
+                    await Task.Delay(500);
+                    var bytes = file.GetBytesFromIrFilePath();
+                    File.WriteAllBytes(Path.Combine(copyToDir, counter++.ToString(FileStreamingReader.CounterFormat) + ".rawir"), bytes);
+                }
             }
         }
+        _ = CopyFiles();
         return copyToDir;
     }
 }

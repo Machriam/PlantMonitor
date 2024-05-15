@@ -28,10 +28,6 @@ public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, I
     [HttpGet("devices")]
     public IEnumerable<DeviceHealthState> GetDevices()
     {
-        var result = eventBus.GetDeviceHealthInformation();
-#if DEBUG
-        result = result.Append(new DeviceHealthState(new DeviceHealth() { DeviceId = "test-id", DeviceName = "test", State = HealthState.NA }, 0, "localhost:7006"));
-#endif
-        return result;
+        return eventBus.GetDeviceHealthInformation();
     }
 }

@@ -1,10 +1,24 @@
+import { printError } from "./CvUtils";
 
 export class CvInterop {
-    thermalDataToImage(source: Uint8Array, canvasId: string) {
-        const canvas = document.getElementById(canvasId) as HTMLElement;
-        const mat = cv.matFromArray(120, 160, cv.CV_8UC1, source,);
-        cv.imshow(canvas, mat);
-        mat.delete();
+    thermalDataToImage(source: Uint32Array) {
+        try {
+            const canvas = document.createElement("canvas");
+            const mat = cv.matFromArray(120, 160, cv.CV_32SC1, source);
+            const resizeMat = new cv.Mat(480, 640, cv.CV_32SC1);
+            cv.normalize(mat, mat, 0, 65535, cv.NORM_MINMAX);
+            mat.convertTo(mat, cv.CV_8UC1, 1 / 255);
+            cv.equalizeHist(mat, mat);
+            cv.resize(mat, resizeMat, resizeMat.size(), 0, 0);
+            cv.imshow(canvas, resizeMat);
+            mat.delete();
+            resizeMat.delete();
+            return canvas.toDataURL();
+        }
+        catch (e) {
+            printError(e);
+        }
+        return "";
     }
     extractImages(source: string, dest: HTMLCanvasElement) {
         const video = new cv.VideoCapture(source);
@@ -21,10 +35,11 @@ export class CvInterop {
         }
         setTimeout(processVideo, 0);
     }
-    displayVideoBuilder(image: HTMLImageElement) {
-        const videoUpdater = async function (value: string) {
-            if (value.length < 100) return;
-            image.src = value;
+    displayVideoBuilder(imageElement: HTMLImageElement) {
+        const videoUpdater = async function (value: Blob) {
+            const image = await value.asBase64Url();
+            if (image.length < 100) return;
+            imageElement.src = image;
         }
         return videoUpdater;
     }

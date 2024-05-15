@@ -43,16 +43,23 @@ public class DevelopVisCameraInterop() : ICameraInterop
     {
         s_isRunning = true;
         var files = Directory.GetFiles(DataFolder);
-        var copyToDir = Directory.CreateDirectory("./" + nameof(DevelopVisCameraInterop)).FullName;
+        const string CopyToFolder = "./" + nameof(DevelopVisCameraInterop);
+        if (Path.Exists(CopyToFolder)) Directory.Delete(CopyToFolder, true);
+        var copyToDir = Directory.CreateDirectory(CopyToFolder).FullName;
         var counter = 0;
-        while (s_isRunning)
+        await Task.Yield();
+        async Task CopyTask()
         {
-            foreach (var file in files)
+            while (s_isRunning)
             {
-                await Task.Delay(20);
-                File.Copy(file, Path.Combine(copyToDir, counter++.ToString($"{FileStreamingReader.CounterFormat}.jpg")));
+                foreach (var file in files)
+                {
+                    await Task.Delay(20);
+                    File.Copy(file, Path.Combine(copyToDir, counter++.ToString(FileStreamingReader.CounterFormat) + ".jpg"));
+                }
             }
         }
+        _ = CopyTask();
         return copyToDir;
     }
 }

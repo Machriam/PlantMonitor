@@ -49,7 +49,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         }
         if (!data.StoreData)
         {
-            await StreamLive(channel, imagePath, camera, token);
+            await StreamLive(channel, imagePath, data, camera, token);
         }
         else
         {
@@ -70,14 +70,15 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         }
     }
 
-    private async Task StreamLive(Channel<byte[]> channel, string imagePath, ICameraInterop camera, CancellationToken token)
+    private async Task StreamLive(Channel<byte[]> channel, string imagePath, StreamingMetaData data, ICameraInterop camera, CancellationToken token)
     {
         var counter = 0;
+        var fileEnding = data.GetCameraType().Attribute<CameraTypeInfo>().FileEnding;
         while (true)
         {
             await Task.Delay(10, token);
             if (!camera.CameraIsRunning()) break;
-            (var creationTime, counter, var bytesToSend) = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, token);
+            (var creationTime, counter, var bytesToSend) = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, fileEnding, token);
             if (bytesToSend == null) continue;
             var steps = BitConverter.GetBytes(motorPosition.CurrentPosition());
             var creationTimeBytes = BitConverter.GetBytes(creationTime.Ticks);
