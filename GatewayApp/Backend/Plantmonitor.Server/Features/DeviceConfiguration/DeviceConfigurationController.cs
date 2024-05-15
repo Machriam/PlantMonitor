@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Shared.Features.HealthChecking;
 
 namespace Plantmonitor.Server.Features.DeviceConfiguration;
 public record struct DeviceConnection(string Ip, bool SshIsOpen);

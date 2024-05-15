@@ -118,7 +118,7 @@
             currentPosition = step;
             currentTime = date;
             firstImageReceived = true;
-            image.src = data;
+            image.src = await data.asBase64Url();
         });
         previewEnabled = true;
         while (!firstImageReceived) await Task.delay(100);
@@ -141,7 +141,7 @@
             const image = document.getElementById(videoCanvasId) as HTMLImageElement;
             currentPosition = step;
             currentTime = date;
-            image.src = data;
+            image.src = await data.asBase64Url();
         });
         previewEnabled = true;
     }

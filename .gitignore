@@ -14,3 +14,8 @@
 /TestVideo.mjpeg
 GatewayApp/Backend/Plantmonitor.Server/wwwroot/*
 Confluence/Dockerfiles/database.env
+/PlantMonitorControl.Tests/TestData
+**/*.rawir
+**/*.jpg
+**/*.png
+**/*.raw

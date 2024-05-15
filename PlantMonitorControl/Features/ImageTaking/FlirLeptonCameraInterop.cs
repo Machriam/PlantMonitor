@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
-using System.Text;
-using Microsoft.AspNetCore.Mvc;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 
-namespace PlantMonitorControl.Features.MotorMovement;
+namespace PlantMonitorControl.Features.ImageTaking;
 
 public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : ICameraInterop
 {
@@ -40,10 +38,7 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
         await new Process().RunProcess(configuration.IRPrograms.CaptureImage, s_tempImagePath);
         await Task.Delay(100);
         var files = Directory.GetFiles(s_tempImagePath);
-        var bytes = File.ReadAllText(files[0])
-            .Split(" ")
-            .SelectMany(x => BitConverter.GetBytes(int.Parse(x)))
-            .ToArray();
+        var bytes = files.FirstOrDefault()?.GetBytesFromIrFilePath() ?? [];
         if (bytes.Length > 0) s_cameraFound = true;
         return Results.File(bytes, "image/raw");
     }

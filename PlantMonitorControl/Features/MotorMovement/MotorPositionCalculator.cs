@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace PlantMonitorControl.Features.MotorMovement;
+﻿namespace PlantMonitorControl.Features.MotorMovement;
 
 public interface IMotorPositionCalculator
 {

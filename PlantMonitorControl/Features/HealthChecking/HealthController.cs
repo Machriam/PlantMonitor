@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.Shared.Features.HealthChecking;
-using PlantMonitorControl.Features.MotorMovement;
+using PlantMonitorControl.Features.ImageTaking;
 
 namespace PlantMonitorControl.Features.HealthChecking;
 

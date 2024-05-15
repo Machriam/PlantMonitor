@@ -24,7 +24,7 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (step: number, image: string, date: Date) => Promise<void>) => {
+            start: async (callback: (step: number, image: Blob, date: Date) => Promise<void>) => {
                 await connection.start();
                 connection.stream("StreamPictures", new StreamingMetaData({
                     distanceInM: data.focusInMeter,
@@ -34,8 +34,7 @@ export class DeviceStreaming {
                         const payload = x as Uint8Array;
                         const blob = new Blob([payload.subarray(12)], { type: "image/jpeg" });
                         const date = payload.subarray(4, 12).toInt64().fromTicksToDate();
-                        const imageUrl = await blob.asBase64Url();
-                        await callback(payload.subarray(0, 4).toInt32(), imageUrl, date);
+                        await callback(payload.subarray(0, 4).toInt32(), blob, date);
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)

@@ -79,7 +79,9 @@
         if (device == undefined) return;
         const deviceClient = new DeviceClient();
         await deviceClient.killCamera(device, CameraType.IR);
-        previewImage = await (await deviceClient.previewImage(device, CameraType.IR)).data.asBase64Url();
+        const cvInterop = new CvInterop();
+        const data = (await deviceClient.previewImage(device, CameraType.IR)).data;
+        previewImage = cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer()));
     }
     async function testMovement(device: string | undefined) {
         if (device == undefined) return;
@@ -89,16 +91,15 @@
     async function showThermalVideo(device: string | undefined) {
         if (device == undefined) return;
         let data = new DeviceStreamingData();
-        data.type = CameraType.IR;
         const connection = new DeviceStreamingApi().buildVideoConnection(device, CameraType.IR, data);
         await hubConnection?.stop();
         hubConnection = connection.connection;
+        const imageElement = document.getElementById(videoCanvasId) as HTMLImageElement;
         const cvInterop = new CvInterop();
-        const image = document.getElementById(videoCanvasId) as HTMLImageElement;
-        const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
         connection.start(async (_, image) => {
             frameCounter++;
-            await videoDisplayFunction(image);
+            const imageUrl = cvInterop.thermalDataToImage(new Uint32Array(await image.arrayBuffer()));
+            imageElement.src = imageUrl;
         });
     }
     async function showTestVideo(device: string | undefined) {

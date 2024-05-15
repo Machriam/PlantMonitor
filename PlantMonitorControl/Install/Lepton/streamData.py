@@ -91,7 +91,7 @@ def main():
       try:
         while not should_exit:
           data = q.get(True, 500)
-          np.savetxt(f"{streamFolder}/{counter:06}.raw",data,fmt="%d")
+          np.savetxt(f"{streamFolder}/{counter:06}.rawir",data,fmt="%d")
           counter+=1
           if data is None:
             break
