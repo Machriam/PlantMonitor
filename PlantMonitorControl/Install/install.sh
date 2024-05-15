@@ -11,9 +11,10 @@ sudo ln -sf "$HOME"/.dotnet/dotnet /srv/dotnet
 
 sudo pkill -9 -f dotnet
 sudo /srv/dotnet build -c Release -o /srv/dist -r linux-arm --no-self-contained ~/PlantMonitor/PlantMonitorControl/PlantMonitorControl.csproj
+sudo rm /srv/dist/appsettings.Development.json 
 
 sudo mkdir /srv/leptonPrograms
-sudo cp ./Install/Lepton/* /srv/leptonPrograms/
+sudo cp ~/PlantMonitor/PlantMonitorControl/Install/Lepton/* /srv/leptonPrograms/
 
 sudo openssl pkcs12 -password pass: -export -out /srv/certs/plantmonitor.pfx -inkey /srv/certs/plantmonitor.key -in /srv/certs/plantmonitor.crt
 sudo cp ./Install/PlantMonitorStart.service /lib/systemd/system/
