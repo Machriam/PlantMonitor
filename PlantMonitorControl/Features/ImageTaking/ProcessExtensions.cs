@@ -1,10 +1,8 @@
-﻿using System;
-using System.Diagnostics;
-using Iot.Device.Card.Ultralight;
+﻿using System.Diagnostics;
 using System.Text;
 using Serilog;
 
-namespace PlantMonitorControl.Features.MotorMovement;
+namespace PlantMonitorControl.Features.ImageTaking;
 
 public static class ProcessExtensions
 {

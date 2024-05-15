@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
-using System.Text;
-using Microsoft.AspNetCore.Mvc;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 
-namespace PlantMonitorControl.Features.MotorMovement;
+namespace PlantMonitorControl.Features.ImageTaking;
 
 public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : ICameraInterop
 {

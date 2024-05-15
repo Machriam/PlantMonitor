@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Plantmonitor.Shared.Features.ImageStreaming;
+using PlantMonitorControl.Features.MotorMovement;
 using System.Threading.Channels;
 
-namespace PlantMonitorControl.Features.MotorMovement;
+namespace PlantMonitorControl.Features.ImageTaking;
 
 public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop visCameraInterop,
     [FromKeyedServices(ICameraInterop.IrCamera)] ICameraInterop irCameraInterop,

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Shared.Features.HealthChecking;
 
 namespace Plantmonitor.Server.Features.DeviceConfiguration;
 public record struct DeviceConnection(string Ip, bool SshIsOpen);
@@ -27,6 +28,10 @@ public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, I
     [HttpGet("devices")]
     public IEnumerable<DeviceHealthState> GetDevices()
     {
-        return eventBus.GetDeviceHealthInformation();
+        var result = eventBus.GetDeviceHealthInformation();
+#if DEBUG
+        result = result.Append(new DeviceHealthState(new DeviceHealth() { DeviceId = "test-id", DeviceName = "test", State = HealthState.NA }, 0, "localhost:7006"));
+#endif
+        return result;
     }
 }

@@ -1,5 +1,4 @@
-﻿using Plantmonitor.Shared.Extensions;
-using Plantmonitor.Shared.Features.HealthChecking;
+﻿using Plantmonitor.Shared.Features.HealthChecking;
 
 namespace PlantMonitorControl.Features.HealthChecking;
 

@@ -1,6 +1,4 @@
-﻿using Plantmonitor.Shared.Extensions;
-
-namespace PlantMonitorControl.Features.HealthChecking;
+﻿namespace PlantMonitorControl.Features.HealthChecking;
 
 public class PlantList
 {

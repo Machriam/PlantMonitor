@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using NSubstitute;
-using PlantMonitorControl.Features.MotorMovement;
+using PlantMonitorControl.Features.ImageTaking;
 using System;
 using System.Threading.Tasks;
 using Xunit;

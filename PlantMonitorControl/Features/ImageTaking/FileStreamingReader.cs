@@ -1,4 +1,4 @@
-﻿namespace PlantMonitorControl.Features.MotorMovement;
+﻿namespace PlantMonitorControl.Features.ImageTaking;
 
 public interface IFileStreamingReader
 {

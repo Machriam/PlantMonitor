@@ -1,5 +1,6 @@
 ﻿using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.HealthChecking;
+using PlantMonitorControl.Features.ImageTaking;
 using PlantMonitorControl.Features.MotorMovement;
 using Serilog;
 using System.Runtime.InteropServices;
@@ -27,8 +28,8 @@ builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
 builder.Services.AddTransient<IFileStreamingReader, FileStreamingReader>();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
-    builder.Services.AddKeyedTransient<ICameraInterop, DevelopCameraInterop>(ICameraInterop.VisCamera);
-    builder.Services.AddKeyedTransient<ICameraInterop, DevelopCameraInterop>(ICameraInterop.IrCamera);
+    builder.Services.AddKeyedTransient<ICameraInterop, DevelopVisCameraInterop>(ICameraInterop.VisCamera);
+    builder.Services.AddKeyedTransient<ICameraInterop, DevelopIrCameraInterop>(ICameraInterop.IrCamera);
 }
 else
 {

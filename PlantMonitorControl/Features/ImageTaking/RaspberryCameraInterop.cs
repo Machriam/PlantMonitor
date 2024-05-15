@@ -2,7 +2,7 @@
 using Iot.Device.Common;
 using System.Diagnostics;
 
-namespace PlantMonitorControl.Features.MotorMovement;
+namespace PlantMonitorControl.Features.ImageTaking;
 
 public interface ICameraInterop
 {
