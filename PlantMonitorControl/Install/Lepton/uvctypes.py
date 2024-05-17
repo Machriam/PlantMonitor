@@ -167,6 +167,10 @@ def call_extension_unit(devh, unit, control, data, size):
 def set_extension_unit(devh, unit, control, data, size):
   return libuvc.uvc_set_ctrl(devh, unit, control, data, size, 0x81)
 
+# See https://github.com/groupgets/purethermal1-firmware/wiki/Lepton-CCI-through-UVC-extension-units
+def command_id_to_control(commandId):
+  return ((commandId & 0x00ff) >> 2) + 1
+
 PT_USB_VID = 0x1e4e
 PT_USB_PID = 0x0100
 
@@ -209,6 +213,11 @@ VS_FMT_GUID_BGR3 = create_string_buffer(
 VS_FMT_GUID_RGB565 = create_string_buffer(
     b"RGBP\x00\x00\x10\x00\x80\x00\x00\xaa\x00\x38\x9b\x71", 16
 )
+
+ENABLE_MANUAL_SHUTTER=create_string_buffer(
+  b"\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\xf2\xfe\x00\x00\x20\xbf\x02\x00\x01\x00\x00\x00\x96\x00\x12\x00", 32
+)
+
 
 libuvc.uvc_get_format_descs.restype = POINTER(uvc_format_desc)
 
