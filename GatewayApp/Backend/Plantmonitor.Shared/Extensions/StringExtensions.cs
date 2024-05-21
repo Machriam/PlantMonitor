@@ -5,8 +5,9 @@ namespace Plantmonitor.Shared.Extensions;
 
 public static class StringExtensions
 {
-    public static byte[] GetBytesFromIrFilePath(this string irFilePath)
+    public static byte[] GetBytesFromIrFilePath(this string irFilePath, out int temperatureInK)
     {
+        temperatureInK = int.TryParse(Path.GetFileNameWithoutExtension(irFilePath).Split('_').Last(), out var temperature) ? temperature : default;
         return File.ReadAllText(irFilePath)
             .Replace("\n", " ")
             .Split(" ")

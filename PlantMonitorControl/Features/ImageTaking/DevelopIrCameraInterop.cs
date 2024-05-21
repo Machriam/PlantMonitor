@@ -29,7 +29,7 @@ public class DevelopIrCameraInterop() : ICameraInterop
     public async Task<IResult> CaptureTestImage()
     {
         var files = Directory.GetFiles(DataFolder);
-        var bytes = files[Random.Shared.Next(0, files.Length)].GetBytesFromIrFilePath();
+        var bytes = files[Random.Shared.Next(0, files.Length)].GetBytesFromIrFilePath(out _);
         await Task.Yield();
         return Results.File(bytes, "image/raw");
     }
@@ -56,8 +56,8 @@ public class DevelopIrCameraInterop() : ICameraInterop
                 foreach (var file in files)
                 {
                     await Task.Delay(500);
-                    var bytes = file.GetBytesFromIrFilePath();
-                    File.WriteAllBytes(Path.Combine(copyToDir, counter++.ToString(FileStreamingReader.CounterFormat) + ".rawir"), bytes);
+                    var bytes = file.GetBytesFromIrFilePath(out var temperatureInK);
+                    File.WriteAllBytes(Path.Combine(copyToDir, $"{counter++.ToString(FileStreamingReader.CounterFormat)}_{temperatureInK}.rawir"), bytes);
                 }
             }
         }

@@ -9,12 +9,9 @@ using System.Threading.Channels;
 
 namespace Plantmonitor.Server.Features.DeviceControl
 {
-    public record struct StoredPictureData(DateTime PictureDate, byte[] Picture, int Steps);
-
     public class PictureStreamingHub(IEnvironmentConfiguration configuration, ILogger<PictureStreamingHub> logger, IDeviceApiFactory factory,
         IDeviceConnectionEventBus deviceConnections) : Hub
     {
-        private const string PictureDateFormat = "yyyy-MM-dd HH-mm-ss-fff";
         private static readonly ConcurrentDictionary<string, string> s_ipByConnectionId = new();
 
         public override async Task OnDisconnectedAsync(Exception? exception)
@@ -47,9 +44,9 @@ namespace Plantmonitor.Server.Features.DeviceControl
             return channel.Reader;
         }
 
-        public ChannelReader<StoredPictureData> StreamPictureSeries(string deviceId, string sequenceId)
+        public ChannelReader<CameraStreamData> StreamPictureSeries(string deviceId, string sequenceId)
         {
-            var channel = Channel.CreateBounded<StoredPictureData>(new BoundedChannelOptions(1)
+            var channel = Channel.CreateBounded<CameraStreamData>(new BoundedChannelOptions(1)
             {
                 AllowSynchronousContinuations = false,
                 FullMode = BoundedChannelFullMode.Wait,
@@ -63,15 +60,13 @@ namespace Plantmonitor.Server.Features.DeviceControl
             return channel.Reader;
         }
 
-        private async Task StreamFiles(IList<string> fileList, Channel<StoredPictureData> channel)
+        private async Task StreamFiles(IList<string> fileList, Channel<CameraStreamData> channel)
         {
             foreach (var file in fileList)
             {
-                var split = Path.GetFileNameWithoutExtension(file).Split('_');
-                if (split.Length < 2) continue;
-                if (!DateTime.TryParseExact(split[0], PictureDateFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) continue;
-                if (!int.TryParse(split[1], out var steps)) continue;
-                await channel.Writer.WriteAsync(new StoredPictureData(date, File.ReadAllBytes(file), steps));
+                var success = CameraStreamFormatter.FromFile(file, out var streamData);
+                if (!success) continue;
+                await channel.Writer.WriteAsync(streamData.ConvertToStreamObject());
                 await Task.Delay(10);
             }
             await Task.Delay(5000);
@@ -81,7 +76,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
         private async Task StreamData(StreamingMetaData data, string picturePath, Channel<byte[]> channel, HubConnection connection, CancellationToken token)
         {
             var cameraInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
-            var sequenceId = DateTime.Now.ToString(PictureDateFormat);
+            var sequenceId = DateTime.Now.ToString(CameraStreamFormatter.PictureDateFormat);
             var stream = await connection.StreamAsChannelAsync<byte[]>(cameraInfo.SignalRMethod, data, token);
             var path = Path.Combine(picturePath, sequenceId);
             if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
@@ -91,9 +86,8 @@ namespace Plantmonitor.Server.Features.DeviceControl
                 {
                     if (!picturePath.IsEmpty())
                     {
-                        var steps = BitConverter.ToInt32(image.AsSpan()[0..4]);
-                        var date = new DateTime(BitConverter.ToInt64(image.AsSpan()[4..12]));
-                        if (image.Length > 12) File.WriteAllBytes(Path.Combine(path, $"{date.ToUniversalTime().ToString(PictureDateFormat)}_{steps}{cameraInfo.FileEnding}"), image[12..]);
+                        var cameraStream = CameraStreamFormatter.FromBytes(image);
+                        if (cameraStream.PictureData != null) cameraStream.WriteToFile(path, cameraInfo);
                     }
                     var result = await channel.Writer.WriteAsync(image, token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);

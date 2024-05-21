@@ -5,9 +5,10 @@ import { Constants } from "~/Constants";
 import { CameraType, StreamingMetaData } from "./GatewayAppApi";
 
 export interface IReplayedPicture {
-    PictureDate: Date;
-    Picture: Uint8Array;
+    Timestamp: Date;
     Steps: number;
+    TemperatureInK: number;
+    PictureData: Uint8Array;
 }
 export class DeviceStreamingData {
     sizeDivider = 4;
@@ -50,14 +51,14 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (step: number, date: Date, image: string) => Promise<void>) => {
+            start: async (callback: (step: number, date: Date, image: string, temperature: number) => Promise<void>) => {
                 await connection.start();
                 connection.stream("StreamPictureSeries", device, sequenceId).subscribe({
                     next: async (x) => {
                         const payload = x as IReplayedPicture;
-                        const blob = new Blob([payload.Picture], { type: "image/jpeg" });
+                        const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
                         const imageUrl = await blob.asBase64Url();
-                        await callback(payload.Steps, payload.PictureDate, imageUrl);
+                        await callback(payload.Steps, payload.Timestamp, imageUrl, payload.TemperatureInK);
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)
