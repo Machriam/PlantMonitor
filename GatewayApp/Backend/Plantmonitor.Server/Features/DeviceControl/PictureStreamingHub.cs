@@ -23,12 +23,12 @@ namespace Plantmonitor.Server.Features.DeviceControl
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task<ChannelReader<byte[]>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
+        public async Task<ChannelReader<CameraStreamData>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
         {
             var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, ip);
             var picturePath = data.StoreData ? configuration.PicturePath(deviceId) : "";
-            var channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
+            var channel = Channel.CreateBounded<CameraStreamData>(new BoundedChannelOptions(1)
             {
                 AllowSynchronousContinuations = false,
                 FullMode = BoundedChannelFullMode.DropWrite,
@@ -73,7 +73,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
             Context.Abort();
         }
 
-        private async Task StreamData(StreamingMetaData data, string picturePath, Channel<byte[]> channel, HubConnection connection, CancellationToken token)
+        private async Task StreamData(StreamingMetaData data, string picturePath, Channel<CameraStreamData> channel, HubConnection connection, CancellationToken token)
         {
             var cameraInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
             var sequenceId = DateTime.Now.ToString(CameraStreamFormatter.PictureDateFormat);
@@ -84,12 +84,12 @@ namespace Plantmonitor.Server.Features.DeviceControl
             {
                 await foreach (var image in stream.ReadAllAsync(token))
                 {
+                    var cameraStream = CameraStreamFormatter.FromBytes(image);
                     if (!picturePath.IsEmpty())
                     {
-                        var cameraStream = CameraStreamFormatter.FromBytes(image);
                         if (cameraStream.PictureData != null) cameraStream.WriteToFile(path, cameraInfo);
                     }
-                    var result = await channel.Writer.WriteAsync(image, token).Try();
+                    var result = await channel.Writer.WriteAsync(cameraStream.ConvertToStreamObject(), token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);
                 }
             }

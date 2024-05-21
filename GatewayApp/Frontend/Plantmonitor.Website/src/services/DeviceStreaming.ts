@@ -25,17 +25,16 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (step: number, image: Blob, date: Date) => Promise<void>) => {
+            start: async (callback: (step: number, image: Blob, date: Date, temperatureInK: number) => Promise<void>) => {
                 await connection.start();
                 connection.stream("StreamPictures", new StreamingMetaData({
                     distanceInM: data.focusInMeter,
                     positionsToStream: data.positionsToStream, quality: 100, resolutionDivider: data.sizeDivider, storeData: data.storeData, type: CameraType[type]
                 }).toJSON(), device).subscribe({
                     next: async (x) => {
-                        const payload = x as Uint8Array;
-                        const blob = new Blob([payload.subarray(12)], { type: "image/jpeg" });
-                        const date = payload.subarray(4, 12).toInt64().fromTicksToDate();
-                        await callback(payload.subarray(0, 4).toInt32(), blob, date);
+                        const payload = x as IReplayedPicture;
+                        const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
+                        await callback(payload.Steps, blob, payload.Timestamp, payload.TemperatureInK);
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)

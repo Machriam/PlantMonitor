@@ -1,5 +1,4 @@
-﻿
-namespace PlantMonitorControl.Features.ImageTaking;
+﻿namespace PlantMonitorControl.Features.ImageTaking;
 
 public class DevelopIrCameraInterop() : ICameraInterop
 {
@@ -56,8 +55,8 @@ public class DevelopIrCameraInterop() : ICameraInterop
                 foreach (var file in files)
                 {
                     await Task.Delay(500);
-                    var bytes = file.GetBytesFromIrFilePath(out var temperatureInK);
-                    File.WriteAllBytes(Path.Combine(copyToDir, $"{counter++.ToString(FileStreamingReader.CounterFormat)}_{temperatureInK}.rawir"), bytes);
+                    var _ = file.GetBytesFromIrFilePath(out var temperatureInK);
+                    File.Copy(file, Path.Combine(copyToDir, $"{counter++.ToString(FileStreamingReader.CounterFormat)}_{temperatureInK}.rawir"));
                 }
             }
         }

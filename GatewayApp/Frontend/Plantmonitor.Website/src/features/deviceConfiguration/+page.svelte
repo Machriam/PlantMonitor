@@ -96,7 +96,7 @@
         hubConnection = connection.connection;
         const imageElement = document.getElementById(videoCanvasId) as HTMLImageElement;
         const cvInterop = new CvInterop();
-        connection.start(async (_, image) => {
+        connection.start(async (_1, image, _2, temperatureInK) => {
             frameCounter++;
             const imageUrl = cvInterop.thermalDataToImage(new Uint32Array(await image.arrayBuffer()));
             imageElement.src = imageUrl;

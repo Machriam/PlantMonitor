@@ -36,8 +36,8 @@ public class FileStreamingReader : IFileStreamingReader
 
     public async Task<FileInfo> ReadNextFile(string imagePath, int counter, CameraTypeInfo cameraInfo, CancellationToken token)
     {
-        var currentPath = Path.Combine(imagePath, counter.ToString(CounterFormat) + cameraInfo.FileEnding);
-        if (Directory.GetFiles(imagePath, $"{(counter + 1).ToString(CounterFormat)}*{cameraInfo.FileEnding}").Length == 0) return new(default, counter, default, default);
+        var currentPath = Directory.GetFiles(imagePath, $"{counter.ToString(CounterFormat)}*{cameraInfo.FileEnding}").FirstOrDefault();
+        if (currentPath == null || Directory.GetFiles(imagePath, $"{(counter + 1).ToString(CounterFormat)}*{cameraInfo.FileEnding}").Length == 0) return new(default, counter, default, default);
         int temperatureInK = default;
         var bytesToSend = cameraInfo.FileEnding == s_irEnding ? currentPath.GetBytesFromIrFilePath(out temperatureInK) : await File.ReadAllBytesAsync(currentPath, token);
         var creationTime = File.GetCreationTimeUtc(currentPath);
