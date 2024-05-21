@@ -1,7 +1,11 @@
 import { printError } from "./CvUtils";
+export class ThermalImage {
+    dataUrl?: string;
+    pixelConverter?: (x: number, y: number) => number;
+}
 
 export class CvInterop {
-    thermalDataToImage(source: Uint32Array) {
+    thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
             const canvas = document.createElement("canvas");
             const mat = cv.matFromArray(120, 160, cv.CV_32SC1, source);
@@ -13,12 +17,21 @@ export class CvInterop {
             cv.imshow(canvas, resizeMat);
             mat.delete();
             resizeMat.delete();
-            return canvas.toDataURL();
+            return {
+                dataUrl: canvas.toDataURL(), pixelConverter: (x, y) => {
+                    if (x < 0) x = 0;
+                    if (y < 0) y = 0;
+                    if (y > 480) y = 480;
+                    if (x > 640) x = 640;
+                    const result = source[Math.floor(x / 4) + Math.floor(y / 4) * 160].kelvinToCelsius();
+                    return result;
+                }
+            };
         }
         catch (e) {
             printError(e);
         }
-        return "";
+        return {};
     }
     extractImages(source: string, dest: HTMLCanvasElement) {
         const video = new cv.VideoCapture(source);

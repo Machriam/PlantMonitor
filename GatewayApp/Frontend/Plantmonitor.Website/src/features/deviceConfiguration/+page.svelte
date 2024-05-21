@@ -11,11 +11,12 @@
         WebSshCredentials
     } from "../../services/GatewayAppApi";
     import {Task} from "~/types/task";
-    import {CvInterop} from "./CvInterop";
+    import {CvInterop, ThermalImage} from "./CvInterop";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
     import {DeviceStreaming as DeviceStreamingApi, DeviceStreamingData} from "~/services/DeviceStreaming";
     import type {HubConnection} from "@microsoft/signalr";
+    import {TooltipCreator, TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
 
     const videoCanvasId = "videoCanvasId";
     let configurationData: {ipFrom: string; ipTo: string; userName: string; userPassword: string} = {
@@ -26,8 +27,9 @@
     };
     let configurationClient: DeviceConfigurationClient;
     let devices: DeviceHealthState[] = [];
-    let previewImage = "";
+    let previewImage = new ThermalImage();
     let frameCounter = 0;
+    let tooltip: TooltipCreatorResult | undefined;
     let lastReadTemperature = 0;
     let hubConnection: HubConnection | undefined;
 
@@ -74,7 +76,7 @@
         if (device == undefined) return;
         const deviceClient = new DeviceClient();
         await deviceClient.killCamera(device, CameraType.Vis);
-        previewImage = await (await deviceClient.previewImage(device, CameraType.Vis)).data.asBase64Url();
+        previewImage = {dataUrl: await (await deviceClient.previewImage(device, CameraType.Vis)).data.asBase64Url()};
     }
     async function showThermalImage(device: string | undefined) {
         if (device == undefined) return;
@@ -101,7 +103,7 @@
             frameCounter++;
             lastReadTemperature = temperatureInK.kelvinToCelsius();
             const imageUrl = cvInterop.thermalDataToImage(new Uint32Array(await image.arrayBuffer()));
-            imageElement.src = imageUrl;
+            imageElement.src = imageUrl.dataUrl ?? "";
         });
     }
     async function showTestVideo(device: string | undefined) {
@@ -159,7 +161,7 @@
             Found devices:
         {/if}
     </h3>
-    <div>{frameCounter} {lastReadTemperature}°C</div>
+    <div>{frameCounter}, Camera Temp: {lastReadTemperature}°C</div>
     <div class="col-md-6">
         {#each devices as device}
             <table class="table">
@@ -205,8 +207,24 @@
     </div>
     <div class="col-md-6">
         <div class="col-md-12">
-            {#if !previewImage.isEmpty()}
-                <img alt="Preview" src={previewImage} />
+            {#if !previewImage.dataUrl?.isEmpty()}
+                <img
+                    on:mouseenter={(x) => {
+                        if (tooltip != undefined) return;
+                        tooltip = TooltipCreator.CreateTooltip("", x);
+                    }}
+                    on:mouseleave={() => {
+                        if (tooltip == undefined) return;
+                        tooltip.dispose();
+                        tooltip = undefined;
+                    }}
+                    on:pointermove={(x) => {
+                        if (previewImage.pixelConverter == null || tooltip == undefined) return;
+                        const value = previewImage.pixelConverter(x.offsetX, x.offsetY);
+                        tooltip.updateFunction(x, value.toFixed(2) + " °C");
+                    }}
+                    alt="Preview"
+                    src={previewImage.dataUrl} />
             {/if}
         </div>
         <div class="col-md-12"><img alt="Video" id={videoCanvasId} /></div>

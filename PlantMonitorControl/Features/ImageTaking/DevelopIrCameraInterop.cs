@@ -56,6 +56,8 @@ public class DevelopIrCameraInterop() : ICameraInterop
                 {
                     await Task.Delay(500);
                     var _ = file.GetBytesFromIrFilePath(out var temperatureInK);
+                    var filesToDelete = Directory.GetFiles(copyToDir, $"{(counter - 10).ToString(FileStreamingReader.CounterFormat)}*.rawir");
+                    foreach (var fileToDelete in filesToDelete) File.Delete(fileToDelete);
                     File.Copy(file, Path.Combine(copyToDir, $"{counter++.ToString(FileStreamingReader.CounterFormat)}_{temperatureInK}.rawir"));
                 }
             }
