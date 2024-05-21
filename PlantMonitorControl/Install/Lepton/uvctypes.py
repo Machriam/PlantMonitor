@@ -237,6 +237,12 @@ def print_device_info(devh):
   call_extension_unit(devh, SYS_UNIT_ID, 3, flir_sn, 8)
   print("FLIR serial #: {0}".format(flir_sn.raw.hex("-")))
 
+def get_temperature(devh):
+  buffer = create_string_buffer(2)
+  call_extension_unit(devh, SYS_UNIT_ID, command_id_to_control(0x10), buffer, len(buffer))
+  return int.from_bytes(buffer.raw,byteorder="little")
+
+
 def uvc_iter_formats(devh):
   p_format_desc = libuvc.uvc_get_format_descs(devh)
   while p_format_desc:
