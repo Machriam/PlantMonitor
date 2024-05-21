@@ -85,9 +85,9 @@ namespace Plantmonitor.Server.Features.DeviceControl
                 await foreach (var image in stream.ReadAllAsync(token))
                 {
                     var cameraStream = CameraStreamFormatter.FromBytes(image);
-                    if (!picturePath.IsEmpty())
+                    if (!picturePath.IsEmpty() && cameraStream.PictureData != null)
                     {
-                        if (cameraStream.PictureData != null) cameraStream.WriteToFile(path, cameraInfo);
+                        cameraStream.WriteToFile(path, cameraInfo);
                     }
                     var result = await channel.Writer.WriteAsync(cameraStream.ConvertToStreamObject(), token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);

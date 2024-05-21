@@ -14,6 +14,7 @@ interface BigInt {
 }
 interface Number {
 	roundTo(decimalPlaces: number): number;
+	kelvinToCelsius(): number;
 	isSuccessStatusCode(): boolean;
 }
 interface Blob {
@@ -35,6 +36,9 @@ Uint8Array.prototype.toInt64 = function (this: Uint8Array): bigint {
 Array.prototype.mean = function (this: Array<T>, selector: (x: T) => number) {
 	if (this.length == 0) return 0;
 	return this.reduce((a, x) => a += selector(x), 0) / this.length;
+}
+Number.prototype.kelvinToCelsius = function (this: number): number {
+	return (this - 27315) / 100;
 }
 
 Number.prototype.roundTo = function (this: number, decimalPlaces: number): number {
