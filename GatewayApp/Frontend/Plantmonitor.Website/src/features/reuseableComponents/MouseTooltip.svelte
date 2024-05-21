@@ -6,13 +6,6 @@
     let id = Math.random() * 1_000_000_000 + "";
     export let top = 20;
     export let left = 20;
-
-    export function UpdatePosition(e: MouseEvent) {
-        const x = e.clientX,
-            y = e.clientY;
-        top = y - 200;
-        left = x - 200;
-    }
 </script>
 
 <div style="position:absolute;background-color:white;left: {left}px;top: {top}px" {id}>
