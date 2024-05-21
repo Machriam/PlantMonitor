@@ -56,14 +56,18 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             foreach (var file in Directory.EnumerateFiles(imagePath).OrderBy(x => x))
             {
                 var fileCreationTime = File.GetCreationTimeUtc(file);
-                var creationTimeBytes = BitConverter.GetBytes(fileCreationTime.Ticks);
                 var stepCount = motorPosition.StepForTime(new DateTimeOffset(fileCreationTime).ToUnixTimeMilliseconds());
-                var bytesOfStep = BitConverter.GetBytes(stepCount);
                 var bytesToSend = await File.ReadAllBytesAsync(file, token);
+                var streamFormatter = new CameraStreamFormatter()
+                {
+                    PictureData = bytesToSend,
+                    Steps = stepCount,
+                    Timestamp = fileCreationTime,
+                }.TemperatureFromFileName(file);
                 if (data.PositionsToStream.Contains(stepCount))
                 {
                     await channel.Writer.WaitToWriteAsync(token);
-                    await channel.Writer.WriteAsync([.. bytesOfStep, .. creationTimeBytes, .. bytesToSend], token);
+                    await channel.Writer.WriteAsync(streamFormatter.GetBytes(), token);
                 }
                 File.Delete(file);
             }
@@ -73,16 +77,16 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
     private async Task StreamLive(Channel<byte[]> channel, string imagePath, StreamingMetaData data, ICameraInterop camera, CancellationToken token)
     {
         var counter = 0;
-        var fileEnding = data.GetCameraType().Attribute<CameraTypeInfo>().FileEnding;
+        var typeInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
         while (true)
         {
             await Task.Delay(10, token);
             if (!camera.CameraIsRunning()) break;
-            (var creationTime, counter, var bytesToSend) = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, fileEnding, token);
-            if (bytesToSend == null) continue;
-            var steps = BitConverter.GetBytes(motorPosition.CurrentPosition());
-            var creationTimeBytes = BitConverter.GetBytes(creationTime.Ticks);
-            await channel.Writer.WriteAsync([.. steps, .. creationTimeBytes, .. bytesToSend], token);
+            var nextFile = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, typeInfo, token);
+            counter = nextFile.NewCounter;
+            if (nextFile.FileData == null) continue;
+            var currentPosition = motorPosition.CurrentPosition();
+            await channel.Writer.WriteAsync(nextFile.CreateFormatter(currentPosition).GetBytes(), token);
         }
     }
 }

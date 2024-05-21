@@ -5,9 +5,10 @@ import { Constants } from "~/Constants";
 import { CameraType, StreamingMetaData } from "./GatewayAppApi";
 
 export interface IReplayedPicture {
-    PictureDate: Date;
-    Picture: Uint8Array;
+    Timestamp: Date;
     Steps: number;
+    TemperatureInK: number;
+    PictureData: Uint8Array;
 }
 export class DeviceStreamingData {
     sizeDivider = 4;
@@ -24,17 +25,16 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (step: number, image: Blob, date: Date) => Promise<void>) => {
+            start: async (callback: (step: number, image: Blob, date: Date, temperatureInK: number) => Promise<void>) => {
                 await connection.start();
                 connection.stream("StreamPictures", new StreamingMetaData({
                     distanceInM: data.focusInMeter,
                     positionsToStream: data.positionsToStream, quality: 100, resolutionDivider: data.sizeDivider, storeData: data.storeData, type: CameraType[type]
                 }).toJSON(), device).subscribe({
                     next: async (x) => {
-                        const payload = x as Uint8Array;
-                        const blob = new Blob([payload.subarray(12)], { type: "image/jpeg" });
-                        const date = payload.subarray(4, 12).toInt64().fromTicksToDate();
-                        await callback(payload.subarray(0, 4).toInt32(), blob, date);
+                        const payload = x as IReplayedPicture;
+                        const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
+                        await callback(payload.Steps, blob, payload.Timestamp, payload.TemperatureInK);
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)
@@ -50,14 +50,14 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (step: number, date: Date, image: string) => Promise<void>) => {
+            start: async (callback: (step: number, date: Date, image: string, temperature: number) => Promise<void>) => {
                 await connection.start();
                 connection.stream("StreamPictureSeries", device, sequenceId).subscribe({
                     next: async (x) => {
                         const payload = x as IReplayedPicture;
-                        const blob = new Blob([payload.Picture], { type: "image/jpeg" });
+                        const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
                         const imageUrl = await blob.asBase64Url();
-                        await callback(payload.Steps, payload.PictureDate, imageUrl);
+                        await callback(payload.Steps, payload.Timestamp, imageUrl, payload.TemperatureInK);
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)

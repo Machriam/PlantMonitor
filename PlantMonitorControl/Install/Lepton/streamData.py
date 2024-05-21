@@ -88,10 +88,14 @@ def main():
         exit(1)
 
       counter=0
+      temp=get_temperature(devh)
       try:
         while not should_exit:
           data = q.get(True, 500)
-          np.savetxt(f"{streamFolder}/{counter:06}.rawir",data,fmt="%d")
+          if counter%100==0:
+            temp=get_temperature(devh)
+          file=f"{streamFolder}/{counter:06}_{temp:5}.rawir"
+          np.savetxt(file,data,fmt="%d")
           counter+=1
           if data is None:
             break

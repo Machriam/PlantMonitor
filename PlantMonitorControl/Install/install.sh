@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sudo dpkg --configure -a
-sudo apt-get install -y libusb-1.0-0-dev
+sudo apt-get install -y libusb-1.0-0-dev python3-numpy
 
 curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version latest --verbose 
 

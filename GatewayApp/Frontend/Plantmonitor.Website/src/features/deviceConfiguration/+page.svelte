@@ -28,6 +28,7 @@
     let devices: DeviceHealthState[] = [];
     let previewImage = "";
     let frameCounter = 0;
+    let lastReadTemperature = 0;
     let hubConnection: HubConnection | undefined;
 
     let searchingForDevices = true;
@@ -96,8 +97,9 @@
         hubConnection = connection.connection;
         const imageElement = document.getElementById(videoCanvasId) as HTMLImageElement;
         const cvInterop = new CvInterop();
-        connection.start(async (_, image) => {
+        connection.start(async (_1, image, _2, temperatureInK) => {
             frameCounter++;
+            lastReadTemperature = temperatureInK.kelvinToCelsius();
             const imageUrl = cvInterop.thermalDataToImage(new Uint32Array(await image.arrayBuffer()));
             imageElement.src = imageUrl;
         });
@@ -157,7 +159,7 @@
             Found devices:
         {/if}
     </h3>
-    <div>{frameCounter}</div>
+    <div>{frameCounter} {lastReadTemperature}°C</div>
     <div class="col-md-6">
         {#each devices as device}
             <table class="table">
