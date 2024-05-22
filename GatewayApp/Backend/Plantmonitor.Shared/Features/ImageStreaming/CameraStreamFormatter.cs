@@ -45,7 +45,8 @@ public class CameraStreamFormatter
         result.Timestamp = date;
         if (!int.TryParse(split[1], out var steps)) return false;
         result.Steps = steps;
-        if (!int.TryParse(split[2], out var temperature)) return true;
+        result.PictureData = File.ReadAllBytes(path);
+        if (split.Length == 2 || !int.TryParse(split[2], out var temperature)) return true;
         result.TemperatureInK = temperature;
         return true;
     }
