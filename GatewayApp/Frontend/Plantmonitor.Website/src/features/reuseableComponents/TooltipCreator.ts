@@ -1,3 +1,5 @@
+import MouseTooltip from "./MouseTooltip.svelte";
+
 export class TooltipCreatorResult {
     element: HTMLElement;
     updateFunction: (position: MouseEvent, text: string) => void;
