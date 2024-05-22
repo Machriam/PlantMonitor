@@ -13,10 +13,25 @@ export class CvInterop {
             cv.normalize(mat, mat, 0, 65535, cv.NORM_MINMAX);
             mat.convertTo(mat, cv.CV_8UC1, 1 / 255);
             cv.equalizeHist(mat, mat);
+            const planes = new cv.MatVector();
+            const mergedHSV = new cv.MatVector();
+            cv.split(mat, planes);
+            const H = planes.get(0);
+            const S = new cv.Mat(120, 160, cv.CV_8U, new cv.Scalar(255));
+            const V = new cv.Mat(120, 160, cv.CV_8U, new cv.Scalar(255));
+            cv.normalize(H, H, 100, 200, cv.NORM_MINMAX);
+            mergedHSV.push_back(H);
+            mergedHSV.push_back(S);
+            mergedHSV.push_back(V);
+            cv.merge(mergedHSV, mat);
+            cv.cvtColor(mat, mat, cv.COLOR_HSV2RGB, 0);
             cv.resize(mat, resizeMat, resizeMat.size(), 0, 0);
             cv.imshow(canvas, resizeMat);
             mat.delete();
             resizeMat.delete();
+            mergedHSV.delete();
+            H.delete(); S.delete(); V.delete();
+            planes.delete();
             return {
                 dataUrl: canvas.toDataURL(), pixelConverter: (x, y) => {
                     if (x < 0) x = 0;
