@@ -8,18 +8,21 @@ export class CvInterop {
     thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
             const canvas = document.createElement("canvas");
-            const mat = cv.matFromArray(120, 160, cv.CV_32SC1, source);
-            const resizeMat = new cv.Mat(480, 640, cv.CV_32SC1);
-            cv.normalize(mat, mat, 0, 65535, cv.NORM_MINMAX);
-            mat.convertTo(mat, cv.CV_8UC1, 1 / 255);
-            cv.equalizeHist(mat, mat);
+            const mat = cv.matFromArray(120, 160, cv.CV_32FC1, source);
+            const baselineMat = new cv.Mat(120, 160, cv.CV_32FC1, new cv.Scalar(29000));
+            const resizeMat = new cv.Mat(480, 640, cv.CV_8UC1);
+            cv.subtract(mat, baselineMat, mat);
+            const scale = new cv.Mat(120, 160, cv.CV_32F, new cv.Scalar(100 / 255 / 10));
+            const offset = new cv.Mat(120, 160, cv.CV_32F, new cv.Scalar(100));
+            cv.multiply(mat, scale, mat);
+            cv.add(mat, offset, mat);
+            mat.convertTo(mat, cv.CV_8UC1);
             const planes = new cv.MatVector();
             const mergedHSV = new cv.MatVector();
             cv.split(mat, planes);
             const H = planes.get(0);
             const S = new cv.Mat(120, 160, cv.CV_8U, new cv.Scalar(255));
             const V = new cv.Mat(120, 160, cv.CV_8U, new cv.Scalar(255));
-            cv.normalize(H, H, 100, 200, cv.NORM_MINMAX);
             mergedHSV.push_back(H);
             mergedHSV.push_back(S);
             mergedHSV.push_back(V);
