@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import MouseTooltip from "./MouseTooltip.svelte";
 
 export class TooltipCreatorResult {
@@ -6,9 +7,18 @@ export class TooltipCreatorResult {
     dispose: () => void;
 }
 export class TooltipCreator {
+
     public static CreateTooltip(label: string, event: MouseEvent): TooltipCreatorResult {
+        let scrollY = window.scrollY;
+        const onScroll = () => {
+            const scrollDiff = window.scrollY - scrollY;
+            scrollY = window.scrollY;
+            const oldTop = parseInt(element.getAttribute("top") ?? "0");
+            element.setAttribute("top", oldTop + scrollDiff + "");
+        }
         const element = document.createElement("mouse-tooltip") as HTMLElement;
         const content = document.getElementsByClassName("content");
+        window.addEventListener("scroll", onScroll);
         content[0].appendChild(element);
         element.setAttribute("value", "5505");
         element.setAttribute("label", label);
@@ -18,10 +28,11 @@ export class TooltipCreator {
             element: element,
             updateFunction: (position: MouseEvent, text: string) => {
                 element.setAttribute("left", position.clientX - 20 + "");
-                element.setAttribute("top", position.clientY - 40 + "");
+                element.setAttribute("top", position.clientY - 40 + scrollY + "");
                 element.setAttribute("value", text);
             },
             dispose: () => {
+                window.removeEventListener("scroll", onScroll)
                 content[0].removeChild(element);
             }
         };
