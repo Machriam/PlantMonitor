@@ -91,7 +91,7 @@ def main():
       temp=get_temperature(devh)
       try:
         while not should_exit:
-          data = q.get(True, 500)
+          data = q.get(True, 5)
           if counter%100==0:
             temp=get_temperature(devh)
           file=f"{streamFolder}/{counter:06}_{temp:5}.rawir"
@@ -99,6 +99,9 @@ def main():
           counter+=1
           if data is None:
             break
+      except Exception as e:
+        print("Did not get any images for 5 seconds")
+        print(repr(e))
       finally:
         libuvc.uvc_stop_streaming(devh)
 
