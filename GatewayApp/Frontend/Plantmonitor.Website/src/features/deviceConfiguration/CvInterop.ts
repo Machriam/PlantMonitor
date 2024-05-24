@@ -1,40 +1,29 @@
 import { printError } from "./CvUtils";
+import { ColormapTypes, optionalCvFunctions } from "~/types/mirada";
 export class ThermalImage {
     dataUrl?: string;
     pixelConverter?: (x: number, y: number) => number;
 }
 
+
 export class CvInterop {
     thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
+            const optCv = new optionalCvFunctions();
+            const temp15Celsius = 28815;
             const canvas = document.createElement("canvas");
             const mat = cv.matFromArray(120, 160, cv.CV_32FC1, source);
-            const baselineMat = new cv.Mat(120, 160, cv.CV_32FC1, new cv.Scalar(29000));
+            const baselineMat = new cv.Mat(120, 160, cv.CV_32FC1, new cv.Scalar(temp15Celsius));
             const resizeMat = new cv.Mat(480, 640, cv.CV_8UC1);
             cv.subtract(mat, baselineMat, mat);
-            const scale = new cv.Mat(120, 160, cv.CV_32F, new cv.Scalar(100 / 255 / 10));
-            const offset = new cv.Mat(120, 160, cv.CV_32F, new cv.Scalar(100));
+            const scale = new cv.Mat(120, 160, cv.CV_32F, new cv.Scalar(1 / 10));
             cv.multiply(mat, scale, mat);
-            cv.add(mat, offset, mat);
             mat.convertTo(mat, cv.CV_8UC1);
-            const planes = new cv.MatVector();
-            const mergedHSV = new cv.MatVector();
-            cv.split(mat, planes);
-            const H = planes.get(0);
-            const S = new cv.Mat(120, 160, cv.CV_8U, new cv.Scalar(255));
-            const V = new cv.Mat(120, 160, cv.CV_8U, new cv.Scalar(255));
-            mergedHSV.push_back(H);
-            mergedHSV.push_back(S);
-            mergedHSV.push_back(V);
-            cv.merge(mergedHSV, mat);
-            cv.cvtColor(mat, mat, cv.COLOR_HSV2RGB, 0);
+            optCv.applyColorMap(mat, mat, ColormapTypes.COLORMAP_RAINBOW);
             cv.resize(mat, resizeMat, resizeMat.size(), 0, 0);
             cv.imshow(canvas, resizeMat);
             mat.delete();
             resizeMat.delete();
-            mergedHSV.delete();
-            H.delete(); S.delete(); V.delete();
-            planes.delete();
             return {
                 dataUrl: canvas.toDataURL(), pixelConverter: (x, y) => {
                     if (x < 0) x = 0;
