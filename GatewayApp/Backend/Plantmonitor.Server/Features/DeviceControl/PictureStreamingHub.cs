@@ -4,7 +4,6 @@ using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using System.Collections.Concurrent;
-using System.Globalization;
 using System.Threading.Channels;
 
 namespace Plantmonitor.Server.Features.DeviceControl

@@ -13,6 +13,7 @@
     let currentTime: Date | undefined;
     let lastPointerPosition: MouseEvent | undefined;
     let tooltip: TooltipCreatorResult | undefined;
+    const irImageBytes = 120 * 160 * 4;
     let pixelConverter: ((x: number, y: number) => number) | undefined;
     export let firstImageReceived = false;
     export let firstDataReceived = false;
@@ -33,7 +34,8 @@
             currentTime = date;
             if (type == CameraType.IR) {
                 temperature = temperatureInK.kelvinToCelsius();
-                const convertedImage = cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer()));
+                const convertedImage =
+                    data.size == irImageBytes ? cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer())) : {};
                 pixelConverter = convertedImage.pixelConverter;
                 image.src = convertedImage.dataUrl ?? "";
                 updateTooltip();
@@ -60,7 +62,8 @@
             currentTime = date;
             if (type == CameraType.IR) {
                 temperature = temperatureInK.kelvinToCelsius();
-                const convertedImage = cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer()));
+                const convertedImage =
+                    data.size == irImageBytes ? cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer())) : {};
                 pixelConverter = convertedImage.pixelConverter;
                 image.src = convertedImage.dataUrl ?? "";
                 updateTooltip();

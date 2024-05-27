@@ -5,7 +5,7 @@ namespace PlantMonitorControl.Features.ImageTaking;
 public interface IFileStreamingReader
 {
     Task<FileInfo> ReadNextFile(string imagePath, int counter, CameraTypeInfo cameraInfo, CancellationToken token);
-
+    Task<FileInfo> ReadFromFile(CameraTypeInfo cameraInfo, string currentPath, CancellationToken token);
     Task<FileInfo> ReadNextFileWithSkipping(string imagePath, int counter, int howManyMoreRecentImagesMayExist, CameraTypeInfo cameraInfo, CancellationToken token);
 }
 
@@ -38,11 +38,18 @@ public class FileStreamingReader : IFileStreamingReader
     {
         var currentPath = Directory.GetFiles(imagePath, $"{counter.ToString(CounterFormat)}*{cameraInfo.FileEnding}").FirstOrDefault();
         if (currentPath == null || Directory.GetFiles(imagePath, $"{(counter + 1).ToString(CounterFormat)}*{cameraInfo.FileEnding}").Length == 0) return new(default, counter, default, default);
+        var result = await ReadFromFile(cameraInfo, currentPath, token);
+        result.NewCounter = ++counter;
+        return result;
+    }
+
+    public async Task<FileInfo> ReadFromFile(CameraTypeInfo cameraInfo, string currentPath, CancellationToken token)
+    {
         int temperatureInK = default;
         var bytesToSend = cameraInfo.FileEnding == s_irEnding ? currentPath.GetBytesFromIrFilePath(out temperatureInK) : await File.ReadAllBytesAsync(currentPath, token);
         var creationTime = File.GetCreationTimeUtc(currentPath);
         File.Delete(currentPath);
-        return new(creationTime, counter + 1, bytesToSend, temperatureInK);
+        return new(creationTime, 0, bytesToSend, temperatureInK);
     }
 
     private static int SkipFiles(string imagePath, int counter, int skipCounter, CameraTypeInfo cameraInfo)

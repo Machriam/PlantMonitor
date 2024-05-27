@@ -59,14 +59,13 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (step: number, date: Date, image: string, temperature: number) => Promise<void>) => {
+            start: async (callback: (step: number, date: Date, image: Blob, temperature: number) => Promise<void>) => {
                 await connection.start();
                 connection.stream("StreamPictureSeries", device, sequenceId).subscribe({
                     next: async (x) => {
                         const payload = x as IReplayedPicture;
                         const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
-                        const imageUrl = await blob.asBase64Url();
-                        await callback(payload.Steps, payload.Timestamp, imageUrl, payload.TemperatureInK);
+                        await callback(payload.Steps, payload.Timestamp, blob, payload.TemperatureInK.kelvinToCelsius());
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)
