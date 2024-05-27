@@ -23,6 +23,8 @@ export class CvInterop {
             cv.resize(mat, resizeMat, resizeMat.size(), 0, 0);
             cv.imshow(canvas, resizeMat);
             mat.delete();
+            baselineMat.delete();
+            scale.delete();
             resizeMat.delete();
             return {
                 dataUrl: canvas.toDataURL(), pixelConverter: (x, y) => {
