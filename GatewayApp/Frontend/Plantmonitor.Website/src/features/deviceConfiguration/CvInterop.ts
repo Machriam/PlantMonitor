@@ -32,6 +32,7 @@ export class CvInterop {
                     if (y < 0) y = 0;
                     if (y > 480) y = 480;
                     if (x > 640) x = 640;
+                    if (source.length < 120 * 160) return -9999;
                     const result = source[Math.floor(x / 4) + Math.floor(y / 4) * 160].kelvinToCelsius();
                     return result;
                 }

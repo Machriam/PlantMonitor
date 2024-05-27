@@ -20,7 +20,7 @@ export class TooltipCreator {
         const content = document.getElementsByClassName("content");
         window.addEventListener("scroll", onScroll);
         content[0].appendChild(element);
-        element.setAttribute("value", "5505");
+        element.setAttribute("value", "NA");
         element.setAttribute("label", label);
         element.setAttribute("left", event.clientX - 20 + "");
         element.setAttribute("top", event.clientY - 40 + "");

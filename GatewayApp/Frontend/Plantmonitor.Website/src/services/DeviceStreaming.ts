@@ -3,6 +3,7 @@ import * as signalR from "@microsoft/signalr";
 import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 import { Constants } from "~/Constants";
 import { CameraType, StreamingMetaData } from "./GatewayAppApi";
+import type { IRetryPolicy } from "@microsoft/signalr";
 
 export interface IReplayedPicture {
     Timestamp: Date;
@@ -16,11 +17,18 @@ export class DeviceStreamingData {
     storeData = false;
     positionsToStream: number[] = [];
 }
+export class RetryPolicy implements IRetryPolicy {
+    nextRetryDelayInMilliseconds(): number | null {
+        return 200;
+    }
+
+}
 export class DeviceStreaming {
     buildVideoConnection(device: string, type: CameraType, data = new DeviceStreamingData()) {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${url}/hub/video`, { withCredentials: false })
+            .withAutomaticReconnect(new RetryPolicy())
             .withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
             .build();
         return {
@@ -46,6 +54,7 @@ export class DeviceStreaming {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${url}/hub/video`, { withCredentials: false })
+            .withAutomaticReconnect(new RetryPolicy())
             .withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
             .build();
         return {

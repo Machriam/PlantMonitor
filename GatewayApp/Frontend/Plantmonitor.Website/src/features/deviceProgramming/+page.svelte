@@ -1,7 +1,6 @@
 <script lang="ts">
     "@hmr:keep-all";
     import {onDestroy, onMount} from "svelte";
-    import {DeviceStreaming} from "~/services/DeviceStreaming";
     import {calculateMoveTo, stepsToReach} from "~/services/movementPointExtensions";
     import {
         CameraType,
@@ -9,18 +8,16 @@
         DeviceHealthState,
         DeviceMovement,
         MovementPoint,
-        MovementProgrammingClient,
-        PictureClient
+        MovementProgrammingClient
     } from "~/services/GatewayAppApi";
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
     import TextInput from "../reuseableComponents/TextInput.svelte";
-    import type {HubConnection} from "@microsoft/signalr";
     import {Task} from "~/types/task";
-    import {dev} from "$app/environment";
     import {selectedDevice} from "../store";
-    let videoCanvasId = crypto.randomUUID();
+    import PictureStreamer from "./PictureStreamer.svelte";
     let previewEnabled = false;
-    let hubconnection: HubConnection | undefined;
+    let visStreamer: PictureStreamer;
+    let irStreamer: PictureStreamer;
     let selectedDeviceData: DeviceHealthState | undefined;
     let moveSteps = 100;
     let currentlyMoving = false;
@@ -39,7 +36,8 @@
     });
     onDestroy(async () => {
         cancelSubscription();
-        await hubconnection?.stop();
+        await irStreamer?.stopStreaming();
+        await visStreamer?.stopStreaming();
     });
     async function onDeviceSelected(device: DeviceHealthState) {
         if (previewEnabled) return;
@@ -53,7 +51,8 @@
     }
     async function stopPreview() {
         if (selectedDeviceData?.ip == undefined) return;
-        await hubconnection?.stop();
+        await irStreamer?.stopStreaming();
+        await visStreamer?.stopStreaming();
         previewEnabled = false;
     }
     async function move(steps: number) {
@@ -94,7 +93,11 @@
             const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition);
             await move(stepsToMove);
             const stepCountAfterMove = step[stepsToReach](movementPlan.movementPlan.stepPoints);
-            while (currentPosition != stepCountAfterMove) await Task.delay(100);
+            while (stepCountAfterMove != visStreamer.currentPosition || stepCountAfterMove != irStreamer.currentPosition) {
+                currentPosition = irStreamer.currentPosition;
+                await Task.delay(100);
+            }
+            currentPosition = stepCountAfterMove;
             await Task.delay(1000);
         }
         currentlyMoving = false;
@@ -104,45 +107,19 @@
         let positionsToReach = movementPlan.movementPlan.stepPoints.map((sp) =>
             sp[stepsToReach](movementPlan.movementPlan.stepPoints)
         );
-        const connection = new DeviceStreaming().buildVideoConnection(selectedDeviceData.ip, CameraType.Vis, {
-            focusInMeter: defaultFocus / 100,
-            storeData: true,
-            positionsToStream: positionsToReach,
-            sizeDivider: 1
-        });
-        await hubconnection?.stop();
-        hubconnection = connection.connection;
-        let firstImageReceived = false;
-        connection.start(async (step, data, date) => {
-            const image = document.getElementById(videoCanvasId) as HTMLImageElement;
-            currentPosition = step;
-            currentTime = date;
-            firstImageReceived = true;
-            image.src = await data.asBase64Url();
-        });
+        visStreamer.storeDataStream(positionsToReach, selectedDeviceData.ip, CameraType.Vis, defaultFocus);
+        irStreamer.storeDataStream(positionsToReach, selectedDeviceData.ip, CameraType.IR, defaultFocus);
         previewEnabled = true;
-        while (!firstImageReceived) await Task.delay(100);
+        while (!visStreamer.firstDataReceived || !irStreamer.firstDataReceived) await Task.delay(100);
         await moveToAll();
         const pictureClient = new DeviceClient();
         await pictureClient.killCamera(selectedDeviceData?.ip, CameraType.Vis);
+        await pictureClient.killCamera(selectedDeviceData?.ip, CameraType.IR);
     }
     async function showPreview() {
         if (selectedDeviceData?.ip == undefined) return;
-        const connection = new DeviceStreaming().buildVideoConnection(selectedDeviceData.ip, CameraType.Vis, {
-            focusInMeter: defaultFocus / 100,
-            storeData: false,
-            positionsToStream: [],
-            sizeDivider: dev ? 8 : 4
-        });
-
-        await hubconnection?.stop();
-        hubconnection = connection.connection;
-        connection.start(async (step, data, date) => {
-            const image = document.getElementById(videoCanvasId) as HTMLImageElement;
-            currentPosition = step;
-            currentTime = date;
-            image.src = await data.asBase64Url();
-        });
+        visStreamer.showPreview(selectedDeviceData.ip, CameraType.Vis, defaultFocus);
+        irStreamer.showPreview(selectedDeviceData.ip, CameraType.IR, defaultFocus);
         previewEnabled = true;
     }
 </script>
@@ -150,10 +127,7 @@
 <div class="col-md-12 row">
     <div class="col-md-4 colm-2 row">
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>
-        <div class="col-md-6 d-flex flex-column">
-            <div>Current Position: {currentPosition}</div>
-            <div>Image Time: {currentTime?.toTimeString()}</div>
-        </div>
+        <div class="col-md-12"></div>
         {#if previewEnabled}
             <button on:click={async () => await stopPreview()} class="btn btn-danger col-md-8">Stop Preview</button>
             <NumberInput bind:value={moveSteps} label="Move Steps"></NumberInput>
@@ -227,9 +201,8 @@
     </div>
     <div class="col-md-8 colm-3">
         <div style="height: 50vh;width:50vw;">
-            {#if previewEnabled}
-                <img style="height: 100%;width:100%" alt="preview" id={videoCanvasId} />
-            {/if}
+            <PictureStreamer bind:this={visStreamer}></PictureStreamer>
+            <PictureStreamer bind:this={irStreamer}></PictureStreamer>
         </div>
     </div>
 </div>
