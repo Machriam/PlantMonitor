@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using NSubstitute;
+using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.MotorMovement;
 using System;
 using Xunit;
@@ -14,7 +15,7 @@ namespace PlantMonitorControl.Tests.Features.MotorMovement
 
         private MotorPositionCalculator CreateMotorPositionCalculator()
         {
-            return new MotorPositionCalculator();
+            return new MotorPositionCalculator(Substitute.For<IEnvironmentConfiguration>());
         }
 
         [Fact]
