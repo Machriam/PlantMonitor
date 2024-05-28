@@ -27,10 +27,10 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
         {
             var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, ip);
-            var channel = Channel.CreateBounded<TemperatureStreamData>(new BoundedChannelOptions(1)
+            var channel = Channel.CreateBounded<TemperatureStreamData>(new BoundedChannelOptions(100)
             {
                 AllowSynchronousContinuations = false,
-                FullMode = BoundedChannelFullMode.DropWrite,
+                FullMode = BoundedChannelFullMode.DropOldest,
                 SingleReader = true,
                 SingleWriter = true,
             });

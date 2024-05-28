@@ -49,6 +49,11 @@
 				<span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Replay Pictures
 			</a>
 		</div>
+		<div class="nav-item px-3">
+			<a class="nav-link" href="temperatureMonitoring">
+				<span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Temperature Monitoring
+			</a>
+		</div>
 	</nav>
 </div>
 
