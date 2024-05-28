@@ -1,5 +1,4 @@
-﻿using System.Device.Gpio;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
@@ -84,5 +83,4 @@ public class DevelopMotorPositionCalculator : IMotorPositionCalculator
     {
         lock (s_lock) return s_currentPosition;
     }
-
 }

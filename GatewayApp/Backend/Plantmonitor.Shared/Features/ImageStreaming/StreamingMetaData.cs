@@ -1,6 +1,7 @@
 ﻿using System.Runtime.Serialization;
 
 namespace Plantmonitor.Shared.Features.ImageStreaming;
+
 [AttributeUsage(AttributeTargets.Field)]
 public class CameraTypeInfo : Attribute
 {
