@@ -2,7 +2,7 @@ import { dev } from "$app/environment";
 import * as signalR from "@microsoft/signalr";
 import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 import { Constants } from "~/Constants";
-import { CameraType, StreamingMetaData } from "./GatewayAppApi";
+import { CameraType, StreamingMetaData, type ITemperatureStreamData } from "./GatewayAppApi";
 import type { IRetryPolicy } from "@microsoft/signalr";
 
 export interface IReplayedPicture {
@@ -24,7 +24,7 @@ export class RetryPolicy implements IRetryPolicy {
 
 }
 export class DeviceStreaming {
-    buildVideoConnection(device: string, type: CameraType, data = new DeviceStreamingData()) {
+    buildVideoConnection(ip: string, type: CameraType, data = new DeviceStreamingData()) {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${url}/hub/video`, { withCredentials: false })
@@ -38,11 +38,33 @@ export class DeviceStreaming {
                 connection.stream("StreamPictures", new StreamingMetaData({
                     distanceInM: data.focusInMeter,
                     positionsToStream: data.positionsToStream, quality: 100, resolutionDivider: data.sizeDivider, storeData: data.storeData, type: CameraType[type]
-                }).toJSON(), device).subscribe({
+                }).toJSON(), ip).subscribe({
                     next: async (x) => {
                         const payload = x as IReplayedPicture;
                         const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
                         await callback(payload.Steps, blob, payload.Timestamp, payload.TemperatureInK);
+                    },
+                    complete: () => console.log("complete"),
+                    error: (x) => console.log(x)
+                });
+            }
+        };
+    };
+    temperatureConnection(ip: string, deviceIds: string[]) {
+        const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(`${url}/hub/temperatures`, { withCredentials: false })
+            .withAutomaticReconnect(new RetryPolicy())
+            .withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
+            .build();
+        return {
+            connection: connection,
+            start: async (callback: (temperatureInC: number, device: string, time: Date) => Promise<void>) => {
+                await connection.start();
+                connection.stream("StreamTemperature", deviceIds, ip).subscribe({
+                    next: async (x) => {
+                        const payload = x as ITemperatureStreamData;
+                        await callback(payload.temperatureInC, payload.device, payload.time);
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)

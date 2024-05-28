@@ -7,10 +7,17 @@ public interface IDeviceApiFactory
     IIrImageTakingClient IrImageTakingClient(string ip);
 
     IMotorMovementClient MovementClient(string ip);
+
+    ITemperatureClient TemperatureClient(string ip);
 }
 
 public class DeviceApiFactory : IDeviceApiFactory
 {
+    public ITemperatureClient TemperatureClient(string ip)
+    {
+        return new TemperatureClient($"https://{ip}");
+    }
+
     public IIrImageTakingClient IrImageTakingClient(string ip)
     {
         return new IrImageTakingClient($"https://{ip}");

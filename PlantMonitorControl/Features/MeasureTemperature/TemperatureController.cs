@@ -11,4 +11,10 @@ public class TemperatureController(IClick2TempInterop clickInterop) : Controller
     {
         return clickInterop.GetDevices();
     }
+
+    [HttpGet("stopmeasuring")]
+    public void StopMeasuring()
+    {
+        clickInterop.StopRunning();
+    }
 }
