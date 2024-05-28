@@ -56,6 +56,7 @@
         hubConnection?.stop();
         hubConnection = connection.connection;
         connection.start(async (step, data, date, temperatureInK) => {
+            if (hubConnection == undefined) return;
             const image = document.getElementById(canvasId) as HTMLImageElement;
             firstDataReceived = true;
             currentPosition = step;
@@ -74,8 +75,9 @@
             if (!image.src.isEmpty()) firstImageReceived = true;
         });
     };
-    export const stopStreaming = async function () {
-        await hubConnection?.stop();
+    export const stopStreaming = function () {
+        hubConnection?.stop();
+        hubConnection = undefined;
         tooltip?.dispose();
         tooltip = undefined;
     };

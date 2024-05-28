@@ -23,7 +23,6 @@
     let currentlyMoving = false;
     let removeSteps = false;
     let currentPosition: number | undefined;
-    let currentTime: Date | undefined;
     let movementPlan = new DeviceMovement();
     let defaultFocus = 100;
     let newStep = new MovementPoint({focusInCentimeter: defaultFocus, speed: 200, stepOffset: 500, comment: ""});
@@ -34,10 +33,10 @@
         if (x == undefined) return;
         onDeviceSelected(x);
     });
-    onDestroy(async () => {
+    onDestroy(() => {
         cancelSubscription();
-        await irStreamer?.stopStreaming();
-        await visStreamer?.stopStreaming();
+        irStreamer?.stopStreaming();
+        visStreamer?.stopStreaming();
     });
     async function onDeviceSelected(device: DeviceHealthState) {
         if (previewEnabled) return;

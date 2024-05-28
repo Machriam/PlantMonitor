@@ -73,6 +73,7 @@
             currentImage = currentImage + 1;
         }
         selectedImage = images[currentImage];
+        updateTooltip();
     }
     function updateTooltip() {
         if (selectedImage?.pixelConverter == null || tooltip == undefined || lastPointerPosition == null) return;
@@ -116,8 +117,8 @@
                     lastPointerPosition = x;
                     updateTooltip();
                 }}
-                alt=""
-                style="width: 100%;"
+                alt="preview"
+                width={selectedImage.pixelConverter == undefined ? "100%" : ""}
                 src={selectedImage?.imageUrl} />
             <div>{selectedImage.date.toLocaleTimeString()}</div>
             <div>Position: {selectedImage.stepCount}</div>
