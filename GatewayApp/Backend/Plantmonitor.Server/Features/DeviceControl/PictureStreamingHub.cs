@@ -4,7 +4,6 @@ using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using System.Collections.Concurrent;
-using System.Globalization;
 using System.Threading.Channels;
 
 namespace Plantmonitor.Server.Features.DeviceControl
@@ -12,13 +11,14 @@ namespace Plantmonitor.Server.Features.DeviceControl
     public class PictureStreamingHub(IEnvironmentConfiguration configuration, ILogger<PictureStreamingHub> logger, IDeviceApiFactory factory,
         IDeviceConnectionEventBus deviceConnections) : Hub
     {
-        private static readonly ConcurrentDictionary<string, string> s_ipByConnectionId = new();
+        private static readonly ConcurrentDictionary<string, (string Ip, StreamingMetaData Device)> s_ipByConnectionId = new();
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            if (s_ipByConnectionId.TryGetValue(Context.ConnectionId, out var ip))
+            if (s_ipByConnectionId.TryGetValue(Context.ConnectionId, out var data))
             {
-                await factory.VisImageTakingClient(ip).KillcameraAsync();
+                if (data.Device.GetCameraType() == CameraType.IR) await factory.IrImageTakingClient(data.Ip).KillcameraAsync();
+                else await factory.VisImageTakingClient(data.Ip).KillcameraAsync();
             };
             await base.OnDisconnectedAsync(exception);
         }
@@ -26,7 +26,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
         public async Task<ChannelReader<CameraStreamData>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
         {
             var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
-            s_ipByConnectionId.TryAdd(Context.ConnectionId, ip);
+            s_ipByConnectionId.TryAdd(Context.ConnectionId, (ip, data));
             var picturePath = data.StoreData ? configuration.PicturePath(deviceId) : "";
             var channel = Channel.CreateBounded<CameraStreamData>(new BoundedChannelOptions(1)
             {

@@ -23,18 +23,19 @@ builder.Configuration
 
 var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
-builder.Services.AddSingleton<IMotorPositionCalculator, MotorPositionCalculator>();
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
 builder.Services.AddTransient<IFileStreamingReader, FileStreamingReader>();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopVisCameraInterop>(ICameraInterop.VisCamera);
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopIrCameraInterop>(ICameraInterop.IrCamera);
+    builder.Services.AddSingleton<IMotorPositionCalculator, DevelopMotorPositionCalculator>();
 }
 else
 {
     builder.Services.AddKeyedTransient<ICameraInterop, RaspberryCameraInterop>(ICameraInterop.VisCamera);
     builder.Services.AddKeyedTransient<ICameraInterop, FlirLeptonCameraInterop>(ICameraInterop.IrCamera);
+    builder.Services.AddSingleton<IMotorPositionCalculator, MotorPositionCalculator>();
 }
 builder.Services.AddCors(options =>
 {

@@ -78,8 +78,11 @@ def main():
 
       counter=0
       try:
-        data = q.get(True, 500)
+        data = q.get(True, 5)
         np.savetxt(f"{streamFolder}/{counter:06}.rawir",data,fmt="%d")
+      except Exception as e:
+        print("Did not get any images for 5 seconds")
+        print(repr(e))
       finally:
         libuvc.uvc_stop_streaming(devh)
 

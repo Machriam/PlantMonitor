@@ -14,9 +14,7 @@
     import {CvInterop, ThermalImage} from "./CvInterop";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
-    import {DeviceStreaming as DeviceStreamingApi, DeviceStreamingData} from "~/services/DeviceStreaming";
-    import type {HubConnection} from "@microsoft/signalr";
-    import {TooltipCreator, TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
+    import PictureStreamer from "../deviceProgramming/PictureStreamer.svelte";
 
     const videoCanvasId = "videoCanvasId";
     let configurationData: {ipFrom: string; ipTo: string; userName: string; userPassword: string} = {
@@ -28,10 +26,7 @@
     let configurationClient: DeviceConfigurationClient;
     let devices: DeviceHealthState[] = [];
     let previewImage = new ThermalImage();
-    let frameCounter = 0;
-    let tooltip: TooltipCreatorResult | undefined;
-    let lastReadTemperature = 0;
-    let hubConnection: HubConnection | undefined;
+    let pictureStreamer: PictureStreamer;
 
     let searchingForDevices = true;
     let webSshLink = ""; // @hmr:keep
@@ -50,7 +45,7 @@
         searchingForDevices = false;
     });
     onDestroy(async () => {
-        await hubConnection?.stop();
+        await pictureStreamer?.stopStreaming();
     });
     async function openConsole(ip: string | undefined): Promise<void> {
         if (ip == undefined) return;
@@ -93,31 +88,13 @@
     }
     async function showThermalVideo(device: string | undefined) {
         if (device == undefined) return;
-        let data = new DeviceStreamingData();
-        const connection = new DeviceStreamingApi().buildVideoConnection(device, CameraType.IR, data);
-        await hubConnection?.stop();
-        hubConnection = connection.connection;
-        const imageElement = document.getElementById(videoCanvasId) as HTMLImageElement;
-        const cvInterop = new CvInterop();
-        connection.start(async (_1, image, _2, temperatureInK) => {
-            frameCounter++;
-            lastReadTemperature = temperatureInK.kelvinToCelsius();
-            const imageUrl = cvInterop.thermalDataToImage(new Uint32Array(await image.arrayBuffer()));
-            imageElement.src = imageUrl.dataUrl ?? "";
-        });
+        pictureStreamer.stopStreaming();
+        pictureStreamer.showPreview(device, CameraType.IR, 1);
     }
     async function showTestVideo(device: string | undefined) {
         if (device == undefined) return;
-        const connection = new DeviceStreamingApi().buildVideoConnection(device, CameraType.Vis);
-        await hubConnection?.stop();
-        hubConnection = connection.connection;
-        const cvInterop = new CvInterop();
-        const image = document.getElementById(videoCanvasId) as HTMLImageElement;
-        const videoDisplayFunction = cvInterop.displayVideoBuilder(image);
-        connection.start(async (_, image) => {
-            frameCounter++;
-            await videoDisplayFunction(image);
-        });
+        pictureStreamer.stopStreaming();
+        pictureStreamer.showPreview(device, CameraType.Vis, 1);
     }
     async function updateIpRange() {
         const client = new AppConfigurationClient();
@@ -161,7 +138,6 @@
             Found devices:
         {/if}
     </h3>
-    <div>{frameCounter}, Camera Temp: {lastReadTemperature}°C</div>
     <div class="col-md-6">
         {#each devices as device}
             <table class="table">
@@ -206,28 +182,7 @@
         <button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
     </div>
     <div class="col-md-6">
-        <div class="col-md-12">
-            {#if !previewImage.dataUrl?.isEmpty()}
-                <img
-                    on:mouseenter={(x) => {
-                        if (tooltip != undefined) return;
-                        tooltip = TooltipCreator.CreateTooltip("", x);
-                    }}
-                    on:mouseleave={() => {
-                        if (tooltip == undefined) return;
-                        tooltip.dispose();
-                        tooltip = undefined;
-                    }}
-                    on:pointermove={(x) => {
-                        if (previewImage.pixelConverter == null || tooltip == undefined) return;
-                        const value = previewImage.pixelConverter(x.offsetX, x.offsetY);
-                        tooltip.updateFunction(x, value.toFixed(2) + " °C");
-                    }}
-                    alt="Preview"
-                    src={previewImage.dataUrl} />
-            {/if}
-        </div>
-        <div class="col-md-12"><img alt="Video" id={videoCanvasId} /></div>
+        <PictureStreamer bind:this={pictureStreamer}></PictureStreamer>
         <div class="col-md-12" style="height:80vh;">
             {#if !webSshLink.isEmpty()}
                 <iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>

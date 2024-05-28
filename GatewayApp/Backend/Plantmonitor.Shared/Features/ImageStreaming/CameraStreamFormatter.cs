@@ -27,13 +27,6 @@ public class CameraStreamFormatter
     public int TemperatureInK { get; set; }
     public byte[]? PictureData { get; set; }
 
-    public void WriteToFile(string basePath, CameraTypeInfo cameraInfo)
-    {
-        File.WriteAllBytes(Path.Combine(basePath, $"{Timestamp.ToUniversalTime().ToString(PictureDateFormat)}_{Steps}_{TemperatureInK}{cameraInfo.FileEnding}"), PictureData ?? []);
-    }
-
-    private static readonly HashSet<string> s_validFiles = Enum.GetValues<CameraType>().Cast<CameraType>().Select(c => c.Attribute<CameraTypeInfo>().FileEnding).ToHashSet();
-
     public static bool FromFile(string path, out CameraStreamFormatter result)
     {
         result = new();
@@ -51,15 +44,14 @@ public class CameraStreamFormatter
         return true;
     }
 
-    public CameraStreamFormatter TemperatureFromFileName(string fileName)
+    public void WriteToFile(string basePath, CameraTypeInfo cameraInfo)
     {
-        var temperatureText = Path.GetFileNameWithoutExtension(fileName).Split('_');
-        if (temperatureText.Length > 1 && int.TryParse(temperatureText[1], out var temperature)) TemperatureInK = temperature;
-        return this;
+        File.WriteAllBytes(Path.Combine(basePath, $"{Timestamp.ToUniversalTime().ToString(PictureDateFormat)}_{Steps}_{TemperatureInK}{cameraInfo.FileEnding}"), PictureData ?? []);
     }
-
     public byte[] GetBytes()
     {
         return [.. BitConverter.GetBytes(Steps), .. BitConverter.GetBytes(Timestamp.Ticks), .. BitConverter.GetBytes(TemperatureInK), .. PictureData];
     }
+
+    private static readonly HashSet<string> s_validFiles = Enum.GetValues<CameraType>().Cast<CameraType>().Select(c => c.Attribute<CameraTypeInfo>().FileEnding).ToHashSet();
 }

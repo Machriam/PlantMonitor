@@ -26,6 +26,14 @@ rpicam-raw -n -t 5000 --segment 1 -o test_%04d.raw --mode 4608:2592:10:P --brigh
 - https://learn.sparkfun.com/tutorials/flir-lepton-hookup-guide/all --> Not working (SPI of board faulty?)
 - https://github.com/groupgets/purethermal1-uvc-capture Showing images with Guvcview working on bookworm --> https://github.com/jaswdr/guvcview
 - https://github.com/groupgets/purethermal1-firmware Firmware can be modified to change the behaviour of the camera
+- https://www.youtube.com/watch?v=eAxDrWSUIRc --> Mechanical information of how to assemble Flir Lepton
+
+#### Assembly Information
+<img src="../Documents/MountingOptions.png">
+<img src="../Documents/EnsuringShutterOperation.png">
+<img src="../Documents/LeptonAssembly.png">
+<img src="../Documents/PoronFoamShutter.png">
+<img src="../Documents/WhichPoronFoam.png">
 
 #### Actual Implementation
 
