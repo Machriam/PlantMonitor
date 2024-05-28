@@ -5,6 +5,7 @@ using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Server.Features.RestApiFilter;
+using Plantmonitor.Server.Features.TemperatureMonitor;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using Serilog;
 
@@ -52,6 +53,7 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddOpenApiDocument(options =>
 {
     options.DocumentProcessors.Add(new AddAdditionalTypeProcessor<StreamingMetaData>());
+    options.DocumentProcessors.Add(new AddAdditionalTypeProcessor<TemperatureStreamData>());
 
     options.PostProcess = document =>
     {
@@ -101,6 +103,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<PictureStreamingHub>("/hub/video");
+app.MapHub<TemperatureStreamingHub>("/hub/temperatures");
 
 app.Run();
 

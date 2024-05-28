@@ -1,6 +1,4 @@
-﻿using Iot.Device.Card.Ultralight;
-using Microsoft.Extensions.Configuration;
-using PlantMonitorControl.Features.AppsettingsConfiguration;
+﻿using PlantMonitorControl.Features.AppsettingsConfiguration;
 using System.Device.Gpio;
 using System.Diagnostics;
 
@@ -19,7 +17,9 @@ public interface IMotorPositionCalculator
     int StepForTime(long time);
 
     void ResetHistory();
+
     void MoveMotor(int steps, int minTime, int maxTime, int rampLength);
+
     void ToggleMotorEngage(bool shouldEngage);
 }
 

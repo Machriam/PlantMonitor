@@ -1,6 +1,7 @@
 ﻿using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.HealthChecking;
 using PlantMonitorControl.Features.ImageTaking;
+using PlantMonitorControl.Features.MeasureTemperature;
 using PlantMonitorControl.Features.MotorMovement;
 using Serilog;
 using System.Runtime.InteropServices;
@@ -30,12 +31,14 @@ if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopVisCameraInterop>(ICameraInterop.VisCamera);
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopIrCameraInterop>(ICameraInterop.IrCamera);
     builder.Services.AddSingleton<IMotorPositionCalculator, DevelopMotorPositionCalculator>();
+    builder.Services.AddTransient<IClick2TempInterop, DevelopClick2TempInterop>();
 }
 else
 {
     builder.Services.AddKeyedTransient<ICameraInterop, RaspberryCameraInterop>(ICameraInterop.VisCamera);
     builder.Services.AddKeyedTransient<ICameraInterop, FlirLeptonCameraInterop>(ICameraInterop.IrCamera);
     builder.Services.AddSingleton<IMotorPositionCalculator, MotorPositionCalculator>();
+    builder.Services.AddTransient<IClick2TempInterop, Click2TempInterop>();
 }
 builder.Services.AddCors(options =>
 {
@@ -83,5 +86,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<StreamingHub>("/hub/video");
+app.MapHub<TemperatureHub>("/hub/temperatures");
 
 app.Run();
