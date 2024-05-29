@@ -64,7 +64,6 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                     await channel.Writer.WaitToWriteAsync(token);
                     await channel.Writer.WriteAsync(bytesToSend.CreateFormatter(stepCount).GetBytes(), token);
                 }
-                File.Delete(file);
             }
         }
     }

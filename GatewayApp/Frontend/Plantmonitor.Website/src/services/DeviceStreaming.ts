@@ -2,7 +2,7 @@ import { dev } from "$app/environment";
 import * as signalR from "@microsoft/signalr";
 import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 import { Constants } from "~/Constants";
-import { CameraType, StreamingMetaData, type ITemperatureStreamData } from "./GatewayAppApi";
+import { CameraType, StreamingMetaData, TemperatureStreamData, type ITemperatureStreamData } from "./GatewayAppApi";
 import type { IRetryPolicy } from "@microsoft/signalr";
 
 export interface IReplayedPicture {
@@ -63,7 +63,7 @@ export class DeviceStreaming {
                 await connection.start();
                 connection.stream("StreamTemperature", deviceIds, ip).subscribe({
                     next: async (x) => {
-                        const payload = x as ITemperatureStreamData;
+                        const payload = TemperatureStreamData.fromJS(x)
                         await callback(payload.temperatureInC, payload.device, payload.time);
                     },
                     complete: () => console.log("complete"),

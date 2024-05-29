@@ -1,6 +1,8 @@
-﻿namespace PlantMonitorControl.Features.MeasureTemperature;
+﻿using System.Globalization;
 
-public class DevelopClick2TempInterop : IClick2TempInterop
+namespace PlantMonitorControl.Features.MeasureTemperature;
+
+public class DevelopClick2TempInterop(ILogger<DevelopClick2TempInterop> logger) : IClick2TempInterop
 {
     private const string CopyToFolder = "./" + nameof(DevelopClick2TempInterop);
     private static bool s_isRunning;
@@ -18,10 +20,17 @@ public class DevelopClick2TempInterop : IClick2TempInterop
         Directory.CreateDirectory(CopyToFolder);
         async Task CopyTask()
         {
-            while (s_isRunning)
+            try
             {
-                await Task.Delay(Random.Shared.Next(200, 1000));
-                File.WriteAllText($"{CopyToFolder}/{counter++:000000}.rawtemp", devices.Select(d => $"{d}: {Random.Shared.NextSingle() * 30f}").Concat("\n"));
+                while (s_isRunning)
+                {
+                    await Task.Delay(Random.Shared.Next(200, 1000));
+                    File.WriteAllText($"{CopyToFolder}/{counter++:000000}.rawtemp", devices.Select(d => $"{d}: {(Random.Shared.NextSingle() * 30f).ToString(CultureInfo.InvariantCulture)}").Concat("\n"));
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("{error}\n{stacktrace}", ex.Message, ex.StackTrace);
             }
         }
         _ = CopyTask();
