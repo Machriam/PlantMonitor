@@ -62,7 +62,7 @@ public class Click2TempInterop(IEnvironmentConfiguration configuration) : IClick
             Arguments = $"{configuration.Temp2ClickPrograms.GetDevices}",
             FileName = configuration.Temp2ClickPrograms.PythonExecutable,
             UseShellExecute = false,
-            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
         };
         var process = new Process() { StartInfo = startInfo };
         process.OutputDataReceived += Process_OutputDataReceived;

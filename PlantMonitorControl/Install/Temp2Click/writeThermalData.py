@@ -18,14 +18,12 @@ def get_temperatures():
             time.sleep(0.1)
             sensor["sensor"].set_config(0x10)
             if sensor["sensor"].get_config() == 0x10:
-                print(f'Continuous mode {hex(sensor["dev"])}: passed')
+                pass
             else:
-                print(f'Continuous mode {hex(sensor["dev"])}: error')
                 continue;
             time.sleep(0.5)
             if sensor["sensor"].adc_complete():
                 temp=sensor["sensor"].get_temp()
-                print('Current temperature value:', temp)
                 sensor["temp"]=temp
         except Exception as e:
             print(f'Error with sensor {hex(sensor["dev"])} {e}')
