@@ -13,6 +13,12 @@ import { GatewayAppApiBase } from './GatewayAppApiBase';
 export interface ITemperatureClient {
 
     getDevices(ip?: string | undefined): Promise<string[]>;
+
+    getRunningMeasurements(): Promise<RunningMeasurement[]>;
+
+    measurements(): Promise<TemperatureMeasurement[]>;
+
+    addMeasurement(info: MeasurementStartInfo): Promise<void>;
 }
 
 export class TemperatureClient extends GatewayAppApiBase implements ITemperatureClient {
@@ -71,6 +77,128 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
             });
         }
         return Promise.resolve<string[]>(null as any);
+    }
+
+    getRunningMeasurements(): Promise<RunningMeasurement[]> {
+        let url_ = this.baseUrl + "/api/Temperature/runningmeasurements";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetRunningMeasurements(_response));
+        });
+    }
+
+    protected processGetRunningMeasurements(response: Response): Promise<RunningMeasurement[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(RunningMeasurement.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RunningMeasurement[]>(null as any);
+    }
+
+    measurements(): Promise<TemperatureMeasurement[]> {
+        let url_ = this.baseUrl + "/api/Temperature/measurements";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processMeasurements(_response));
+        });
+    }
+
+    protected processMeasurements(response: Response): Promise<TemperatureMeasurement[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TemperatureMeasurement.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TemperatureMeasurement[]>(null as any);
+    }
+
+    addMeasurement(info: MeasurementStartInfo): Promise<void> {
+        let url_ = this.baseUrl + "/api/Temperature/addmeasurement";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(info);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processAddMeasurement(_response));
+        });
+    }
+
+    protected processAddMeasurement(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 }
 
@@ -797,6 +925,281 @@ export class AppConfigurationClient extends GatewayAppApiBase implements IAppCon
         }
         return Promise.resolve<void>(null as any);
     }
+}
+
+export class RunningMeasurement implements IRunningMeasurement {
+    ip!: string;
+    measurementId!: number;
+
+    constructor(data?: IRunningMeasurement) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.ip = _data["Ip"];
+            this.measurementId = _data["MeasurementId"];
+        }
+    }
+
+    static fromJS(data: any): RunningMeasurement {
+        data = typeof data === 'object' ? data : {};
+        let result = new RunningMeasurement();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Ip"] = this.ip;
+        data["MeasurementId"] = this.measurementId;
+        return data;
+    }
+
+    clone(): RunningMeasurement {
+        const json = this.toJSON();
+        let result = new RunningMeasurement();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IRunningMeasurement {
+    ip: string;
+    measurementId: number;
+}
+
+export class TemperatureMeasurement implements ITemperatureMeasurement {
+    id!: number;
+    comment!: string;
+    deviceId!: string;
+    startTime!: Date;
+    temperatureMeasurementValues!: TemperatureMeasurementValue[];
+
+    constructor(data?: ITemperatureMeasurement) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.comment = _data["Comment"];
+            this.deviceId = _data["DeviceId"];
+            this.startTime = _data["StartTime"] ? new Date(_data["StartTime"].toString()) : <any>undefined;
+            if (Array.isArray(_data["TemperatureMeasurementValues"])) {
+                this.temperatureMeasurementValues = [] as any;
+                for (let item of _data["TemperatureMeasurementValues"])
+                    this.temperatureMeasurementValues!.push(TemperatureMeasurementValue.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): TemperatureMeasurement {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemperatureMeasurement();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["Comment"] = this.comment;
+        data["DeviceId"] = this.deviceId;
+        data["StartTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
+        if (Array.isArray(this.temperatureMeasurementValues)) {
+            data["TemperatureMeasurementValues"] = [];
+            for (let item of this.temperatureMeasurementValues)
+                data["TemperatureMeasurementValues"].push(item.toJSON());
+        }
+        return data;
+    }
+
+    clone(): TemperatureMeasurement {
+        const json = this.toJSON();
+        let result = new TemperatureMeasurement();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ITemperatureMeasurement {
+    id: number;
+    comment: string;
+    deviceId: string;
+    startTime: Date;
+    temperatureMeasurementValues: TemperatureMeasurementValue[];
+}
+
+export class TemperatureMeasurementValue implements ITemperatureMeasurementValue {
+    id!: number;
+    temperature!: number;
+    timestamp!: Date;
+    measurementFk!: number;
+    measurementFkNavigation!: TemperatureMeasurement;
+
+    constructor(data?: ITemperatureMeasurementValue) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.temperature = _data["Temperature"];
+            this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
+            this.measurementFk = _data["MeasurementFk"];
+            this.measurementFkNavigation = _data["MeasurementFkNavigation"] ? TemperatureMeasurement.fromJS(_data["MeasurementFkNavigation"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): TemperatureMeasurementValue {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemperatureMeasurementValue();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["Temperature"] = this.temperature;
+        data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
+        data["MeasurementFk"] = this.measurementFk;
+        data["MeasurementFkNavigation"] = this.measurementFkNavigation ? this.measurementFkNavigation.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): TemperatureMeasurementValue {
+        const json = this.toJSON();
+        let result = new TemperatureMeasurementValue();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ITemperatureMeasurementValue {
+    id: number;
+    temperature: number;
+    timestamp: Date;
+    measurementFk: number;
+    measurementFkNavigation: TemperatureMeasurement;
+}
+
+export class MeasurementStartInfo implements IMeasurementStartInfo {
+    devices!: MeasurementDevice[];
+    ip!: string;
+
+    constructor(data?: IMeasurementStartInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["Devices"])) {
+                this.devices = [] as any;
+                for (let item of _data["Devices"])
+                    this.devices!.push(MeasurementDevice.fromJS(item));
+            }
+            this.ip = _data["Ip"];
+        }
+    }
+
+    static fromJS(data: any): MeasurementStartInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new MeasurementStartInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.devices)) {
+            data["Devices"] = [];
+            for (let item of this.devices)
+                data["Devices"].push(item.toJSON());
+        }
+        data["Ip"] = this.ip;
+        return data;
+    }
+
+    clone(): MeasurementStartInfo {
+        const json = this.toJSON();
+        let result = new MeasurementStartInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMeasurementStartInfo {
+    devices: MeasurementDevice[];
+    ip: string;
+}
+
+export class MeasurementDevice implements IMeasurementDevice {
+    deviceId!: string;
+    comment!: string;
+
+    constructor(data?: IMeasurementDevice) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.deviceId = _data["DeviceId"];
+            this.comment = _data["Comment"];
+        }
+    }
+
+    static fromJS(data: any): MeasurementDevice {
+        data = typeof data === 'object' ? data : {};
+        let result = new MeasurementDevice();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["DeviceId"] = this.deviceId;
+        data["Comment"] = this.comment;
+        return data;
+    }
+
+    clone(): MeasurementDevice {
+        const json = this.toJSON();
+        let result = new MeasurementDevice();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMeasurementDevice {
+    deviceId: string;
+    comment: string;
 }
 
 export class DeviceMovement implements IDeviceMovement {

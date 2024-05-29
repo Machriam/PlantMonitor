@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Plantmonitor.Shared.Features.ImageStreaming;
+using Plantmonitor.Shared.Features.MeasureTemperature;
 using System.Globalization;
 using System.Threading.Channels;
 

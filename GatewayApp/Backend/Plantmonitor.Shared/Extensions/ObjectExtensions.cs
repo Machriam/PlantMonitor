@@ -16,6 +16,18 @@ public static class ObjectExtensions
         }
     }
 
+    public static async void RunInBackground(this Task task, Action<Exception> exceptionHandler)
+    {
+        try
+        {
+            await task;
+        }
+        catch (Exception ex)
+        {
+            exceptionHandler(ex);
+        }
+    }
+
     public static async ValueTask<string> Try(this ValueTask obj)
     {
         try

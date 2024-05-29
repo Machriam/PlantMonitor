@@ -24,7 +24,7 @@ public interface ICameraInterop
     Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM);
 }
 
-public class RaspberryCameraInterop() : ICameraInterop
+public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
 {
     private const int MaxWidth = 2304;
     private const int MaxHeight = 1296;
@@ -73,9 +73,10 @@ public class RaspberryCameraInterop() : ICameraInterop
         if (Path.Exists(s_tempImagePath)) Directory.Delete(s_tempImagePath, true);
         Directory.CreateDirectory(s_tempImagePath);
         var filePath = Path.Combine(s_tempImagePath, "%06d.jpg");
-        _ = new Process().RunProcess(
+        new Process().RunProcess(
             "rpicam-vid", $"-t 0 -v 0 --width {width} --height {height} --mode 4608:2592 " +
-            $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath}");
+            $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath}")
+            .RunInBackground(ex => logger.LogError("RPI-Cam error: {error}\n{stacktrace}", ex.Message, ex.StackTrace));
         s_cameraIsRunning = true;
         return s_tempImagePath;
     }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Plantmonitor.Shared.Features.ImageStreaming;
+using PlantMonitorControl;
 using PlantMonitorControl.Features.MotorMovement;
 using System.Threading.Channels;
 
@@ -14,7 +15,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         motorPosition.ResetHistory();
         var channel = CreateChannel(data);
         var folder = await irCameraInterop.StreamPictureDataToFolder(data.ResolutionDivider, data.Quality, data.DistanceInM);
-        _ = ReadImagesFromFiles(channel, folder, data, irCameraInterop, token);
+        ReadImagesFromFiles(channel, folder, data, irCameraInterop, token).RunInBackground(ex => ex.LogError());
         return channel.Reader;
     }
 
@@ -23,7 +24,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         motorPosition.ResetHistory();
         var channel = CreateChannel(data);
         var folder = await visCameraInterop.StreamPictureDataToFolder(data.ResolutionDivider, data.Quality, data.DistanceInM);
-        _ = ReadImagesFromFiles(channel, folder, data, visCameraInterop, token);
+        ReadImagesFromFiles(channel, folder, data, visCameraInterop, token).RunInBackground(ex => ex.LogError());
         return channel.Reader;
     }
 

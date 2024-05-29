@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PlantMonitorControl.Features.ImageTaking;
 using System;
@@ -11,7 +12,7 @@ namespace PlantMonitorControl.Tests.Features.ImageTaking
     {
         private FileStreamingReader CreateFileStreamingReader()
         {
-            return new FileStreamingReader();
+            return new FileStreamingReader(Substitute.For<ILogger<FileStreamingReader>>());
         }
 
         [Fact]
