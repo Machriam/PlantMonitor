@@ -60,7 +60,7 @@ public class DevelopIrCameraInterop() : ICameraInterop
                 }
             }
         }
-        _ = CopyFiles();
+        CopyFiles().RunInBackground(ex => ex.LogError());
         return copyToDir;
     }
 }

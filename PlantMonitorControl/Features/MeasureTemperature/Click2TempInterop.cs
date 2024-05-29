@@ -43,7 +43,7 @@ public class Click2TempInterop(IEnvironmentConfiguration configuration) : IClick
                 await Task.Delay(1000);
             }
         }
-        _ = StartProcess();
+        StartProcess().RunInBackground(ex => ex.LogError());
         return s_tempImagePath;
     }
 

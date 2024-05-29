@@ -182,6 +182,9 @@
         <button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
     </div>
     <div class="col-md-6">
+        {#if !previewImage.dataUrl?.isEmpty()}
+            <img alt="preview" src={previewImage.dataUrl} />
+        {/if}
         <PictureStreamer bind:this={pictureStreamer}></PictureStreamer>
         <div class="col-md-12" style="height:80vh;">
             {#if !webSshLink.isEmpty()}

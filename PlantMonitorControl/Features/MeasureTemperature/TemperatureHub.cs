@@ -23,7 +23,7 @@ public class TemperatureHub(IClick2TempInterop clickInterop, ILogger<Temperature
     {
         var path = clickInterop.StartTemperatureReading(devices);
         var channel = CreateChannel();
-        _ = ReadImagesFromFiles(channel, path, token);
+        ReadImagesFromFiles(channel, path, token).RunInBackground(ex => ex.LogError());
         await Task.Yield();
         return channel.Reader;
     }
