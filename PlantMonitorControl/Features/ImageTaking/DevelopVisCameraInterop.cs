@@ -59,7 +59,7 @@ public class DevelopVisCameraInterop() : ICameraInterop
                 }
             }
         }
-        _ = CopyTask();
+        CopyTask().RunInBackground(ex => ex.LogError());
         return copyToDir;
     }
 }

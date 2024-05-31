@@ -15,6 +15,10 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<DeviceMovement> DeviceMovements { get; set; }
 
+    public virtual DbSet<TemperatureMeasurement> TemperatureMeasurements { get; set; }
+
+    public virtual DbSet<TemperatureMeasurementValue> TemperatureMeasurementValues { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ConfigurationDatum>(entity =>
@@ -44,6 +48,35 @@ public partial class DataContext : DbContext
                 .HasColumnType("jsonb")
                 .HasColumnName("movement_plan_json");
             entity.Property(e => e.Name).HasColumnName("name");
+        });
+
+        modelBuilder.Entity<TemperatureMeasurement>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("temperature_measurement_pkey");
+
+            entity.ToTable("temperature_measurement", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Comment).HasColumnName("comment");
+            entity.Property(e => e.DeviceId).HasColumnName("device_id");
+            entity.Property(e => e.StartTime).HasColumnName("start_time");
+        });
+
+        modelBuilder.Entity<TemperatureMeasurementValue>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("temperature_measurement_value_pkey");
+
+            entity.ToTable("temperature_measurement_value", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.MeasurementFk).HasColumnName("measurement_fk");
+            entity.Property(e => e.Temperature).HasColumnName("temperature");
+            entity.Property(e => e.Timestamp).HasColumnName("timestamp");
+
+            entity.HasOne(d => d.MeasurementFkNavigation).WithMany(p => p.TemperatureMeasurementValues)
+                .HasForeignKey(d => d.MeasurementFk)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("temperature_measurement_value_measurement_fk_fkey");
         });
 
         OnModelCreatingPartial(modelBuilder);

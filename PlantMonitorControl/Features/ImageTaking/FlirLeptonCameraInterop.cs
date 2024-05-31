@@ -59,7 +59,7 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
     {
         await KillImageTaking();
         InitializeFolder();
-        _ = new Process().RunProcess(configuration.IRPrograms.StreamData, s_tempImagePath);
+        new Process().RunProcess(configuration.IRPrograms.StreamData, s_tempImagePath).RunInBackground(ex => ex.LogError());
         s_cameraIsRunning = true;
         return s_tempImagePath;
     }

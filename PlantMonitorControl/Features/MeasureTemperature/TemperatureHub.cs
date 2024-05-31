@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Plantmonitor.Shared.Features.ImageStreaming;
+using Plantmonitor.Shared.Features.MeasureTemperature;
 using System.Globalization;
 using System.Threading.Channels;
 
@@ -9,7 +10,7 @@ public class TemperatureHub(IClick2TempInterop clickInterop, ILogger<Temperature
 {
     private static Channel<TemperatureStreamData> CreateChannel()
     {
-        return Channel.CreateBounded<TemperatureStreamData>(new BoundedChannelOptions(1)
+        return Channel.CreateBounded<TemperatureStreamData>(new BoundedChannelOptions(100)
         {
             AllowSynchronousContinuations = false,
             FullMode = BoundedChannelFullMode.Wait,
@@ -22,7 +23,7 @@ public class TemperatureHub(IClick2TempInterop clickInterop, ILogger<Temperature
     {
         var path = clickInterop.StartTemperatureReading(devices);
         var channel = CreateChannel();
-        _ = ReadImagesFromFiles(channel, path, token);
+        ReadImagesFromFiles(channel, path, token).RunInBackground(ex => ex.LogError());
         await Task.Yield();
         return channel.Reader;
     }

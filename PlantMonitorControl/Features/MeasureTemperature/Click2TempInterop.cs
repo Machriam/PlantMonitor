@@ -43,7 +43,7 @@ public class Click2TempInterop(IEnvironmentConfiguration configuration) : IClick
                 await Task.Delay(1000);
             }
         }
-        _ = StartProcess();
+        StartProcess().RunInBackground(ex => ex.LogError());
         return s_tempImagePath;
     }
 
@@ -62,7 +62,7 @@ public class Click2TempInterop(IEnvironmentConfiguration configuration) : IClick
             Arguments = $"{configuration.Temp2ClickPrograms.GetDevices}",
             FileName = configuration.Temp2ClickPrograms.PythonExecutable,
             UseShellExecute = false,
-            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
         };
         var process = new Process() { StartInfo = startInfo };
         process.OutputDataReceived += Process_OutputDataReceived;

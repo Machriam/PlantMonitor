@@ -7,6 +7,7 @@ using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Server.Features.RestApiFilter;
 using Plantmonitor.Server.Features.TemperatureMonitor;
 using Plantmonitor.Shared.Features.ImageStreaming;
+using Plantmonitor.Shared.Features.MeasureTemperature;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -25,7 +26,9 @@ builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>()
 builder.Services.AddTransient<IDatabaseUpgrader, DatabaseUpgrader>();
 builder.Services.AddTransient<IDeviceApiFactory, DeviceApiFactory>();
 builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
+builder.Services.AddTransient<ITemperatureMeasurementWorker, TemperatureMeasurementWorker>();
 builder.Services.AddHostedService<DeviceConnectionWorker>();
+builder.Services.AddHostedService(s => (TemperatureMeasurementWorker)s.GetRequiredService<ITemperatureMeasurementWorker>());
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(environmentConfiguration.DatabaseConnection());
 var dataSource = dataSourceBuilder.Configure().Build();
 builder.Services.AddDbContext<DataContext>(options =>

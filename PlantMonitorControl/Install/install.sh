@@ -3,7 +3,7 @@
 updateComment="# Install Update Applied"
 
 sudo dpkg --configure -a
-sudo apt-get install -y libusb-1.0-0-dev python3-numpy
+sudo apt-get install -y libusb-1.0-0-dev python3-numpy i2c-tools
 
 curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --version latest --verbose 
 
@@ -35,6 +35,7 @@ sudo systemctl start PlantMonitorStart.service
 
 if ! grep -q "$updateComment" "/boot/firmware/config.txt"; then
     echo -e "\n$updateComment\nover_voltage=4\ndtparam=i2c_arm=on\ndtparam=spi=on" | sudo tee -a /boot/firmware/config.txt
+    echo -e "\ni2c-dev" | sudo tee -a /etc/modules
 fi
 sudo dphys-swapfile swapoff
 sudo sed -i 's/CONF_SWAPSIZE=100/CONF_SWAPSIZE=1024/g' /etc/dphys-swapfile

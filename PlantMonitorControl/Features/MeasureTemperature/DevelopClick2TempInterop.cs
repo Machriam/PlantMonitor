@@ -33,7 +33,7 @@ public class DevelopClick2TempInterop(ILogger<DevelopClick2TempInterop> logger) 
                 logger.LogError("{error}\n{stacktrace}", ex.Message, ex.StackTrace);
             }
         }
-        _ = CopyTask();
+        CopyTask().RunInBackground(ex => ex.LogError());
         return CopyToFolder;
     }
 

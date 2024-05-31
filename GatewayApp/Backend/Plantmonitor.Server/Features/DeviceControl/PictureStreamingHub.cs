@@ -4,6 +4,7 @@ using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 
 namespace Plantmonitor.Server.Features.DeviceControl
@@ -40,7 +41,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
                 .AddMessagePackProtocol()
                 .Build();
             await connection.StartAsync(token);
-            _ = StreamData(data, picturePath, channel, connection, token);
+            StreamData(data, picturePath, channel, connection, token).RunInBackground(ex => ex.LogError());
             return channel.Reader;
         }
 
@@ -56,7 +57,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
             var directory = Path.Combine(configuration.PicturePath(deviceId), sequenceId);
             if (!Path.Exists(directory)) throw new Exception($"Path {directory} could not be found");
             var files = Directory.EnumerateFiles(directory).OrderBy(f => f).ToList();
-            _ = StreamFiles(files, channel);
+            StreamFiles(files, channel).RunInBackground(ex => ex.LogError());
             return channel.Reader;
         }
 

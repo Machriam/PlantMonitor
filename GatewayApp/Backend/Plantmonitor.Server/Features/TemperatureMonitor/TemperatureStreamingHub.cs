@@ -4,12 +4,13 @@ using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Shared.Features.ImageStreaming;
+using Plantmonitor.Shared.Features.MeasureTemperature;
 using System.Collections.Concurrent;
 using System.Threading.Channels;
 
 namespace Plantmonitor.Server.Features.TemperatureMonitor
 {
-    public class TemperatureStreamingHub(IEnvironmentConfiguration configuration, ILogger<TemperatureStreamingHub> logger, IDeviceApiFactory factory,
+    public class TemperatureStreamingHub(IEnvironmentConfiguration configuration, IDeviceApiFactory factory,
         IDeviceConnectionEventBus deviceConnections) : Hub
     {
         private static readonly ConcurrentDictionary<string, string> s_ipByConnectionId = new();
@@ -39,7 +40,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
                 .AddMessagePackProtocol()
                 .Build();
             await connection.StartAsync(token);
-            _ = StreamData(channel, connection, devices, token);
+            StreamData(channel, connection, devices, token).RunInBackground(ex => ex.LogError());
             return channel.Reader;
         }
 
@@ -55,7 +56,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
             var directory = Path.Combine(configuration.PicturePath(deviceId), sequenceId);
             if (!Path.Exists(directory)) throw new Exception($"Path {directory} could not be found");
             var files = Directory.EnumerateFiles(directory).OrderBy(f => f).ToList();
-            _ = StreamFiles(files, channel);
+            StreamFiles(files, channel).RunInBackground(ex => ex.LogError());
             return channel.Reader;
         }
 
