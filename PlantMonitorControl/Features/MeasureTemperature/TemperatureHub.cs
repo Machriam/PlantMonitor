@@ -10,7 +10,7 @@ public class TemperatureHub(IClick2TempInterop clickInterop, ILogger<Temperature
 {
     private static Channel<TemperatureStreamData> CreateChannel()
     {
-        return Channel.CreateBounded<TemperatureStreamData>(new BoundedChannelOptions(1)
+        return Channel.CreateBounded<TemperatureStreamData>(new BoundedChannelOptions(100)
         {
             AllowSynchronousContinuations = false,
             FullMode = BoundedChannelFullMode.Wait,

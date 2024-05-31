@@ -35,4 +35,10 @@ public class TemperatureController(IDeviceApiFactory apiFactory, ITemperatureMea
     {
         worker.StartTemperatureMeasurement(info.Devices, info.Ip);
     }
+
+    [HttpPost("stopmeasurement")]
+    public void StopMeasurement(string ip)
+    {
+        worker.StopMeasurement(ip);
+    }
 }

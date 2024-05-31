@@ -19,6 +19,8 @@ export interface ITemperatureClient {
     measurements(): Promise<TemperatureMeasurement[]>;
 
     addMeasurement(info: MeasurementStartInfo): Promise<void>;
+
+    stopMeasurement(ip?: string | undefined): Promise<void>;
 }
 
 export class TemperatureClient extends GatewayAppApiBase implements ITemperatureClient {
@@ -187,6 +189,42 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
     }
 
     protected processAddMeasurement(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    stopMeasurement(ip?: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Temperature/stopmeasurement?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processStopMeasurement(_response));
+        });
+    }
+
+    protected processStopMeasurement(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

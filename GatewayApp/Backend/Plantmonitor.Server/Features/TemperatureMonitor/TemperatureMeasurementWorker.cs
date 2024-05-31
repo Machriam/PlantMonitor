@@ -13,7 +13,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
         void StopMeasurement(string ip);
     }
 
-    public class TemperatureMeasurementWorker(ILogger<TemperatureMeasurementWorker> logger, IServiceProvider serviceProvider) : IHostedService, ITemperatureMeasurementWorker
+    public class TemperatureMeasurementWorker(IServiceScopeFactory scopeFactory) : IHostedService, ITemperatureMeasurementWorker
     {
         private static readonly List<RunningMeasurementInfo> s_runningMeasurements = [];
 
@@ -36,8 +36,11 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
                 .AddMessagePackProtocol()
                 .Build();
             await connection.StartAsync(token.Token);
-            StoreData(connection, ip, devices, token)
-                .RunInBackground(ex => logger.LogError("{error}\n{stacktrace}", ex.Message, ex.StackTrace));
+            StoreData(connection, ip, devices, token).RunInBackground(ex =>
+                {
+                    ex.LogError();
+                    StopMeasurement(ip);
+                });
         }
 
         public void StopMeasurement(string ip)
@@ -53,7 +56,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
 
         private async Task StoreData(HubConnection connection, string ip, MeasurementDevice[] devices, CancellationTokenSource token)
         {
-            using var scope = serviceProvider.CreateScope();
+            using var scope = scopeFactory.CreateScope();
             await using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
             var measurements = devices.Select(d => new TemperatureMeasurement()
             {
@@ -62,8 +65,10 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
                 StartTime = DateTime.UtcNow,
             }).ToList();
             dataContext.TemperatureMeasurements.AddRange(measurements);
+            dataContext.SaveChanges();
             foreach (var measurement in measurements) s_runningMeasurements.Add(new RunningMeasurementInfo(ip, measurement.Id, token));
-            var stream = await connection.StreamAsChannelAsync<TemperatureStreamData>("StreamTemperatureData", devices.Select(d => d.DeviceId), token);
+            var deviceArray = devices.Select(d => d.DeviceId).ToArray() ?? [];
+            var stream = await connection.StreamAsChannelAsync<TemperatureStreamData>("StreamTemperatureData", deviceArray, token.Token);
             while (await stream.WaitToReadAsync(token.Token))
             {
                 await foreach (var measurement in stream.ReadAllAsync(token.Token))

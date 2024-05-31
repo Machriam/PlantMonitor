@@ -76,7 +76,7 @@ public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : IC
         new Process().RunProcess(
             "rpicam-vid", $"-t 0 -v 0 --width {width} --height {height} --mode 4608:2592 " +
             $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath}")
-            .RunInBackground(ex => logger.LogError("RPI-Cam error: {error}\n{stacktrace}", ex.Message, ex.StackTrace));
+            .RunInBackground(ex => ex.LogError("RPI-Cam error"));
         s_cameraIsRunning = true;
         return s_tempImagePath;
     }
