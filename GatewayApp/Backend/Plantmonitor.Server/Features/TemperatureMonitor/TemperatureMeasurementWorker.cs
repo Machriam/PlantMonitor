@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Shared.Features.MeasureTemperature;
+using Serilog;
 
 namespace Plantmonitor.Server.Features.TemperatureMonitor
 {
@@ -73,6 +74,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
             {
                 await foreach (var measurement in stream.ReadAllAsync(token.Token))
                 {
+                    Log.Logger.Information("Received temperature data: {data}", measurement);
                     dataContext.TemperatureMeasurementValues.Add(new TemperatureMeasurementValue()
                     {
                         Temperature = measurement.TemperatureInC,

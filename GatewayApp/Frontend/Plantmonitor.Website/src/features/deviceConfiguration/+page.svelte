@@ -27,6 +27,7 @@
     let devices: DeviceHealthState[] = [];
     let previewImage = new ThermalImage();
     let pictureStreamer: PictureStreamer;
+    let logData = "";
 
     let searchingForDevices = true;
     let webSshLink = ""; // @hmr:keep
@@ -72,6 +73,11 @@
         const deviceClient = new DeviceClient();
         await deviceClient.killCamera(device, CameraType.Vis);
         previewImage = {dataUrl: await (await deviceClient.previewImage(device, CameraType.Vis)).data.asBase64Url()};
+    }
+    async function getLogData(device: string | undefined) {
+        if (device == undefined) return;
+        const configurationClient = new DeviceConfigurationClient();
+        logData = await configurationClient.getDeviceLog(device);
     }
     async function showThermalImage(device: string | undefined) {
         if (device == undefined) return;
@@ -172,6 +178,7 @@
                                 <button on:click={() => showThermalVideo(device.ip)} class="btn btn-primary">
                                     Preview IR Video
                                 </button>
+                                <button on:click={() => getLogData(device.ip)} class="btn btn-primary"> Show Logs </button>
                             {/if}
                             <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
                         </td>
@@ -189,6 +196,9 @@
         <div class="col-md-12" style="height:80vh;">
             {#if !webSshLink.isEmpty()}
                 <iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>
+            {/if}
+            {#if !logData.isEmpty()}
+                <textarea style="height: 100%; width:100%">{logData.split("\n").toReversed().join("\n")}</textarea>
             {/if}
         </div>
         <div style="height: 20vh;"></div>

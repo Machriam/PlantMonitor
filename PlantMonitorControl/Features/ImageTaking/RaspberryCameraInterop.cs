@@ -24,7 +24,7 @@ public interface ICameraInterop
     Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM);
 }
 
-public class RaspberryCameraInterop(ILogger<RaspberryCameraInterop> logger) : ICameraInterop
+public class RaspberryCameraInterop() : ICameraInterop
 {
     private const int MaxWidth = 2304;
     private const int MaxHeight = 1296;
