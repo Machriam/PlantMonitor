@@ -7,12 +7,11 @@ using Serilog;
 using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
-var logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "server.logs");
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File(logFile, Serilog.Events.LogEventLevel.Information, fileSizeLimitBytes: 1024 * 1024,
-                  rollOnFileSizeLimit: true, retainedFileCountLimit: 4)
+    .WriteTo.File(ConfigurationOptions.LogFileLocation, Serilog.Events.LogEventLevel.Information, fileSizeLimitBytes: 1024 * 1024,
+                  rollOnFileSizeLimit: false, retainedFileCountLimit: 1, shared: true)
     .CreateLogger();
 
 Log.Information("Starting PlantMonitor");

@@ -50,7 +50,9 @@ public class TemperatureHub(IClick2TempInterop clickInterop, ILogger<Temperature
                 var split = line.Split(":");
                 var device = split[0];
                 var temperature = float.Parse(split[1].Trim(), CultureInfo.InvariantCulture);
-                await channel.Writer.WriteAsync(new(temperature, device, File.GetCreationTimeUtc(file)), token);
+                var channelData = new TemperatureStreamData(temperature, device, File.GetCreationTimeUtc(file));
+                logger.LogInformation("Sending Temperature Data: {data}", channelData);
+                await channel.Writer.WriteAsync(channelData, token);
             }
             File.Delete(file);
         }

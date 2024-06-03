@@ -11,6 +11,7 @@ public record struct Temp2ClickPrograms(string GetDevices, string WriteThermalDa
 
 public record struct ConfigurationOptions
 {
+    public static string LogFileLocation => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "server.logs");
     public const string Configuration = nameof(Configuration);
     public MotorPinout MotorPinout { get; set; }
     public IRPrograms IRPrograms { get; set; }

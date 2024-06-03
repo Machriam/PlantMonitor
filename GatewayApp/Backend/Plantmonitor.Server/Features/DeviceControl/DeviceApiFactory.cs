@@ -9,6 +9,8 @@ public interface IDeviceApiFactory
     IMotorMovementClient MovementClient(string ip);
 
     ITemperatureClient TemperatureClient(string ip);
+
+    IHealthClient HealthClient(string ip);
 }
 
 public class DeviceApiFactory : IDeviceApiFactory
@@ -16,6 +18,11 @@ public class DeviceApiFactory : IDeviceApiFactory
     public ITemperatureClient TemperatureClient(string ip)
     {
         return new TemperatureClient($"https://{ip}");
+    }
+
+    public IHealthClient HealthClient(string ip)
+    {
+        return new HealthClient($"https://{ip}");
     }
 
     public IIrImageTakingClient IrImageTakingClient(string ip)
