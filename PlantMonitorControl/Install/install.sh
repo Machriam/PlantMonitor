@@ -28,6 +28,7 @@ cd ~
 git clone https://github.com/WiringPi/WiringPi.git
 cd WiringPi
 ./build
+mkdir /srv/switchableOutlet
 sudo cp ~/PlantMonitor/PlantMonitorControl/Install/SwitchableOutlets/* /srv/switchableOutlet/
 cd /srv/switchableOutlet
 make
