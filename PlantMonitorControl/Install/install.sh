@@ -16,7 +16,7 @@ sudo ln -sf "$HOME"/.dotnet/dotnet /srv/dotnet
 
 # Setup PlantMonitor
 sudo pkill -9 -f dotnet
-sudo /srv/dotnet build -c Release -o /srv/dist -r linux-arm --no-self-contained ~/PlantMonitor/PlantMonitorControl/PlantMonitorControl.csproj
+sudo /srv/dotnet build -c Release -o /srv/dist -r linux-arm --no-self-contained ./PlantMonitorControl.csproj
 sudo rm /srv/dist/appsettings.Development.json 
 
 # Setup IR-Camera
@@ -24,21 +24,23 @@ sudo mkdir /srv/leptonPrograms
 sudo cp ~/PlantMonitor/PlantMonitorControl/Install/Lepton/* /srv/leptonPrograms/
 
 # Setup Switchable Outlets
-cd ~
 git clone https://github.com/WiringPi/WiringPi.git
 cd WiringPi
+git pull
 ./build
-mkdir /srv/switchableOutlet
-sudo cp ~/PlantMonitor/PlantMonitorControl/Install/SwitchableOutlets/* /srv/switchableOutlet/
+cd ..
+sudo mkdir /srv/switchableOutlet
+sudo cp ./Install/SwitchableOutlets/* /srv/switchableOutlet/
 cd /srv/switchableOutlet
 make
+cd ~/PlantMonitor/PlantMonitorControl
 
 # Setup Temperature Sensors
 sudo python3 -m venv /srv/pythonClick
 sudo /srv/pythonClick/bin/pip3 install adt7422
 sudo /srv/pythonClick/bin/pip3 install smbus2
 sudo mkdir /srv/pythonClick/temp2ClickPrograms
-sudo cp ~/PlantMonitor/PlantMonitorControl/Install/Temp2Click/* /srv/pythonClick/temp2ClickPrograms/
+sudo cp ./Install/Temp2Click/* /srv/pythonClick/temp2ClickPrograms/
 
 # Setup PlantMonitor Service
 sudo openssl pkcs12 -password pass: -export -out /srv/certs/plantmonitor.pfx -inkey /srv/certs/plantmonitor.key -in /srv/certs/plantmonitor.crt
