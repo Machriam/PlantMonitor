@@ -26,11 +26,11 @@ namespace Plantmonitor.Server.Features.DeviceControl
     public partial interface ISwitchOutletsClient
     {
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task SwitchoutletAsync(int? code);
+        System.Threading.Tasks.Task SwitchoutletAsync(long? code);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task SwitchoutletAsync(int? code, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task SwitchoutletAsync(long? code, System.Threading.CancellationToken cancellationToken);
 
     }
 
@@ -76,14 +76,14 @@ namespace Plantmonitor.Server.Features.DeviceControl
         partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
 
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task SwitchoutletAsync(int? code)
+        public virtual System.Threading.Tasks.Task SwitchoutletAsync(long? code)
         {
             return SwitchoutletAsync(code, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task SwitchoutletAsync(int? code, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task SwitchoutletAsync(long? code, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = new System.Net.Http.HttpClient();
             var disposeClient_ = true;

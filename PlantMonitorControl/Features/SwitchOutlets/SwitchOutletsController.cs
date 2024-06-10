@@ -8,7 +8,7 @@ namespace PlantMonitorControl.Features.SwitchOutlets;
 public class SwitchOutletsController(IOutletSwitcher switcher) : ControllerBase
 {
     [HttpPost("switchoutlet")]
-    public void SwitchOutlet(int code)
+    public void SwitchOutlet(long code)
     {
         switcher.SwitchOutlet(code);
     }
