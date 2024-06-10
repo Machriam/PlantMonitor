@@ -18,4 +18,8 @@ public partial class SwitchableOutletCode
     public int ChannelBaseNumber { get; set; }
 
     public string Description { get; set; } = null!;
+
+    public virtual ICollection<DeviceSwitchAssociation> DeviceSwitchAssociationOutletOffFkNavigations { get; set; } = new List<DeviceSwitchAssociation>();
+
+    public virtual ICollection<DeviceSwitchAssociation> DeviceSwitchAssociationOutletOnFkNavigations { get; set; } = new List<DeviceSwitchAssociation>();
 }

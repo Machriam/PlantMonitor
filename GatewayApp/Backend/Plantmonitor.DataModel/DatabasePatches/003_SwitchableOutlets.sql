@@ -6,7 +6,8 @@ CREATE TABLE plantmonitor.switchable_outlet_code
     turns_on boolean NOT NULL,
     channel_number integer NOT NULL,
     channel_base_number integer NOT NULL,
-    description text NOT NULL
+    description text NOT NULL,
+    PRIMARY KEY (id)
 );
 ALTER TABLE IF EXISTS plantmonitor.switchable_outlet_code OWNER to postgres;
 
