@@ -3,6 +3,7 @@ using PlantMonitorControl.Features.HealthChecking;
 using PlantMonitorControl.Features.ImageTaking;
 using PlantMonitorControl.Features.MeasureTemperature;
 using PlantMonitorControl.Features.MotorMovement;
+using PlantMonitorControl.Features.SwitchOutlets;
 using Serilog;
 using System.Runtime.InteropServices;
 
@@ -31,9 +32,11 @@ if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopIrCameraInterop>(ICameraInterop.IrCamera);
     builder.Services.AddSingleton<IMotorPositionCalculator, DevelopMotorPositionCalculator>();
     builder.Services.AddTransient<IClick2TempInterop, DevelopClick2TempInterop>();
+    builder.Services.AddTransient<IOutletSwitcher, OutletSwitcherDevelop>();
 }
 else
 {
+    builder.Services.AddTransient<IOutletSwitcher, OutletSwitcher433MHz>();
     builder.Services.AddKeyedTransient<ICameraInterop, RaspberryCameraInterop>(ICameraInterop.VisCamera);
     builder.Services.AddKeyedTransient<ICameraInterop, FlirLeptonCameraInterop>(ICameraInterop.IrCamera);
     builder.Services.AddSingleton<IMotorPositionCalculator, MotorPositionCalculator>();
