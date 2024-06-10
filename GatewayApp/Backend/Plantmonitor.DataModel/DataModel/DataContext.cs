@@ -15,6 +15,8 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<DeviceMovement> DeviceMovements { get; set; }
 
+    public virtual DbSet<SwitchableOutletCode> SwitchableOutletCodes { get; set; }
+
     public virtual DbSet<TemperatureMeasurement> TemperatureMeasurements { get; set; }
 
     public virtual DbSet<TemperatureMeasurementValue> TemperatureMeasurementValues { get; set; }
@@ -48,6 +50,23 @@ public partial class DataContext : DbContext
                 .HasColumnType("jsonb")
                 .HasColumnName("movement_plan_json");
             entity.Property(e => e.Name).HasColumnName("name");
+        });
+
+        modelBuilder.Entity<SwitchableOutletCode>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("switchable_outlet_code", "plantmonitor");
+
+            entity.Property(e => e.ChannelBaseNumber).HasColumnName("channel_base_number");
+            entity.Property(e => e.ChannelNumber).HasColumnName("channel_number");
+            entity.Property(e => e.Code).HasColumnName("code");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.OutletName).HasColumnName("outlet_name");
+            entity.Property(e => e.TurnsOn).HasColumnName("turns_on");
         });
 
         modelBuilder.Entity<TemperatureMeasurement>(entity =>
