@@ -1,6 +1,4 @@
-﻿using Plantmonitor.Shared.Features.HealthChecking;
-
-namespace PlantMonitorControl.Features.HealthChecking;
+﻿namespace PlantMonitorControl.Features.HealthChecking;
 
 public interface IHealthSettingsEditor
 {

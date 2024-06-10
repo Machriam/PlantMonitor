@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Plantmonitor.Shared.Features.HealthChecking;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.ImageTaking;
 using PlantMonitorControl.Features.SwitchOutlets;

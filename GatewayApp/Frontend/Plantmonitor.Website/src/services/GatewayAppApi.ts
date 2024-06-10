@@ -1658,9 +1658,9 @@ export interface IDeviceHealthState {
 }
 
 export class DeviceHealth implements IDeviceHealth {
-    deviceName!: string;
-    deviceId!: string;
-    state!: HealthState;
+    deviceName!: string | undefined;
+    deviceId!: string | undefined;
+    state!: HealthState | undefined;
 
     constructor(data?: IDeviceHealth) {
         if (data) {
@@ -1673,9 +1673,9 @@ export class DeviceHealth implements IDeviceHealth {
 
     init(_data?: any) {
         if (_data) {
-            this.deviceName = _data["DeviceName"];
-            this.deviceId = _data["DeviceId"];
-            this.state = _data["State"];
+            this.deviceName = _data["deviceName"];
+            this.deviceId = _data["deviceId"];
+            this.state = _data["state"];
         }
     }
 
@@ -1688,9 +1688,9 @@ export class DeviceHealth implements IDeviceHealth {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["DeviceName"] = this.deviceName;
-        data["DeviceId"] = this.deviceId;
-        data["State"] = this.state;
+        data["deviceName"] = this.deviceName;
+        data["deviceId"] = this.deviceId;
+        data["state"] = this.state;
         return data;
     }
 
@@ -1703,9 +1703,9 @@ export class DeviceHealth implements IDeviceHealth {
 }
 
 export interface IDeviceHealth {
-    deviceName: string;
-    deviceId: string;
-    state: HealthState;
+    deviceName: string | undefined;
+    deviceId: string | undefined;
+    state: HealthState | undefined;
 }
 
 export enum HealthState {

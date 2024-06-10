@@ -1,4 +1,4 @@
-﻿using Plantmonitor.Shared.Features.HealthChecking;
+﻿using Plantmonitor.Server.Features.DeviceControl;
 using System.Collections.Concurrent;
 
 namespace Plantmonitor.Server.Features.DeviceConfiguration;

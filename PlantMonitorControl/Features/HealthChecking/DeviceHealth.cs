@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Plantmonitor.Shared.Features.HealthChecking
+﻿namespace PlantMonitorControl.Features.HealthChecking
 {
     [Flags]
     public enum HealthState

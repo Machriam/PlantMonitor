@@ -1,5 +1,5 @@
 ﻿using Plantmonitor.Server.Features.AppConfiguration;
-using Plantmonitor.Shared.Features.HealthChecking;
+using Plantmonitor.Server.Features.DeviceControl;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 
@@ -14,13 +14,11 @@ public interface IDeviceConnectionTester
     Task<DeviceConnection> PingIp(string ip, int retryTimes = 30);
 }
 
-public class DeviceConnectionTester(IEnvironmentConfiguration configuration, ILogger<DeviceConnectionTester> logger) : IDeviceConnectionTester
+public class DeviceConnectionTester(IEnvironmentConfiguration configuration, ILogger<DeviceConnectionTester> logger, IDeviceApiFactory deviceApiFactory) : IDeviceConnectionTester
 {
-    private static readonly HttpClient _client = new();
-
     public async Task<DeviceHealth> CheckHealth(string ip)
     {
-        return await _client.GetFromJsonAsync<DeviceHealth>($"https://{ip}/api/health") ?? new();
+        return await deviceApiFactory.HealthClient(ip).LastdevicehealthAsync();
     }
 
     public async Task<IEnumerable<string>> GetSSHDevices(HashSet<string> ipsToExclude)
