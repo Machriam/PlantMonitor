@@ -14,7 +14,8 @@ namespace Plantmonitor.Shared.Features.HealthChecking
         ThermalCameraFound = 2,
         NoirCameraFunctional = 4,
         ThermalCameraFunctional = 8,
-        SystemCalibrated = 16
+        SystemCalibrated = 16,
+        CanSwitchOutlets = 32,
     }
 
     public class DeviceHealth

@@ -13,9 +13,11 @@ public interface IOutletSwitcher
 public class OutletSwitcher433MHz(IEnvironmentConfiguration configuration) : IOutletSwitcher
 {
     private const int TestPayload = 12345;
+    private bool _canSwitchOutlets;
 
     public async Task<bool> DeviceCanSwitchOutlets()
     {
+        if (_canSwitchOutlets) return true;
         var startInfo = new ProcessStartInfo()
         {
             FileName = configuration.PowerSwitchPrograms.ReceiveTest,
@@ -36,6 +38,7 @@ public class OutletSwitcher433MHz(IEnvironmentConfiguration configuration) : IOu
         SwitchOutlet(TestPayload);
         await Task.Delay(200);
         if (!process.HasExited) process.Kill();
+        _canSwitchOutlets = success;
         return success;
     }
 

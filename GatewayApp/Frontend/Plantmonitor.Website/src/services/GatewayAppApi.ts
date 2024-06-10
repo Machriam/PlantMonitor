@@ -1715,6 +1715,7 @@ export enum HealthState {
     NoirCameraFunctional = 4,
     ThermalCameraFunctional = 8,
     SystemCalibrated = 16,
+    CanSwitchOutlets = 32,
 }
 
 export class StreamingMetaData implements IStreamingMetaData {
