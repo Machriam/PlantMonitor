@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
         if (value == 0) {
           printf("Unknown encoding\n");
         } else {    
-          printf("%lu\n", mySwitch.getReceivedValue() );
+          printf("%lu\n", value );
           return 0;
         }
       }
