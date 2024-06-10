@@ -28,7 +28,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
         {
             var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, (ip, data));
-            var picturePath = data.StoreData ? configuration.PicturePath(deviceId) : "";
+            var picturePath = data.StoreData && deviceId != null ? configuration.PicturePath(deviceId) : "";
             var channel = Channel.CreateBounded<CameraStreamData>(new BoundedChannelOptions(1)
             {
                 AllowSynchronousContinuations = false,

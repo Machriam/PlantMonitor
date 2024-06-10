@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
-using Plantmonitor.Shared.Features.HealthChecking;
 
 namespace Plantmonitor.Server.Features.DeviceConfiguration;
 public record struct DeviceConnection(string Ip, bool SshIsOpen);
@@ -30,6 +29,12 @@ public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, I
     public async Task<string> GetDeviceLog(string ip)
     {
         return await deviceApiFactory.HealthClient(ip).LogsAsync();
+    }
+
+    [HttpPost("recheckdevice")]
+    public async Task<DeviceHealth> RecheckDevice(string ip)
+    {
+        return await deviceApiFactory.HealthClient(ip).CheckdevicehealthAsync();
     }
 
     [HttpGet("devices")]
