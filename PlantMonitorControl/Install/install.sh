@@ -32,7 +32,7 @@ cd ..
 sudo mkdir /srv/switchableOutlet
 sudo cp ./Install/SwitchableOutlets/* /srv/switchableOutlet/
 cd /srv/switchableOutlet
-make
+sudo make
 cd ~/PlantMonitor/PlantMonitorControl
 
 # Setup Temperature Sensors
