@@ -71,7 +71,7 @@
         await client.toggleMotorEngage(selectedDeviceData.ip, shouldBeEngaged);
     }
     async function updateSteps() {
-        if (selectedDeviceData?.ip == undefined) return;
+        if (selectedDeviceData?.ip == undefined || selectedDeviceData.health.deviceId == undefined) return;
         const client = new MovementProgrammingClient();
         movementPlan.deviceId = selectedDeviceData.health.deviceId;
         movementPlan.movementPlanJson = "{}";

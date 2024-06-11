@@ -31,15 +31,15 @@
     });
     async function updatePictureSeries() {
         const pictureClient = new PictureClient();
-        if ($selectedDevice == undefined || $selectedDevice?.health.deviceId.isEmpty()) return;
+        if ($selectedDevice == undefined || $selectedDevice?.health.deviceId?.isEmpty()) return;
         pictureSeries = await pictureClient.getPictureSeries($selectedDevice?.health.deviceId);
         pictureSeries = pictureSeries.sort((a, b) => a.folderName.localeCompare(b.folderName)).toReversed();
     }
     function onSeriesSelected(series: PictureSeriesData) {
-        if ($selectedDevice == undefined || $selectedDevice?.health.deviceId.isEmpty()) return;
+        if ($selectedDevice == undefined || $selectedDevice?.health.deviceId?.isEmpty()) return;
         selectedSeries = series;
         const streamer = new DeviceStreaming();
-        const connection = streamer.replayPictures($selectedDevice.health.deviceId, series.folderName);
+        const connection = streamer.replayPictures($selectedDevice.health.deviceId!, series.folderName);
         hubConnection?.stop();
         hubConnection = connection.connection;
         images = [];

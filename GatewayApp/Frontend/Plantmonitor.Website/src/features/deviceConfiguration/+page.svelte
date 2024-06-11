@@ -3,20 +3,24 @@
     import {onDestroy, onMount} from "svelte";
     import {
         AppConfigurationClient,
+        AssociatePowerOutletModel,
         CameraType,
         DeviceClient,
         DeviceConfigurationClient,
         DeviceHealthState,
         HealthState,
-        WebSshCredentials
+        OutletModel,
+        PowerOutletClient,
+        WebSshCredentials,
+        type IAssociatePowerOutletModel
     } from "../../services/GatewayAppApi";
     import {Task} from "~/types/task";
     import {CvInterop, ThermalImage} from "./CvInterop";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
     import PictureStreamer from "../deviceProgramming/PictureStreamer.svelte";
+    import Select from "../reuseableComponents/Select.svelte";
 
-    const videoCanvasId = "videoCanvasId";
     let configurationData: {ipFrom: string; ipTo: string; userName: string; userPassword: string} = {
         ipFrom: "",
         ipTo: "",
@@ -25,8 +29,11 @@
     };
     let configurationClient: DeviceConfigurationClient;
     let devices: DeviceHealthState[] = [];
+    let outletByDevice: {[key: string]: AssociatePowerOutletModel | null} = {};
     let previewImage = new ThermalImage();
     let pictureStreamer: PictureStreamer;
+    let existingOutlets: OutletModel[] = [];
+    let selectedOutlet: OutletModel | undefined;
     let logData = "";
 
     let searchingForDevices = true;
@@ -41,12 +48,15 @@
     let webSshCredentials: WebSshCredentials;
     onMount(async () => {
         configurationClient = new DeviceConfigurationClient();
-        devices = await configurationClient.getDevices();
+        const outletClient = new PowerOutletClient();
+        existingOutlets = await outletClient.getOutlets();
+        existingOutlets.sort((a, b) => (a.name + a.channel + a.buttonNumber).localeCompare(b.name + b.channel + b.buttonNumber));
         webSshCredentials = await configurationClient.getWebSshCredentials();
+        await getDeviceStatus();
         searchingForDevices = false;
     });
-    onDestroy(async () => {
-        await pictureStreamer?.stopStreaming();
+    onDestroy(() => {
+        pictureStreamer?.stopStreaming();
     });
     async function openConsole(ip: string | undefined): Promise<void> {
         if (ip == undefined) return;
@@ -102,6 +112,10 @@
         pictureStreamer.stopStreaming();
         pictureStreamer.showPreview(device, CameraType.Vis, 1);
     }
+    async function checkStatus(ip: string) {
+        const deviceClient = new DeviceConfigurationClient();
+        await deviceClient.recheckDevice(ip);
+    }
     async function updateIpRange() {
         const client = new AppConfigurationClient();
         client.updateIpRanges(configurationData.ipFrom, configurationData.ipTo);
@@ -116,13 +130,39 @@
         configurationData.userName = "";
         configurationData.userPassword = "";
     }
+    function switchPowerOutlet(code: number | undefined) {
+        if (code == undefined) return;
+        const switchDevices = devices.filter((d) => d.health.state != undefined && d.health.state & HealthState.CanSwitchOutlets);
+        const outletClient = new PowerOutletClient();
+        switchDevices.forEach(async (d) => {
+            outletClient.switchOutlet(d.ip, code);
+        });
+    }
     async function getDeviceStatus() {
         const client = new DeviceConfigurationClient();
+        const outletClient = new PowerOutletClient();
         try {
             devices = await client.getDevices();
+            devices
+                .filter((d) => d.health.deviceId != undefined)
+                .forEach(async (element) => {
+                    const deviceId = element.health.deviceId!;
+                    var outlet = await outletClient.powerOutletForDevice(deviceId);
+                    outletByDevice[deviceId] = outlet;
+                });
         } catch (ex) {
             devices = [];
         }
+    }
+    async function switchOutlet(model: OutletModel | undefined, deviceId: string) {
+        const outletClient = new PowerOutletClient();
+        const data: IAssociatePowerOutletModel = {
+            deviceId: deviceId,
+            switchOnId: model?.switchOnId,
+            switchOffId: model?.switchOffId
+        };
+        outletClient.associateDeviceWithPowerOutlet(new AssociatePowerOutletModel(data));
+        await getDeviceStatus();
     }
 </script>
 
@@ -179,14 +219,36 @@
                                     Preview IR Video
                                 </button>
                                 <button on:click={() => getLogData(device.ip)} class="btn btn-primary"> Show Logs </button>
+                                {#if device.health.deviceId != undefined}
+                                    <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
+                                        Associated Outlet:
+                                        <Select
+                                            class="col-md-8"
+                                            initialSelectedItem={outletByDevice[device.health.deviceId]?.switchOnId?.toString()}
+                                            selectedItemChanged={(x) => switchOutlet(x, device.health.deviceId ?? "")}
+                                            textSelector={(x) => `${x.name} Channel ${x.channel} Button ${x.buttonNumber}`}
+                                            idSelector={(x) => x.switchOnId.toString()}
+                                            items={existingOutlets}></Select>
+                                    </div>
+                                {/if}
                             {/if}
                             <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
+                            <button class="btn btn-primary" on:click={async () => await checkStatus(device.ip)}>Check Device</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         {/each}
         <button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
+        <Select
+            selectedItemChanged={(x) => (selectedOutlet = x)}
+            textSelector={(x) => `${x.name} Channel: ${x.channel} Button: ${x.buttonNumber}`}
+            items={existingOutlets}
+            class="col-md-6"></Select>
+        {#if selectedOutlet != undefined}
+            <button on:click={() => switchPowerOutlet(selectedOutlet?.switchOnId)} class="btn btn-success">Power On</button>
+            <button on:click={() => switchPowerOutlet(selectedOutlet?.switchOffId)} class="btn btn-danger">Power Off</button>
+        {/if}
     </div>
     <div class="col-md-6">
         {#if !previewImage.dataUrl?.isEmpty()}
