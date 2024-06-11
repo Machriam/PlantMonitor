@@ -135,7 +135,7 @@
         const switchDevices = devices.filter((d) => d.health.state != undefined && d.health.state & HealthState.CanSwitchOutlets);
         const outletClient = new PowerOutletClient();
         for (let i = 0; i < switchDevices.length; i++) {
-            await outletClient.switchOutlet(switchDevices[i].ip, code);
+            await outletClient.disablePrompts().switchOutlet(switchDevices[i].ip, code).try();
             await Task.delay(200);
         }
     }
@@ -147,8 +147,13 @@
             const outletDevices = devices.filter((d) => d.health?.deviceId != undefined);
             for (let i = 0; i < outletDevices.length; i++) {
                 const deviceId = outletDevices[i].health.deviceId!;
-                var outlet = await outletClient.powerOutletForDevice(deviceId);
-                outletByDevice[deviceId] = outlet;
+                const {result, error, hasError} = await outletClient.powerOutletForDevice(deviceId).try();
+                if (hasError) {
+                    console.log(error);
+                    outletByDevice[deviceId] = null;
+                    continue;
+                }
+                outletByDevice[deviceId] = result;
             }
         } catch (ex) {
             console.log(ex);
