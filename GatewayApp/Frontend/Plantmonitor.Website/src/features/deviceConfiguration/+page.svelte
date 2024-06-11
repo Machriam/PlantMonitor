@@ -33,6 +33,7 @@
     let previewImage = new ThermalImage();
     let pictureStreamer: PictureStreamer;
     let existingOutlets: OutletModel[] = [];
+    let selectedOutlet: OutletModel | undefined;
     let logData = "";
 
     let searchingForDevices = true;
@@ -111,6 +112,10 @@
         pictureStreamer.stopStreaming();
         pictureStreamer.showPreview(device, CameraType.Vis, 1);
     }
+    async function checkStatus(ip: string) {
+        const deviceClient = new DeviceConfigurationClient();
+        await deviceClient.recheckDevice(ip);
+    }
     async function updateIpRange() {
         const client = new AppConfigurationClient();
         client.updateIpRanges(configurationData.ipFrom, configurationData.ipTo);
@@ -124,6 +129,14 @@
         webSshCredentials = await configurationClient.getWebSshCredentials();
         configurationData.userName = "";
         configurationData.userPassword = "";
+    }
+    function switchPowerOutlet(code: number | undefined) {
+        if (code == undefined) return;
+        const switchDevices = devices.filter((d) => d.health.state != undefined && d.health.state & HealthState.CanSwitchOutlets);
+        const outletClient = new PowerOutletClient();
+        switchDevices.forEach(async (d) => {
+            outletClient.switchOutlet(d.ip, code);
+        });
     }
     async function getDeviceStatus() {
         const client = new DeviceConfigurationClient();
@@ -220,12 +233,22 @@
                                 {/if}
                             {/if}
                             <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
+                            <button class="btn btn-primary" on:click={async () => await checkStatus(device.ip)}>Check Device</button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         {/each}
         <button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
+        <Select
+            selectedItemChanged={(x) => (selectedOutlet = x)}
+            textSelector={(x) => `${x.name} Channel: ${x.channel} Button: ${x.buttonNumber}`}
+            items={existingOutlets}
+            class="col-md-6"></Select>
+        {#if selectedOutlet != undefined}
+            <button on:click={() => switchPowerOutlet(selectedOutlet?.switchOnId)} class="btn btn-success">Power On</button>
+            <button on:click={() => switchPowerOutlet(selectedOutlet?.switchOffId)} class="btn btn-danger">Power Off</button>
+        {/if}
     </div>
     <div class="col-md-6">
         {#if !previewImage.dataUrl?.isEmpty()}

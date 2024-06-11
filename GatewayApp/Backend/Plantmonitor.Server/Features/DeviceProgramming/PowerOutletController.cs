@@ -48,8 +48,9 @@ public class PowerOutletController(DataContext context)
     }
 
     [HttpPost("switchoutlet")]
-    public void SwitchOutlet([FromServices] IDeviceApiFactory apiFactory, string ip, long code)
+    public void SwitchOutlet([FromServices] IDeviceApiFactory apiFactory, string ip, long codeId)
     {
+        var code = context.SwitchableOutletCodes.First(c => c.Id == codeId).Code;
         apiFactory.SwitchOutletsClient(ip).SwitchoutletAsync(code);
     }
 }

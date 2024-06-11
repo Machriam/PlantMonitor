@@ -343,7 +343,7 @@ export interface IPowerOutletClient {
 
     powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel | null>;
 
-    switchOutlet(ip?: string | undefined, code?: number | undefined): Promise<void>;
+    switchOutlet(ip?: string | undefined, codeId?: number | undefined): Promise<void>;
 }
 
 export class PowerOutletClient extends GatewayAppApiBase implements IPowerOutletClient {
@@ -476,16 +476,16 @@ export class PowerOutletClient extends GatewayAppApiBase implements IPowerOutlet
         return Promise.resolve<AssociatePowerOutletModel | null>(null as any);
     }
 
-    switchOutlet(ip?: string | undefined, code?: number | undefined): Promise<void> {
+    switchOutlet(ip?: string | undefined, codeId?: number | undefined): Promise<void> {
         let url_ = this.baseUrl + "/api/PowerOutlet/switchoutlet?";
         if (ip === null)
             throw new Error("The parameter 'ip' cannot be null.");
         else if (ip !== undefined)
             url_ += "ip=" + encodeURIComponent("" + ip) + "&";
-        if (code === null)
-            throw new Error("The parameter 'code' cannot be null.");
-        else if (code !== undefined)
-            url_ += "code=" + encodeURIComponent("" + code) + "&";
+        if (codeId === null)
+            throw new Error("The parameter 'codeId' cannot be null.");
+        else if (codeId !== undefined)
+            url_ += "codeId=" + encodeURIComponent("" + codeId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {

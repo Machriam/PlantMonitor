@@ -1,8 +1,8 @@
 <script lang="ts" generics="T">
-    export let idSelector: (x: T) => string;
-    export let textSelector: (x: T) => string;
+    export let idSelector: (x: T) => string = (x) => JSON.stringify(x);
+    export let textSelector: (x: T) => string = (x) => x + "";
     export let items: T[];
-    export let initialSelectedItem: string | undefined;
+    export let initialSelectedItem: string | undefined = undefined;
     let firstRender = true;
     let selectedItem: T | undefined;
     let isInitialized = false;
