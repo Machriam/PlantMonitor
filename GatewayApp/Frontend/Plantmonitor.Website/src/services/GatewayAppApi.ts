@@ -339,7 +339,9 @@ export interface IPowerOutletClient {
 
     associateDeviceWithPowerOutlet(model: AssociatePowerOutletModel): Promise<void>;
 
-    powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel>;
+    getOutlets(): Promise<OutletModel[]>;
+
+    powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel | null>;
 
     switchOutlet(ip?: string | undefined, code?: number | undefined): Promise<void>;
 }
@@ -391,7 +393,50 @@ export class PowerOutletClient extends GatewayAppApiBase implements IPowerOutlet
         return Promise.resolve<void>(null as any);
     }
 
-    powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel> {
+    getOutlets(): Promise<OutletModel[]> {
+        let url_ = this.baseUrl + "/api/PowerOutlet/outlets";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetOutlets(_response));
+        });
+    }
+
+    protected processGetOutlets(response: Response): Promise<OutletModel[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(OutletModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OutletModel[]>(null as any);
+    }
+
+    powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel | null> {
         let url_ = this.baseUrl + "/api/PowerOutlet/getoutlet?";
         if (deviceId === null)
             throw new Error("The parameter 'deviceId' cannot be null.");
@@ -413,14 +458,14 @@ export class PowerOutletClient extends GatewayAppApiBase implements IPowerOutlet
         });
     }
 
-    protected processPowerOutletForDevice(response: Response): Promise<AssociatePowerOutletModel> {
+    protected processPowerOutletForDevice(response: Response): Promise<AssociatePowerOutletModel | null> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = AssociatePowerOutletModel.fromJS(resultData200);
+            result200 = resultData200 ? AssociatePowerOutletModel.fromJS(resultData200) : <any>null;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -428,7 +473,7 @@ export class PowerOutletClient extends GatewayAppApiBase implements IPowerOutlet
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<AssociatePowerOutletModel>(null as any);
+        return Promise.resolve<AssociatePowerOutletModel | null>(null as any);
     }
 
     switchOutlet(ip?: string | undefined, code?: number | undefined): Promise<void> {
@@ -1629,8 +1674,8 @@ export interface IMovementPoint {
 
 export class AssociatePowerOutletModel implements IAssociatePowerOutletModel {
     deviceId!: string;
-    switchOnId!: number;
-    switchOffId!: number;
+    switchOnId!: number | undefined;
+    switchOffId!: number | undefined;
 
     constructor(data?: IAssociatePowerOutletModel) {
         if (data) {
@@ -1674,8 +1719,67 @@ export class AssociatePowerOutletModel implements IAssociatePowerOutletModel {
 
 export interface IAssociatePowerOutletModel {
     deviceId: string;
+    switchOnId: number | undefined;
+    switchOffId: number | undefined;
+}
+
+export class OutletModel implements IOutletModel {
+    switchOnId!: number;
+    switchOffId!: number;
+    name!: string;
+    buttonNumber!: number;
+    channel!: number;
+
+    constructor(data?: IOutletModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.switchOnId = _data["SwitchOnId"];
+            this.switchOffId = _data["SwitchOffId"];
+            this.name = _data["Name"];
+            this.buttonNumber = _data["ButtonNumber"];
+            this.channel = _data["Channel"];
+        }
+    }
+
+    static fromJS(data: any): OutletModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new OutletModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["SwitchOnId"] = this.switchOnId;
+        data["SwitchOffId"] = this.switchOffId;
+        data["Name"] = this.name;
+        data["ButtonNumber"] = this.buttonNumber;
+        data["Channel"] = this.channel;
+        return data;
+    }
+
+    clone(): OutletModel {
+        const json = this.toJSON();
+        let result = new OutletModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IOutletModel {
     switchOnId: number;
     switchOffId: number;
+    name: string;
+    buttonNumber: number;
+    channel: number;
 }
 
 export enum CameraType {
