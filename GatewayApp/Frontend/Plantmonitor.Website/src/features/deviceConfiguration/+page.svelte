@@ -144,14 +144,14 @@
         const outletClient = new PowerOutletClient();
         try {
             devices = await client.getDevices();
-            devices
-                .filter((d) => d.health.deviceId != undefined)
-                .forEach(async (element) => {
-                    const deviceId = element.health.deviceId!;
-                    var outlet = await outletClient.powerOutletForDevice(deviceId);
-                    outletByDevice[deviceId] = outlet;
-                });
+            const outletDevices = devices.filter((d) => d.health?.deviceId != undefined);
+            for (let i = 0; i < outletDevices.length; i++) {
+                const deviceId = outletDevices[i].health.deviceId!;
+                var outlet = await outletClient.powerOutletForDevice(deviceId);
+                outletByDevice[deviceId] = outlet;
+            }
         } catch (ex) {
+            console.log(ex);
             devices = [];
         }
     }
@@ -232,10 +232,10 @@
                                             items={existingOutlets}></Select>
                                     </div>
                                 {/if}
+                                <button class="btn btn-primary" on:click={async () => await checkStatus(device.ip)}
+                                    >Check Device</button>
                             {/if}
                             <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
-                            <button class="btn btn-primary" on:click={async () => await checkStatus(device.ip)}
-                                >Check Device</button>
                         </td>
                     </tr>
                 </tbody>

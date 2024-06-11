@@ -32,7 +32,7 @@
         <button
             on:click={() => deviceSelected(device)}
             class="p-0 m-0 ms-3 alert {(selectedDevice?.ip == device.ip ? 'selected' : '') + ` available-${device.retryTimes}`}">
-            {device.health?.deviceName}<br />
+            {device.health?.deviceName ?? "not configured"}<br />
             {device.ip}
         </button>
     {/each}
