@@ -26,6 +26,9 @@ interface Uint8Array {
     toInt32(): number;
     toInt64(): bigint;
 }
+interface Promise<T> {
+    try(): Promise<{ result: T, error: unknown, hasError: boolean }>;
+}
 
 Uint8Array.prototype.toInt32 = function (this: Uint8Array): number {
     return new DataView(this.slice(0, 4).buffer).getInt32(0, true);
@@ -69,6 +72,15 @@ BigInt.prototype.fromTicksToDate = function (this: bigint): Date {
     const tickDivider = BigInt(10000);
     const milliseconds = Number(this / tickDivider + zeroTime);
     return new Date(milliseconds);
+}
+Promise.prototype.try = async function (this: Promise<T>): Promise<{ result: T, error: unknown, hasError: boolean }> {
+    try {
+        const result = await this;
+        return { result, error: {}, hasError: false };
+    }
+    catch (ex) {
+        return { result: {}, error: ex, hasError: true };
+    }
 }
 Number.prototype.isSuccessStatusCode = function (this: number): boolean {
     return this == 200 || this == 204;
