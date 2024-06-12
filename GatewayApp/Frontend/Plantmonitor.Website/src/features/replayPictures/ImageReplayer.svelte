@@ -36,7 +36,10 @@
         const pictureClient = new PictureClient();
         seriesByDevice = await pictureClient.getAllPicturedDevices();
         selectedDeviceId = deviceId;
-        if (deviceId == undefined) return;
+        if (deviceId == undefined) {
+            pictureSeries = [];
+            return;
+        }
         pictureSeries = await pictureClient.getPictureSeries(deviceId);
         pictureSeries = pictureSeries.sort((a, b) => a.folderName.localeCompare(b.folderName)).toReversed();
     }
@@ -66,17 +69,25 @@
                 temperature: temperature,
                 pixelConverter: pixelConverter
             });
-            currentImage = images.length - 1;
-            selectedImage = images[currentImage];
+            if (images.length == 1) {
+                currentImage = 0;
+                selectedImage = images[currentImage];
+            }
+            images = images;
         });
     }
     function onScroll(event: WheelEvent) {
         if (currentImage == -1) return;
-        if (event.deltaY < 0 && currentImage > 0) {
-            currentImage = currentImage - 1;
-        } else if (event.deltaY > 0 && currentImage < images.length - 1) {
-            currentImage = currentImage + 1;
+        let currentIndex = currentImage;
+        if (event.deltaY < 0 && currentIndex > 0) {
+            currentIndex = currentIndex - 1;
+        } else if (event.deltaY > 0 && currentIndex < images.length - 1) {
+            currentIndex = currentIndex + 1;
         }
+        changeImage(currentIndex);
+    }
+    function changeImage(newIndex: number) {
+        currentImage = newIndex;
         selectedImage = images[currentImage];
         updateTooltip();
     }
@@ -93,6 +104,8 @@
 
 <div class={$$restProps.class || ""}>
     <Select
+        initialSelectedItem={$selectedDevice?.health.deviceId}
+        idSelector={(x) => x.deviceId}
         textSelector={(x) => x.deviceId}
         selectedItemChanged={(x) => updatePictureSeries(x?.deviceId)}
         items={seriesByDevice}
@@ -109,7 +122,7 @@
             </button>
         {/each}
     </div>
-    <div on:wheel={(x) => onScroll(x)}>
+    <div class="col-md-12 row p-0" style="min-height: 120px;" on:wheel={(x) => onScroll(x)}>
         {#if selectedImage != undefined}
             <img
                 on:mouseenter={(x) => {
@@ -128,13 +141,26 @@
                     updateTooltip();
                 }}
                 alt="preview"
-                width={selectedImage.pixelConverter == undefined ? "100%" : ""}
+                style="width:{selectedImage.pixelConverter != undefined ? 'initial' : ''}"
                 src={selectedImage?.imageUrl} />
-            <div>{selectedImage.date.toLocaleTimeString()}</div>
-            <div>Position: {selectedImage.stepCount}</div>
-            {#if selectedImage.temperature != undefined}
-                <div>Temperature: {selectedImage.temperature}</div>
-            {/if}
+            <div class="col-md-3">
+                <div>{selectedImage.date.toLocaleTimeString()}</div>
+                <div>Position: {selectedImage.stepCount}</div>
+                <div>Image {currentImage + 1}/{selectedSeries?.count}</div>
+                {#if selectedImage.temperature != undefined && selectedImage.temperature > 0}
+                    <div>Temperature: {selectedImage.temperature}</div>
+                {/if}
+            </div>
+            <div style="overflow-x:auto;width:40vw;flex-flow:nowrap;min-height:120px" class="row p-0">
+                {#each images as image, i}
+                    <div style="height: 80px;width:70px">
+                        <button class="p-0 m-0" on:click={() => changeImage(i)} style="height: 70px;width:70px">
+                            <img style="height: 100%;width:100%" alt="visual scrollbar" src={image.imageUrl} />
+                        </button>
+                        <div style="font-weight: {i == currentImage ? '700' : '400'};">{i + 1}</div>
+                    </div>
+                {/each}
+            </div>
         {/if}
     </div>
 </div>
