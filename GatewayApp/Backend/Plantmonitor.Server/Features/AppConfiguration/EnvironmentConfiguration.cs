@@ -21,6 +21,8 @@
         string DatabaseConnection();
 
         string RepoRootPath();
+
+        IEnumerable<string> PictureFolders();
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
@@ -34,6 +36,13 @@
 #else
             return Path.GetFullPath("/PlantMonitor");
 #endif
+        }
+
+        public IEnumerable<string> PictureFolders()
+        {
+            var imageFolder = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
+                throw new Exception("No App configuration path found");
+            return Directory.GetDirectories(imageFolder, "Images_*");
         }
 
         public string PicturePath(string device)

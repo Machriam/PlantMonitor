@@ -7,12 +7,13 @@
         pixelConverter: ((x: number, y: number) => number) | undefined;
     }
     import {onDestroy, onMount} from "svelte";
-    import {CameraType, PictureClient, PictureSeriesData} from "~/services/GatewayAppApi";
+    import {CameraType, PictureClient, PictureSeriesData, SeriesByDevice} from "~/services/GatewayAppApi";
     import {selectedDevice} from "../store";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import type {HubConnection} from "@microsoft/signalr";
     import {CvInterop} from "../deviceConfiguration/CvInterop";
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
+    import Select from "../reuseableComponents/Select.svelte";
 
     let pictureSeries: PictureSeriesData[] = [];
     let selectedSeries: PictureSeriesData | undefined;
@@ -22,24 +23,28 @@
     let images: ImageData[] = [];
     let lastPointerPosition: MouseEvent | undefined;
     let tooltip: TooltipCreatorResult | undefined;
+    let seriesByDevice: SeriesByDevice[] = [];
+    let selectedDeviceId: string | undefined;
     const cvInterop = new CvInterop();
     onMount(async () => {
-        await updatePictureSeries();
+        await updatePictureSeries($selectedDevice?.health.deviceId);
     });
     const subscription = selectedDevice.subscribe(async (x) => {
-        await updatePictureSeries();
+        await updatePictureSeries($selectedDevice?.health.deviceId);
     });
-    async function updatePictureSeries() {
+    async function updatePictureSeries(deviceId: string | undefined) {
         const pictureClient = new PictureClient();
-        if ($selectedDevice == undefined || $selectedDevice?.health.deviceId?.isEmpty()) return;
-        pictureSeries = await pictureClient.getPictureSeries($selectedDevice?.health.deviceId);
+        seriesByDevice = await pictureClient.getAllPicturedDevices();
+        selectedDeviceId = deviceId;
+        if (deviceId == undefined) return;
+        pictureSeries = await pictureClient.getPictureSeries(deviceId);
         pictureSeries = pictureSeries.sort((a, b) => a.folderName.localeCompare(b.folderName)).toReversed();
     }
     function onSeriesSelected(series: PictureSeriesData) {
-        if ($selectedDevice == undefined || $selectedDevice?.health.deviceId?.isEmpty()) return;
+        if (selectedDeviceId == undefined) return;
         selectedSeries = series;
         const streamer = new DeviceStreaming();
-        const connection = streamer.replayPictures($selectedDevice.health.deviceId!, series.folderName);
+        const connection = streamer.replayPictures(selectedDeviceId, series.folderName);
         hubConnection?.stop();
         hubConnection = connection.connection;
         images = [];
@@ -87,7 +92,12 @@
 </script>
 
 <div class={$$restProps.class || ""}>
-    <div style="height: 10vh;overflow-y:auto;text-align-last:left" class="d-flex flex-column col-md-4">
+    <Select
+        textSelector={(x) => x.deviceId}
+        selectedItemChanged={(x) => updatePictureSeries(x?.deviceId)}
+        items={seriesByDevice}
+        class="col-md-6"></Select>
+    <div style="height: 10vh;overflow-y:auto;text-align-last:left" class="d-flex flex-column col-md-12">
         {#each pictureSeries as series}
             <button
                 on:click={() => onSeriesSelected(series)}
