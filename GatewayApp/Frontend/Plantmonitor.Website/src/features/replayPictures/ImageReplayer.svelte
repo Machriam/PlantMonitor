@@ -4,6 +4,7 @@
         date: Date;
         stepCount: number;
         imageUrl: string;
+        thumbnailUrl: string;
         pixelConverter: ((x: number, y: number) => number) | undefined;
     }
     import {onDestroy, onMount} from "svelte";
@@ -14,6 +15,7 @@
     import {CvInterop} from "../deviceConfiguration/CvInterop";
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
     import Select from "../reuseableComponents/Select.svelte";
+    import {resizeBase64Img} from "./ImageResizer";
 
     let pictureSeries: PictureSeriesData[] = [];
     let selectedSeries: PictureSeriesData | undefined;
@@ -62,11 +64,13 @@
             } else {
                 dataUrl = await image.asBase64Url();
             }
+            const thumbnail = await resizeBase64Img(dataUrl, 100, 100);
             images.push({
                 imageUrl: dataUrl,
                 stepCount: step,
                 date: date,
                 temperature: temperature,
+                thumbnailUrl: thumbnail,
                 pixelConverter: pixelConverter
             });
             if (images.length == 1) {
@@ -154,8 +158,8 @@
             <div style="overflow-x:auto;width:40vw;flex-flow:nowrap;min-height:120px" class="row p-0">
                 {#each images as image, i}
                     <div style="height: 80px;width:70px">
-                        <button class="p-0 m-0" on:click={() => changeImage(i)} style="height: 70px;width:70px">
-                            <img style="height: 100%;width:100%" alt="visual scrollbar" src={image.imageUrl} />
+                        <button class="p-0 m-0" on:click={() => changeImage(i)} style="height: 70px;width:70px;border:unset">
+                            <img style="height: 100%;width:100%" alt="visual scrollbar" src={image.thumbnailUrl} />
                         </button>
                         <div style="font-weight: {i == currentImage ? '700' : '400'};">{i + 1}</div>
                     </div>
