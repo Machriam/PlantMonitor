@@ -98,7 +98,7 @@ def main():
       try:
         global ffc_requested
         while not should_exit:
-          data = q.get(True, 5)
+          data = q.get(True, 7)
           if counter%100==0:
             temp=get_temperature(devh)
           if ffc_requested:

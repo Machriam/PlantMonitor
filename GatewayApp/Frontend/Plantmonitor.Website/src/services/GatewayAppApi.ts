@@ -523,6 +523,8 @@ export interface IDeviceClient {
 
     killCamera(ip?: string | undefined, type?: CameraType | undefined): Promise<void>;
 
+    runFFC(ip?: string | undefined): Promise<void>;
+
     cameraInfo(ip?: string | undefined, type?: CameraType | undefined): Promise<string>;
 
     currentPosition(ip?: string | undefined): Promise<number>;
@@ -619,6 +621,42 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
     }
 
     protected processKillCamera(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    runFFC(ip?: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Device/runffc?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processRunFFC(_response));
+        });
+    }
+
+    protected processRunFFC(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
