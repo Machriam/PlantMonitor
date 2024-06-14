@@ -18,6 +18,12 @@ public class IrImageTakingController([FromKeyedServices(ICameraInterop.IrCamera)
         return await cameraInterop.CameraInfo();
     }
 
+    [HttpPost("runffc")]
+    public void RunFFC()
+    {
+        cameraInterop.RequestFFC();
+    }
+
     [HttpPost("killcamera")]
     public async Task KillCamera()
     {

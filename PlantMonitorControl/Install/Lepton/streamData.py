@@ -18,6 +18,11 @@ ctx = POINTER(uvc_context)()
 dev = POINTER(uvc_device)()
 devh = POINTER(uvc_device_handle)()
 should_exit=False
+ffc_requested=False
+
+def ffc_signal(sig, frame):
+    global ffc_requested
+    ffc_requested=True
 
 def signal_handler(sig, frame):
   global should_exit
@@ -49,6 +54,7 @@ def main():
   streamFolder=sys.argv[1]
   signal.signal(signal.SIGINT,signal_handler)
   signal.signal(signal.SIGUSR2,signal_handler)
+  signal.signal(signal.SIGUSR1,ffc_signal)
   ctrl = uvc_stream_ctrl()
 
   res = libuvc.uvc_init(byref(ctx), 0)
@@ -90,11 +96,14 @@ def main():
       counter=0
       temp=get_temperature(devh)
       try:
+        global ffc_requested
         while not should_exit:
           data = q.get(True, 5)
           if counter%100==0:
             temp=get_temperature(devh)
+          if ffc_requested:
             run_ffc(devh)
+            ffc_requested=False
           file=f"{streamFolder}/{counter:06}_{temp:5}.rawir"
           np.savetxt(file,data,fmt="%d")
           counter+=1

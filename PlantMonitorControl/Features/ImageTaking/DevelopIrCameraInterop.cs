@@ -39,6 +39,10 @@ public class DevelopIrCameraInterop() : ICameraInterop
         return Task.CompletedTask;
     }
 
+    public void RequestFFC()
+    {
+    }
+
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
     {
         s_isRunning = true;
