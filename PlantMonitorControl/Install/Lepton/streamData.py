@@ -94,6 +94,7 @@ def main():
           data = q.get(True, 5)
           if counter%100==0:
             temp=get_temperature(devh)
+            run_ffc(devh)
           file=f"{streamFolder}/{counter:06}_{temp:5}.rawir"
           np.savetxt(file,data,fmt="%d")
           counter+=1

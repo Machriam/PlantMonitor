@@ -242,6 +242,12 @@ def get_temperature(devh):
   call_extension_unit(devh, SYS_UNIT_ID, command_id_to_control(0x10), buffer, len(buffer))
   return int.from_bytes(buffer.raw,byteorder="little")
 
+def run_ffc(devh):
+  buffer=create_string_buffer(1)
+  commandId=0x42
+  print("Run FFC: {0}".format(buffer.raw.hex("-")))
+  set_extension_unit(devh,SYS_UNIT_ID,command_id_to_control(commandId),buffer,len(buffer))
+
 
 def uvc_iter_formats(devh):
   p_format_desc = libuvc.uvc_get_format_descs(devh)
