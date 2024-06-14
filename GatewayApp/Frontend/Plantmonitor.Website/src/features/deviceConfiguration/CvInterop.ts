@@ -7,6 +7,25 @@ export class ThermalImage {
 
 
 export class CvInterop {
+    drawSourceImage(data) {
+        const canvas = document.createElement("canvas");
+        document.getElementById(guid).getContext("2d", { willReadFrequently: true });
+        const image = document.createElement("img");
+        image.src = data;
+        image.onload = (evt) => {
+            const data = cv.imread(image);
+            cv.imshow(canvas, data);
+        };
+    }
+    canny(source: HTMLCanvasElement, dest: HTMLCanvasElement) {
+        const src = cv.imread(source);
+        const dst = new cv.Mat();
+        cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+        cv.Canny(src, dst, 50, 100, 3, false);
+        cv.imshow(dest, dst);
+        src.delete();
+        dst.delete();
+    }
     thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
             const optCv = new optionalCvFunctions();

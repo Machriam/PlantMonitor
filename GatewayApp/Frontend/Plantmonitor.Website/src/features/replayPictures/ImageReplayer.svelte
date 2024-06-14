@@ -4,15 +4,18 @@
         date: Date;
         stepCount: number;
         imageUrl: string;
+        thumbnailUrl: string;
         pixelConverter: ((x: number, y: number) => number) | undefined;
     }
     import {onDestroy, onMount} from "svelte";
-    import {CameraType, PictureClient, PictureSeriesData} from "~/services/GatewayAppApi";
+    import {CameraType, PictureClient, PictureSeriesData, SeriesByDevice} from "~/services/GatewayAppApi";
     import {selectedDevice} from "../store";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import type {HubConnection} from "@microsoft/signalr";
     import {CvInterop} from "../deviceConfiguration/CvInterop";
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
+    import Select from "../reuseableComponents/Select.svelte";
+    import {resizeBase64Img} from "./ImageResizer";
 
     let pictureSeries: PictureSeriesData[] = [];
     let selectedSeries: PictureSeriesData | undefined;
@@ -22,24 +25,31 @@
     let images: ImageData[] = [];
     let lastPointerPosition: MouseEvent | undefined;
     let tooltip: TooltipCreatorResult | undefined;
+    let seriesByDevice: SeriesByDevice[] = [];
+    let selectedDeviceId: string | undefined;
     const cvInterop = new CvInterop();
     onMount(async () => {
-        await updatePictureSeries();
+        await updatePictureSeries($selectedDevice?.health.deviceId);
     });
     const subscription = selectedDevice.subscribe(async (x) => {
-        await updatePictureSeries();
+        await updatePictureSeries($selectedDevice?.health.deviceId);
     });
-    async function updatePictureSeries() {
+    async function updatePictureSeries(deviceId: string | undefined) {
         const pictureClient = new PictureClient();
-        if ($selectedDevice == undefined || $selectedDevice?.health.deviceId?.isEmpty()) return;
-        pictureSeries = await pictureClient.getPictureSeries($selectedDevice?.health.deviceId);
+        seriesByDevice = await pictureClient.getAllPicturedDevices();
+        selectedDeviceId = deviceId;
+        if (deviceId == undefined) {
+            pictureSeries = [];
+            return;
+        }
+        pictureSeries = await pictureClient.getPictureSeries(deviceId);
         pictureSeries = pictureSeries.sort((a, b) => a.folderName.localeCompare(b.folderName)).toReversed();
     }
     function onSeriesSelected(series: PictureSeriesData) {
-        if ($selectedDevice == undefined || $selectedDevice?.health.deviceId?.isEmpty()) return;
+        if (selectedDeviceId == undefined) return;
         selectedSeries = series;
         const streamer = new DeviceStreaming();
-        const connection = streamer.replayPictures($selectedDevice.health.deviceId!, series.folderName);
+        const connection = streamer.replayPictures(selectedDeviceId, series.folderName);
         hubConnection?.stop();
         hubConnection = connection.connection;
         images = [];
@@ -54,24 +64,34 @@
             } else {
                 dataUrl = await image.asBase64Url();
             }
+            const thumbnail = await resizeBase64Img(dataUrl, 100, 100);
             images.push({
                 imageUrl: dataUrl,
                 stepCount: step,
                 date: date,
                 temperature: temperature,
+                thumbnailUrl: thumbnail,
                 pixelConverter: pixelConverter
             });
-            currentImage = images.length - 1;
-            selectedImage = images[currentImage];
+            if (images.length == 1) {
+                currentImage = 0;
+                selectedImage = images[currentImage];
+            }
+            images = images;
         });
     }
     function onScroll(event: WheelEvent) {
         if (currentImage == -1) return;
-        if (event.deltaY < 0 && currentImage > 0) {
-            currentImage = currentImage - 1;
-        } else if (event.deltaY > 0 && currentImage < images.length - 1) {
-            currentImage = currentImage + 1;
+        let currentIndex = currentImage;
+        if (event.deltaY < 0 && currentIndex > 0) {
+            currentIndex = currentIndex - 1;
+        } else if (event.deltaY > 0 && currentIndex < images.length - 1) {
+            currentIndex = currentIndex + 1;
         }
+        changeImage(currentIndex);
+    }
+    function changeImage(newIndex: number) {
+        currentImage = newIndex;
         selectedImage = images[currentImage];
         updateTooltip();
     }
@@ -87,7 +107,14 @@
 </script>
 
 <div class={$$restProps.class || ""}>
-    <div style="height: 10vh;overflow-y:auto;text-align-last:left" class="d-flex flex-column col-md-4">
+    <Select
+        initialSelectedItem={$selectedDevice?.health.deviceId}
+        idSelector={(x) => x.deviceId}
+        textSelector={(x) => x.deviceId}
+        selectedItemChanged={(x) => updatePictureSeries(x?.deviceId)}
+        items={seriesByDevice}
+        class="col-md-6"></Select>
+    <div style="height: 10vh;overflow-y:auto;text-align-last:left" class="d-flex flex-column col-md-12">
         {#each pictureSeries as series}
             <button
                 on:click={() => onSeriesSelected(series)}
@@ -99,7 +126,7 @@
             </button>
         {/each}
     </div>
-    <div on:wheel={(x) => onScroll(x)}>
+    <div class="col-md-12 row p-0" style="min-height: 120px;" on:wheel={(x) => onScroll(x)}>
         {#if selectedImage != undefined}
             <img
                 on:mouseenter={(x) => {
@@ -118,13 +145,26 @@
                     updateTooltip();
                 }}
                 alt="preview"
-                width={selectedImage.pixelConverter == undefined ? "100%" : ""}
+                style="width:{selectedImage.pixelConverter != undefined ? 'initial' : ''}"
                 src={selectedImage?.imageUrl} />
-            <div>{selectedImage.date.toLocaleTimeString()}</div>
-            <div>Position: {selectedImage.stepCount}</div>
-            {#if selectedImage.temperature != undefined}
-                <div>Temperature: {selectedImage.temperature}</div>
-            {/if}
+            <div class="col-md-3">
+                <div>{selectedImage.date.toLocaleTimeString()}</div>
+                <div>Position: {selectedImage.stepCount}</div>
+                <div>Image {currentImage + 1}/{selectedSeries?.count}</div>
+                {#if selectedImage.temperature != undefined && selectedImage.temperature > 0}
+                    <div>Temperature: {selectedImage.temperature}</div>
+                {/if}
+            </div>
+            <div style="overflow-x:auto;width:40vw;flex-flow:nowrap;min-height:120px" class="row p-0">
+                {#each images as image, i}
+                    <div style="height: 80px;width:70px">
+                        <button class="p-0 m-0" on:click={() => changeImage(i)} style="height: 70px;width:70px;border:unset">
+                            <img style="height: 100%;width:100%" alt="visual scrollbar" src={image.thumbnailUrl} />
+                        </button>
+                        <div style="font-weight: {i == currentImage ? '700' : '400'};">{i + 1}</div>
+                    </div>
+                {/each}
+            </div>
         {/if}
     </div>
 </div>
