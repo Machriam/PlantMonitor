@@ -24,6 +24,12 @@ public class DeviceController(IDeviceApiFactory apiFactory)
         else await apiFactory.IrImageTakingClient(ip).KillcameraAsync();
     }
 
+    [HttpPost("runffc")]
+    public async Task RunFFC(string ip)
+    {
+        await apiFactory.IrImageTakingClient(ip).RunffcAsync();
+    }
+
     [HttpGet("camerainfo")]
     public async Task<string> CameraInfo(string ip, CameraType type)
     {

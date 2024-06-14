@@ -22,6 +22,8 @@ public interface ICameraInterop
     Task KillImageTaking();
 
     Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM);
+
+    void RequestFFC();
 }
 
 public class RaspberryCameraInterop() : ICameraInterop
@@ -108,5 +110,9 @@ public class RaspberryCameraInterop() : ICameraInterop
         _deviceFunctional = success;
         _cameraFound |= success;
         return Results.File(ms, "image/png");
+    }
+
+    public void RequestFFC()
+    {
     }
 }

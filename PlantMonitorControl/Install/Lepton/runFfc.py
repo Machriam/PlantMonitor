@@ -43,12 +43,8 @@ def main():
       print_device_info(devh)
       print_device_formats(devh)
 
-      buffer=create_string_buffer(1)
-      commandId=0x42
-      print("Buffer: {0}".format(buffer.raw.hex("-")))
-      result=set_extension_unit(devh,SYS_UNIT_ID,command_id_to_control(commandId),buffer,len(buffer))
+      result=run_ffc(devh)
       print(result)
-      print("Buffer: {0}".format(buffer.raw.hex("-")))
       print("done")
     finally:
       libuvc.uvc_unref_device(dev)

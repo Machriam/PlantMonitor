@@ -8,6 +8,7 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
     private static readonly string s_tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "tempImages_IR");
     private static bool s_cameraFound;
     private static bool s_cameraIsRunning;
+    private static Process? s_streamProcess;
 
     public Task<bool> CameraFound()
     {
@@ -55,11 +56,19 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
         s_cameraIsRunning = false;
     }
 
+    public void RequestFFC()
+    {
+        if (s_streamProcess == null) return;
+        s_streamProcess.SendSignal(ProcessExtensions.Signum.SIGUSR1);
+    }
+
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
     {
         await KillImageTaking();
         InitializeFolder();
-        new Process().RunProcess(configuration.IRPrograms.StreamData, s_tempImagePath).RunInBackground(ex => ex.LogError());
+        s_streamProcess = new Process();
+        s_streamProcess.RunProcess(configuration.IRPrograms.StreamData, s_tempImagePath)
+            .RunInBackground(ex => ex.LogError());
         s_cameraIsRunning = true;
         return s_tempImagePath;
     }

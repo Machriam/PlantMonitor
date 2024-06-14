@@ -78,39 +78,44 @@
             `exec bash;'`;
         webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
     }
-    async function showPreviewImage(device: string | undefined) {
-        if (device == undefined) return;
+    async function showPreviewImage(ip: string | undefined) {
+        if (ip == undefined) return;
         const deviceClient = new DeviceClient();
-        await deviceClient.killCamera(device, CameraType.Vis);
-        previewImage = {dataUrl: await (await deviceClient.previewImage(device, CameraType.Vis)).data.asBase64Url()};
+        await deviceClient.killCamera(ip, CameraType.Vis);
+        previewImage = {dataUrl: await (await deviceClient.previewImage(ip, CameraType.Vis)).data.asBase64Url()};
     }
-    async function getLogData(device: string | undefined) {
-        if (device == undefined) return;
+    async function runFFC(ip: string | undefined) {
+        if (ip == undefined) return;
+        const client = new DeviceClient();
+        client.runFFC(ip);
+    }
+    async function getLogData(ip: string | undefined) {
+        if (ip == undefined) return;
         const configurationClient = new DeviceConfigurationClient();
-        logData = await configurationClient.getDeviceLog(device);
+        logData = await configurationClient.getDeviceLog(ip);
     }
-    async function showThermalImage(device: string | undefined) {
-        if (device == undefined) return;
+    async function showThermalImage(ip: string | undefined) {
+        if (ip == undefined) return;
         const deviceClient = new DeviceClient();
-        await deviceClient.killCamera(device, CameraType.IR);
+        await deviceClient.killCamera(ip, CameraType.IR);
         const cvInterop = new CvInterop();
-        const data = (await deviceClient.previewImage(device, CameraType.IR)).data;
+        const data = (await deviceClient.previewImage(ip, CameraType.IR)).data;
         previewImage = cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer()));
     }
-    async function testMovement(device: string | undefined) {
-        if (device == undefined) return;
+    async function testMovement(ip: string | undefined) {
+        if (ip == undefined) return;
         const deviceClient = new DeviceClient();
-        await deviceClient.move(device, -1500, 1000, 10000, 300);
+        await deviceClient.move(ip, -1500, 1000, 10000, 300);
     }
-    async function showThermalVideo(device: string | undefined) {
-        if (device == undefined) return;
+    async function showThermalVideo(ip: string | undefined) {
+        if (ip == undefined) return;
         pictureStreamer.stopStreaming();
-        pictureStreamer.showPreview(device, CameraType.IR, 1);
+        pictureStreamer.showPreview(ip, CameraType.IR, 1);
     }
-    async function showTestVideo(device: string | undefined) {
-        if (device == undefined) return;
+    async function showTestVideo(ip: string | undefined) {
+        if (ip == undefined) return;
         pictureStreamer.stopStreaming();
-        pictureStreamer.showPreview(device, CameraType.Vis, 1);
+        pictureStreamer.showPreview(ip, CameraType.Vis, 1);
     }
     async function checkStatus(ip: string) {
         const deviceClient = new DeviceConfigurationClient();
@@ -225,6 +230,7 @@
                                     Preview IR Video
                                 </button>
                                 <button on:click={() => getLogData(device.ip)} class="btn btn-primary"> Show Logs </button>
+                                <button on:click={() => runFFC(device.ip)} class="btn btn-primary"> FFC</button>
                                 {#if device.health.deviceId != undefined}
                                     <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
                                         Associated Outlet:
