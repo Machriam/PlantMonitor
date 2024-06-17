@@ -35,6 +35,7 @@
     let existingOutlets: OutletModel[] = [];
     let selectedOutlet: OutletModel | undefined;
     let logData = "";
+    let allOutletsFetched = false;
 
     let searchingForDevices = true;
     let webSshLink = ""; // @hmr:keep
@@ -160,6 +161,7 @@
                 }
                 outletByDevice[deviceId] = result;
             }
+            allOutletsFetched = true;
         } catch (ex) {
             console.log(ex);
             devices = [];
@@ -231,7 +233,7 @@
                                 </button>
                                 <button on:click={() => getLogData(device.ip)} class="btn btn-primary"> Show Logs </button>
                                 <button on:click={() => runFFC(device.ip)} class="btn btn-primary"> FFC</button>
-                                {#if device.health.deviceId != undefined}
+                                {#if device.health.deviceId != undefined && allOutletsFetched}
                                     <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
                                         Associated Outlet:
                                         <Select
