@@ -2,7 +2,7 @@
     export let idSelector: (x: T) => string = (x) => JSON.stringify(x);
     export let textSelector: (x: T) => string = (x) => JSON.stringify(x);
     export let items: T[];
-    export let initialSelectedItem: string | undefined = undefined;
+    export let initialSelectedItem: string | undefined = "";
     let firstRender = true;
     let selectedItem: T | undefined;
     let isInitialized = false;
