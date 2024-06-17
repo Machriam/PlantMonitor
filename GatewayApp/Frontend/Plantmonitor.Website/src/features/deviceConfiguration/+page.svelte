@@ -159,6 +159,7 @@
                     continue;
                 }
                 outletByDevice[deviceId] = result;
+                outletByDevice = outletByDevice;
             }
         } catch (ex) {
             console.log(ex);
