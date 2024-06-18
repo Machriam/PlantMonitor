@@ -7,10 +7,8 @@ public class MotorAccessFilter : ActionFilterAttribute
 {
     public override void OnActionExecuting(ActionExecutingContext context)
     {
-        var remoteIp = context.HttpContext.Connection.RemoteIpAddress?.ToString();
-        var localIp = context.HttpContext.Connection.LocalIpAddress?.ToString();
-        Log.Logger.Information("Ip {ip} accessed motor", remoteIp);
-        if (!new[] { "127.0.0.1", "::1", localIp }.Contains(remoteIp))
-            throw new Exception("Motor movement actions are only allowed on the gateway computer");
+        var hostIp = context.HttpContext.Request.Headers.Host;
+        Log.Logger.Information("Ip {ip} accessed motor", hostIp.Select(h => h).AsJson());
+        if (hostIp.Count != 1 || hostIp[0]?.Split(":")[0] != "localhost") throw new Exception("Motor movement actions are only allowed on the gateway computer");
     }
 }
