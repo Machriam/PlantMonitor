@@ -33,6 +33,12 @@ public class HealthController(IHealthSettingsEditor healthSettings) : Controller
             (HealthState.CanSwitchOutlets, canSwitchOutlets));
     }
 
+    [HttpPost("updateiroffset")]
+    public void UpdateIrOffset([FromBody] IrCameraOffset newOffset)
+    {
+        healthSettings.UpdateIrOffset(newOffset);
+    }
+
     [HttpGet("logs")]
     public async Task<string> GetLogs()
     {

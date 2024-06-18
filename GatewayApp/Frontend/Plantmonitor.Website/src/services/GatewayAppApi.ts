@@ -890,6 +890,8 @@ export interface IPictureClient {
 
     getAllPicturedDevices(): Promise<SeriesByDevice[]>;
 
+    updateIrOffset(offset: IrCameraOffset, ip?: string | undefined): Promise<void>;
+
     getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]>;
 }
 
@@ -945,6 +947,46 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
             });
         }
         return Promise.resolve<SeriesByDevice[]>(null as any);
+    }
+
+    updateIrOffset(offset: IrCameraOffset, ip?: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Picture/updateiroffset?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(offset);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdateIrOffset(_response));
+        });
+    }
+
+    protected processUpdateIrOffset(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]> {
@@ -1917,6 +1959,53 @@ export interface ISeriesByDevice {
     folderName: string;
 }
 
+export class IrCameraOffset implements IIrCameraOffset {
+    left!: number | undefined;
+    top!: number | undefined;
+
+    constructor(data?: IIrCameraOffset) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.left = _data["left"];
+            this.top = _data["top"];
+        }
+    }
+
+    static fromJS(data: any): IrCameraOffset {
+        data = typeof data === 'object' ? data : {};
+        let result = new IrCameraOffset();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["left"] = this.left;
+        data["top"] = this.top;
+        return data;
+    }
+
+    clone(): IrCameraOffset {
+        const json = this.toJSON();
+        let result = new IrCameraOffset();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IIrCameraOffset {
+    left: number | undefined;
+    top: number | undefined;
+}
+
 export class PictureSeriesData implements IPictureSeriesData {
     count!: number;
     folderName!: string;
@@ -2074,6 +2163,7 @@ export class DeviceHealth implements IDeviceHealth {
     deviceName!: string | undefined;
     deviceId!: string | undefined;
     state!: HealthState | undefined;
+    cameraOffset!: IrCameraOffset | undefined;
 
     constructor(data?: IDeviceHealth) {
         if (data) {
@@ -2089,6 +2179,7 @@ export class DeviceHealth implements IDeviceHealth {
             this.deviceName = _data["deviceName"];
             this.deviceId = _data["deviceId"];
             this.state = _data["state"];
+            this.cameraOffset = _data["cameraOffset"] ? IrCameraOffset.fromJS(_data["cameraOffset"]) : <any>undefined;
         }
     }
 
@@ -2104,6 +2195,7 @@ export class DeviceHealth implements IDeviceHealth {
         data["deviceName"] = this.deviceName;
         data["deviceId"] = this.deviceId;
         data["state"] = this.state;
+        data["cameraOffset"] = this.cameraOffset ? this.cameraOffset.toJSON() : <any>undefined;
         return data;
     }
 
@@ -2119,6 +2211,7 @@ export interface IDeviceHealth {
     deviceName: string | undefined;
     deviceId: string | undefined;
     state: HealthState | undefined;
+    cameraOffset: IrCameraOffset | undefined;
 }
 
 export enum HealthState {

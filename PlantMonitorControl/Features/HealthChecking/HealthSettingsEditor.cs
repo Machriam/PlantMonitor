@@ -5,6 +5,8 @@ public interface IHealthSettingsEditor
     DeviceHealth GetHealth();
 
     DeviceHealth UpdateHealthState(params (HealthState state, bool isActive)[] data);
+
+    void UpdateIrOffset(IrCameraOffset offset);
 }
 
 public class HealthSettingsEditor : IHealthSettingsEditor
@@ -24,6 +26,13 @@ public class HealthSettingsEditor : IHealthSettingsEditor
             }.AsJson());
         }
         return File.ReadAllText(_filePath).FromJson<DeviceHealth>() ?? throw new Exception("Could not read devicehealth.json");
+    }
+
+    public void UpdateIrOffset(IrCameraOffset offset)
+    {
+        var health = GetHealth();
+        health.CameraOffset = offset;
+        File.WriteAllText(_filePath, health.AsJson());
     }
 
     public DeviceHealth UpdateHealthState(params (HealthState state, bool isActive)[] data)

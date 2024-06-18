@@ -12,10 +12,13 @@
         CanSwitchOutlets = 32,
     }
 
+    public record class IrCameraOffset(int Left, int Top);
+
     public class DeviceHealth
     {
         public string DeviceName { get; set; } = "";
         public string DeviceId { get; set; } = "";
         public HealthState State { get; set; }
+        public IrCameraOffset CameraOffset { get; set; } = new(119, 48);
     }
 }

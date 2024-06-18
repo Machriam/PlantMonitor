@@ -6,12 +6,26 @@ export class ThermalImage {
     pixelConverter?: (x: number, y: number) => number;
 }
 
+export type ImageOffsetCalculator = {
+    leftControl: (x: number) => void;
+    topControl: (x: number) => void;
+    visOpacity: (x: number) => void;
+    delete: () => void;
+};
+
 export class CvInterop {
-    calculateImageOffset(irData: string, visImageData: string) {
+    calculateImageOffset(irData: string, visImageData: string): ImageOffsetCalculator {
         const irCanvas = document.createElement("canvas");
         const visCanvas = document.createElement("canvas");
-        document.body.appendChild(irCanvas);
-        document.body.appendChild(visCanvas);
+        const div = document.createElement("div");
+        div.style.position = "relative";
+        const article = document.getElementsByClassName("content")[0];
+        article.appendChild(div);
+        div.appendChild(irCanvas);
+        div.appendChild(visCanvas);
+        irCanvas.style.position = "absolute";
+        visCanvas.style.position = "absolute";
+        visCanvas.style.opacity = "0.5";
         const irImage = document.createElement("img") as HTMLImageElement;
         const visImage = document.createElement("img") as HTMLImageElement;
         irImage.onload = () => {
@@ -19,22 +33,21 @@ export class CvInterop {
             visImage.src = visImageData;
             visImage.onload = () => {
                 const visMat = cv.imread(visImage);
+                const ratio = irMat.size().height / visMat.size().height;
+                cv.resize(visMat, visMat, new cv.Size(0, 0), ratio, ratio);
                 cv.imshow(irCanvas, irMat);
                 cv.imshow(visCanvas, visMat);
+                div.style.height = (irMat.size().height + 100) + "px";
                 irMat.delete();
                 visMat.delete();
             }
         }
         irImage.src = irData;
-    }
-    drawSourceImage(data) {
-        const canvas = document.createElement("canvas");
-        document.getElementById(guid).getContext("2d", { willReadFrequently: true });
-        const image = document.createElement("img");
-        image.src = data;
-        image.onload = (evt) => {
-            const data = cv.imread(image);
-            cv.imshow(canvas, data);
+        return {
+            leftControl: (x) => irCanvas.style.left = x + "px",
+            topControl: (x) => irCanvas.style.top = x + "px",
+            visOpacity: (x) => visCanvas.style.opacity = x + "",
+            delete: () => article.removeChild(div)
         };
     }
 
