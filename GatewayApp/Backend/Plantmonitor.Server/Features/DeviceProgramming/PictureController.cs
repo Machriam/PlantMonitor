@@ -9,7 +9,7 @@ public record struct SeriesByDevice(string DeviceId, string FolderName);
 
 [ApiController]
 [Route("api/[controller]")]
-public class PictureController(IEnvironmentConfiguration configuration)
+public class PictureController(IEnvironmentConfiguration configuration, IDeviceApiFactory deviceApi)
 {
     private static readonly Dictionary<string, CameraType> s_cameraTypesByEnding = Enum.GetValues<CameraType>().Cast<CameraType>()
         .Select(c => (c.Attribute<CameraTypeInfo>().FileEnding, CameraType: c))
@@ -25,6 +25,12 @@ public class PictureController(IEnvironmentConfiguration configuration)
             if (!Guid.TryParse(split[1], out var guid)) continue;
             yield return new(guid.ToString(), folderName);
         }
+    }
+
+    [HttpPost("updateiroffset")]
+    public async Task UpdateIrOffset([FromBody] IrCameraOffset offset, string ip)
+    {
+        await deviceApi.HealthClient(ip).UpdateiroffsetAsync(offset);
     }
 
     [HttpGet("pictureseriesnames")]

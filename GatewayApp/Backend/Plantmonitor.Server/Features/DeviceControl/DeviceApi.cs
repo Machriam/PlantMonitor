@@ -1964,6 +1964,13 @@ namespace Plantmonitor.Server.Features.DeviceControl
         System.Threading.Tasks.Task<DeviceHealth> CheckdevicehealthAsync(System.Threading.CancellationToken cancellationToken);
 
         /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task UpdateiroffsetAsync(IrCameraOffset newOffset);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task UpdateiroffsetAsync(IrCameraOffset newOffset, System.Threading.CancellationToken cancellationToken);
+
+        /// <exception cref="ApiException">A server side error occurred.</exception>
         System.Threading.Tasks.Task<string> LogsAsync();
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -2144,6 +2151,83 @@ namespace Plantmonitor.Server.Features.DeviceControl
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
                             return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task UpdateiroffsetAsync(IrCameraOffset newOffset)
+        {
+            return UpdateiroffsetAsync(newOffset, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task UpdateiroffsetAsync(IrCameraOffset newOffset, System.Threading.CancellationToken cancellationToken)
+        {
+            if (newOffset == null)
+                throw new System.ArgumentNullException("newOffset");
+
+            var client_ = new System.Net.Http.HttpClient();
+            var disposeClient_ = true;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(newOffset, _settings.Value);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "api/Health/updateiroffset"
+                    urlBuilder_.Append("api/Health/updateiroffset");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            return;
                         }
                         else
                         {
@@ -2355,7 +2439,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
     {
         [System.Text.Json.Serialization.JsonConstructor]
 
-        public DeviceHealth(string? @deviceId, string? @deviceName, HealthState? @state)
+        public DeviceHealth(IrCameraOffset? @cameraOffset, string? @deviceId, string? @deviceName, HealthState? @state)
 
         {
 
@@ -2364,6 +2448,8 @@ namespace Plantmonitor.Server.Features.DeviceControl
             this.DeviceId = @deviceId;
 
             this.State = @state;
+
+            this.CameraOffset = @cameraOffset;
 
         }
         [System.Text.Json.Serialization.JsonPropertyName("deviceName")]
@@ -2374,6 +2460,9 @@ namespace Plantmonitor.Server.Features.DeviceControl
 
         [System.Text.Json.Serialization.JsonPropertyName("state")]
         public HealthState? State { get; init; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("cameraOffset")]
+        public IrCameraOffset? CameraOffset { get; init; }
 
     }
 
@@ -2395,6 +2484,28 @@ namespace Plantmonitor.Server.Features.DeviceControl
         SystemCalibrated = 16,
 
         CanSwitchOutlets = 32,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial record IrCameraOffset
+    {
+        [System.Text.Json.Serialization.JsonConstructor]
+
+        public IrCameraOffset(int? @left, int? @top)
+
+        {
+
+            this.Left = @left;
+
+            this.Top = @top;
+
+        }
+        [System.Text.Json.Serialization.JsonPropertyName("left")]
+        public int? Left { get; init; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("top")]
+        public int? Top { get; init; }
 
     }
 

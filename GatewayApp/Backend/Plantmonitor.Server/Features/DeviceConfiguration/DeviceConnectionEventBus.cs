@@ -21,7 +21,7 @@ public class DeviceConnectionEventBus : IDeviceConnectionEventBus
     public IEnumerable<DeviceHealthState> GetDeviceHealthInformation()
     {
 #if DEBUG
-        return s_deviceHealths.Append(new DeviceHealthState(new DeviceHealth("13be815a-cf95-4b58-b9f7-fd5d9f5431e9", "test", HealthState.NA), 0, "localhost:7006"));
+        return s_deviceHealths.Append(new DeviceHealthState(new DeviceHealth(new(1, 2), "13be815a-cf95-4b58-b9f7-fd5d9f5431e9", "test", HealthState.NA), 0, "localhost:7006"));
 #endif
         return s_deviceHealths;
     }

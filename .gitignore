@@ -20,3 +20,4 @@ Confluence/Dockerfiles/database.env
 **/*.jpg
 **/*.png
 **/*.raw
+!**/Documents/*
