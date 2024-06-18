@@ -1,5 +1,4 @@
 <script lang="ts">
-
     import {onDestroy, onMount} from "svelte";
     import {CameraType, PictureClient, PictureSeriesData, SeriesByDevice} from "~/services/GatewayAppApi";
     import {selectedDevice} from "../store";
@@ -9,19 +8,20 @@
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
     import Select from "../reuseableComponents/Select.svelte";
     import {resizeBase64Img} from "./ImageResizer";
-    import type { ReplayedImage } from "./ReplayedImage";
+    import type {ReplayedImage} from "./ReplayedImage";
 
     let pictureSeries: PictureSeriesData[] = [];
     export const getSelectedImage = () => selectedImage;
     let selectedSeries: PictureSeriesData | undefined;
     let hubConnection: HubConnection | undefined;
     let selectedImage: ReplayedImage | undefined;
-    let currentImage: number = -1;
+    let currentImageIndex: number = -1;
     let images: ReplayedImage[] = [];
     let lastPointerPosition: MouseEvent | undefined;
     let tooltip: TooltipCreatorResult | undefined;
     let seriesByDevice: SeriesByDevice[] = [];
     let selectedDeviceId: string | undefined;
+    const selectedImageDivId = Math.random().toString(36);
     const cvInterop = new CvInterop();
     onMount(async () => {
         await updatePictureSeries($selectedDevice?.health.deviceId);
@@ -48,7 +48,7 @@
         hubConnection?.stop();
         hubConnection = connection.connection;
         images = [];
-        currentImage = -1;
+        currentImageIndex = -1;
         connection.start(async (step, date, image, temperature) => {
             let dataUrl = "";
             let pixelConverter = undefined;
@@ -69,25 +69,28 @@
                 pixelConverter: pixelConverter
             });
             if (images.length == 1) {
-                currentImage = 0;
-                selectedImage = images[currentImage];
+                currentImageIndex = 0;
+                selectedImage = images[currentImageIndex];
             }
             images = images;
         });
     }
     function onScroll(event: WheelEvent) {
-        if (currentImage == -1) return;
-        let currentIndex = currentImage;
+        if (currentImageIndex == -1) return;
+        let currentIndex = currentImageIndex;
         if (event.deltaY < 0 && currentIndex > 0) {
             currentIndex = currentIndex - 1;
         } else if (event.deltaY > 0 && currentIndex < images.length - 1) {
             currentIndex = currentIndex + 1;
         }
         changeImage(currentIndex);
+        event.preventDefault();
     }
     function changeImage(newIndex: number) {
-        currentImage = newIndex;
-        selectedImage = images[currentImage];
+        currentImageIndex = newIndex;
+        selectedImage = images[currentImageIndex];
+        const activatedTooltip = document.getElementById(selectedImageDivId + "_" + currentImageIndex);
+        activatedTooltip?.scrollIntoView({behavior: "instant", block: "nearest", inline: "center"});
         updateTooltip();
     }
     function updateTooltip() {
@@ -145,18 +148,18 @@
             <div class="col-md-3">
                 <div>{selectedImage.date.toLocaleTimeString()}</div>
                 <div>Position: {selectedImage.stepCount}</div>
-                <div>Image {currentImage + 1}/{selectedSeries?.count}</div>
+                <div>Image {currentImageIndex + 1}/{selectedSeries?.count}</div>
                 {#if selectedImage.temperature != undefined && selectedImage.temperature > 0}
                     <div>Temperature: {selectedImage.temperature}</div>
                 {/if}
             </div>
             <div style="overflow-x:auto;width:40vw;flex-flow:nowrap;min-height:120px" class="row p-0">
                 {#each images as image, i}
-                    <div style="height: 80px;width:70px">
+                    <div id={selectedImageDivId + "_" + i} style="height: 80px;width:70px">
                         <button class="p-0 m-0" on:click={() => changeImage(i)} style="height: 70px;width:70px;border:unset">
                             <img style="height: 100%;width:100%" alt="visual scrollbar" src={image.thumbnailUrl} />
                         </button>
-                        <div style="font-weight: {i == currentImage ? '700' : '400'};">{i + 1}</div>
+                        <div style="font-weight: {i == currentImageIndex ? '700' : '400'};">{i + 1}</div>
                     </div>
                 {/each}
             </div>
