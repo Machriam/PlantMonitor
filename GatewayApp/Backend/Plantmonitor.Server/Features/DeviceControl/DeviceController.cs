@@ -42,18 +42,21 @@ public class DeviceController(IDeviceApiFactory apiFactory)
         return await apiFactory.MovementClient(ip).CurrentpositionAsync();
     }
 
+    [MotorAccessFilter]
     [HttpPost("zeroposition")]
     public async Task ZeroPosition(string ip)
     {
         await apiFactory.MovementClient(ip).ZeropositionAsync();
     }
 
+    [MotorAccessFilter]
     [HttpPost("togglemotorengage")]
     public async Task ToggleMotorEngage(string ip, bool engage)
     {
         await apiFactory.MovementClient(ip).TogglemotorengageAsync(engage);
     }
 
+    [MotorAccessFilter]
     [HttpPost("move")]
     public async Task Move(string ip, int steps, int minTime, int maxTime, int rampLength)
     {
