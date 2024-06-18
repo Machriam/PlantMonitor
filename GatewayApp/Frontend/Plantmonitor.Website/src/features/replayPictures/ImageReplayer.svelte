@@ -1,12 +1,5 @@
 <script lang="ts">
-    class ImageData {
-        temperature: number | undefined;
-        date: Date;
-        stepCount: number;
-        imageUrl: string;
-        thumbnailUrl: string;
-        pixelConverter: ((x: number, y: number) => number) | undefined;
-    }
+
     import {onDestroy, onMount} from "svelte";
     import {CameraType, PictureClient, PictureSeriesData, SeriesByDevice} from "~/services/GatewayAppApi";
     import {selectedDevice} from "../store";
@@ -16,13 +9,15 @@
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
     import Select from "../reuseableComponents/Select.svelte";
     import {resizeBase64Img} from "./ImageResizer";
+    import type { ReplayedImage } from "./ReplayedImage";
 
     let pictureSeries: PictureSeriesData[] = [];
+    export const getSelectedImage = () => selectedImage;
     let selectedSeries: PictureSeriesData | undefined;
     let hubConnection: HubConnection | undefined;
-    let selectedImage: ImageData | undefined;
+    let selectedImage: ReplayedImage | undefined;
     let currentImage: number = -1;
-    let images: ImageData[] = [];
+    let images: ReplayedImage[] = [];
     let lastPointerPosition: MouseEvent | undefined;
     let tooltip: TooltipCreatorResult | undefined;
     let seriesByDevice: SeriesByDevice[] = [];

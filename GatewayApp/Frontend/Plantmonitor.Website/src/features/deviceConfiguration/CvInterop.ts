@@ -1,3 +1,4 @@
+import type { Mat } from "mirada/dist/src/types/opencv/Mat";
 import { printError } from "./CvUtils";
 import { ColormapTypes, optionalCvFunctions } from "~/types/mirada";
 export class ThermalImage {
@@ -5,8 +6,27 @@ export class ThermalImage {
     pixelConverter?: (x: number, y: number) => number;
 }
 
-
 export class CvInterop {
+    calculateImageOffset(irData: string, visImageData: string) {
+        const irCanvas = document.createElement("canvas");
+        const visCanvas = document.createElement("canvas");
+        document.body.appendChild(irCanvas);
+        document.body.appendChild(visCanvas);
+        const irImage = document.createElement("img") as HTMLImageElement;
+        const visImage = document.createElement("img") as HTMLImageElement;
+        irImage.onload = () => {
+            const irMat = cv.imread(irImage);
+            visImage.src = visImageData;
+            visImage.onload = () => {
+                const visMat = cv.imread(visImage);
+                cv.imshow(irCanvas, irMat);
+                cv.imshow(visCanvas, visMat);
+                irMat.delete();
+                visMat.delete();
+            }
+        }
+        irImage.src = irData;
+    }
     drawSourceImage(data) {
         const canvas = document.createElement("canvas");
         document.getElementById(guid).getContext("2d", { willReadFrequently: true });
@@ -17,14 +37,25 @@ export class CvInterop {
             cv.imshow(canvas, data);
         };
     }
-    canny(source: HTMLCanvasElement, dest: HTMLCanvasElement) {
-        const src = cv.imread(source);
-        const dst = new cv.Mat();
+
+    canny(src: Mat, dest: Mat, threshold1: number, threshold2: number, apertureSize: number = 3, l2Gradient: boolean = false) {
         cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-        cv.Canny(src, dst, 50, 100, 3, false);
-        cv.imshow(dest, dst);
-        src.delete();
-        dst.delete();
+        cv.Canny(src, dest, threshold1, threshold2, apertureSize, l2Gradient);
+    }
+
+    kernelFilter(src: Mat, dest: Mat, kernelArray: number[], arrayWidth: number, arrayHeight: number, normalize = true) {
+        if (normalize) {
+            const sum = kernelArray.reduce((a, b) => a + b, 0);
+            if (sum != 0) kernelArray = kernelArray.map(x => x / sum);
+        }
+        const kernel = cv.matFromArray(arrayHeight, arrayWidth, cv.CV_32FC1, kernelArray);
+        const anchor = new cv.Point(-1, -1);
+        cv.filter2D(src, dest, cv.CV_8U, kernel, anchor, 0, cv.BORDER_DEFAULT);
+        kernel.delete();
+    }
+
+    medianBlur(src: Mat, dest: Mat, ksize: number) {
+        cv.medianBlur(src, dest, ksize);
     }
     thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
@@ -40,6 +71,8 @@ export class CvInterop {
             mat.convertTo(mat, cv.CV_8UC1);
             optCv.applyColorMap(mat, mat, ColormapTypes.COLORMAP_RAINBOW);
             cv.resize(mat, resizeMat, resizeMat.size(), 0, 0);
+            this.kernelFilter(resizeMat, resizeMat, [1, 1, 1, 1, -8.1, 1, 1, 1, 1], 3, 3);
+            this.medianBlur(resizeMat, resizeMat, 3);
             cv.imshow(canvas, resizeMat);
             mat.delete();
             baselineMat.delete();
@@ -86,4 +119,3 @@ export class CvInterop {
         return videoUpdater;
     }
 }
-
