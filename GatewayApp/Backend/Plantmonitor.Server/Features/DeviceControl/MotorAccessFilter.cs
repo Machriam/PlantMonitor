@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
+﻿using System.Net;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Serilog;
 
 namespace Plantmonitor.Server.Features.DeviceControl;
