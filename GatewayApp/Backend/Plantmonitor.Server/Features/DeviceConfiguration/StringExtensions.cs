@@ -2,6 +2,17 @@
 
 public static class StringExtensions
 {
+    public static string? GetApplicationRootGitPath(this string folderToSearchFrom)
+    {
+        while (!Directory.EnumerateDirectories(folderToSearchFrom, ".git").Any())
+        {
+            var parent = Directory.GetParent(folderToSearchFrom)?.FullName;
+            if (parent == null) return null;
+            folderToSearchFrom = Path.GetFullPath(parent);
+        }
+        return Path.GetFullPath(folderToSearchFrom);
+    }
+
     public static IEnumerable<string> ToIpRange(this string from, string to)
     {
         var fromSplit = from.Split('.');
