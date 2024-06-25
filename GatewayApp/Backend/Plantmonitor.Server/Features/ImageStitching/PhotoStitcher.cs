@@ -32,7 +32,7 @@ public class PhotoStitcher
         stitcher.Dispose();
     }
 
-    private static void FindMatch(Mat modelImage, Mat observedImage, out VectorOfKeyPoint modelKeyPoints,
+    private static void CalculateHomography(Mat modelImage, Mat observedImage, out VectorOfKeyPoint modelKeyPoints,
         out VectorOfKeyPoint observedKeyPoints, VectorOfVectorOfDMatch matches, out Mat mask, out Mat? homography)
     {
         const int K = 2;
@@ -42,10 +42,10 @@ public class PhotoStitcher
         observedKeyPoints = new VectorOfKeyPoint();
         using var uModelImage = modelImage.GetUMat(AccessType.Read);
         using var uObservedImage = observedImage.GetUMat(AccessType.Read);
-        var featureDetector = new ORB(9000);
-        var modelDescriptors = new Mat();
+        using var featureDetector = new ORB(9000);
+        using var modelDescriptors = new Mat();
         featureDetector.DetectAndCompute(uModelImage, null, modelKeyPoints, modelDescriptors, false);
-        var observedDescriptors = new Mat();
+        using var observedDescriptors = new Mat();
         featureDetector.DetectAndCompute(uObservedImage, null, observedKeyPoints, observedDescriptors, false);
         using var matcher = new BFMatcher(DistanceType.Hamming, false);
         matcher.Add(modelDescriptors);
@@ -56,20 +56,16 @@ public class PhotoStitcher
         Features2DToolbox.VoteForUniqueness(matches, UniquenessThreshold, mask);
 
         var nonZeroCount = CvInvoke.CountNonZero(mask);
-        if (nonZeroCount >= 4)
-        {
-            nonZeroCount = Features2DToolbox.VoteForSizeAndOrientation(modelKeyPoints, observedKeyPoints,
-                matches, mask, 1.5, 20);
-            if (nonZeroCount >= 4)
-                homography = Features2DToolbox.GetHomographyMatrixFromMatchedFeatures(modelKeyPoints,
-                    observedKeyPoints, matches, mask, 2);
-        }
+        if (nonZeroCount < 4) return;
+        nonZeroCount = Features2DToolbox.VoteForSizeAndOrientation(modelKeyPoints, observedKeyPoints, matches, mask, 1.5, 20);
+        if (nonZeroCount < 4) return;
+        homography = Features2DToolbox.GetHomographyMatrixFromMatchedFeatures(modelKeyPoints, observedKeyPoints, matches, mask, 2);
     }
 
     public static Mat Draw(Mat modelImage, Mat observedImage)
     {
         using var matches = new VectorOfVectorOfDMatch();
-        FindMatch(modelImage, observedImage, out var modelKeyPoints, out var observedKeyPoints, matches, out var mask, out var homography);
+        CalculateHomography(modelImage, observedImage, out var modelKeyPoints, out var observedKeyPoints, matches, out var mask, out var homography);
         var result = new Mat();
         Features2DToolbox.DrawMatches(modelImage, modelKeyPoints, observedImage, observedKeyPoints,
             matches, result, new MCvScalar(255, 0, 0), new MCvScalar(0, 0, 255), mask);
@@ -103,11 +99,16 @@ public class PhotoStitcher
         var files = Directory.GetFiles(folderName).Take(2);
         var imagesToStitch = files.OrderBy(f => f).Select(f => new Mat(f)).ToList();
         var matches = new VectorOfVectorOfDMatch();
-        FindMatch(imagesToStitch[0], imagesToStitch[1], out var keyPoints, out var keyPoints2, matches, out var mask, out var homography);
+        CalculateHomography(imagesToStitch[0], imagesToStitch[1], out var keyPoints, out var keyPoints2, matches, out var mask, out var homography);
         var result = new Mat();
         CvInvoke.WarpPerspective(imagesToStitch[1], result, homography, imagesToStitch[0].Size, Inter.Linear, Warp.InverseMap);
         CvInvoke.Imshow("result", result);
-        CvInvoke.Imshow("test", Draw(imagesToStitch[0], imagesToStitch[1]));
         CvInvoke.WaitKey();
+        keyPoints.Dispose();
+        keyPoints2.Dispose();
+        matches.Dispose();
+        mask.Dispose();
+        homography?.Dispose();
+        result.Dispose();
     }
 }
