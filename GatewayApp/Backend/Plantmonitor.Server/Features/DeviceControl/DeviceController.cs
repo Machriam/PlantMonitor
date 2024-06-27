@@ -30,6 +30,12 @@ public class DeviceController(IDeviceApiFactory apiFactory)
         await apiFactory.IrImageTakingClient(ip).RunffcAsync();
     }
 
+    [HttpPost("calibrateexposure")]
+    public async Task CalibrateExposure(string ip)
+    {
+        await apiFactory.VisImageTakingClient(ip).DetectandstoreexposureAsync();
+    }
+
     [HttpGet("camerainfo")]
     public async Task<string> CameraInfo(string ip, CameraType type)
     {
