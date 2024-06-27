@@ -12,27 +12,27 @@ public interface IHealthSettingsEditor
 public class HealthSettingsEditor : IHealthSettingsEditor
 {
     private const string HealthSettingsFile = "devicehealth.json";
-    private static readonly string _filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), HealthSettingsFile);
+    private static readonly string s_filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), HealthSettingsFile);
 
     public DeviceHealth GetHealth()
     {
-        if (!File.Exists(_filePath))
+        if (!File.Exists(s_filePath))
         {
-            File.WriteAllText(_filePath, new DeviceHealth()
+            File.WriteAllText(s_filePath, new DeviceHealth()
             {
                 DeviceId = Guid.NewGuid().ToString(),
                 DeviceName = new PlantList().GetRandomPlant() + $" {Random.Shared.Next(1, 100)}",
                 State = HealthState.NA
             }.AsJson());
         }
-        return File.ReadAllText(_filePath).FromJson<DeviceHealth>() ?? throw new Exception("Could not read devicehealth.json");
+        return File.ReadAllText(s_filePath).FromJson<DeviceHealth>() ?? throw new Exception("Could not read devicehealth.json");
     }
 
     public void UpdateIrOffset(IrCameraOffset offset)
     {
         var health = GetHealth();
         health.CameraOffset = offset;
-        File.WriteAllText(_filePath, health.AsJson());
+        File.WriteAllText(s_filePath, health.AsJson());
     }
 
     public DeviceHealth UpdateHealthState(params (HealthState state, bool isActive)[] data)
@@ -42,7 +42,7 @@ public class HealthSettingsEditor : IHealthSettingsEditor
         {
             health.State |= (isActive ? state : ~state);
         }
-        File.WriteAllText(_filePath, health.AsJson());
+        File.WriteAllText(s_filePath, health.AsJson());
         return health;
     }
 }

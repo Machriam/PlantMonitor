@@ -18,6 +18,12 @@ public class VisImageTakingController([FromKeyedServices(ICameraInterop.VisCamer
         return await cameraInterop.CameraInfo();
     }
 
+    [HttpPost("detectandstoreexposure")]
+    public void DetectAndStoreExposure()
+    {
+        cameraInterop.CalibrateCamera();
+    }
+
     [HttpPost("killcamera")]
     public async Task KillCamera()
     {

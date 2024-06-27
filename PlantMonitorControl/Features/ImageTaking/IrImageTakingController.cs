@@ -21,7 +21,7 @@ public class IrImageTakingController([FromKeyedServices(ICameraInterop.IrCamera)
     [HttpPost("runffc")]
     public void RunFFC()
     {
-        cameraInterop.RequestFFC();
+        cameraInterop.CalibrateCamera();
     }
 
     [HttpPost("killcamera")]

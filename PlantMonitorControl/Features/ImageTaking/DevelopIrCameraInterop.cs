@@ -39,8 +39,9 @@ public class DevelopIrCameraInterop() : ICameraInterop
         return Task.CompletedTask;
     }
 
-    public void RequestFFC()
+    public Task CalibrateCamera()
     {
+        return Task.CompletedTask;
     }
 
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
