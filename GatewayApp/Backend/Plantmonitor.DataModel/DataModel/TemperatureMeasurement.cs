@@ -13,5 +13,9 @@ public partial class TemperatureMeasurement
 
     public DateTime StartTime { get; set; }
 
+    public long? PhotoTourFk { get; set; }
+
+    public virtual AutomaticPhotoTour? PhotoTourFkNavigation { get; set; }
+
     public virtual ICollection<TemperatureMeasurementValue> TemperatureMeasurementValues { get; set; } = new List<TemperatureMeasurementValue>();
 }

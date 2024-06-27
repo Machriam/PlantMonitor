@@ -11,11 +11,15 @@ public partial class DataContext : DbContext
     {
     }
 
+    public virtual DbSet<AutomaticPhotoTour> AutomaticPhotoTours { get; set; }
+
     public virtual DbSet<ConfigurationDatum> ConfigurationData { get; set; }
 
     public virtual DbSet<DeviceMovement> DeviceMovements { get; set; }
 
     public virtual DbSet<DeviceSwitchAssociation> DeviceSwitchAssociations { get; set; }
+
+    public virtual DbSet<PhotoTourJourney> PhotoTourJourneys { get; set; }
 
     public virtual DbSet<SwitchableOutletCode> SwitchableOutletCodes { get; set; }
 
@@ -25,6 +29,18 @@ public partial class DataContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<AutomaticPhotoTour>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("automatic_photo_tour_pkey");
+
+            entity.ToTable("automatic_photo_tour", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Comment).HasColumnName("comment");
+            entity.Property(e => e.DeviceId).HasColumnName("device_id");
+            entity.Property(e => e.Name).HasColumnName("name");
+        });
+
         modelBuilder.Entity<ConfigurationDatum>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("configuration_data_pkey");
@@ -76,6 +92,23 @@ public partial class DataContext : DbContext
                 .HasConstraintName("device_switch_association_outlet_on_fk_fkey");
         });
 
+        modelBuilder.Entity<PhotoTourJourney>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("photo_tour_journey_pkey");
+
+            entity.ToTable("photo_tour_journey", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.IrDataFolder).HasColumnName("ir_data_folder");
+            entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
+            entity.Property(e => e.VisDataFolder).HasColumnName("vis_data_folder");
+
+            entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourJourneys)
+                .HasForeignKey(d => d.PhotoTourFk)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("photo_tour_journey_photo_tour_fk_fkey");
+        });
+
         modelBuilder.Entity<SwitchableOutletCode>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("switchable_outlet_code_pkey");
@@ -100,7 +133,12 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.DeviceId).HasColumnName("device_id");
+            entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
             entity.Property(e => e.StartTime).HasColumnName("start_time");
+
+            entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.TemperatureMeasurements)
+                .HasForeignKey(d => d.PhotoTourFk)
+                .HasConstraintName("temperature_measurement_photo_tour_fk_fkey");
         });
 
         modelBuilder.Entity<TemperatureMeasurementValue>(entity =>
