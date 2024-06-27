@@ -64,6 +64,7 @@
         if (selectedDeviceData?.ip == undefined) return;
         const client = new DeviceClient();
         await client.zeroPosition(selectedDeviceData.ip);
+        currentPosition = await client.currentPosition(selectedDeviceData.ip);
     }
     async function toggleMotorEngage(shouldBeEngaged: boolean) {
         if (selectedDeviceData?.ip == undefined) return;
@@ -82,6 +83,8 @@
         const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition);
         currentlyMoving = true;
         await move(stepsToMove);
+        const client = new DeviceClient();
+        currentPosition = await client.currentPosition(selectedDeviceData.ip);
         currentlyMoving = false;
     }
     async function moveToAll() {
@@ -126,7 +129,9 @@
 <div class="col-md-12 row">
     <div class="col-md-4 colm-2 row">
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>
-        <div class="col-md-12"></div>
+        <div class="col-md-8">
+            <label>Pos: {currentPosition}</label>
+        </div>
         {#if previewEnabled}
             <button on:click={async () => await stopPreview()} class="btn btn-danger col-md-8">Stop Preview</button>
             <NumberInput bind:value={moveSteps} label="Move Steps"></NumberInput>
