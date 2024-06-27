@@ -13,6 +13,12 @@ public partial class AutomaticPhotoTour
 
     public string Comment { get; set; } = null!;
 
+    public float IntervallInMinutes { get; set; }
+
+    public bool Finished { get; set; }
+
+    public virtual ICollection<PhotoTourEvent> PhotoTourEvents { get; set; } = new List<PhotoTourEvent>();
+
     public virtual ICollection<PhotoTourJourney> PhotoTourJourneys { get; set; } = new List<PhotoTourJourney>();
 
     public virtual ICollection<TemperatureMeasurement> TemperatureMeasurements { get; set; } = new List<TemperatureMeasurement>();

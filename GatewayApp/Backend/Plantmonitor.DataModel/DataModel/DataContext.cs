@@ -19,6 +19,8 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<DeviceSwitchAssociation> DeviceSwitchAssociations { get; set; }
 
+    public virtual DbSet<PhotoTourEvent> PhotoTourEvents { get; set; }
+
     public virtual DbSet<PhotoTourJourney> PhotoTourJourneys { get; set; }
 
     public virtual DbSet<SwitchableOutletCode> SwitchableOutletCodes { get; set; }
@@ -38,6 +40,8 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.DeviceId).HasColumnName("device_id");
+            entity.Property(e => e.Finished).HasColumnName("finished");
+            entity.Property(e => e.IntervallInMinutes).HasColumnName("intervall_in_minutes");
             entity.Property(e => e.Name).HasColumnName("name");
         });
 
@@ -92,6 +96,26 @@ public partial class DataContext : DbContext
                 .HasConstraintName("device_switch_association_outlet_on_fk_fkey");
         });
 
+        modelBuilder.Entity<PhotoTourEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("photo_tour_event_pkey");
+
+            entity.ToTable("photo_tour_event", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.EventClass).HasColumnName("event_class");
+            entity.Property(e => e.Message).HasColumnName("message");
+            entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
+            entity.Property(e => e.Timestamp)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("timestamp");
+
+            entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourEvents)
+                .HasForeignKey(d => d.PhotoTourFk)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("photo_tour_event_photo_tour_fk_fkey");
+        });
+
         modelBuilder.Entity<PhotoTourJourney>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("photo_tour_journey_pkey");
@@ -101,6 +125,9 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IrDataFolder).HasColumnName("ir_data_folder");
             entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
+            entity.Property(e => e.Timestamp)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("timestamp");
             entity.Property(e => e.VisDataFolder).HasColumnName("vis_data_folder");
 
             entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourJourneys)

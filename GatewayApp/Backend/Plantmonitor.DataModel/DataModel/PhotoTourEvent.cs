@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace Plantmonitor.DataModel.DataModel;
 
-public partial class PhotoTourJourney
+public partial class PhotoTourEvent
 {
     public long Id { get; set; }
 
     public long PhotoTourFk { get; set; }
 
-    public string IrDataFolder { get; set; } = null!;
+    public string EventClass { get; set; } = null!;
 
-    public string VisDataFolder { get; set; } = null!;
+    public string Message { get; set; } = null!;
 
     public DateTime Timestamp { get; set; }
 
