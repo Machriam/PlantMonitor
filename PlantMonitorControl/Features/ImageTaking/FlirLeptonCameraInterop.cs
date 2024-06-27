@@ -56,10 +56,11 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
         s_cameraIsRunning = false;
     }
 
-    public void RequestFFC()
+    public Task CalibrateCamera()
     {
-        if (s_streamProcess == null) return;
+        if (s_streamProcess == null) return Task.CompletedTask;
         s_streamProcess.SendSignal(ProcessExtensions.Signum.SIGUSR1);
+        return Task.CompletedTask;
     }
 
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)

@@ -26,6 +26,7 @@ var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Conf
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
 builder.Services.AddTransient<IFileStreamingReader, FileStreamingReader>();
+builder.Services.AddTransient<IExposureSettingsEditor, ExposureSettingsEditor>();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopVisCameraInterop>(ICameraInterop.VisCamera);

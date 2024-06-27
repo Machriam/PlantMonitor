@@ -39,9 +39,9 @@ public class DevelopVisCameraInterop() : ICameraInterop
         return Task.CompletedTask;
     }
 
-    public void RequestFFC()
+    public Task CalibrateCamera()
     {
-        throw new NotImplementedException();
+        return Task.CompletedTask;
     }
 
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)

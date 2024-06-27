@@ -1,6 +1,7 @@
 ﻿using Iot.Device.Camera.Settings;
 using Iot.Device.Common;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace PlantMonitorControl.Features.ImageTaking;
 
@@ -23,10 +24,10 @@ public interface ICameraInterop
 
     Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM);
 
-    void RequestFFC();
+    Task CalibrateCamera();
 }
 
-public class RaspberryCameraInterop() : ICameraInterop
+public class RaspberryCameraInterop(IExposureSettingsEditor exposureSettings) : ICameraInterop
 {
     private const int MaxWidth = 2304;
     private const int MaxHeight = 1296;
@@ -68,6 +69,7 @@ public class RaspberryCameraInterop() : ICameraInterop
     {
         if (distanceInM == 0) distanceInM = 0.01f;
         if (resolutionDivider == 0) resolutionDivider = 2;
+        var exposure = exposureSettings.GetExposure();
         var focus = float.Round(1f / distanceInM, 2);
         var width = (int)(MaxWidth / resolutionDivider);
         var height = (int)(MaxHeight / resolutionDivider);
@@ -77,7 +79,8 @@ public class RaspberryCameraInterop() : ICameraInterop
         var filePath = Path.Combine(s_tempImagePath, "%06d.jpg");
         new Process().RunProcess(
             "rpicam-vid", $"-t 0 -v 0 --width {width} --height {height} --mode 4608:2592 " +
-            $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath}")
+            $"--gain {exposure.Gain.ToString("0.00", CultureInfo.InvariantCulture)} --shutter {exposure.ExposureTimeInMicroSeconds.ToString("0", CultureInfo.InvariantCulture)} " +
+            $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath} ")
             .RunInBackground(ex => ex.LogError("RPI-Cam error"));
         s_cameraIsRunning = true;
         return s_tempImagePath;
@@ -112,7 +115,13 @@ public class RaspberryCameraInterop() : ICameraInterop
         return Results.File(ms, "image/png");
     }
 
-    public void RequestFFC()
+    public async Task CalibrateCamera()
     {
+        await KillImageTaking();
+        s_cameraIsRunning = true;
+        var output = await new Process().GetProcessStdout("rpicam-hello", "-t 1sec", true);
+        s_cameraIsRunning = false;
+        var exposure = exposureSettings.GetExposureFromStdout(output);
+        exposureSettings.UpdateExposure(exposure);
     }
 }

@@ -85,6 +85,11 @@
         await deviceClient.killCamera(ip, CameraType.Vis);
         previewImage = {dataUrl: await (await deviceClient.previewImage(ip, CameraType.Vis)).data.asBase64Url()};
     }
+    async function calibrateExposure(ip: string | undefined) {
+        if (ip == undefined) return;
+        const client = new DeviceClient();
+        client.calibrateExposure(ip);
+    }
     async function runFFC(ip: string | undefined) {
         if (ip == undefined) return;
         const client = new DeviceClient();
@@ -233,6 +238,7 @@
                                 </button>
                                 <button on:click={() => getLogData(device.ip)} class="btn btn-primary"> Show Logs </button>
                                 <button on:click={() => runFFC(device.ip)} class="btn btn-primary"> FFC</button>
+                                <button on:click={() => calibrateExposure(device.ip)} class="btn btn-primary"> Update Exposure</button>
                                 {#if device.health.deviceId != undefined && allOutletsFetched}
                                     <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
                                         Associated Outlet:
