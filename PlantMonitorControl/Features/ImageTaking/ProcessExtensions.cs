@@ -62,13 +62,12 @@ public static partial class ProcessExtensions
         await process.WaitForExitAsync();
     }
 
-    public static async Task<string> GetProcessStdout(this Process process, string program, string arguments, bool redirectStdErr = false)
+    public static async Task<string> GetProcessStdout(this Process process, string program, string arguments)
     {
         Log.Logger.Information("Starting process {program} with {arguments}", program, arguments);
         process.StartInfo = new ProcessStartInfo(program, arguments)
         {
             RedirectStandardOutput = true,
-            RedirectStandardError = redirectStdErr,
         };
         StringBuilder result = new();
         process.OutputDataReceived += (sender, args) => result.AppendLine(args.Data);
