@@ -7,4 +7,5 @@ fi
 
 sudo pkill -9 -f dotnet
 sudo /srv/dotnet build -c Release -o /srv/dist -r linux-arm --no-self-contained ~/PlantMonitor/PlantMonitorControl/PlantMonitorControl.csproj
+sudo rm /srv/dist/appsettings.Development.json 
 sudo /srv/dotnet /srv/dist/PlantMonitorControl.dll
