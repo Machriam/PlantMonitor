@@ -42,7 +42,12 @@ public class HealthController(IHealthSettingsEditor healthSettings) : Controller
     [HttpGet("logs")]
     public async Task<string> GetLogs()
     {
-        await using var file = System.IO.File.Open(ConfigurationOptions.LogFileLocation, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var lastLog = Directory.EnumerateFiles(Path.GetDirectoryName(ConfigurationOptions.LogFileLocation) ?? "", "server*.logs")
+            .Select(f => (WriteTime: System.IO.File.GetLastWriteTimeUtc(f), File: f))
+            .OrderByDescending(f => f.WriteTime)
+            .FirstOrDefault();
+        if (lastLog.File.IsEmpty()) return "";
+        await using var file = System.IO.File.Open(lastLog.File, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         using var reader = new StreamReader(file);
         return reader.ReadToEnd();
     }
