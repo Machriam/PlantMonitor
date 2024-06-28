@@ -8,7 +8,7 @@ namespace PlantMonitorControl.Features.ImageTaking;
 
 public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop visCameraInterop,
     [FromKeyedServices(ICameraInterop.IrCamera)] ICameraInterop irCameraInterop,
-    IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition) : Hub
+    IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition, ILogger<StreamingHub> logger) : Hub
 {
     public async Task<ChannelReader<byte[]>> StreamIrData(StreamingMetaData data, CancellationToken token)
     {
@@ -81,6 +81,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             counter = nextFile.NewCounter;
             if (nextFile.FileData == null) continue;
             var currentPosition = motorPosition.CurrentPosition();
+            logger.LogInformation("Sending image of type {type}", typeInfo.MetaDataFile);
             await channel.Writer.WriteAsync(nextFile.CreateFormatter(currentPosition).GetBytes(), token);
         }
     }
