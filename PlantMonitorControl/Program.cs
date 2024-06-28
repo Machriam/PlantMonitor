@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
-    .WriteTo.File(ConfigurationOptions.LogFileLocation, Serilog.Events.LogEventLevel.Information, fileSizeLimitBytes: 1024 * 1024,
-                  rollOnFileSizeLimit: false, retainedFileCountLimit: 1, shared: true)
+    .WriteTo.File(ConfigurationOptions.LogFileLocation, Serilog.Events.LogEventLevel.Information, fileSizeLimitBytes: 1024 * 1024, shared: true,
+    flushToDiskInterval: TimeSpan.FromSeconds(10d), rollOnFileSizeLimit: true, retainedFileCountLimit: 2)
     .CreateLogger();
 
 Log.Information("Starting PlantMonitor");
