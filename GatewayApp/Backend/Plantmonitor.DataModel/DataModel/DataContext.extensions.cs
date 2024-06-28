@@ -8,5 +8,6 @@ public partial class DataContext
     {
         modelBuilder.Entity<DeviceMovement>().Property(p => p.MovementPlan).HasColumnType("jsonb").HasColumnName("movement_plan_json");
         modelBuilder.Entity<DeviceMovement>().Ignore(p => p.MovementPlanJson);
+        modelBuilder.Entity<PhotoTourEvent>().Property(p => p.Type).HasColumnName("type");
     }
 }

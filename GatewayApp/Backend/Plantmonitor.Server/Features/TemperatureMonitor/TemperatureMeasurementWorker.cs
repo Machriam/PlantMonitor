@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Plantmonitor.DataModel.DataModel;
+using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Shared.Features.MeasureTemperature;
 using Serilog;
 
@@ -30,6 +32,10 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
 
         public async Task StartTemperatureMeasurement(MeasurementDevice[] devices, string ip)
         {
+            using var scope = scopeFactory.CreateScope();
+            var connectedDevices = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
+            var healthInfo = connectedDevices.GetDeviceHealthInformation().FirstOrDefault(h => h.Ip == ip);
+            var deviceGuid = Guid.Parse(healthInfo.Health.DeviceId ?? throw new Exception($"Device {ip} has no Device Id"));
             var token = new CancellationTokenSource();
             var connection = new HubConnectionBuilder()
                 .WithUrl($"https://{ip}/hub/temperatures")
@@ -37,7 +43,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
                 .AddMessagePackProtocol()
                 .Build();
             await connection.StartAsync(token.Token);
-            StoreData(connection, ip, devices, token).RunInBackground(ex =>
+            StoreData(connection, ip, devices, deviceGuid, token).RunInBackground(ex =>
                 {
                     ex.LogError();
                     StopMeasurement(ip);
@@ -55,20 +61,21 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
             return s_runningMeasurements;
         }
 
-        private async Task StoreData(HubConnection connection, string ip, MeasurementDevice[] devices, CancellationTokenSource token)
+        private async Task StoreData(HubConnection connection, string ip, MeasurementDevice[] devices, Guid deviceGuid, CancellationTokenSource token)
         {
             using var scope = scopeFactory.CreateScope();
             await using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
             var measurements = devices.Select(d => new TemperatureMeasurement()
             {
-                DeviceId = d.DeviceId,
+                SensorId = d.SensorId,
                 Comment = d.Comment,
+                DeviceId = deviceGuid,
                 StartTime = DateTime.UtcNow,
             }).ToList();
             dataContext.TemperatureMeasurements.AddRange(measurements);
             dataContext.SaveChanges();
             foreach (var measurement in measurements) s_runningMeasurements.Add(new RunningMeasurementInfo(ip, measurement.Id, token));
-            var deviceArray = devices.Select(d => d.DeviceId).ToArray() ?? [];
+            var deviceArray = devices.Select(d => d.SensorId).ToArray() ?? [];
             var stream = await connection.StreamAsChannelAsync<TemperatureStreamData>("StreamTemperatureData", deviceArray, token.Token);
             while (await stream.WaitToReadAsync(token.Token))
             {
@@ -79,7 +86,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
                     {
                         Temperature = measurement.TemperatureInC,
                         Timestamp = measurement.Time,
-                        MeasurementFk = measurements.First(m => m.DeviceId == measurement.Device).Id,
+                        MeasurementFk = measurements.First(m => m.SensorId == measurement.Device).Id,
                     });
                     dataContext.SaveChanges();
                 }

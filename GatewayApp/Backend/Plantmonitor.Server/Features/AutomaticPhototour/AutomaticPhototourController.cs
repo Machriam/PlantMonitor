@@ -8,7 +8,7 @@ namespace Plantmonitor.Server.Features.DeviceProgramming;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AutomaticPhototourController(DataContext context, IDeviceConnectionEventBus eventBus, IDeviceApiFactory deviceFactory)
+public class AutomaticPhotoTourController(DataContext context, IDeviceConnectionEventBus eventBus, IDeviceApiFactory deviceFactory)
 {
     public record struct TemperatureMeasurementInfo(string Guid, string Comment);
     public record struct AutomaticTourStartInfo(int IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice, string Comment, string Name, string DeviceGuid);
@@ -16,6 +16,15 @@ public class AutomaticPhototourController(DataContext context, IDeviceConnection
     [HttpPost("stopphototour")]
     public void StopPhotoTour(long id)
     {
+        context.AutomaticPhotoTours.First(pt => pt.Id == id).Finished = true;
+        context.PhotoTourEvents.Add(new PhotoTourEvent()
+        {
+            PhotoTourFk = id,
+            Timestamp = DateTime.UtcNow,
+            Type = PhotoTourEventType.Information,
+            Message = "Photo tour finished",
+        });
+        context.SaveChanges();
     }
 
     [HttpPost("startphototour")]
@@ -38,6 +47,15 @@ public class AutomaticPhototourController(DataContext context, IDeviceConnection
         }
         var devicesWithoutSensor = temperatureDevices.Select(td => td.Sensors.Count == 0 ? $"{td.DeviceHealth.Health.DeviceName} has no temperature sensor" : "");
         if (devicesWithoutSensor.Any(d => !d.IsEmpty())) throw new Exception(devicesWithoutSensor.Concat("\n"));
+        var alreadyOccupiedDevices = context.AutomaticPhotoTours
+            .Where(pt => !pt.Finished)
+            .SelectMany(pt => pt.TemperatureMeasurements.Select(tm => tm.DeviceId).Append(pt.DeviceId))
+            .ToHashSet();
+        if (alreadyOccupiedDevices.Contains(Guid.Parse(startInfo.DeviceGuid))) throw new Exception("The imaging device is already busy with another photo tour");
+        var busyTemperatureDevices = temperatureDevices
+            .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health.DeviceId ?? "")) ? $"{td.DeviceHealth.Health.DeviceName} is used in another photo tour" : "")
+            .Concat("\n");
+        if (!busyTemperatureDevices.Trim().IsEmpty()) throw new Exception(busyTemperatureDevices);
 
         var photoTour = new AutomaticPhotoTour()
         {
@@ -49,12 +67,14 @@ public class AutomaticPhototourController(DataContext context, IDeviceConnection
             .SelectMany(td => td.Sensors.Select(sensorId => new TemperatureMeasurement()
             {
                 Comment = $"{td.DeviceHealth.Health.DeviceName}: {td.MeasurementInfo.Comment}",
-                DeviceId = sensorId,
+                DeviceId = Guid.Parse(td.DeviceHealth.Health.DeviceId ?? throw new Exception($"Device {td.DeviceHealth.Ip} has no Device Id")),
+                SensorId = sensorId,
                 StartTime = DateTime.UtcNow
             })).Append(new TemperatureMeasurement()
             {
                 Comment = $"{imagingDevice.Health.DeviceName}: IR-Temperature",
-                DeviceId = "ir",
+                DeviceId = Guid.Empty,
+                SensorId = "Flir Lepton",
                 StartTime = DateTime.UtcNow
             })
             .ToList()

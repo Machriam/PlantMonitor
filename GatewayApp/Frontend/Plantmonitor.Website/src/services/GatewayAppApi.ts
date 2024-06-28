@@ -1613,6 +1613,8 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
     deviceId!: string;
     name!: string;
     comment!: string;
+    intervallInMinutes!: number;
+    finished!: boolean;
     photoTourEvents!: PhotoTourEvent[];
     photoTourJourneys!: PhotoTourJourney[];
     temperatureMeasurements!: TemperatureMeasurement[];
@@ -1632,6 +1634,8 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
             this.deviceId = _data["DeviceId"];
             this.name = _data["Name"];
             this.comment = _data["Comment"];
+            this.intervallInMinutes = _data["IntervallInMinutes"];
+            this.finished = _data["Finished"];
             if (Array.isArray(_data["PhotoTourEvents"])) {
                 this.photoTourEvents = [] as any;
                 for (let item of _data["PhotoTourEvents"])
@@ -1663,6 +1667,8 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
         data["DeviceId"] = this.deviceId;
         data["Name"] = this.name;
         data["Comment"] = this.comment;
+        data["IntervallInMinutes"] = this.intervallInMinutes;
+        data["Finished"] = this.finished;
         if (Array.isArray(this.photoTourEvents)) {
             data["PhotoTourEvents"] = [];
             for (let item of this.photoTourEvents)
@@ -1694,6 +1700,8 @@ export interface IAutomaticPhotoTour {
     deviceId: string;
     name: string;
     comment: string;
+    intervallInMinutes: number;
+    finished: boolean;
     photoTourEvents: PhotoTourEvent[];
     photoTourJourneys: PhotoTourJourney[];
     temperatureMeasurements: TemperatureMeasurement[];
@@ -1702,10 +1710,13 @@ export interface IAutomaticPhotoTour {
 export class PhotoTourEvent implements IPhotoTourEvent {
     id!: number;
     photoTourFk!: number;
-    eventClass!: string;
     message!: string;
     timestamp!: Date;
+    referencesEvent!: number | undefined;
+    inverseReferencesEventNavigation!: PhotoTourEvent[];
     photoTourFkNavigation!: AutomaticPhotoTour;
+    referencesEventNavigation!: PhotoTourEvent | undefined;
+    type!: PhotoTourEventType;
 
     constructor(data?: IPhotoTourEvent) {
         if (data) {
@@ -1720,10 +1731,17 @@ export class PhotoTourEvent implements IPhotoTourEvent {
         if (_data) {
             this.id = _data["Id"];
             this.photoTourFk = _data["PhotoTourFk"];
-            this.eventClass = _data["EventClass"];
             this.message = _data["Message"];
             this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
+            this.referencesEvent = _data["ReferencesEvent"];
+            if (Array.isArray(_data["InverseReferencesEventNavigation"])) {
+                this.inverseReferencesEventNavigation = [] as any;
+                for (let item of _data["InverseReferencesEventNavigation"])
+                    this.inverseReferencesEventNavigation!.push(PhotoTourEvent.fromJS(item));
+            }
             this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
+            this.referencesEventNavigation = _data["ReferencesEventNavigation"] ? PhotoTourEvent.fromJS(_data["ReferencesEventNavigation"]) : <any>undefined;
+            this.type = _data["Type"];
         }
     }
 
@@ -1738,10 +1756,17 @@ export class PhotoTourEvent implements IPhotoTourEvent {
         data = typeof data === 'object' ? data : {};
         data["Id"] = this.id;
         data["PhotoTourFk"] = this.photoTourFk;
-        data["EventClass"] = this.eventClass;
         data["Message"] = this.message;
         data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
+        data["ReferencesEvent"] = this.referencesEvent;
+        if (Array.isArray(this.inverseReferencesEventNavigation)) {
+            data["InverseReferencesEventNavigation"] = [];
+            for (let item of this.inverseReferencesEventNavigation)
+                data["InverseReferencesEventNavigation"].push(item.toJSON());
+        }
         data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
+        data["ReferencesEventNavigation"] = this.referencesEventNavigation ? this.referencesEventNavigation.toJSON() : <any>undefined;
+        data["Type"] = this.type;
         return data;
     }
 
@@ -1756,10 +1781,20 @@ export class PhotoTourEvent implements IPhotoTourEvent {
 export interface IPhotoTourEvent {
     id: number;
     photoTourFk: number;
-    eventClass: string;
     message: string;
     timestamp: Date;
+    referencesEvent: number | undefined;
+    inverseReferencesEventNavigation: PhotoTourEvent[];
     photoTourFkNavigation: AutomaticPhotoTour;
+    referencesEventNavigation: PhotoTourEvent | undefined;
+    type: PhotoTourEventType;
+}
+
+export enum PhotoTourEventType {
+    Debug = 0,
+    Information = 1,
+    Warning = 2,
+    Error = 3,
 }
 
 export class PhotoTourJourney implements IPhotoTourJourney {

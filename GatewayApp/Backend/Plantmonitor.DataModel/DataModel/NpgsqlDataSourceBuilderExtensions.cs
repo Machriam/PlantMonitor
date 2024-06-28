@@ -8,6 +8,7 @@ public static class NpgsqlDataSourceBuilderExtensions
     {
         builder.EnableDynamicJson();
         builder.EnableUnmappedTypes();
+        builder.MapEnum<PhotoTourEventType>("photo_tour_event_type");
         return builder;
     }
 }

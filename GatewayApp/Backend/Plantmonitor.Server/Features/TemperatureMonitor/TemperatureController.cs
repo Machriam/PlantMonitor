@@ -31,9 +31,9 @@ public class TemperatureController(IDeviceApiFactory apiFactory, ITemperatureMea
     }
 
     [HttpPost("addmeasurement")]
-    public void AddMeasurement([FromBody] MeasurementStartInfo info)
+    public async Task AddMeasurement([FromBody] MeasurementStartInfo info)
     {
-        worker.StartTemperatureMeasurement(info.Devices, info.Ip);
+        await worker.StartTemperatureMeasurement(info.Devices, info.Ip);
     }
 
     [HttpPost("stopmeasurement")]

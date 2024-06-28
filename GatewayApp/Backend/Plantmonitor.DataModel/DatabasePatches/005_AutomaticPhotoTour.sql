@@ -8,8 +8,10 @@ CREATE TABLE plantmonitor.automatic_photo_tour
     finished boolean NOT NULL,
     PRIMARY KEY (id)
 );
-
 ALTER TABLE IF EXISTS plantmonitor.automatic_photo_tour OWNER to postgres;
+
+CREATE TYPE plantmonitor.photo_tour_event_type AS ENUM ('debug', 'information', 'warning', 'error');
+ALTER TYPE plantmonitor.photo_tour_event_type OWNER TO postgres;
 
 CREATE TABLE plantmonitor.photo_tour_journey
 (
@@ -25,7 +27,6 @@ CREATE TABLE plantmonitor.photo_tour_journey
         ON DELETE NO ACTION
         NOT VALID
 );
-
 ALTER TABLE IF EXISTS plantmonitor.photo_tour_journey OWNER to postgres;
 
 ALTER TABLE IF EXISTS plantmonitor.temperature_measurement ADD COLUMN photo_tour_fk bigint;
@@ -50,8 +51,22 @@ CREATE TABLE plantmonitor.photo_tour_event
         ON DELETE NO ACTION
         NOT VALID
 );
-
 ALTER TABLE IF EXISTS plantmonitor.photo_tour_event OWNER to postgres;
+
+ALTER TABLE IF EXISTS plantmonitor.photo_tour_event DROP COLUMN IF EXISTS event_class;
+ALTER TABLE IF EXISTS plantmonitor.photo_tour_event ADD COLUMN type plantmonitor.photo_tour_event_type NOT NULL;
+ALTER TABLE IF EXISTS plantmonitor.photo_tour_event ADD COLUMN references_event bigint;
+ALTER TABLE IF EXISTS plantmonitor.photo_tour_event
+    ADD FOREIGN KEY (references_event)
+    REFERENCES plantmonitor.photo_tour_event (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+ALTER TABLE IF EXISTS plantmonitor.temperature_measurement RENAME device_id TO sensor_id;
+ALTER TABLE IF EXISTS plantmonitor.temperature_measurement ADD COLUMN device_id uuid;
+update plantmonitor.temperature_measurement set device_id='00000000-0000-0000-0000-000000000000'::UUID;
+ALTER TABLE IF EXISTS plantmonitor.temperature_measurement ALTER COLUMN device_id SET NOT NULL;
 
 
 update plantmonitor.configuration_data set value='5' where key='PatchNumber';

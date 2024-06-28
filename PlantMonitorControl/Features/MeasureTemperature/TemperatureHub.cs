@@ -23,12 +23,12 @@ public class TemperatureHub(IClick2TempInterop clickInterop, ILogger<Temperature
     {
         var path = clickInterop.StartTemperatureReading(devices);
         var channel = CreateChannel();
-        ReadImagesFromFiles(channel, path, token).RunInBackground(ex => ex.LogError());
+        ReadTemperatureFromFiles(channel, path, token).RunInBackground(ex => ex.LogError());
         await Task.Yield();
         return channel.Reader;
     }
 
-    private async Task ReadImagesFromFiles(Channel<TemperatureStreamData> channel, string folder, CancellationToken token)
+    private async Task ReadTemperatureFromFiles(Channel<TemperatureStreamData> channel, string folder, CancellationToken token)
     {
         while (true)
         {

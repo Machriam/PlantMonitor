@@ -31,6 +31,8 @@ public partial class DataContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresEnum("plantmonitor", "photo_tour_event_type", new[] { "debug", "information", "warning", "error" });
+
         modelBuilder.Entity<AutomaticPhotoTour>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("automatic_photo_tour_pkey");
@@ -103,9 +105,9 @@ public partial class DataContext : DbContext
             entity.ToTable("photo_tour_event", "plantmonitor");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.EventClass).HasColumnName("event_class");
             entity.Property(e => e.Message).HasColumnName("message");
             entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
+            entity.Property(e => e.ReferencesEvent).HasColumnName("references_event");
             entity.Property(e => e.Timestamp)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("timestamp");
@@ -114,6 +116,10 @@ public partial class DataContext : DbContext
                 .HasForeignKey(d => d.PhotoTourFk)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("photo_tour_event_photo_tour_fk_fkey");
+
+            entity.HasOne(d => d.ReferencesEventNavigation).WithMany(p => p.InverseReferencesEventNavigation)
+                .HasForeignKey(d => d.ReferencesEvent)
+                .HasConstraintName("photo_tour_event_references_event_fkey");
         });
 
         modelBuilder.Entity<PhotoTourJourney>(entity =>
@@ -161,6 +167,7 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.DeviceId).HasColumnName("device_id");
             entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
+            entity.Property(e => e.SensorId).HasColumnName("sensor_id");
             entity.Property(e => e.StartTime).HasColumnName("start_time");
 
             entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.TemperatureMeasurements)

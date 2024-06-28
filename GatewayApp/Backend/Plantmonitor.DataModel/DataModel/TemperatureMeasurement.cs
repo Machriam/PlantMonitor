@@ -9,11 +9,13 @@ public partial class TemperatureMeasurement
 
     public string Comment { get; set; } = null!;
 
-    public string DeviceId { get; set; } = null!;
+    public string SensorId { get; set; } = null!;
 
     public DateTime StartTime { get; set; }
 
     public long? PhotoTourFk { get; set; }
+
+    public Guid DeviceId { get; set; }
 
     public virtual AutomaticPhotoTour? PhotoTourFkNavigation { get; set; }
 
