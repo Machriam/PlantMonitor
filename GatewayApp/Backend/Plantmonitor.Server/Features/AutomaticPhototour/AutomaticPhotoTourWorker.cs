@@ -1,6 +1,46 @@
-﻿using Plantmonitor.DataModel.DataModel;
+﻿using Emgu.CV.Ocl;
+using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Configuration;
+using System.Threading.Channels;
+using Plantmonitor.DataModel.DataModel;
+using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Shared.Features.ImageStreaming;
+using Plantmonitor.Server.Features.AppConfiguration;
 
 namespace Plantmonitor.Server.Features.DeviceProgramming;
+
+public class PictureStreamer(IEnvironmentConfiguration configuration)
+{
+    public async Task StorePhotoTourPictures(string ip, string deviceId, CameraTypeInfo cameraType, StreamingMetaData data, CancellationToken token)
+    {
+        var picturePath = configuration.PicturePath(deviceId);
+        var connection = new HubConnectionBuilder()
+            .WithUrl($"https://{ip}/hub/video")
+            .AddMessagePackProtocol()
+            .Build();
+        await connection.StartAsync(token);
+        await StreamData(picturePath, cameraType, connection, data, token);
+    }
+
+    private static async Task StreamData(string picturePath, CameraTypeInfo cameraInfo, HubConnection connection, StreamingMetaData data, CancellationToken token)
+    {
+        var sequenceId = DateTime.Now.ToString(CameraStreamFormatter.PictureDateFormat);
+        var stream = await connection.StreamAsChannelAsync<byte[]>(cameraInfo.SignalRMethod, data, token);
+        var path = Path.Combine(picturePath, sequenceId);
+        if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
+        while (await stream.WaitToReadAsync(token))
+        {
+            await foreach (var image in stream.ReadAllAsync(token))
+            {
+                var cameraStream = CameraStreamFormatter.FromBytes(image);
+                if (!picturePath.IsEmpty() && cameraStream.PictureData != null)
+                {
+                    cameraStream.WriteToFile(path, cameraInfo);
+                }
+            }
+        }
+    }
+}
 
 public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IHostedService
 {
