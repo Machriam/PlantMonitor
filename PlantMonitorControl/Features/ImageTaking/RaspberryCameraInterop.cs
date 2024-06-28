@@ -115,11 +115,19 @@ public class RaspberryCameraInterop(IExposureSettingsEditor exposureSettings) : 
         return Results.File(ms, "image/png");
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Device only runs Linux")]
     public async Task CalibrateCamera()
     {
         await KillImageTaking();
         s_cameraIsRunning = true;
-        var output = await new Process().GetProcessStdout("rpicam-hello", "-t 1sec", true);
+        var rpicamHello = $"{s_tempImagePath}/rpihello.sh";
+        var resultFile = $"{s_tempImagePath}/out.txt";
+        File.WriteAllText(rpicamHello, $"#/bin/bash\nrpicam-hello -t 1sec &>{resultFile}");
+        File.SetUnixFileMode(rpicamHello, UnixFileMode.OtherExecute | UnixFileMode.GroupExecute | UnixFileMode.UserExecute);
+        await new Process().RunProcess("/bin/bash", rpicamHello);
+        var output = File.ReadAllText(resultFile);
+        File.Delete(rpicamHello);
+        File.Delete(resultFile);
         s_cameraIsRunning = false;
         var exposure = exposureSettings.GetExposureFromStdout(output);
         exposureSettings.UpdateExposure(exposure);

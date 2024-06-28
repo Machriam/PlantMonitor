@@ -55,10 +55,12 @@
         previewEnabled = false;
     }
     async function move(steps: number) {
-        if (selectedDeviceData?.ip == undefined) return;
+        if (selectedDeviceData?.ip == undefined) return false;
         const client = new DeviceClient();
-        await client.move(selectedDeviceData.ip, steps, 500, 4000, 200);
-        if (!previewEnabled) currentPosition = await client.currentPosition(selectedDeviceData.ip);
+        const result = await client.move(selectedDeviceData.ip, steps, 500, 4000, 200).try();
+        if (result.hasError) return false;
+        currentPosition = await client.currentPosition(selectedDeviceData.ip);
+        return true;
     }
     async function zeroPosition() {
         if (selectedDeviceData?.ip == undefined) return;
@@ -83,8 +85,6 @@
         const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition);
         currentlyMoving = true;
         await move(stepsToMove);
-        const client = new DeviceClient();
-        currentPosition = await client.currentPosition(selectedDeviceData.ip);
         currentlyMoving = false;
     }
     async function moveToAll() {
@@ -93,7 +93,11 @@
         for (let i = 0; i < movementPlan.movementPlan.stepPoints.length; i++) {
             const step = movementPlan.movementPlan.stepPoints[i];
             const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition);
-            await move(stepsToMove);
+            const moveable = await move(stepsToMove);
+            if (!moveable) {
+                currentlyMoving = false;
+                return;
+            }
             const stepCountAfterMove = step[stepsToReach](movementPlan.movementPlan.stepPoints);
             while (stepCountAfterMove != visStreamer.currentPosition || stepCountAfterMove != irStreamer.currentPosition) {
                 currentPosition = irStreamer.currentPosition;
