@@ -30,7 +30,7 @@ builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBu
 builder.Services.AddTransient<ITemperatureMeasurementWorker, TemperatureMeasurementWorker>();
 builder.Services.AddHostedService<DeviceConnectionWorker>();
 builder.Services.AddHostedService(s => (TemperatureMeasurementWorker)s.GetRequiredService<ITemperatureMeasurementWorker>());
-builder.Services.AddHostedService(s => s.GetRequiredService<AutomaticPhotoTourWorker>());
+builder.Services.AddHostedService<AutomaticPhotoTourWorker>();
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(environmentConfiguration.DatabaseConnection());
 var dataSource = dataSourceBuilder.Configure().Build();
 builder.Services.AddDbContext<DataContext>(options =>

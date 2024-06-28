@@ -1019,14 +1019,14 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
     }
 }
 
-export interface IAutomaticPhototourClient {
+export interface IAutomaticPhotoTourClient {
 
     stopPhotoTour(id?: number | undefined): Promise<void>;
 
     startAutomaticTour(startInfo: AutomaticTourStartInfo): Promise<void>;
 }
 
-export class AutomaticPhototourClient extends GatewayAppApiBase implements IAutomaticPhototourClient {
+export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAutomaticPhotoTourClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
     private baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
@@ -1038,7 +1038,7 @@ export class AutomaticPhototourClient extends GatewayAppApiBase implements IAuto
     }
 
     stopPhotoTour(id?: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/api/AutomaticPhototour/stopphototour?";
+        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/stopphototour?";
         if (id === null)
             throw new Error("The parameter 'id' cannot be null.");
         else if (id !== undefined)
@@ -1074,7 +1074,7 @@ export class AutomaticPhototourClient extends GatewayAppApiBase implements IAuto
     }
 
     startAutomaticTour(startInfo: AutomaticTourStartInfo): Promise<void> {
-        let url_ = this.baseUrl + "/api/AutomaticPhototour/startphototour";
+        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/startphototour";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(startInfo);
@@ -1536,9 +1536,10 @@ export interface IRunningMeasurement {
 export class TemperatureMeasurement implements ITemperatureMeasurement {
     id!: number;
     comment!: string;
-    deviceId!: string;
+    sensorId!: string;
     startTime!: Date;
     photoTourFk!: number | undefined;
+    deviceId!: string;
     photoTourFkNavigation!: AutomaticPhotoTour | undefined;
     temperatureMeasurementValues!: TemperatureMeasurementValue[];
 
@@ -1555,9 +1556,10 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
         if (_data) {
             this.id = _data["Id"];
             this.comment = _data["Comment"];
-            this.deviceId = _data["DeviceId"];
+            this.sensorId = _data["SensorId"];
             this.startTime = _data["StartTime"] ? new Date(_data["StartTime"].toString()) : <any>undefined;
             this.photoTourFk = _data["PhotoTourFk"];
+            this.deviceId = _data["DeviceId"];
             this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
             if (Array.isArray(_data["TemperatureMeasurementValues"])) {
                 this.temperatureMeasurementValues = [] as any;
@@ -1578,9 +1580,10 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
         data = typeof data === 'object' ? data : {};
         data["Id"] = this.id;
         data["Comment"] = this.comment;
-        data["DeviceId"] = this.deviceId;
+        data["SensorId"] = this.sensorId;
         data["StartTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
         data["PhotoTourFk"] = this.photoTourFk;
+        data["DeviceId"] = this.deviceId;
         data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
         if (Array.isArray(this.temperatureMeasurementValues)) {
             data["TemperatureMeasurementValues"] = [];
@@ -1601,9 +1604,10 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
 export interface ITemperatureMeasurement {
     id: number;
     comment: string;
-    deviceId: string;
+    sensorId: string;
     startTime: Date;
     photoTourFk: number | undefined;
+    deviceId: string;
     photoTourFkNavigation: AutomaticPhotoTour | undefined;
     temperatureMeasurementValues: TemperatureMeasurementValue[];
 }
@@ -1975,7 +1979,7 @@ export interface IMeasurementStartInfo {
 }
 
 export class MeasurementDevice implements IMeasurementDevice {
-    deviceId!: string;
+    sensorId!: string;
     comment!: string;
 
     constructor(data?: IMeasurementDevice) {
@@ -1989,7 +1993,7 @@ export class MeasurementDevice implements IMeasurementDevice {
 
     init(_data?: any) {
         if (_data) {
-            this.deviceId = _data["DeviceId"];
+            this.sensorId = _data["SensorId"];
             this.comment = _data["Comment"];
         }
     }
@@ -2003,7 +2007,7 @@ export class MeasurementDevice implements IMeasurementDevice {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["DeviceId"] = this.deviceId;
+        data["SensorId"] = this.sensorId;
         data["Comment"] = this.comment;
         return data;
     }
@@ -2017,7 +2021,7 @@ export class MeasurementDevice implements IMeasurementDevice {
 }
 
 export interface IMeasurementDevice {
-    deviceId: string;
+    sensorId: string;
     comment: string;
 }
 

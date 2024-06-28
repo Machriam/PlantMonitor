@@ -53,9 +53,8 @@ public class AutomaticPhotoTourController(DataContext context, IDeviceConnection
             .ToHashSet();
         if (alreadyOccupiedDevices.Contains(Guid.Parse(startInfo.DeviceGuid))) throw new Exception("The imaging device is already busy with another photo tour");
         var busyTemperatureDevices = temperatureDevices
-            .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health.DeviceId ?? "")) ? $"{td.DeviceHealth.Health.DeviceName} is used in another photo tour" : "")
-            .Concat("\n");
-        if (!busyTemperatureDevices.Trim().IsEmpty()) throw new Exception(busyTemperatureDevices);
+            .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health.DeviceId ?? "")) ? $"{td.DeviceHealth.Health.DeviceName} is used in another photo tour" : "");
+        if (busyTemperatureDevices.Any(td => !td.IsEmpty())) throw new Exception(busyTemperatureDevices.Concat("\n"));
 
         var photoTour = new AutomaticPhotoTour()
         {
