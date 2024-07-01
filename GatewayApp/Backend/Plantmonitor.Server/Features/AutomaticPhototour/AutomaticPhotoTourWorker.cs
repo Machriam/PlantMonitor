@@ -1,45 +1,11 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
-using Plantmonitor.DataModel.DataModel;
+﻿using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.DeviceConfiguration;
-using Plantmonitor.Shared.Features.ImageStreaming;
-using Plantmonitor.Server.Features.AppConfiguration;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.Server.Features.DeviceControl;
+using Plantmonitor.Shared.Features.ImageStreaming;
+using Microsoft.OpenApi.Extensions;
 
 namespace Plantmonitor.Server.Features.DeviceProgramming;
-
-public class PictureStreamer(IEnvironmentConfiguration configuration)
-{
-    public async Task StorePhotoTourPictures(string ip, string deviceId, CameraTypeInfo cameraType, StreamingMetaData data, CancellationToken token)
-    {
-        var picturePath = configuration.PicturePath(deviceId);
-        var connection = new HubConnectionBuilder()
-            .WithUrl($"https://{ip}/hub/video")
-            .AddMessagePackProtocol()
-            .Build();
-        await connection.StartAsync(token);
-        await StreamData(picturePath, cameraType, connection, data, token);
-    }
-
-    private static async Task StreamData(string picturePath, CameraTypeInfo cameraInfo, HubConnection connection, StreamingMetaData data, CancellationToken token)
-    {
-        var sequenceId = DateTime.Now.ToString(CameraStreamFormatter.PictureDateFormat);
-        var stream = await connection.StreamAsChannelAsync<byte[]>(cameraInfo.SignalRMethod, data, token);
-        var path = Path.Combine(picturePath, sequenceId);
-        if (!picturePath.IsEmpty()) Directory.CreateDirectory(path);
-        while (await stream.WaitToReadAsync(token))
-        {
-            await foreach (var image in stream.ReadAllAsync(token))
-            {
-                var cameraStream = CameraStreamFormatter.FromBytes(image);
-                if (!picturePath.IsEmpty() && cameraStream.PictureData != null)
-                {
-                    cameraStream.WriteToFile(path, cameraInfo);
-                }
-            }
-        }
-    }
-}
 
 public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IHostedService
 {
@@ -87,25 +53,91 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         await Task.Yield();
         using var scope = serviceProvider.CreateScope();
         await using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-        var (healthy, restartSuccessfull) = await CheckDeviceHealth(photoTourId, scope, dataContext);
+        await using var irStreamer = scope.ServiceProvider.GetRequiredService<IPictureDiskStreamer>();
+        await using var visStreamer = scope.ServiceProvider.GetRequiredService<IPictureDiskStreamer>();
+        var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
+        var (healthy, restartSuccessfull, device) = await CheckDeviceHealth(photoTourId, scope, dataContext);
+        var deviceGuid = Guid.Parse(device.Health.DeviceId ?? "");
         if (restartSuccessfull == true && healthy != true)
         {
-            (healthy, restartSuccessfull) = await CheckDeviceHealth(photoTourId, scope, dataContext);
+            (healthy, restartSuccessfull, device) = await CheckDeviceHealth(photoTourId, scope, dataContext);
             if (healthy != true)
             {
-                dataContext.PhotoTourJourneys.Add(new PhotoTourJourney()
-                {
-                    IrDataFolder = "",
-                    VisDataFolder = "",
-                    PhotoTourFk = photoTourId,
-                    Timestamp = DateTime.UtcNow,
-                });
+                CreateEmptyJourney(photoTourId, dataContext);
                 CreateLogger(dataContext, photoTourId)("Restart was not successfull. Aborting Journey.", PhotoTourEventType.Error);
-                dataContext.SaveChanges();
                 return;
             }
         }
+        var (irFolder, visFolder) = await TakePhotos(photoTourId, dataContext, irStreamer, visStreamer, deviceApi, device, deviceGuid);
 
+        dataContext.PhotoTourJourneys.Add(new PhotoTourJourney()
+        {
+            IrDataFolder = irFolder,
+            VisDataFolder = visFolder,
+            PhotoTourFk = photoTourId,
+            Timestamp = DateTime.UtcNow,
+        });
+        dataContext.SaveChanges();
+    }
+
+    private static async Task<(string IrFolder, string VisFolder)> TakePhotos(long photoTourId, DataContext dataContext, IPictureDiskStreamer irStreamer, IPictureDiskStreamer visStreamer, IDeviceApiFactory deviceApi, DeviceHealthState device, Guid deviceGuid)
+    {
+        var irFolder = "";
+        var visFolder = "";
+        var movementClient = deviceApi.MovementClient(device.Ip);
+        var irClient = deviceApi.IrImageTakingClient(device.Ip);
+        var currentPosition = await movementClient.CurrentpositionAsync();
+        if (currentPosition != 0) await movementClient.MovemotorAsync(-currentPosition, 1000, 4000, 400);
+        var movementPlan = dataContext.DeviceMovements.FirstOrDefault(dm => dm.DeviceId == deviceGuid);
+        if (movementPlan == null)
+        {
+            CreateLogger(dataContext, photoTourId)("No Movementplan found. Aborting", PhotoTourEventType.Error);
+            CreateEmptyJourney(photoTourId, dataContext);
+            return ("", "");
+        }
+        var pointsToReach = new List<int>();
+        foreach (var point in movementPlan.MovementPlan.StepPoints) pointsToReach.Add(pointsToReach.LastOrDefault() + point.StepOffset);
+        var currentStep = 0;
+        var visPosition = 0;
+        var irPosition = 0;
+        var deviceTemperature = dataContext.AutomaticPhotoTours
+            .Include(pt => pt.TemperatureMeasurements)
+            .First(pt => pt.Id == photoTourId)
+            .TemperatureMeasurements.First(tm => tm.DeviceId == deviceGuid);
+        Task DataReceived(CameraStreamFormatter data, CameraType type)
+        {
+            if (type == CameraType.IR) irPosition = data.Steps;
+            if (type == CameraType.Vis) visPosition = data.Steps;
+            if (data.TemperatureInK != default)
+            {
+                deviceTemperature.TemperatureMeasurementValues
+                    .Add(new TemperatureMeasurementValue() { Temperature = data.TemperatureInK.KelvinToCelsius(), Timestamp = DateTime.UtcNow });
+                dataContext.SaveChanges();
+            }
+            return Task.CompletedTask;
+        }
+        irStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.IR.GetAttributeOfType<CameraTypeInfo>(),
+             StreamingMetaData.Create(1, 100, default, true, [.. pointsToReach], CameraType.IR),
+             x => irFolder = x, x => DataReceived(x, CameraType.IR), CancellationToken.None).RunInBackground(ex => ex.LogError());
+        visStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.IR.GetAttributeOfType<CameraTypeInfo>(),
+             StreamingMetaData.Create(1, 100, movementPlan.MovementPlan.StepPoints.FirstOrDefault().FocusInCentimeter, true, [.. pointsToReach], CameraType.Vis),
+             x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None).RunInBackground(ex => ex.LogError());
+        foreach (var step in movementPlan.MovementPlan.StepPoints)
+        {
+            await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400);
+            currentStep += step.StepOffset;
+            while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(100);
+            await irClient.RunffcAsync();
+            await Task.Delay(5000);
+        }
+
+        await deviceApi.IrImageTakingClient(device.Ip).KillcameraAsync();
+        await deviceApi.VisImageTakingClient(device.Ip).KillcameraAsync();
+        return (irFolder, visFolder);
+    }
+
+    private static void CreateEmptyJourney(long photoTourId, DataContext dataContext)
+    {
         dataContext.PhotoTourJourneys.Add(new PhotoTourJourney()
         {
             IrDataFolder = "",
@@ -116,7 +148,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         dataContext.SaveChanges();
     }
 
-    private static async Task<(bool? DeviceHealthy, bool? RestartSuccessfull)> CheckDeviceHealth(long photoTourId, IServiceScope scope, DataContext dataContext)
+    private static async Task<(bool? DeviceHealthy, bool? RestartSuccessfull, DeviceHealthState ImagingDevice)> CheckDeviceHealth(long photoTourId, IServiceScope scope, DataContext dataContext)
     {
         var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
         var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
@@ -130,7 +162,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         {
             logEvent($"Camera Device {photoTourData.DeviceId} not found. Trying Restart.", PhotoTourEventType.Error);
             var success = await RestartDevice(dataContext, eventBus, deviceApi, photoTourData.DeviceId.ToString(), logEvent);
-            return (null, success);
+            return (null, success, deviceHealth);
         }
         logEvent($"Checking Camera {photoTourData.DeviceId}", PhotoTourEventType.Information);
         var irTest = await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
@@ -142,11 +174,11 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             var notWorkingCameras = new[] { irImage.Length < 100 ? "IR" : "", visImage.Length < 100 ? "VIS" : "" }.Concat(", ");
             logEvent($"Camera {notWorkingCameras} not working. Trying Restart.", PhotoTourEventType.Error);
             var sucess = await RestartDevice(dataContext, eventBus, deviceApi, photoTourData.DeviceId.ToString(), logEvent);
-            return (null, sucess);
+            return (null, sucess, deviceHealth);
         }
         logEvent($"Camera working {photoTourData.DeviceId}", PhotoTourEventType.Information);
 
-        return (true, null);
+        return (true, null, deviceHealth);
     }
 
     private static async Task<bool> RestartDevice(DataContext dataContext, IDeviceConnectionEventBus eventBus, IDeviceApiFactory deviceApi, string restartDeviceId, EventLogger logEvent)

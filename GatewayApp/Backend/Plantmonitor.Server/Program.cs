@@ -28,6 +28,7 @@ builder.Services.AddTransient<IDatabaseUpgrader, DatabaseUpgrader>();
 builder.Services.AddTransient<IDeviceApiFactory, DeviceApiFactory>();
 builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
 builder.Services.AddTransient<ITemperatureMeasurementWorker, TemperatureMeasurementWorker>();
+builder.Services.AddTransient<IPictureDiskStreamer, PictureDiskStreamer>();
 builder.Services.AddHostedService<DeviceConnectionWorker>();
 builder.Services.AddHostedService(s => (TemperatureMeasurementWorker)s.GetRequiredService<ITemperatureMeasurementWorker>());
 builder.Services.AddHostedService<AutomaticPhotoTourWorker>();
