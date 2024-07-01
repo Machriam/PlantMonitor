@@ -33,7 +33,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         return Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
         {
             AllowSynchronousContinuations = false,
-            FullMode = data.StoreData ? BoundedChannelFullMode.Wait : BoundedChannelFullMode.DropWrite,
+            FullMode = BoundedChannelFullMode.Wait,
             SingleReader = true,
             SingleWriter = true,
         });
@@ -75,13 +75,15 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         var typeInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
         while (true)
         {
-            await Task.Delay(10, token);
+            await Task.Delay(100, token);
+            logger.LogInformation("Looking for File {ending}", typeInfo.FileEnding);
             if (!camera.CameraIsRunning()) break;
             var nextFile = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, typeInfo, token);
+            logger.LogInformation("Next file {ending}: {counter}", typeInfo.FileEnding, nextFile.NewCounter);
             counter = nextFile.NewCounter;
             if (nextFile.FileData == null) continue;
             var currentPosition = motorPosition.CurrentPosition();
-            logger.LogInformation("Sending image of type {type}", typeInfo.MetaDataFile);
+            logger.LogInformation("Sending image of type {type}", typeInfo.FileEnding);
             await channel.Writer.WriteAsync(nextFile.CreateFormatter(currentPosition).GetBytes(), token);
         }
     }
