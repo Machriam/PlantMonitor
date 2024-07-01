@@ -8,7 +8,7 @@ namespace PlantMonitorControl.Features.ImageTaking;
 
 public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop visCameraInterop,
     [FromKeyedServices(ICameraInterop.IrCamera)] ICameraInterop irCameraInterop,
-    IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition) : Hub
+    IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition, ILogger<StreamingHub> logger) : Hub
 {
     public async Task<ChannelReader<byte[]>> StreamIrData(StreamingMetaData data, CancellationToken token)
     {
@@ -33,7 +33,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         return Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
         {
             AllowSynchronousContinuations = false,
-            FullMode = data.StoreData ? BoundedChannelFullMode.Wait : BoundedChannelFullMode.DropWrite,
+            FullMode = BoundedChannelFullMode.Wait,
             SingleReader = true,
             SingleWriter = true,
         });
@@ -76,12 +76,13 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         var typeInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
         while (true)
         {
-            await Task.Delay(10, token);
+            await Task.Delay(Random.Shared.Next(100, 400), token);
             if (!camera.CameraIsRunning()) break;
             var nextFile = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, typeInfo, token);
             counter = nextFile.NewCounter;
             if (nextFile.FileData == null) continue;
             var currentPosition = motorPosition.CurrentPosition();
+            logger.LogInformation("Sending image {counter}{ending} ", counter, typeInfo.FileEnding);
             await channel.Writer.WriteAsync(nextFile.CreateFormatter(currentPosition).GetBytes(), token);
         }
     }
