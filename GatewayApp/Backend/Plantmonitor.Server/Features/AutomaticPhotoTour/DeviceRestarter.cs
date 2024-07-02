@@ -2,6 +2,7 @@
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.Server.Features.DeviceControl;
+using System.Collections.Concurrent;
 
 namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
@@ -12,6 +13,7 @@ public interface IDeviceRestarter
 
 public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestarter
 {
+    private static readonly ConcurrentDictionary<Guid, DateTime> s_lastRestarts = [];
     public async Task RestartDevice(string restartDeviceId, long photoTourId)
     {
         using var scope = scopeFactory.CreateScope();
@@ -24,6 +26,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             logEvent($"Camera Device has no valid GUID: {restartDeviceId}", PhotoTourEventType.Error);
             return;
         }
+        if (s_lastRestarts.TryGetValue(deviceGuid, out var lastRestart) && (DateTime.UtcNow - lastRestart).TotalMinutes < 5) return;
         var switchData = dataContext.DeviceSwitchAssociations
             .Include(sw => sw.OutletOffFkNavigation)
             .Include(sw => sw.OutletOnFkNavigation)
@@ -46,6 +49,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             await Task.Delay(200);
         }
         eventBus.UpdateDeviceHealths(eventBus.GetDeviceHealthInformation().Where(d => d.Health.DeviceId != restartDeviceId));
+        s_lastRestarts.AddOrUpdate(deviceGuid, DateTime.UtcNow, (_1, _2) => DateTime.UtcNow);
         foreach (var switchDevice in switchingDevices)
         {
             await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOffFkNavigation.Code);
