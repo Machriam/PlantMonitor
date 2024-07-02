@@ -7,6 +7,7 @@ entity TemperatureDevice  as td
 == Initialize automatic image taking ==
 op -> gc: Assign Switch_1 to CameraDevice
 op -> gc: Assign Switch_2 to TemperatureDevice
+op -> gc: Define Movement Plan
 op -> gc: Set intervall for automatic picture taking
 op -> gc: Start automatic picture taking
 == Continuous temperature monitoring==
@@ -38,14 +39,16 @@ loop until photo tour stopped
     cd -> gc: Device is available
     alt CameraDevice not available
       gc -> gc: Restart CameraDevice, see AutomaticDeviceRestart
-      gc -> gc !!: Cancel photo tour and wait for next trip
+      gc -> gc: Store empty trip
+      gc -> gc !!: Cancel photo trip and wait for next trip
     end
     == Test imaging device ==
     gc -> cd: Test IR- and VIS-camera
     cd -> gc: Send IR- and VIS-image
     alt CameraDevice not working properly
       gc -> gc: Restart CameraDevice, see AutomaticDeviceRestart
-      gc -> gc !!: Cancel photo tour and wait for next trip
+      gc -> gc: Store empty trip
+      gc -> gc !!: Cancel photo trip and wait for next trip
     end
     gc -> gc: Calculate zero position offset
     note right: Offset is calculated by calculating a homography between\nlast zero position and current one

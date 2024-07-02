@@ -5,7 +5,7 @@ namespace Plantmonitor.Server.Features.DeviceProgramming;
 
 [ApiController]
 [Route("api/[controller]")]
-public class MovementProgrammingController(DataContext context)
+public class MovementProgrammingController(IDataContext context)
 {
     [HttpGet("getplan")]
     public DeviceMovement GetPlan(string deviceId)

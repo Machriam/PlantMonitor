@@ -7,7 +7,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor;
 
 [ApiController]
 [Route("api/[controller]")]
-public class TemperatureController(IDeviceApiFactory apiFactory, ITemperatureMeasurementWorker worker, DataContext dataContext)
+public class TemperatureController(IDeviceApiFactory apiFactory, ITemperatureMeasurementWorker worker, IDataContext dataContext)
 {
     public record struct MeasurementStartInfo(MeasurementDevice[] Devices, string Ip);
     public record struct RunningMeasurement(string Ip, long MeasurementId);

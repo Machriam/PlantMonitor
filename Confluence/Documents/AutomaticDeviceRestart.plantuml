@@ -8,6 +8,9 @@ entity Switches as s
 == Given automatic image taking is activated ==
   gc -> gc: Restart of faulty device is triggered
   note right: Faultyness can only be detected for\ntemperature devices and camera devices
+  alt FaultyDevice was restarted recently
+    gc -> gc !!: Do nothing
+  end
   gc -> gc: Retrieve available devices, which can switch power outlets
   gc -> gc: Get assigned switch for FaultyDevice
   loop devices able to switch
@@ -36,12 +39,7 @@ entity Switches as s
     end
   end
   alt FaultyDevice is CameraDevice
-    gc -> gc: Postpone automatic image taking
-    loop several minutes until device is available
-      gc -> gc: Wait
-      gc -> fd: Test if device is available
-    end
-    gc -> gc: Resume automatic image taking
+    gc -> gc: Do nothing, next photo trips will check automatically
   else Device is TemperatureDevice
     loop several minutes until device is available
       gc -> gc: Wait

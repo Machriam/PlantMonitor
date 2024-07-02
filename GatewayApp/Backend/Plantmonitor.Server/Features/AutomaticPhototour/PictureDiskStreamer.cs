@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using Plantmonitor.Server.Features.AppConfiguration;
+using MessagePack.Formatters;
 
 namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
@@ -8,11 +9,14 @@ public interface IPictureDiskStreamer : IAsyncDisposable
 {
     Task StartStreamingToDisc(string ip, string deviceId, CameraTypeInfo cameraType, StreamingMetaData data, Action<string> picturePathCallback,
             Func<CameraStreamFormatter, Task> imageReceivedCallback, CancellationToken token);
+
+    bool StreamingFinished();
 }
 
 public class PictureDiskStreamer(IEnvironmentConfiguration configuration) : IPictureDiskStreamer
 {
     private HubConnection? _connection;
+    private bool _connectionClosed;
 
     public async Task StartStreamingToDisc(string ip, string deviceId, CameraTypeInfo cameraType, StreamingMetaData data, Action<string> picturePathCallback,
         Func<CameraStreamFormatter, Task> imageReceivedCallback, CancellationToken token)
@@ -34,7 +38,13 @@ public class PictureDiskStreamer(IEnvironmentConfiguration configuration) : IPic
 
     private async Task Connection_Closed(Exception? arg)
     {
+        _connectionClosed = true;
         await DisposeAsync();
+    }
+
+    public bool StreamingFinished()
+    {
+        return _connectionClosed;
     }
 
     private async Task StreamData(string path, CameraTypeInfo cameraInfo, StreamingMetaData data, Func<CameraStreamFormatter, Task> callback, CancellationToken token)

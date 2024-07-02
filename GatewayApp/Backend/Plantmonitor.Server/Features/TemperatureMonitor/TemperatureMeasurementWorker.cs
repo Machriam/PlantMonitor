@@ -64,7 +64,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
         private async Task StoreData(HubConnection connection, string ip, MeasurementDevice[] devices, Guid deviceGuid, CancellationTokenSource token)
         {
             using var scope = scopeFactory.CreateScope();
-            await using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+            await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
             var measurements = devices.Select(d => new TemperatureMeasurement()
             {
                 SensorId = d.SensorId,
