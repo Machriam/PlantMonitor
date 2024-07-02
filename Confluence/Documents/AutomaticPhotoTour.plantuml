@@ -1,0 +1,93 @@
+@startuml Automatic Photo Tour
+
+actor Operator as op
+entity GatewayComputer as gc
+entity CameraDevice as cd
+entity TemperatureDevice  as td
+== Initialize automatic image taking ==
+op -> gc: Assign Switch_1 to CameraDevice
+op -> gc: Assign Switch_2 to TemperatureDevice
+op -> gc: Define Movement Plan
+op -> gc: Set intervall for automatic picture taking
+op -> gc: Start automatic picture taking
+== Continuous temperature monitoring==
+gc -> td: Start temperature measuring
+activate td
+activate gc
+loop until disabled
+  td -> gc: Send temperature value
+  alt Temperature not received for x seconds
+    alt photo trip overdue
+      gc -> gc: Do nothing
+    else photo trip not overdue
+      gc -> gc: Restart TemperatureDevice, see AutomaticDeviceRestart
+      note right: TemperatureDevice might still be useful for\nrestart of CameraDevice, even if faulty
+    end
+  end
+end
+deactivate gc
+loop until photo tour stopped
+    == Wait for photo trip==
+    loop until trip overdue and no camera device restart pending
+        gc -> gc: Wait 5 seconds
+        gc -> gc: Calculate time since last trip
+    end
+    == Check device availability ==
+    gc -> td: Check if device is available
+    td -> gc: Device is available
+    gc -> cd: Check if device is available
+    cd -> gc: Device is available
+    alt CameraDevice not available
+      gc -> gc: Restart CameraDevice, see AutomaticDeviceRestart
+      gc -> gc: Store empty trip
+      gc -> gc !!: Cancel photo trip and wait for next trip
+    end
+    == Test imaging device ==
+    gc -> cd: Test IR- and VIS-camera
+    cd -> gc: Send IR- and VIS-image
+    alt CameraDevice not working properly
+      gc -> gc: Restart CameraDevice, see AutomaticDeviceRestart
+      gc -> gc: Store empty trip
+      gc -> gc !!: Cancel photo trip and wait for next trip
+    end
+    gc -> gc: Calculate zero position offset
+    note right: Offset is calculated by calculating a homography between\nlast zero position and current one
+    gc -> cd: Adjust camera by offset
+    gc -> cd: Zero position
+    gc -> cd: Set max and min position
+    note right: The device does a safety stop, if positions are exceeded
+    == Do photo trip ==
+    gc -> cd: Initialize picture sending with positions of interest
+    activate cd
+    loop until disabled
+    cd -> gc: Send IR- and VIS-pictures with current position
+    note right: Pictures are sent, as soon as picture taking is disabled\nMotor positions are sent regardless with empty picture payload\nOnly pictures of requested positions are sent
+    end
+    loop for each position
+    gc -> cd: Move motor to position
+    cd -> gc: Send current position
+    loop until motor position equals current position
+        gc -> gc: Wait
+    end
+    gc -> cd: Send FFC
+    gc -> gc: Wait 5 seconds
+    end
+    gc -> cd: Disable picture taking
+    gc -> cd: Move position to zero
+    loop until no more images to receive
+    gc -> gc: Wait
+    end
+    deactivate cd
+    gc -> gc: Mark trip as completed and store results
+    gc -> cd: Request new image of zero position
+    cd -> gc: Send VIS-image of zero position
+    gc -> gc: Calculate zero position offset
+    gc -> cd: Adjust camera by offset
+    gc -> cd: Zero position
+end
+== Finish automatic image taking ==
+op -> gc: End photo tour
+gc -> td: Disable temperature sending
+deactivate td
+
+@enduml

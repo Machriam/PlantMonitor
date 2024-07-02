@@ -7,7 +7,7 @@ public record struct CameraStreamData(DateTime Timestamp, int Steps, int Tempera
 
 public class CameraStreamFormatter
 {
-    public const string PictureDateFormat = "yyyy-MM-dd HH-mm-ss-fff";
+    public const string PictureDateFormat = "yyyy-MM-dd_HH-mm-ss-fff";
 
     public static CameraStreamFormatter FromBytes(byte[] bytes)
     {
@@ -48,6 +48,7 @@ public class CameraStreamFormatter
     {
         File.WriteAllBytes(Path.Combine(basePath, $"{Timestamp.ToUniversalTime().ToString(PictureDateFormat)}_{Steps}_{TemperatureInK}{cameraInfo.FileEnding}"), PictureData ?? []);
     }
+
     public byte[] GetBytes()
     {
         return [.. BitConverter.GetBytes(Steps), .. BitConverter.GetBytes(Timestamp.Ticks), .. BitConverter.GetBytes(TemperatureInK), .. PictureData];

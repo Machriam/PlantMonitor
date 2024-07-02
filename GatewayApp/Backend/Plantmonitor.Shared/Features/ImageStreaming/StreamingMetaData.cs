@@ -24,4 +24,8 @@ public record struct StreamingMetaData(float ResolutionDivider, int Quality, flo
 {
     private static readonly Dictionary<string, CameraType> s_cameraTypeByText = Enum.GetValues<CameraType>().Select(v => (Name: Enum.GetName(v) ?? "", Value: v)).ToDictionary(x => x.Name, x => x.Value);
     public readonly CameraType GetCameraType() => s_cameraTypeByText[Type];
+    public static StreamingMetaData Create(float resolutionDivider, int quality, float distanceInM, bool storeData, int[] positionsToStream, CameraType type)
+    {
+        return new(resolutionDivider, quality, distanceInM, storeData, positionsToStream, Enum.GetName(type) ?? "");
+    }
 }

@@ -1296,6 +1296,97 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
     }
 }
 
+export interface IAutomaticPhotoTourClient {
+
+    stopPhotoTour(id?: number | undefined): Promise<void>;
+
+    startAutomaticTour(startInfo: AutomaticTourStartInfo): Promise<void>;
+}
+
+export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAutomaticPhotoTourClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    stopPhotoTour(id?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/stopphototour?";
+        if (id === null)
+            throw new Error("The parameter 'id' cannot be null.");
+        else if (id !== undefined)
+            url_ += "id=" + encodeURIComponent("" + id) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processStopPhotoTour(_response));
+        });
+    }
+
+    protected processStopPhotoTour(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    startAutomaticTour(startInfo: AutomaticTourStartInfo): Promise<void> {
+        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/startphototour";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(startInfo);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processStartAutomaticTour(_response));
+        });
+    }
+
+    protected processStartAutomaticTour(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export interface IAppConfigurationClient {
 
     updateDeviceSettings(password?: string | undefined, user?: string | undefined): Promise<void>;
@@ -1445,8 +1536,11 @@ export interface IRunningMeasurement {
 export class TemperatureMeasurement implements ITemperatureMeasurement {
     id!: number;
     comment!: string;
-    deviceId!: string;
+    sensorId!: string;
     startTime!: Date;
+    photoTourFk!: number | undefined;
+    deviceId!: string;
+    photoTourFkNavigation!: AutomaticPhotoTour | undefined;
     temperatureMeasurementValues!: TemperatureMeasurementValue[];
 
     constructor(data?: ITemperatureMeasurement) {
@@ -1462,8 +1556,11 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
         if (_data) {
             this.id = _data["Id"];
             this.comment = _data["Comment"];
-            this.deviceId = _data["DeviceId"];
+            this.sensorId = _data["SensorId"];
             this.startTime = _data["StartTime"] ? new Date(_data["StartTime"].toString()) : <any>undefined;
+            this.photoTourFk = _data["PhotoTourFk"];
+            this.deviceId = _data["DeviceId"];
+            this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
             if (Array.isArray(_data["TemperatureMeasurementValues"])) {
                 this.temperatureMeasurementValues = [] as any;
                 for (let item of _data["TemperatureMeasurementValues"])
@@ -1483,8 +1580,11 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
         data = typeof data === 'object' ? data : {};
         data["Id"] = this.id;
         data["Comment"] = this.comment;
-        data["DeviceId"] = this.deviceId;
+        data["SensorId"] = this.sensorId;
         data["StartTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
+        data["PhotoTourFk"] = this.photoTourFk;
+        data["DeviceId"] = this.deviceId;
+        data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
         if (Array.isArray(this.temperatureMeasurementValues)) {
             data["TemperatureMeasurementValues"] = [];
             for (let item of this.temperatureMeasurementValues)
@@ -1504,9 +1604,264 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
 export interface ITemperatureMeasurement {
     id: number;
     comment: string;
-    deviceId: string;
+    sensorId: string;
     startTime: Date;
+    photoTourFk: number | undefined;
+    deviceId: string;
+    photoTourFkNavigation: AutomaticPhotoTour | undefined;
     temperatureMeasurementValues: TemperatureMeasurementValue[];
+}
+
+export class AutomaticPhotoTour implements IAutomaticPhotoTour {
+    id!: number;
+    deviceId!: string;
+    name!: string;
+    comment!: string;
+    intervallInMinutes!: number;
+    finished!: boolean;
+    photoTourEvents!: PhotoTourEvent[];
+    photoTourTrips!: PhotoTourTrip[];
+    temperatureMeasurements!: TemperatureMeasurement[];
+
+    constructor(data?: IAutomaticPhotoTour) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.deviceId = _data["DeviceId"];
+            this.name = _data["Name"];
+            this.comment = _data["Comment"];
+            this.intervallInMinutes = _data["IntervallInMinutes"];
+            this.finished = _data["Finished"];
+            if (Array.isArray(_data["PhotoTourEvents"])) {
+                this.photoTourEvents = [] as any;
+                for (let item of _data["PhotoTourEvents"])
+                    this.photoTourEvents!.push(PhotoTourEvent.fromJS(item));
+            }
+            if (Array.isArray(_data["PhotoTourTrips"])) {
+                this.photoTourTrips = [] as any;
+                for (let item of _data["PhotoTourTrips"])
+                    this.photoTourTrips!.push(PhotoTourTrip.fromJS(item));
+            }
+            if (Array.isArray(_data["TemperatureMeasurements"])) {
+                this.temperatureMeasurements = [] as any;
+                for (let item of _data["TemperatureMeasurements"])
+                    this.temperatureMeasurements!.push(TemperatureMeasurement.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): AutomaticPhotoTour {
+        data = typeof data === 'object' ? data : {};
+        let result = new AutomaticPhotoTour();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["DeviceId"] = this.deviceId;
+        data["Name"] = this.name;
+        data["Comment"] = this.comment;
+        data["IntervallInMinutes"] = this.intervallInMinutes;
+        data["Finished"] = this.finished;
+        if (Array.isArray(this.photoTourEvents)) {
+            data["PhotoTourEvents"] = [];
+            for (let item of this.photoTourEvents)
+                data["PhotoTourEvents"].push(item.toJSON());
+        }
+        if (Array.isArray(this.photoTourTrips)) {
+            data["PhotoTourTrips"] = [];
+            for (let item of this.photoTourTrips)
+                data["PhotoTourTrips"].push(item.toJSON());
+        }
+        if (Array.isArray(this.temperatureMeasurements)) {
+            data["TemperatureMeasurements"] = [];
+            for (let item of this.temperatureMeasurements)
+                data["TemperatureMeasurements"].push(item.toJSON());
+        }
+        return data;
+    }
+
+    clone(): AutomaticPhotoTour {
+        const json = this.toJSON();
+        let result = new AutomaticPhotoTour();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IAutomaticPhotoTour {
+    id: number;
+    deviceId: string;
+    name: string;
+    comment: string;
+    intervallInMinutes: number;
+    finished: boolean;
+    photoTourEvents: PhotoTourEvent[];
+    photoTourTrips: PhotoTourTrip[];
+    temperatureMeasurements: TemperatureMeasurement[];
+}
+
+export class PhotoTourEvent implements IPhotoTourEvent {
+    id!: number;
+    photoTourFk!: number;
+    message!: string;
+    timestamp!: Date;
+    referencesEvent!: number | undefined;
+    inverseReferencesEventNavigation!: PhotoTourEvent[];
+    photoTourFkNavigation!: AutomaticPhotoTour;
+    referencesEventNavigation!: PhotoTourEvent | undefined;
+    type!: PhotoTourEventType;
+
+    constructor(data?: IPhotoTourEvent) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.photoTourFk = _data["PhotoTourFk"];
+            this.message = _data["Message"];
+            this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
+            this.referencesEvent = _data["ReferencesEvent"];
+            if (Array.isArray(_data["InverseReferencesEventNavigation"])) {
+                this.inverseReferencesEventNavigation = [] as any;
+                for (let item of _data["InverseReferencesEventNavigation"])
+                    this.inverseReferencesEventNavigation!.push(PhotoTourEvent.fromJS(item));
+            }
+            this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
+            this.referencesEventNavigation = _data["ReferencesEventNavigation"] ? PhotoTourEvent.fromJS(_data["ReferencesEventNavigation"]) : <any>undefined;
+            this.type = _data["Type"];
+        }
+    }
+
+    static fromJS(data: any): PhotoTourEvent {
+        data = typeof data === 'object' ? data : {};
+        let result = new PhotoTourEvent();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["PhotoTourFk"] = this.photoTourFk;
+        data["Message"] = this.message;
+        data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
+        data["ReferencesEvent"] = this.referencesEvent;
+        if (Array.isArray(this.inverseReferencesEventNavigation)) {
+            data["InverseReferencesEventNavigation"] = [];
+            for (let item of this.inverseReferencesEventNavigation)
+                data["InverseReferencesEventNavigation"].push(item.toJSON());
+        }
+        data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
+        data["ReferencesEventNavigation"] = this.referencesEventNavigation ? this.referencesEventNavigation.toJSON() : <any>undefined;
+        data["Type"] = this.type;
+        return data;
+    }
+
+    clone(): PhotoTourEvent {
+        const json = this.toJSON();
+        let result = new PhotoTourEvent();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPhotoTourEvent {
+    id: number;
+    photoTourFk: number;
+    message: string;
+    timestamp: Date;
+    referencesEvent: number | undefined;
+    inverseReferencesEventNavigation: PhotoTourEvent[];
+    photoTourFkNavigation: AutomaticPhotoTour;
+    referencesEventNavigation: PhotoTourEvent | undefined;
+    type: PhotoTourEventType;
+}
+
+export enum PhotoTourEventType {
+    Debug = 0,
+    Information = 1,
+    Warning = 2,
+    Error = 3,
+}
+
+export class PhotoTourTrip implements IPhotoTourTrip {
+    id!: number;
+    photoTourFk!: number;
+    irDataFolder!: string;
+    visDataFolder!: string;
+    timestamp!: Date;
+    photoTourFkNavigation!: AutomaticPhotoTour;
+
+    constructor(data?: IPhotoTourTrip) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.photoTourFk = _data["PhotoTourFk"];
+            this.irDataFolder = _data["IrDataFolder"];
+            this.visDataFolder = _data["VisDataFolder"];
+            this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
+            this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): PhotoTourTrip {
+        data = typeof data === 'object' ? data : {};
+        let result = new PhotoTourTrip();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["PhotoTourFk"] = this.photoTourFk;
+        data["IrDataFolder"] = this.irDataFolder;
+        data["VisDataFolder"] = this.visDataFolder;
+        data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
+        data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): PhotoTourTrip {
+        const json = this.toJSON();
+        let result = new PhotoTourTrip();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPhotoTourTrip {
+    id: number;
+    photoTourFk: number;
+    irDataFolder: string;
+    visDataFolder: string;
+    timestamp: Date;
+    photoTourFkNavigation: AutomaticPhotoTour;
 }
 
 export class TemperatureMeasurementValue implements ITemperatureMeasurementValue {
@@ -1624,7 +1979,7 @@ export interface IMeasurementStartInfo {
 }
 
 export class MeasurementDevice implements IMeasurementDevice {
-    deviceId!: string;
+    sensorId!: string;
     comment!: string;
 
     constructor(data?: IMeasurementDevice) {
@@ -1638,7 +1993,7 @@ export class MeasurementDevice implements IMeasurementDevice {
 
     init(_data?: any) {
         if (_data) {
-            this.deviceId = _data["DeviceId"];
+            this.sensorId = _data["SensorId"];
             this.comment = _data["Comment"];
         }
     }
@@ -1652,7 +2007,7 @@ export class MeasurementDevice implements IMeasurementDevice {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["DeviceId"] = this.deviceId;
+        data["SensorId"] = this.sensorId;
         data["Comment"] = this.comment;
         return data;
     }
@@ -1666,7 +2021,7 @@ export class MeasurementDevice implements IMeasurementDevice {
 }
 
 export interface IMeasurementDevice {
-    deviceId: string;
+    sensorId: string;
     comment: string;
 }
 
@@ -2311,6 +2666,124 @@ export interface IDeviceHealthState {
     health: DeviceHealth;
     retryTimes: number;
     ip: string;
+}
+
+export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
+    intervallInMinutes!: number;
+    movementPlan!: number;
+    temperatureMeasureDevice!: TemperatureMeasurementInfo[];
+    comment!: string;
+    name!: string;
+    deviceGuid!: string;
+
+    constructor(data?: IAutomaticTourStartInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.intervallInMinutes = _data["IntervallInMinutes"];
+            this.movementPlan = _data["MovementPlan"];
+            if (Array.isArray(_data["TemperatureMeasureDevice"])) {
+                this.temperatureMeasureDevice = [] as any;
+                for (let item of _data["TemperatureMeasureDevice"])
+                    this.temperatureMeasureDevice!.push(TemperatureMeasurementInfo.fromJS(item));
+            }
+            this.comment = _data["Comment"];
+            this.name = _data["Name"];
+            this.deviceGuid = _data["DeviceGuid"];
+        }
+    }
+
+    static fromJS(data: any): AutomaticTourStartInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new AutomaticTourStartInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["IntervallInMinutes"] = this.intervallInMinutes;
+        data["MovementPlan"] = this.movementPlan;
+        if (Array.isArray(this.temperatureMeasureDevice)) {
+            data["TemperatureMeasureDevice"] = [];
+            for (let item of this.temperatureMeasureDevice)
+                data["TemperatureMeasureDevice"].push(item.toJSON());
+        }
+        data["Comment"] = this.comment;
+        data["Name"] = this.name;
+        data["DeviceGuid"] = this.deviceGuid;
+        return data;
+    }
+
+    clone(): AutomaticTourStartInfo {
+        const json = this.toJSON();
+        let result = new AutomaticTourStartInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IAutomaticTourStartInfo {
+    intervallInMinutes: number;
+    movementPlan: number;
+    temperatureMeasureDevice: TemperatureMeasurementInfo[];
+    comment: string;
+    name: string;
+    deviceGuid: string;
+}
+
+export class TemperatureMeasurementInfo implements ITemperatureMeasurementInfo {
+    guid!: string;
+    comment!: string;
+
+    constructor(data?: ITemperatureMeasurementInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.guid = _data["Guid"];
+            this.comment = _data["Comment"];
+        }
+    }
+
+    static fromJS(data: any): TemperatureMeasurementInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemperatureMeasurementInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Guid"] = this.guid;
+        data["Comment"] = this.comment;
+        return data;
+    }
+
+    clone(): TemperatureMeasurementInfo {
+        const json = this.toJSON();
+        let result = new TemperatureMeasurementInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ITemperatureMeasurementInfo {
+    guid: string;
+    comment: string;
 }
 
 export class StreamingMetaData implements IStreamingMetaData {

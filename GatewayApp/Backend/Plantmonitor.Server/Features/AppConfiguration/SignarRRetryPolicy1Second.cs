@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 
-namespace Plantmonitor.Server.Features.TemperatureMonitor
+namespace Plantmonitor.Server.Features.AppConfiguration
 {
-    public class RetryPolicy1Second : IRetryPolicy
+    public class SignarRRetryPolicy1Second : IRetryPolicy
     {
         public TimeSpan? NextRetryDelay(RetryContext retryContext)
         {

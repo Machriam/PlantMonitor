@@ -2,6 +2,7 @@
 using Npgsql;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Server.Features.RestApiFilter;
@@ -22,16 +23,23 @@ var configurationStorage = new ConfigurationStorage(builder.Configuration);
 var environmentConfiguration = new EnvironmentConfiguration(builder.Configuration, new ConfigurationStorage(builder.Configuration));
 builder.Services.AddSingleton<IEnvironmentConfiguration>(environmentConfiguration);
 builder.Services.AddSingleton<IConfigurationStorage>(configurationStorage);
+builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
+
 builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>();
 builder.Services.AddTransient<IDatabaseUpgrader, DatabaseUpgrader>();
 builder.Services.AddTransient<IDeviceApiFactory, DeviceApiFactory>();
-builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
 builder.Services.AddTransient<ITemperatureMeasurementWorker, TemperatureMeasurementWorker>();
+builder.Services.AddTransient<IPictureDiskStreamer, PictureDiskStreamer>();
+builder.Services.AddTransient<IDeviceRestarter, DeviceRestarter>();
+
 builder.Services.AddHostedService<DeviceConnectionWorker>();
 builder.Services.AddHostedService(s => (TemperatureMeasurementWorker)s.GetRequiredService<ITemperatureMeasurementWorker>());
+builder.Services.AddHostedService<AutomaticPhotoTourWorker>();
+builder.Services.AddHostedService<DeviceTemperatureWatcherWorker>();
+
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(environmentConfiguration.DatabaseConnection());
 var dataSource = dataSourceBuilder.Configure().Build();
-builder.Services.AddDbContext<DataContext>(options =>
+builder.Services.AddDbContext<IDataContext, DataContext>(options =>
 {
     options.UseNpgsql(dataSource, npg =>
     {
@@ -133,13 +141,13 @@ void CreateOrUpdateDatabase()
             connection.Close();
             lastPatch = patch.Number;
         }
-        using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+        using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
         dataContext.ConfigurationData.First(cd => cd.Key == Enum.GetName(ConfigurationDatumKeys.PatchNumber)).Value = lastPatch.ToString();
         dataContext.SaveChanges();
     }
     else
     {
-        using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+        using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
         var patchNumberText = dataContext.ConfigurationData.First(cd => cd.Key == Enum.GetName(ConfigurationDatumKeys.PatchNumber)).Value;
         var patchNumber = int.Parse(patchNumberText);
         foreach (var patch in databaseUpgrader.GetPatchesToApply(patchNumber)) dataContext.Database.ExecuteSqlRaw(patch.Sql);

@@ -108,7 +108,7 @@
         }
         currentlyMoving = false;
     }
-    async function takePhotoTour() {
+    async function takePhotoTrip() {
         if (selectedDeviceData?.ip == undefined) return;
         let positionsToReach = movementPlan.movementPlan.stepPoints.map((sp) =>
             sp[stepsToReach](movementPlan.movementPlan.stepPoints)
@@ -148,7 +148,7 @@
         {:else}
             <button on:click={async () => await showPreview()} class="btn btn-primary col-md-4">Start Preview</button>
             <div class="col-md-4"></div>
-            <button on:click={async () => await takePhotoTour()} class="btn btn-success col-md-4">Store Photo Tour</button>
+            <button on:click={async () => await takePhotoTrip()} class="btn btn-success col-md-4">Store Photo Trip</button>
         {/if}
         <div style="height: 200px; overflow-y:scroll" class="col-md-12 row p-0">
             {#if movementPlan?.movementPlan?.stepPoints != undefined && movementPlan?.movementPlan?.stepPoints.length > 0}

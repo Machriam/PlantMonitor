@@ -1,0 +1,51 @@
+@startuml Restart of faulty device
+
+actor Operator as op
+entity GatewayComputer as gc
+entity FaultyDevice as fd
+entity OtherDevices as od
+entity Switches as s
+== Given automatic image taking is activated ==
+  gc -> gc: Restart of faulty device is triggered
+  note right: Faultyness can only be detected for\ntemperature devices and camera devices
+  alt FaultyDevice was restarted recently
+    gc -> gc !!: Do nothing
+  end
+  gc -> gc: Retrieve available devices, which can switch power outlets
+  gc -> gc: Get assigned switch for FaultyDevice
+  loop devices able to switch
+    alt FaultyDevice itself
+      gc -> gc: Skip device
+      note right: If only one device exists, it cannot restart itself
+    else 
+      gc -> od: Request switching of outlet
+      od -> s: Switch off outlet of FaultyDevice
+      od -> gc: Switching finished
+      gc -> gc: Wait safety intervall
+      note right: Waiting is required, else switch off signals\nmight interfere with each other
+    end
+  end
+  gc -> gc: Clear health status of FaultyDevice
+  loop devices able to switch
+    alt FaultyDevice itself
+      gc -> gc: Skip device
+      note right: If only one device exists, it cannot restart itself
+    else 
+      gc -> od: Request switching of outlet
+      od -> s: Switch on outlet of FaultyDevice
+      od -> gc: Switching finished
+      gc -> gc: Wait safety intervall
+      note right: Waiting is required, else switch off signals\nmight interfere with each other
+    end
+  end
+  alt FaultyDevice is CameraDevice
+    gc -> gc: Do nothing, next photo trips will check automatically
+  else Device is TemperatureDevice
+    loop several minutes until device is available
+      gc -> gc: Wait
+      gc -> fd: Test if device is available
+    end
+    gc -> fd: Initialize temperature taking again
+  end
+
+@enduml

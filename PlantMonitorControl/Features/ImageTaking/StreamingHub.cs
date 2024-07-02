@@ -66,6 +66,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                     await channel.Writer.WriteAsync(bytesToSend.CreateFormatter(stepCount).GetBytes(), token);
                 }
             }
+            channel.Writer.Complete();
         }
     }
 
@@ -78,11 +79,10 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             await Task.Delay(Random.Shared.Next(100, 400), token);
             if (!camera.CameraIsRunning()) break;
             var nextFile = await fileStreamer.ReadNextFileWithSkipping(imagePath, counter, 10, typeInfo, token);
-            logger.LogInformation("Next file {ending}: {counter}", typeInfo.FileEnding, nextFile.NewCounter);
             counter = nextFile.NewCounter;
             if (nextFile.FileData == null) continue;
             var currentPosition = motorPosition.CurrentPosition();
-            logger.LogInformation("Sending image {counter}{type} ", counter, typeInfo.FileEnding);
+            logger.LogInformation("Sending image {counter}{ending} ", counter, typeInfo.FileEnding);
             await channel.Writer.WriteAsync(nextFile.CreateFormatter(currentPosition).GetBytes(), token);
         }
     }

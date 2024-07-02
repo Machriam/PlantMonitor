@@ -9,7 +9,7 @@ public record struct OutletModel(long SwitchOnId, long SwitchOffId, string Name,
 
 [ApiController]
 [Route("api/[controller]")]
-public class PowerOutletController(DataContext context)
+public class PowerOutletController(IDataContext context)
 {
     [HttpPost("updateassociatedoutlet")]
     public void AssociateDeviceWithPowerOutlet([FromBody] AssociatePowerOutletModel model)
