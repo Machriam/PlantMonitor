@@ -9,8 +9,8 @@ namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IHostedService
 {
-    private static bool _photoTripRunning;
-    private static object _lock = new();
+    private static bool s_photoTripRunning;
+    private static readonly object s_lock = new();
 
     private static Timer? s_scheduleTimer;
 
@@ -38,10 +38,10 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
     private async Task RunPhotoTrip(long photoTourId)
     {
         await Task.Yield();
-        lock (_lock)
+        lock (s_lock)
         {
-            if (_photoTripRunning) return;
-            _photoTripRunning = true;
+            if (s_photoTripRunning) return;
+            s_photoTripRunning = true;
         }
         using var scope = serviceProvider.CreateScope();
         await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
@@ -53,7 +53,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         if (healthy != true)
         {
             CreateEmptyTrip(photoTourId, dataContext);
-            lock (_lock) _photoTripRunning = false;
+            lock (s_lock) s_photoTripRunning = false;
             return;
         }
         var (irFolder, visFolder) = await TakePhotos(photoTourId, dataContext, irStreamer, visStreamer, deviceApi, device, deviceGuid);
@@ -66,7 +66,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             Timestamp = DateTime.UtcNow,
         });
         dataContext.SaveChanges();
-        lock (_lock) _photoTripRunning = false;
+        lock (s_lock) s_photoTripRunning = false;
     }
 
     private static async Task<(string IrFolder, string VisFolder)> TakePhotos(long photoTourId, IDataContext dataContext, IPictureDiskStreamer irStreamer, IPictureDiskStreamer visStreamer, IDeviceApiFactory deviceApi, DeviceHealthState device, Guid deviceGuid)

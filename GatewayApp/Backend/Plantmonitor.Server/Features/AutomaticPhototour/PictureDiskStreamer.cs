@@ -27,7 +27,7 @@ public class PictureDiskStreamer(IEnvironmentConfiguration configuration) : IPic
         if (!picturePath.IsEmpty()) Directory.CreateDirectory(storagePath);
         _connection = new HubConnectionBuilder()
             .WithUrl($"https://{ip}/hub/video")
-            .WithAutomaticReconnect()
+            .WithAutomaticReconnect(new SignarRRetryPolicy1Second())
             .AddMessagePackProtocol()
             .Build();
         await _connection.StartAsync(token);

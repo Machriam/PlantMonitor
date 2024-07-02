@@ -17,6 +17,8 @@ public partial class TemperatureMeasurement
 
     public Guid DeviceId { get; set; }
 
+    public bool Finished { get; set; }
+
     public virtual AutomaticPhotoTour? PhotoTourFkNavigation { get; set; }
 
     public virtual ICollection<TemperatureMeasurementValue> TemperatureMeasurementValues { get; set; } = new List<TemperatureMeasurementValue>();

@@ -23,7 +23,6 @@ var configurationStorage = new ConfigurationStorage(builder.Configuration);
 var environmentConfiguration = new EnvironmentConfiguration(builder.Configuration, new ConfigurationStorage(builder.Configuration));
 builder.Services.AddSingleton<IEnvironmentConfiguration>(environmentConfiguration);
 builder.Services.AddSingleton<IConfigurationStorage>(configurationStorage);
-builder.Services.AddSingleton<IDeviceRestarter, DeviceRestarter>();
 builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
 
 builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>();
@@ -31,10 +30,12 @@ builder.Services.AddTransient<IDatabaseUpgrader, DatabaseUpgrader>();
 builder.Services.AddTransient<IDeviceApiFactory, DeviceApiFactory>();
 builder.Services.AddTransient<ITemperatureMeasurementWorker, TemperatureMeasurementWorker>();
 builder.Services.AddTransient<IPictureDiskStreamer, PictureDiskStreamer>();
+builder.Services.AddTransient<IDeviceRestarter, DeviceRestarter>();
 
 builder.Services.AddHostedService<DeviceConnectionWorker>();
 builder.Services.AddHostedService(s => (TemperatureMeasurementWorker)s.GetRequiredService<ITemperatureMeasurementWorker>());
 builder.Services.AddHostedService<AutomaticPhotoTourWorker>();
+builder.Services.AddHostedService<DeviceTemperatureWatcherWorker>();
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(environmentConfiguration.DatabaseConnection());
 var dataSource = dataSourceBuilder.Configure().Build();

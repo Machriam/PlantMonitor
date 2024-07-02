@@ -68,5 +68,8 @@ ALTER TABLE IF EXISTS plantmonitor.temperature_measurement ADD COLUMN device_id 
 update plantmonitor.temperature_measurement set device_id='00000000-0000-0000-0000-000000000000'::UUID;
 ALTER TABLE IF EXISTS plantmonitor.temperature_measurement ALTER COLUMN device_id SET NOT NULL;
 
+ALTER TABLE IF EXISTS plantmonitor.temperature_measurement ADD COLUMN finished boolean NOT NULL DEFAULT False;
+update plantmonitor.temperature_measurement set finished=True WHERE 1=1;
+
 
 update plantmonitor.configuration_data set value='5' where key='PatchNumber';

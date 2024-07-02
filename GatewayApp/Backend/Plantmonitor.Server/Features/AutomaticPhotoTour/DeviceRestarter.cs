@@ -3,24 +3,26 @@ using Plantmonitor.Server.Features.DeviceConfiguration;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.Server.Features.DeviceControl;
 using System.Collections.Concurrent;
+using Serilog;
 
 namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 public interface IDeviceRestarter
 {
-    Task RestartDevice(string restartDeviceId, long photoTourId);
+    Task RestartDevice(string restartDeviceId, long? photoTourId);
 }
 
 public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestarter
 {
     private static readonly ConcurrentDictionary<Guid, DateTime> s_lastRestarts = [];
-    public async Task RestartDevice(string restartDeviceId, long photoTourId)
+
+    public async Task RestartDevice(string restartDeviceId, long? photoTourId)
     {
         using var scope = scopeFactory.CreateScope();
         var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
         var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
         var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
-        var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
+        var logEvent = photoTourId == null ? Log.Logger.Log : dataContext.CreatePhotoTourEventLogger(photoTourId.Value);
         if (!Guid.TryParse(restartDeviceId, out var deviceGuid))
         {
             logEvent($"Camera Device has no valid GUID: {restartDeviceId}", PhotoTourEventType.Error);
@@ -33,6 +35,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             .FirstOrDefault(sw => sw.DeviceId == deviceGuid);
         if (switchData == null)
         {
+            s_lastRestarts.AddOrUpdate(deviceGuid, DateTime.UtcNow, (_1, _2) => DateTime.UtcNow);
             logEvent($"Automatic switching for {restartDeviceId} not possible. Camera device has no switch assigned!", PhotoTourEventType.Warning);
             return;
         }
@@ -40,6 +43,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             .Where(h => h.Health.State?.HasFlag(HealthState.CanSwitchOutlets) == true && h.Health.DeviceId != restartDeviceId);
         if (!switchingDevices.Any())
         {
+            s_lastRestarts.AddOrUpdate(deviceGuid, DateTime.UtcNow, (_1, _2) => DateTime.UtcNow);
             logEvent("No other devices found capable of switching", PhotoTourEventType.Warning);
             return;
         }

@@ -71,8 +71,8 @@ public class AutomaticPhotoTourController(DataContext context, IDeviceConnection
             })).Append(new TemperatureMeasurement()
             {
                 Comment = $"{imagingDevice.Health.DeviceName}: IR-Temperature",
-                DeviceId = Guid.Empty,
-                SensorId = "Flir Lepton",
+                DeviceId = Guid.Parse(startInfo.DeviceGuid),
+                SensorId = TemperatureMeasurement.FlirLeptonSensorId,
                 StartTime = DateTime.UtcNow
             })
             .ToList()

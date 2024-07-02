@@ -166,6 +166,9 @@ public partial class DataContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.DeviceId).HasColumnName("device_id");
+            entity.Property(e => e.Finished)
+                .HasDefaultValue(false)
+                .HasColumnName("finished");
             entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
             entity.Property(e => e.SensorId).HasColumnName("sensor_id");
             entity.Property(e => e.StartTime).HasColumnName("start_time");
