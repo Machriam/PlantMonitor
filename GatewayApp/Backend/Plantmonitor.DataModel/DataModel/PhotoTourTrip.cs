@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Plantmonitor.DataModel.DataModel;
 
-public partial class PhotoTourJourney
+public partial class PhotoTourTrip
 {
     public long Id { get; set; }
 

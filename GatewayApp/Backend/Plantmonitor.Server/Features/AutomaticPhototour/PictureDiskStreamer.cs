@@ -2,7 +2,7 @@
 using Plantmonitor.Shared.Features.ImageStreaming;
 using Plantmonitor.Server.Features.AppConfiguration;
 
-namespace Plantmonitor.Server.Features.DeviceProgramming;
+namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 public interface IPictureDiskStreamer : IAsyncDisposable
 {

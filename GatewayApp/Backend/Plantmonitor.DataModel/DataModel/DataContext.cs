@@ -21,7 +21,7 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<PhotoTourEvent> PhotoTourEvents { get; set; }
 
-    public virtual DbSet<PhotoTourJourney> PhotoTourJourneys { get; set; }
+    public virtual DbSet<PhotoTourTrip> PhotoTourTrips { get; set; }
 
     public virtual DbSet<SwitchableOutletCode> SwitchableOutletCodes { get; set; }
 
@@ -122,11 +122,11 @@ public partial class DataContext : DbContext
                 .HasConstraintName("photo_tour_event_references_event_fkey");
         });
 
-        modelBuilder.Entity<PhotoTourJourney>(entity =>
+        modelBuilder.Entity<PhotoTourTrip>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("photo_tour_journey_pkey");
 
-            entity.ToTable("photo_tour_journey", "plantmonitor");
+            entity.ToTable("photo_tour_trip", "plantmonitor");
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IrDataFolder).HasColumnName("ir_data_folder");
@@ -136,7 +136,7 @@ public partial class DataContext : DbContext
                 .HasColumnName("timestamp");
             entity.Property(e => e.VisDataFolder).HasColumnName("vis_data_folder");
 
-            entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourJourneys)
+            entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourTrips)
                 .HasForeignKey(d => d.PhotoTourFk)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("photo_tour_journey_photo_tour_fk_fkey");

@@ -19,7 +19,7 @@ public partial class AutomaticPhotoTour
 
     public virtual ICollection<PhotoTourEvent> PhotoTourEvents { get; set; } = new List<PhotoTourEvent>();
 
-    public virtual ICollection<PhotoTourJourney> PhotoTourJourneys { get; set; } = new List<PhotoTourJourney>();
+    public virtual ICollection<PhotoTourTrip> PhotoTourTrips { get; set; } = new List<PhotoTourTrip>();
 
     public virtual ICollection<TemperatureMeasurement> TemperatureMeasurements { get; set; } = new List<TemperatureMeasurement>();
 }

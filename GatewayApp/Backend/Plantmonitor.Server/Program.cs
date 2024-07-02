@@ -2,9 +2,9 @@
 using Npgsql;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
-using Plantmonitor.Server.Features.DeviceProgramming;
 using Plantmonitor.Server.Features.RestApiFilter;
 using Plantmonitor.Server.Features.TemperatureMonitor;
 using Plantmonitor.Shared.Features.ImageStreaming;

@@ -1,10 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
 
-namespace Plantmonitor.Server.Features.DeviceProgramming;
+namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -56,7 +55,7 @@ public class AutomaticPhotoTourController(DataContext context, IDeviceConnection
             .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health.DeviceId ?? "")) ? $"{td.DeviceHealth.Health.DeviceName} is used in another photo tour" : "");
         if (busyTemperatureDevices.Any(td => !td.IsEmpty())) throw new Exception(busyTemperatureDevices.Concat("\n"));
 
-        var photoTour = new AutomaticPhotoTour()
+        var photoTour = new DataModel.DataModel.AutomaticPhotoTour()
         {
             Comment = startInfo.Comment,
             Name = startInfo.Name,

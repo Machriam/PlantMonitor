@@ -16,9 +16,9 @@ activate gc
 loop until disabled
   td -> gc: Send temperature value
   alt Temperature not received for x seconds
-    alt photo journey overdue
+    alt photo trip overdue
       gc -> gc: Do nothing
-    else photo journey not overdue
+    else photo trip not overdue
       gc -> gc: Restart TemperatureDevice, see AutomaticDeviceRestart
       note right: TemperatureDevice might still be useful for\nrestart of CameraDevice, even if faulty
     end
@@ -26,10 +26,10 @@ loop until disabled
 end
 deactivate gc
 loop until photo tour stopped
-    == Wait for photo journey ==
-    loop until journey overdue and no camera device restart pending
+    == Wait for photo trip==
+    loop until trip overdue and no camera device restart pending
         gc -> gc: Wait 5 seconds
-        gc -> gc: Calculate time since last journey
+        gc -> gc: Calculate time since last trip
     end
     == Check device availability ==
     gc -> td: Check if device is available
@@ -38,14 +38,14 @@ loop until photo tour stopped
     cd -> gc: Device is available
     alt CameraDevice not available
       gc -> gc: Restart CameraDevice, see AutomaticDeviceRestart
-      gc -> gc !!: Cancel photo tour and wait for next journey
+      gc -> gc !!: Cancel photo tour and wait for next trip
     end
     == Test imaging device ==
     gc -> cd: Test IR- and VIS-camera
     cd -> gc: Send IR- and VIS-image
     alt CameraDevice not working properly
       gc -> gc: Restart CameraDevice, see AutomaticDeviceRestart
-      gc -> gc !!: Cancel photo tour and wait for next journey
+      gc -> gc !!: Cancel photo tour and wait for next trip
     end
     gc -> gc: Calculate zero position offset
     note right: Offset is calculated by calculating a homography between\nlast zero position and current one
@@ -53,7 +53,7 @@ loop until photo tour stopped
     gc -> cd: Zero position
     gc -> cd: Set max and min position
     note right: The device does a safety stop, if positions are exceeded
-    == Do photo journey ==
+    == Do photo trip ==
     gc -> cd: Initialize picture sending with positions of interest
     activate cd
     loop until disabled
@@ -75,7 +75,7 @@ loop until photo tour stopped
     gc -> gc: Wait
     end
     deactivate cd
-    gc -> gc: Mark journey as completed and store results
+    gc -> gc: Mark trip as completed and store results
     gc -> cd: Request new image of zero position
     cd -> gc: Send VIS-image of zero position
     gc -> gc: Calculate zero position offset

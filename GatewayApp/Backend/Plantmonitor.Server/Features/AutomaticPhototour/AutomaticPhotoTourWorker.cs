@@ -5,7 +5,7 @@ using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using Microsoft.OpenApi.Extensions;
 
-namespace Plantmonitor.Server.Features.DeviceProgramming;
+namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IHostedService
 {
@@ -29,19 +29,19 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        s_scheduleTimer = new Timer(async _ => await SchedulePhotoTours(), default, 0, (int)TimeSpan.FromSeconds(5).TotalMilliseconds);
+        s_scheduleTimer = new Timer(async _ => await SchedulePhotoTrips(), default, 0, (int)TimeSpan.FromSeconds(5).TotalMilliseconds);
         return Task.CompletedTask;
     }
 
-    private async Task SchedulePhotoTours()
+    private async Task SchedulePhotoTrips()
     {
         using var scope = serviceProvider.CreateScope();
         await using var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         foreach (var photoTour in dataContext.AutomaticPhotoTours.Where(pt => !pt.Finished))
         {
-            var lastJourney = dataContext.PhotoTourJourneys.OrderByDescending(j => j.Timestamp)
+            var lastTrip = dataContext.PhotoTourTrips.OrderByDescending(j => j.Timestamp)
                 .FirstOrDefault(j => j.PhotoTourFk == photoTour.Id);
-            if (lastJourney == default || (lastJourney.Timestamp - DateTime.UtcNow).TotalMinutes >= photoTour.IntervallInMinutes)
+            if (lastTrip == default || (lastTrip.Timestamp - DateTime.UtcNow).TotalMinutes >= photoTour.IntervallInMinutes)
             {
                 RunPhotoTour(photoTour.Id).RunInBackground(ex => ex.LogError());
             }
@@ -63,14 +63,14 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             (healthy, restartSuccessfull, device) = await CheckDeviceHealth(photoTourId, scope, dataContext);
             if (healthy != true)
             {
-                CreateEmptyJourney(photoTourId, dataContext);
+                CreateEmptyTrip(photoTourId, dataContext);
                 CreateLogger(dataContext, photoTourId)("Restart was not successfull. Aborting Journey.", PhotoTourEventType.Error);
                 return;
             }
         }
         var (irFolder, visFolder) = await TakePhotos(photoTourId, dataContext, irStreamer, visStreamer, deviceApi, device, deviceGuid);
 
-        dataContext.PhotoTourJourneys.Add(new PhotoTourJourney()
+        dataContext.PhotoTourTrips.Add(new PhotoTourTrip()
         {
             IrDataFolder = irFolder,
             VisDataFolder = visFolder,
@@ -92,7 +92,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         if (movementPlan == null)
         {
             CreateLogger(dataContext, photoTourId)("No Movementplan found. Aborting", PhotoTourEventType.Error);
-            CreateEmptyJourney(photoTourId, dataContext);
+            CreateEmptyTrip(photoTourId, dataContext);
             return ("", "");
         }
         var pointsToReach = new List<int>();
@@ -136,9 +136,9 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         return (irFolder, visFolder);
     }
 
-    private static void CreateEmptyJourney(long photoTourId, DataContext dataContext)
+    private static void CreateEmptyTrip(long photoTourId, DataContext dataContext)
     {
-        dataContext.PhotoTourJourneys.Add(new PhotoTourJourney()
+        dataContext.PhotoTourTrips.Add(new PhotoTourTrip()
         {
             IrDataFolder = "",
             VisDataFolder = "",

@@ -240,6 +240,283 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
     }
 }
 
+export interface IMovementProgrammingClient {
+
+    getPlan(deviceId?: string | undefined): Promise<DeviceMovement>;
+
+    updatePlan(movement: DeviceMovement): Promise<void>;
+}
+
+export class MovementProgrammingClient extends GatewayAppApiBase implements IMovementProgrammingClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    getPlan(deviceId?: string | undefined): Promise<DeviceMovement> {
+        let url_ = this.baseUrl + "/api/MovementProgramming/getplan?";
+        if (deviceId === null)
+            throw new Error("The parameter 'deviceId' cannot be null.");
+        else if (deviceId !== undefined)
+            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetPlan(_response));
+        });
+    }
+
+    protected processGetPlan(response: Response): Promise<DeviceMovement> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DeviceMovement.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DeviceMovement>(null as any);
+    }
+
+    updatePlan(movement: DeviceMovement): Promise<void> {
+        let url_ = this.baseUrl + "/api/MovementProgramming/updateplan";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(movement);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdatePlan(_response));
+        });
+    }
+
+    protected processUpdatePlan(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
+export interface IPowerOutletClient {
+
+    associateDeviceWithPowerOutlet(model: AssociatePowerOutletModel): Promise<void>;
+
+    getOutlets(): Promise<OutletModel[]>;
+
+    powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel | null>;
+
+    switchOutlet(ip?: string | undefined, codeId?: number | undefined): Promise<void>;
+}
+
+export class PowerOutletClient extends GatewayAppApiBase implements IPowerOutletClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    associateDeviceWithPowerOutlet(model: AssociatePowerOutletModel): Promise<void> {
+        let url_ = this.baseUrl + "/api/PowerOutlet/updateassociatedoutlet";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(model);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processAssociateDeviceWithPowerOutlet(_response));
+        });
+    }
+
+    protected processAssociateDeviceWithPowerOutlet(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getOutlets(): Promise<OutletModel[]> {
+        let url_ = this.baseUrl + "/api/PowerOutlet/outlets";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetOutlets(_response));
+        });
+    }
+
+    protected processGetOutlets(response: Response): Promise<OutletModel[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(OutletModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OutletModel[]>(null as any);
+    }
+
+    powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel | null> {
+        let url_ = this.baseUrl + "/api/PowerOutlet/getoutlet?";
+        if (deviceId === null)
+            throw new Error("The parameter 'deviceId' cannot be null.");
+        else if (deviceId !== undefined)
+            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processPowerOutletForDevice(_response));
+        });
+    }
+
+    protected processPowerOutletForDevice(response: Response): Promise<AssociatePowerOutletModel | null> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? AssociatePowerOutletModel.fromJS(resultData200) : <any>null;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AssociatePowerOutletModel | null>(null as any);
+    }
+
+    switchOutlet(ip?: string | undefined, codeId?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/PowerOutlet/switchoutlet?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        if (codeId === null)
+            throw new Error("The parameter 'codeId' cannot be null.");
+        else if (codeId !== undefined)
+            url_ += "codeId=" + encodeURIComponent("" + codeId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processSwitchOutlet(_response));
+        });
+    }
+
+    protected processSwitchOutlet(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export interface IDeviceClient {
 
     previewImage(ip?: string | undefined, type?: CameraType | undefined): Promise<FileResponse>;
@@ -1110,283 +1387,6 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
     }
 }
 
-export interface IMovementProgrammingClient {
-
-    getPlan(deviceId?: string | undefined): Promise<DeviceMovement>;
-
-    updatePlan(movement: DeviceMovement): Promise<void>;
-}
-
-export class MovementProgrammingClient extends GatewayAppApiBase implements IMovementProgrammingClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        super();
-        this.http = http ? http : window as any;
-        this.baseUrl = this.getBaseUrl("", baseUrl);
-    }
-
-    getPlan(deviceId?: string | undefined): Promise<DeviceMovement> {
-        let url_ = this.baseUrl + "/api/MovementProgramming/getplan?";
-        if (deviceId === null)
-            throw new Error("The parameter 'deviceId' cannot be null.");
-        else if (deviceId !== undefined)
-            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processGetPlan(_response));
-        });
-    }
-
-    protected processGetPlan(response: Response): Promise<DeviceMovement> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = DeviceMovement.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<DeviceMovement>(null as any);
-    }
-
-    updatePlan(movement: DeviceMovement): Promise<void> {
-        let url_ = this.baseUrl + "/api/MovementProgramming/updateplan";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(movement);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processUpdatePlan(_response));
-        });
-    }
-
-    protected processUpdatePlan(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-}
-
-export interface IPowerOutletClient {
-
-    associateDeviceWithPowerOutlet(model: AssociatePowerOutletModel): Promise<void>;
-
-    getOutlets(): Promise<OutletModel[]>;
-
-    powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel | null>;
-
-    switchOutlet(ip?: string | undefined, codeId?: number | undefined): Promise<void>;
-}
-
-export class PowerOutletClient extends GatewayAppApiBase implements IPowerOutletClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        super();
-        this.http = http ? http : window as any;
-        this.baseUrl = this.getBaseUrl("", baseUrl);
-    }
-
-    associateDeviceWithPowerOutlet(model: AssociatePowerOutletModel): Promise<void> {
-        let url_ = this.baseUrl + "/api/PowerOutlet/updateassociatedoutlet";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(model);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processAssociateDeviceWithPowerOutlet(_response));
-        });
-    }
-
-    protected processAssociateDeviceWithPowerOutlet(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    getOutlets(): Promise<OutletModel[]> {
-        let url_ = this.baseUrl + "/api/PowerOutlet/outlets";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processGetOutlets(_response));
-        });
-    }
-
-    protected processGetOutlets(response: Response): Promise<OutletModel[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(OutletModel.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<OutletModel[]>(null as any);
-    }
-
-    powerOutletForDevice(deviceId?: string | undefined): Promise<AssociatePowerOutletModel | null> {
-        let url_ = this.baseUrl + "/api/PowerOutlet/getoutlet?";
-        if (deviceId === null)
-            throw new Error("The parameter 'deviceId' cannot be null.");
-        else if (deviceId !== undefined)
-            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processPowerOutletForDevice(_response));
-        });
-    }
-
-    protected processPowerOutletForDevice(response: Response): Promise<AssociatePowerOutletModel | null> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = resultData200 ? AssociatePowerOutletModel.fromJS(resultData200) : <any>null;
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<AssociatePowerOutletModel | null>(null as any);
-    }
-
-    switchOutlet(ip?: string | undefined, codeId?: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/api/PowerOutlet/switchoutlet?";
-        if (ip === null)
-            throw new Error("The parameter 'ip' cannot be null.");
-        else if (ip !== undefined)
-            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
-        if (codeId === null)
-            throw new Error("The parameter 'codeId' cannot be null.");
-        else if (codeId !== undefined)
-            url_ += "codeId=" + encodeURIComponent("" + codeId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processSwitchOutlet(_response));
-        });
-    }
-
-    protected processSwitchOutlet(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-}
-
 export interface IAppConfigurationClient {
 
     updateDeviceSettings(password?: string | undefined, user?: string | undefined): Promise<void>;
@@ -1620,7 +1620,7 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
     intervallInMinutes!: number;
     finished!: boolean;
     photoTourEvents!: PhotoTourEvent[];
-    photoTourJourneys!: PhotoTourJourney[];
+    photoTourTrips!: PhotoTourTrip[];
     temperatureMeasurements!: TemperatureMeasurement[];
 
     constructor(data?: IAutomaticPhotoTour) {
@@ -1645,10 +1645,10 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
                 for (let item of _data["PhotoTourEvents"])
                     this.photoTourEvents!.push(PhotoTourEvent.fromJS(item));
             }
-            if (Array.isArray(_data["PhotoTourJourneys"])) {
-                this.photoTourJourneys = [] as any;
-                for (let item of _data["PhotoTourJourneys"])
-                    this.photoTourJourneys!.push(PhotoTourJourney.fromJS(item));
+            if (Array.isArray(_data["PhotoTourTrips"])) {
+                this.photoTourTrips = [] as any;
+                for (let item of _data["PhotoTourTrips"])
+                    this.photoTourTrips!.push(PhotoTourTrip.fromJS(item));
             }
             if (Array.isArray(_data["TemperatureMeasurements"])) {
                 this.temperatureMeasurements = [] as any;
@@ -1678,10 +1678,10 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
             for (let item of this.photoTourEvents)
                 data["PhotoTourEvents"].push(item.toJSON());
         }
-        if (Array.isArray(this.photoTourJourneys)) {
-            data["PhotoTourJourneys"] = [];
-            for (let item of this.photoTourJourneys)
-                data["PhotoTourJourneys"].push(item.toJSON());
+        if (Array.isArray(this.photoTourTrips)) {
+            data["PhotoTourTrips"] = [];
+            for (let item of this.photoTourTrips)
+                data["PhotoTourTrips"].push(item.toJSON());
         }
         if (Array.isArray(this.temperatureMeasurements)) {
             data["TemperatureMeasurements"] = [];
@@ -1707,7 +1707,7 @@ export interface IAutomaticPhotoTour {
     intervallInMinutes: number;
     finished: boolean;
     photoTourEvents: PhotoTourEvent[];
-    photoTourJourneys: PhotoTourJourney[];
+    photoTourTrips: PhotoTourTrip[];
     temperatureMeasurements: TemperatureMeasurement[];
 }
 
@@ -1801,7 +1801,7 @@ export enum PhotoTourEventType {
     Error = 3,
 }
 
-export class PhotoTourJourney implements IPhotoTourJourney {
+export class PhotoTourTrip implements IPhotoTourTrip {
     id!: number;
     photoTourFk!: number;
     irDataFolder!: string;
@@ -1809,7 +1809,7 @@ export class PhotoTourJourney implements IPhotoTourJourney {
     timestamp!: Date;
     photoTourFkNavigation!: AutomaticPhotoTour;
 
-    constructor(data?: IPhotoTourJourney) {
+    constructor(data?: IPhotoTourTrip) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -1829,9 +1829,9 @@ export class PhotoTourJourney implements IPhotoTourJourney {
         }
     }
 
-    static fromJS(data: any): PhotoTourJourney {
+    static fromJS(data: any): PhotoTourTrip {
         data = typeof data === 'object' ? data : {};
-        let result = new PhotoTourJourney();
+        let result = new PhotoTourTrip();
         result.init(data);
         return result;
     }
@@ -1847,15 +1847,15 @@ export class PhotoTourJourney implements IPhotoTourJourney {
         return data;
     }
 
-    clone(): PhotoTourJourney {
+    clone(): PhotoTourTrip {
         const json = this.toJSON();
-        let result = new PhotoTourJourney();
+        let result = new PhotoTourTrip();
         result.init(json);
         return result;
     }
 }
 
-export interface IPhotoTourJourney {
+export interface IPhotoTourTrip {
     id: number;
     photoTourFk: number;
     irDataFolder: string;
@@ -2023,6 +2023,281 @@ export class MeasurementDevice implements IMeasurementDevice {
 export interface IMeasurementDevice {
     sensorId: string;
     comment: string;
+}
+
+export class DeviceMovement implements IDeviceMovement {
+    id!: number;
+    deviceId!: string;
+    movementPlanJson!: string;
+    name!: string;
+    movementPlan!: MovementPlan;
+
+    constructor(data?: IDeviceMovement) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.deviceId = _data["DeviceId"];
+            this.movementPlanJson = _data["MovementPlanJson"];
+            this.name = _data["Name"];
+            this.movementPlan = _data["MovementPlan"] ? MovementPlan.fromJS(_data["MovementPlan"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): DeviceMovement {
+        data = typeof data === 'object' ? data : {};
+        let result = new DeviceMovement();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["DeviceId"] = this.deviceId;
+        data["MovementPlanJson"] = this.movementPlanJson;
+        data["Name"] = this.name;
+        data["MovementPlan"] = this.movementPlan ? this.movementPlan.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): DeviceMovement {
+        const json = this.toJSON();
+        let result = new DeviceMovement();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDeviceMovement {
+    id: number;
+    deviceId: string;
+    movementPlanJson: string;
+    name: string;
+    movementPlan: MovementPlan;
+}
+
+export class MovementPlan implements IMovementPlan {
+    stepPoints!: MovementPoint[];
+
+    constructor(data?: IMovementPlan) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["StepPoints"])) {
+                this.stepPoints = [] as any;
+                for (let item of _data["StepPoints"])
+                    this.stepPoints!.push(MovementPoint.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): MovementPlan {
+        data = typeof data === 'object' ? data : {};
+        let result = new MovementPlan();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.stepPoints)) {
+            data["StepPoints"] = [];
+            for (let item of this.stepPoints)
+                data["StepPoints"].push(item.toJSON());
+        }
+        return data;
+    }
+
+    clone(): MovementPlan {
+        const json = this.toJSON();
+        let result = new MovementPlan();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMovementPlan {
+    stepPoints: MovementPoint[];
+}
+
+export class MovementPoint implements IMovementPoint {
+    stepOffset!: number;
+    focusInCentimeter!: number;
+    speed!: number;
+    comment!: string;
+
+    constructor(data?: IMovementPoint) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.stepOffset = _data["StepOffset"];
+            this.focusInCentimeter = _data["FocusInCentimeter"];
+            this.speed = _data["Speed"];
+            this.comment = _data["Comment"];
+        }
+    }
+
+    static fromJS(data: any): MovementPoint {
+        data = typeof data === 'object' ? data : {};
+        let result = new MovementPoint();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["StepOffset"] = this.stepOffset;
+        data["FocusInCentimeter"] = this.focusInCentimeter;
+        data["Speed"] = this.speed;
+        data["Comment"] = this.comment;
+        return data;
+    }
+
+    clone(): MovementPoint {
+        const json = this.toJSON();
+        let result = new MovementPoint();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMovementPoint {
+    stepOffset: number;
+    focusInCentimeter: number;
+    speed: number;
+    comment: string;
+}
+
+export class AssociatePowerOutletModel implements IAssociatePowerOutletModel {
+    deviceId!: string;
+    switchOnId!: number | undefined;
+    switchOffId!: number | undefined;
+
+    constructor(data?: IAssociatePowerOutletModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.deviceId = _data["DeviceId"];
+            this.switchOnId = _data["SwitchOnId"];
+            this.switchOffId = _data["SwitchOffId"];
+        }
+    }
+
+    static fromJS(data: any): AssociatePowerOutletModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new AssociatePowerOutletModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["DeviceId"] = this.deviceId;
+        data["SwitchOnId"] = this.switchOnId;
+        data["SwitchOffId"] = this.switchOffId;
+        return data;
+    }
+
+    clone(): AssociatePowerOutletModel {
+        const json = this.toJSON();
+        let result = new AssociatePowerOutletModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IAssociatePowerOutletModel {
+    deviceId: string;
+    switchOnId: number | undefined;
+    switchOffId: number | undefined;
+}
+
+export class OutletModel implements IOutletModel {
+    switchOnId!: number;
+    switchOffId!: number;
+    name!: string;
+    buttonNumber!: number;
+    channel!: number;
+
+    constructor(data?: IOutletModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.switchOnId = _data["SwitchOnId"];
+            this.switchOffId = _data["SwitchOffId"];
+            this.name = _data["Name"];
+            this.buttonNumber = _data["ButtonNumber"];
+            this.channel = _data["Channel"];
+        }
+    }
+
+    static fromJS(data: any): OutletModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new OutletModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["SwitchOnId"] = this.switchOnId;
+        data["SwitchOffId"] = this.switchOffId;
+        data["Name"] = this.name;
+        data["ButtonNumber"] = this.buttonNumber;
+        data["Channel"] = this.channel;
+        return data;
+    }
+
+    clone(): OutletModel {
+        const json = this.toJSON();
+        let result = new OutletModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IOutletModel {
+    switchOnId: number;
+    switchOffId: number;
+    name: string;
+    buttonNumber: number;
+    channel: number;
 }
 
 export enum CameraType {
@@ -2509,281 +2784,6 @@ export class TemperatureMeasurementInfo implements ITemperatureMeasurementInfo {
 export interface ITemperatureMeasurementInfo {
     guid: string;
     comment: string;
-}
-
-export class DeviceMovement implements IDeviceMovement {
-    id!: number;
-    deviceId!: string;
-    movementPlanJson!: string;
-    name!: string;
-    movementPlan!: MovementPlan;
-
-    constructor(data?: IDeviceMovement) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["Id"];
-            this.deviceId = _data["DeviceId"];
-            this.movementPlanJson = _data["MovementPlanJson"];
-            this.name = _data["Name"];
-            this.movementPlan = _data["MovementPlan"] ? MovementPlan.fromJS(_data["MovementPlan"]) : <any>undefined;
-        }
-    }
-
-    static fromJS(data: any): DeviceMovement {
-        data = typeof data === 'object' ? data : {};
-        let result = new DeviceMovement();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["Id"] = this.id;
-        data["DeviceId"] = this.deviceId;
-        data["MovementPlanJson"] = this.movementPlanJson;
-        data["Name"] = this.name;
-        data["MovementPlan"] = this.movementPlan ? this.movementPlan.toJSON() : <any>undefined;
-        return data;
-    }
-
-    clone(): DeviceMovement {
-        const json = this.toJSON();
-        let result = new DeviceMovement();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IDeviceMovement {
-    id: number;
-    deviceId: string;
-    movementPlanJson: string;
-    name: string;
-    movementPlan: MovementPlan;
-}
-
-export class MovementPlan implements IMovementPlan {
-    stepPoints!: MovementPoint[];
-
-    constructor(data?: IMovementPlan) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            if (Array.isArray(_data["StepPoints"])) {
-                this.stepPoints = [] as any;
-                for (let item of _data["StepPoints"])
-                    this.stepPoints!.push(MovementPoint.fromJS(item));
-            }
-        }
-    }
-
-    static fromJS(data: any): MovementPlan {
-        data = typeof data === 'object' ? data : {};
-        let result = new MovementPlan();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        if (Array.isArray(this.stepPoints)) {
-            data["StepPoints"] = [];
-            for (let item of this.stepPoints)
-                data["StepPoints"].push(item.toJSON());
-        }
-        return data;
-    }
-
-    clone(): MovementPlan {
-        const json = this.toJSON();
-        let result = new MovementPlan();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IMovementPlan {
-    stepPoints: MovementPoint[];
-}
-
-export class MovementPoint implements IMovementPoint {
-    stepOffset!: number;
-    focusInCentimeter!: number;
-    speed!: number;
-    comment!: string;
-
-    constructor(data?: IMovementPoint) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.stepOffset = _data["StepOffset"];
-            this.focusInCentimeter = _data["FocusInCentimeter"];
-            this.speed = _data["Speed"];
-            this.comment = _data["Comment"];
-        }
-    }
-
-    static fromJS(data: any): MovementPoint {
-        data = typeof data === 'object' ? data : {};
-        let result = new MovementPoint();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["StepOffset"] = this.stepOffset;
-        data["FocusInCentimeter"] = this.focusInCentimeter;
-        data["Speed"] = this.speed;
-        data["Comment"] = this.comment;
-        return data;
-    }
-
-    clone(): MovementPoint {
-        const json = this.toJSON();
-        let result = new MovementPoint();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IMovementPoint {
-    stepOffset: number;
-    focusInCentimeter: number;
-    speed: number;
-    comment: string;
-}
-
-export class AssociatePowerOutletModel implements IAssociatePowerOutletModel {
-    deviceId!: string;
-    switchOnId!: number | undefined;
-    switchOffId!: number | undefined;
-
-    constructor(data?: IAssociatePowerOutletModel) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.deviceId = _data["DeviceId"];
-            this.switchOnId = _data["SwitchOnId"];
-            this.switchOffId = _data["SwitchOffId"];
-        }
-    }
-
-    static fromJS(data: any): AssociatePowerOutletModel {
-        data = typeof data === 'object' ? data : {};
-        let result = new AssociatePowerOutletModel();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["DeviceId"] = this.deviceId;
-        data["SwitchOnId"] = this.switchOnId;
-        data["SwitchOffId"] = this.switchOffId;
-        return data;
-    }
-
-    clone(): AssociatePowerOutletModel {
-        const json = this.toJSON();
-        let result = new AssociatePowerOutletModel();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IAssociatePowerOutletModel {
-    deviceId: string;
-    switchOnId: number | undefined;
-    switchOffId: number | undefined;
-}
-
-export class OutletModel implements IOutletModel {
-    switchOnId!: number;
-    switchOffId!: number;
-    name!: string;
-    buttonNumber!: number;
-    channel!: number;
-
-    constructor(data?: IOutletModel) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.switchOnId = _data["SwitchOnId"];
-            this.switchOffId = _data["SwitchOffId"];
-            this.name = _data["Name"];
-            this.buttonNumber = _data["ButtonNumber"];
-            this.channel = _data["Channel"];
-        }
-    }
-
-    static fromJS(data: any): OutletModel {
-        data = typeof data === 'object' ? data : {};
-        let result = new OutletModel();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["SwitchOnId"] = this.switchOnId;
-        data["SwitchOffId"] = this.switchOffId;
-        data["Name"] = this.name;
-        data["ButtonNumber"] = this.buttonNumber;
-        data["Channel"] = this.channel;
-        return data;
-    }
-
-    clone(): OutletModel {
-        const json = this.toJSON();
-        let result = new OutletModel();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IOutletModel {
-    switchOnId: number;
-    switchOffId: number;
-    name: string;
-    buttonNumber: number;
-    channel: number;
 }
 
 export class StreamingMetaData implements IStreamingMetaData {
