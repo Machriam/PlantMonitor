@@ -10,11 +10,46 @@ namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 public interface IDeviceRestarter
 {
     Task RestartDevice(string restartDeviceId, long? photoTourId);
+
+    Task<(bool? DeviceHealthy, DeviceHealthState ImagingDevice)> CheckDeviceHealth(long photoTourId, IServiceScope scope, IDataContext dataContext);
 }
 
 public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestarter
 {
     private static readonly ConcurrentDictionary<Guid, DateTime> s_lastRestarts = [];
+
+    public async Task<(bool? DeviceHealthy, DeviceHealthState ImagingDevice)> CheckDeviceHealth(long photoTourId, IServiceScope scope, IDataContext dataContext)
+    {
+        var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
+        var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
+        var photoTourData = dataContext.AutomaticPhotoTours
+            .Include(apt => apt.TemperatureMeasurements)
+            .First(apt => apt.Id == photoTourId);
+        var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
+        var deviceHealth = eventBus.GetDeviceHealthInformation()
+            .FirstOrDefault(h => h.Health.DeviceId == photoTourData.DeviceId.ToString());
+        if (deviceHealth == default)
+        {
+            logEvent($"Camera Device {photoTourData.DeviceId} not found. Trying Restart.", PhotoTourEventType.Error);
+            RestartDevice(photoTourData.DeviceId.ToString(), photoTourId).RunInBackground(ex => ex.LogError());
+            return (null, deviceHealth);
+        }
+        logEvent($"Checking Camera {photoTourData.DeviceId}", PhotoTourEventType.Information);
+        var irTest = await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
+        var visTest = await deviceApi.VisImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
+        var irImage = irTest.Stream.ConvertToArray();
+        var visImage = visTest.Stream.ConvertToArray();
+        if (irImage.Length < 100 || visImage.Length < 100)
+        {
+            var notWorkingCameras = new[] { irImage.Length < 100 ? "IR" : "", visImage.Length < 100 ? "VIS" : "" }.Concat(", ");
+            logEvent($"Camera {notWorkingCameras} not working. Trying Restart.", PhotoTourEventType.Error);
+            RestartDevice(photoTourData.DeviceId.ToString(), photoTourId).RunInBackground(ex => ex.LogError());
+            return (null, deviceHealth);
+        }
+        logEvent($"Camera working {photoTourData.DeviceId}", PhotoTourEventType.Information);
+
+        return (true, deviceHealth);
+    }
 
     public async Task RestartDevice(string restartDeviceId, long? photoTourId)
     {
