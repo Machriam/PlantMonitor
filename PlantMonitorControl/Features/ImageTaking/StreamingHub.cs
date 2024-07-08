@@ -45,7 +45,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         while (data.StoreData && camera.CameraIsRunning())
         {
             await Task.Delay(50, token);
-            var steps = BitConverter.GetBytes(motorPosition.CurrentPosition());
+            var steps = BitConverter.GetBytes(motorPosition.CurrentPosition().Position);
             var tickBytes = BitConverter.GetBytes(DateTime.UtcNow.Ticks);
             await channel.Writer.WriteAsync([.. steps, .. tickBytes], token);
         }
@@ -83,7 +83,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             if (nextFile.FileData == null) continue;
             var currentPosition = motorPosition.CurrentPosition();
             logger.LogInformation("Sending image {counter}{ending} ", counter, typeInfo.FileEnding);
-            await channel.Writer.WriteAsync(nextFile.CreateFormatter(currentPosition).GetBytes(), token);
+            await channel.Writer.WriteAsync(nextFile.CreateFormatter(currentPosition.Position).GetBytes(), token);
         }
     }
 }

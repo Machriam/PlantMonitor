@@ -6,11 +6,9 @@ namespace PlantMonitorControl.Features.MotorMovement;
 
 public interface IMotorPositionCalculator
 {
-    int CurrentPosition();
-
     void PersistCurrentPosition();
 
-    void UpdatePosition(int stepsMoved);
+    void UpdatePosition(int stepsMoved, int maxAllowedPosition, int minAllowedPosition);
 
     void ZeroPosition();
 
@@ -18,9 +16,11 @@ public interface IMotorPositionCalculator
 
     void ResetHistory();
 
-    void MoveMotor(int steps, int minTime, int maxTime, int rampLength);
-
     void ToggleMotorEngage(bool shouldEngage);
+
+    void MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition);
+
+    MotorPosition CurrentPosition();
 }
 
 public record struct MotorPositionInfo(int StepCount, long Time);
@@ -32,31 +32,36 @@ public class MotorPositionCalculator : IMotorPositionCalculator
     private static int s_currentPosition;
     private static readonly List<MotorPositionInfo> s_motorPositionHistory = [];
     private static readonly Comparer<MotorPositionInfo> s_positionComparer = Comparer<MotorPositionInfo>.Create((a, b) => a.Time.CompareTo(b.Time));
-    private static readonly object s_lock = new();
+    private static readonly object s_positionLock = new();
+    private static readonly object s_engageLock = new();
+    private static bool s_isEngaged = true;
     private readonly IEnvironmentConfiguration _configuration;
+    private readonly IGpioInteropFactory _gpioFactory;
 
-    public MotorPositionCalculator(IEnvironmentConfiguration configuration)
+    public MotorPositionCalculator(IEnvironmentConfiguration configuration, IGpioInteropFactory gpioFactory)
     {
         if (File.Exists(s_filePath)) s_currentPosition = int.Parse(File.ReadAllText(s_filePath));
         else ZeroPosition();
         _configuration = configuration;
+        _gpioFactory = gpioFactory;
     }
 
     public void ToggleMotorEngage(bool shouldEngage)
     {
         var locked = PinValue.Low;
         var released = PinValue.High;
-        using var controller = new GpioController(PinNumberingScheme.Board);
+        using var controller = _gpioFactory.Create();
         var pinout = _configuration.MotorPinout;
         controller.OpenPin(pinout.Enable, PinMode.Output);
         controller.Write(pinout.Enable, shouldEngage ? locked : released);
+        lock (s_engageLock) s_isEngaged = shouldEngage;
     }
 
-    public void MoveMotor(int steps, int minTime, int maxTime, int rampLength)
+    public void MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition)
     {
         var sw = new Stopwatch();
         var microSecondsPerTick = 1000d * 1000d / Stopwatch.Frequency;
-        using var controller = new GpioController(PinNumberingScheme.Board);
+        using var controller = _gpioFactory.Create();
         var pinout = _configuration.MotorPinout;
         controller.OpenPin(pinout.Direction, PinMode.Output);
         controller.OpenPin(pinout.Pulse, PinMode.Output);
@@ -69,27 +74,27 @@ public class MotorPositionCalculator : IMotorPositionCalculator
         var rampFunction = stepsToMove.CreateLogisticRampFunction(minTime, maxTime, rampLength);
         for (var i = 0; i < stepsToMove; i++)
         {
-            var delay = (int)(rampFunction(i) * 0.5f);
             controller.Write(pinout.Pulse, PinValue.High);
             sw.Restart();
+            var delay = (int)(rampFunction(i) * 0.5f);
             while (sw.ElapsedTicks * microSecondsPerTick < delay) { }
             controller.Write(pinout.Pulse, PinValue.Low);
             sw.Restart();
+            UpdatePosition(stepUnit, maxAllowedPosition, minAllowedPosition);
             while (sw.ElapsedTicks * microSecondsPerTick < delay) { }
-            UpdatePosition(stepUnit);
         }
         PersistCurrentPosition();
     }
 
     public void ZeroPosition()
     {
-        lock (s_lock) s_currentPosition = 0;
+        lock (s_positionLock) s_currentPosition = 0;
         PersistCurrentPosition();
     }
 
     public void ResetHistory()
     {
-        lock (s_lock)
+        lock (s_positionLock)
         {
             s_motorPositionHistory.Clear();
             var time = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds();
@@ -97,13 +102,18 @@ public class MotorPositionCalculator : IMotorPositionCalculator
         }
     }
 
-    public void UpdatePosition(int stepsMoved)
+    public void UpdatePosition(int stepsMoved, int maxAllowedPosition, int minAllowedPosition)
     {
         var time = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds();
-        lock (s_lock)
+        lock (s_positionLock)
         {
-            s_currentPosition += stepsMoved;
-            s_motorPositionHistory.Add(new(s_currentPosition, time));
+            lock (s_engageLock)
+            {
+                if ((s_currentPosition > maxAllowedPosition || s_currentPosition < minAllowedPosition) && s_isEngaged) ToggleMotorEngage(false);
+                if (!s_isEngaged) return;
+                s_currentPosition += stepsMoved;
+                s_motorPositionHistory.Add(new(s_currentPosition, time));
+            }
         }
     }
 
@@ -117,11 +127,11 @@ public class MotorPositionCalculator : IMotorPositionCalculator
 
     public void PersistCurrentPosition()
     {
-        lock (s_lock) File.WriteAllText(s_filePath, s_currentPosition.ToString());
+        lock (s_positionLock) File.WriteAllText(s_filePath, s_currentPosition.ToString());
     }
 
-    public int CurrentPosition()
+    public MotorPosition CurrentPosition()
     {
-        lock (s_lock) return s_currentPosition;
+        lock (s_positionLock) lock (s_engageLock) return new(s_isEngaged, s_currentPosition);
     }
 }

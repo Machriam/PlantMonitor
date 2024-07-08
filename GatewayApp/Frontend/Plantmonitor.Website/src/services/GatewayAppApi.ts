@@ -529,7 +529,7 @@ export interface IDeviceClient {
 
     cameraInfo(ip?: string | undefined, type?: CameraType | undefined): Promise<string>;
 
-    currentPosition(ip?: string | undefined): Promise<number>;
+    currentPosition(ip?: string | undefined): Promise<MotorPosition>;
 
     zeroPosition(ip?: string | undefined): Promise<void>;
 
@@ -754,7 +754,7 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
         return Promise.resolve<string>(null as any);
     }
 
-    currentPosition(ip?: string | undefined): Promise<number> {
+    currentPosition(ip?: string | undefined): Promise<MotorPosition> {
         let url_ = this.baseUrl + "/api/Device/currentposition?";
         if (ip === null)
             throw new Error("The parameter 'ip' cannot be null.");
@@ -776,15 +776,14 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
         });
     }
 
-    protected processCurrentPosition(response: Response): Promise<number> {
+    protected processCurrentPosition(response: Response): Promise<MotorPosition> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
+            result200 = MotorPosition.fromJS(resultData200);
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -792,7 +791,7 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<number>(null as any);
+        return Promise.resolve<MotorPosition>(null as any);
     }
 
     zeroPosition(ip?: string | undefined): Promise<void> {
@@ -2307,6 +2306,53 @@ export interface IOutletModel {
 export enum CameraType {
     Vis = 0,
     IR = 1,
+}
+
+export class MotorPosition implements IMotorPosition {
+    engaged!: boolean | undefined;
+    position!: number | undefined;
+
+    constructor(data?: IMotorPosition) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.engaged = _data["engaged"];
+            this.position = _data["position"];
+        }
+    }
+
+    static fromJS(data: any): MotorPosition {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotorPosition();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["engaged"] = this.engaged;
+        data["position"] = this.position;
+        return data;
+    }
+
+    clone(): MotorPosition {
+        const json = this.toJSON();
+        let result = new MotorPosition();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IMotorPosition {
+    engaged: boolean | undefined;
+    position: number | undefined;
 }
 
 export class SeriesByDevice implements ISeriesByDevice {

@@ -78,8 +78,6 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         var movementClient = deviceApi.MovementClient(device.Ip);
         var irClient = deviceApi.IrImageTakingClient(device.Ip);
         var logger = dataContext.CreatePhotoTourEventLogger(photoTourId);
-        var currentPosition = await movementClient.CurrentpositionAsync();
-        if (currentPosition != 0) await movementClient.MovemotorAsync(-currentPosition, 1000, 4000, 400);
         var movementPlan = dataContext.DeviceMovements.FirstOrDefault(dm => dm.DeviceId == deviceGuid);
         if (movementPlan == null)
         {
@@ -87,6 +85,10 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             CreateEmptyTrip(photoTourId, dataContext);
             return ("", "");
         }
+        var (maxStop, minStop) = movementPlan.GetSafetyStops();
+        var currentPosition = await movementClient.CurrentpositionAsync();
+        if (currentPosition.Engaged != true) logger("Aborting movement, motor is disengaged", PhotoTourEventType.Error);
+        if (currentPosition.Position != 0) await movementClient.MovemotorAsync(-currentPosition.Position, 1000, 4000, 400, maxStop, minStop);
         var pointsToReach = new List<int>();
         foreach (var point in movementPlan.MovementPlan.StepPoints) pointsToReach.Add(pointsToReach.LastOrDefault() + point.StepOffset);
         var currentStep = 0;
@@ -116,7 +118,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
              x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None).RunInBackground(ex => ex.LogError());
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
-            await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400);
+            await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400, maxStop, minStop);
             currentStep += step.StepOffset;
             while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(100);
             await irClient.RunffcAsync();

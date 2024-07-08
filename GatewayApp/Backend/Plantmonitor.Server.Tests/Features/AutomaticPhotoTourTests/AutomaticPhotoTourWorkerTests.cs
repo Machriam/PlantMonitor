@@ -53,7 +53,7 @@ public class AutomaticPhotoTourWorkerTests
     {
         var sut = CreateAutomaticPhotoTourWorker();
 
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new AutomaticPhotoTour() { Finished = true } });
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
         SchedulePhotoTrips(sut);
 
         _provider.ReceivedWithAnyArgs(1).GetService(default!);

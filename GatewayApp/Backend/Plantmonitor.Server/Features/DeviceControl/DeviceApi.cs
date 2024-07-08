@@ -279,18 +279,18 @@ namespace Plantmonitor.Server.Features.DeviceControl
         System.Threading.Tasks.Task ZeropositionAsync(System.Threading.CancellationToken cancellationToken);
 
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<int> CurrentpositionAsync();
+        System.Threading.Tasks.Task<MotorPosition> CurrentpositionAsync();
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task<int> CurrentpositionAsync(System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task<MotorPosition> CurrentpositionAsync(System.Threading.CancellationToken cancellationToken);
 
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task MovemotorAsync(int? steps, int? minTime, int? maxTime, int? rampLength);
+        System.Threading.Tasks.Task MovemotorAsync(int? steps, int? minTime, int? maxTime, int? rampLength, int? maxAllowedPosition, int? minAllowedPosition);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task MovemotorAsync(int? steps, int? minTime, int? maxTime, int? rampLength, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task MovemotorAsync(int? steps, int? minTime, int? maxTime, int? rampLength, int? maxAllowedPosition, int? minAllowedPosition, System.Threading.CancellationToken cancellationToken);
 
     }
 
@@ -484,14 +484,14 @@ namespace Plantmonitor.Server.Features.DeviceControl
         }
 
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<int> CurrentpositionAsync()
+        public virtual System.Threading.Tasks.Task<MotorPosition> CurrentpositionAsync()
         {
             return CurrentpositionAsync(System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<int> CurrentpositionAsync(System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<MotorPosition> CurrentpositionAsync(System.Threading.CancellationToken cancellationToken)
         {
             var client_ = new System.Net.Http.HttpClient();
             var disposeClient_ = true;
@@ -532,7 +532,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<int>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<MotorPosition>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -560,14 +560,14 @@ namespace Plantmonitor.Server.Features.DeviceControl
         }
 
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task MovemotorAsync(int? steps, int? minTime, int? maxTime, int? rampLength)
+        public virtual System.Threading.Tasks.Task MovemotorAsync(int? steps, int? minTime, int? maxTime, int? rampLength, int? maxAllowedPosition, int? minAllowedPosition)
         {
-            return MovemotorAsync(steps, minTime, maxTime, rampLength, System.Threading.CancellationToken.None);
+            return MovemotorAsync(steps, minTime, maxTime, rampLength, maxAllowedPosition, minAllowedPosition, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task MovemotorAsync(int? steps, int? minTime, int? maxTime, int? rampLength, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task MovemotorAsync(int? steps, int? minTime, int? maxTime, int? rampLength, int? maxAllowedPosition, int? minAllowedPosition, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = new System.Net.Http.HttpClient();
             var disposeClient_ = true;
@@ -598,6 +598,14 @@ namespace Plantmonitor.Server.Features.DeviceControl
                     if (rampLength != null)
                     {
                         urlBuilder_.Append(System.Uri.EscapeDataString("rampLength")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(rampLength, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (maxAllowedPosition != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("maxAllowedPosition")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(maxAllowedPosition, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (minAllowedPosition != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("minAllowedPosition")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(minAllowedPosition, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
                     }
                     urlBuilder_.Length--;
 
@@ -2510,6 +2518,28 @@ namespace Plantmonitor.Server.Features.DeviceControl
             var result = System.Convert.ToString(value, cultureInfo);
             return result == null ? "" : result;
         }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial record MotorPosition
+    {
+        [System.Text.Json.Serialization.JsonConstructor]
+
+        public MotorPosition(bool? @engaged, int? @position)
+
+        {
+
+            this.Engaged = @engaged;
+
+            this.Position = @position;
+
+        }
+        [System.Text.Json.Serialization.JsonPropertyName("engaged")]
+        public bool? Engaged { get; init; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("position")]
+        public int? Position { get; init; }
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.0.3.0 (NJsonSchema v11.0.0.0 (Newtonsoft.Json v13.0.0.0))")]

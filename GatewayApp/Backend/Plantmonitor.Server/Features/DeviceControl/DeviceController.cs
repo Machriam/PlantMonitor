@@ -7,6 +7,8 @@ namespace Plantmonitor.Server.Features.DeviceControl;
 [Route("api/[controller]")]
 public class DeviceController(IDeviceApiFactory apiFactory)
 {
+    private const int MaxStepResolution = 25000;
+
     [HttpGet("previewimage")]
     public async Task<IResult> PreviewImage(string ip, CameraType type)
     {
@@ -43,7 +45,7 @@ public class DeviceController(IDeviceApiFactory apiFactory)
     }
 
     [HttpGet("currentposition")]
-    public async Task<int> CurrentPosition(string ip)
+    public async Task<MotorPosition> CurrentPosition(string ip)
     {
         return await apiFactory.MovementClient(ip).CurrentpositionAsync();
     }
@@ -66,6 +68,6 @@ public class DeviceController(IDeviceApiFactory apiFactory)
     [HttpPost("move")]
     public async Task Move(string ip, int steps, int minTime, int maxTime, int rampLength)
     {
-        await apiFactory.MovementClient(ip).MovemotorAsync(steps, minTime, maxTime, rampLength);
+        await apiFactory.MovementClient(ip).MovemotorAsync(steps, minTime, maxTime, rampLength, MaxStepResolution, -MaxStepResolution);
     }
 }
