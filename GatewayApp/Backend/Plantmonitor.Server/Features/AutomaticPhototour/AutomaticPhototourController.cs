@@ -7,7 +7,7 @@ namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AutomaticPhotoTourController(DataContext context, IDeviceConnectionEventBus eventBus, IDeviceApiFactory deviceFactory)
+public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectionEventBus eventBus, IDeviceApiFactory deviceFactory)
 {
     public record struct TemperatureMeasurementInfo(string Guid, string Comment);
     public record struct AutomaticTourStartInfo(int IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice, string Comment, string Name, string DeviceGuid);
