@@ -1540,6 +1540,7 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
     startTime!: Date;
     photoTourFk!: number | undefined;
     deviceId!: string;
+    finished!: boolean;
     photoTourFkNavigation!: AutomaticPhotoTour | undefined;
     temperatureMeasurementValues!: TemperatureMeasurementValue[];
 
@@ -1560,6 +1561,7 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
             this.startTime = _data["StartTime"] ? new Date(_data["StartTime"].toString()) : <any>undefined;
             this.photoTourFk = _data["PhotoTourFk"];
             this.deviceId = _data["DeviceId"];
+            this.finished = _data["Finished"];
             this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
             if (Array.isArray(_data["TemperatureMeasurementValues"])) {
                 this.temperatureMeasurementValues = [] as any;
@@ -1584,6 +1586,7 @@ export class TemperatureMeasurement implements ITemperatureMeasurement {
         data["StartTime"] = this.startTime ? this.startTime.toISOString() : <any>undefined;
         data["PhotoTourFk"] = this.photoTourFk;
         data["DeviceId"] = this.deviceId;
+        data["Finished"] = this.finished;
         data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
         if (Array.isArray(this.temperatureMeasurementValues)) {
             data["TemperatureMeasurementValues"] = [];
@@ -1608,6 +1611,7 @@ export interface ITemperatureMeasurement {
     startTime: Date;
     photoTourFk: number | undefined;
     deviceId: string;
+    finished: boolean;
     photoTourFkNavigation: AutomaticPhotoTour | undefined;
     temperatureMeasurementValues: TemperatureMeasurementValue[];
 }

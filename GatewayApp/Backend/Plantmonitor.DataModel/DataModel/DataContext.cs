@@ -1,10 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Plantmonitor.DataModel.DataModel;
 
-public partial class DataContext : DbContext
+public interface IDataContext : IAsyncDisposable, IDisposable
+{
+    public DatabaseFacade Database { get; }
+
+    public int SaveChanges();
+
+    DataContext.EventLogger CreatePhotoTourEventLogger(long photourId);
+
+    IQueryable<AutomaticPhotoTour> AutomaticPhotoTours { get; }
+
+    IQueryable<ConfigurationDatum> ConfigurationData { get; }
+
+    IQueryable<DeviceMovement> DeviceMovements { get; }
+
+    IQueryable<DeviceSwitchAssociation> DeviceSwitchAssociations { get; }
+
+    IQueryable<PhotoTourEvent> PhotoTourEvents { get; }
+
+    IQueryable<PhotoTourTrip> PhotoTourTrips { get; }
+
+    IQueryable<SwitchableOutletCode> SwitchableOutletCodes { get; }
+
+    IQueryable<TemperatureMeasurement> TemperatureMeasurements { get; }
+
+    IQueryable<TemperatureMeasurementValue> TemperatureMeasurementValues { get; }
+}
+
+public partial class DataContext : DbContext, IDataContext
 {
     public DataContext(DbContextOptions<DataContext> options)
         : base(options)
@@ -13,21 +41,39 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<AutomaticPhotoTour> AutomaticPhotoTours { get; set; }
 
+    IQueryable<AutomaticPhotoTour> IDataContext.AutomaticPhotoTours => AutomaticPhotoTours;
+
     public virtual DbSet<ConfigurationDatum> ConfigurationData { get; set; }
+
+    IQueryable<ConfigurationDatum> IDataContext.ConfigurationData => ConfigurationData;
 
     public virtual DbSet<DeviceMovement> DeviceMovements { get; set; }
 
+    IQueryable<DeviceMovement> IDataContext.DeviceMovements => DeviceMovements;
+
     public virtual DbSet<DeviceSwitchAssociation> DeviceSwitchAssociations { get; set; }
+
+    IQueryable<DeviceSwitchAssociation> IDataContext.DeviceSwitchAssociations => DeviceSwitchAssociations;
 
     public virtual DbSet<PhotoTourEvent> PhotoTourEvents { get; set; }
 
+    IQueryable<PhotoTourEvent> IDataContext.PhotoTourEvents => PhotoTourEvents;
+
     public virtual DbSet<PhotoTourTrip> PhotoTourTrips { get; set; }
+
+    IQueryable<PhotoTourTrip> IDataContext.PhotoTourTrips => PhotoTourTrips;
 
     public virtual DbSet<SwitchableOutletCode> SwitchableOutletCodes { get; set; }
 
+    IQueryable<SwitchableOutletCode> IDataContext.SwitchableOutletCodes => SwitchableOutletCodes;
+
     public virtual DbSet<TemperatureMeasurement> TemperatureMeasurements { get; set; }
 
+    IQueryable<TemperatureMeasurement> IDataContext.TemperatureMeasurements => TemperatureMeasurements;
+
     public virtual DbSet<TemperatureMeasurementValue> TemperatureMeasurementValues { get; set; }
+
+    IQueryable<TemperatureMeasurementValue> IDataContext.TemperatureMeasurementValues => TemperatureMeasurementValues;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
