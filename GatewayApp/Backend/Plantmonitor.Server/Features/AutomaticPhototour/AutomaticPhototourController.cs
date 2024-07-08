@@ -34,7 +34,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
             .ToDictionary(d => d.Health.DeviceId ?? throw new Exception("DeviceId must not be empty"));
         if (!deviceById.TryGetValue(startInfo.DeviceGuid, out var imagingDevice)) throw new Exception($"Device {startInfo.DeviceGuid} could not be found");
         if (!startInfo.TemperatureMeasureDevice.All(td => deviceById.ContainsKey(td.Guid))) throw new Exception("Not all requested temperature measurement devices are available");
-        var movementPlan = context.DeviceMovements.First(dm => dm.Id == startInfo.MovementPlan);
+        var movementPlan = context.DeviceMovements.FirstOrDefault(dm => dm.Id == startInfo.MovementPlan) ?? throw new Exception("Movementplan not found");
         if (!imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.NoirCameraFunctional)) throw new Exception($"{imagingDevice.Health.DeviceName} has no functioning vis camera");
         var temperatureDevices = startInfo.TemperatureMeasureDevice
             .Select(td => (DeviceHealth: deviceById[td.Guid], MeasurementInfo: td, Sensors: new List<string>()))
@@ -68,13 +68,13 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
                 DeviceId = Guid.Parse(td.DeviceHealth.Health.DeviceId ?? throw new Exception($"Device {td.DeviceHealth.Ip} has no Device Id")),
                 SensorId = sensorId,
                 StartTime = DateTime.UtcNow
-            })).Append(new TemperatureMeasurement()
+            })).PushIf(new TemperatureMeasurement()
             {
                 Comment = $"{imagingDevice.Health.DeviceName}: IR-Temperature",
                 DeviceId = Guid.Parse(startInfo.DeviceGuid),
                 SensorId = TemperatureMeasurement.FlirLeptonSensorId,
                 StartTime = DateTime.UtcNow
-            })
+            }, _ => imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.ThermalCameraFunctional))
             .ToList()
         };
         context.AutomaticPhotoTours.Add(photoTour);

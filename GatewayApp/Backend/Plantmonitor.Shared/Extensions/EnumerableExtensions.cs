@@ -2,9 +2,9 @@
 
 public static class EnumerableExtensions
 {
-    public static List<T> PushIf<T>(this List<T> list, T item, Func<T, bool> condition)
+    public static IEnumerable<T> PushIf<T>(this IEnumerable<T> list, T item, Func<T, bool> condition)
     {
-        if (condition(item)) return list.Push(item);
+        if (condition(item)) return list.Append(item);
         return list;
     }
 
