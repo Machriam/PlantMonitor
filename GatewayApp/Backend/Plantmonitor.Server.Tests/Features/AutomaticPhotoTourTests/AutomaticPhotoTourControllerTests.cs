@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using NSubstitute.ReceivedExtensions;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AutomaticPhotoTour;
@@ -8,7 +7,7 @@ using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
 using static Plantmonitor.Server.Features.AutomaticPhotoTour.AutomaticPhotoTourController;
 
-namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTour12
+namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
 {
     public class AutomaticPhotoTourControllerTests
     {
@@ -36,7 +35,9 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTour12
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(result);
             _context.PhotoTourEvents.ReturnsForAnyArgs(events);
             var sut = CreateAutomaticPhotoTourController();
+
             sut.StopPhotoTour(1);
+
             _context.Received(1).SaveChanges();
             result.First().Finished.Should().BeTrue();
             events.Count.Should().Be(1);
@@ -53,7 +54,9 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTour12
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
-            await sut.StartAutomaticTour(new AutomaticPhotoTourController.AutomaticTourStartInfo(1, 1, [], "comment", "name", DeviceId));
+
+            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [], "comment", "name", DeviceId));
+
             photoTours.Count.Should().Be(1);
             photoTours.First().DeviceId.Should().Be(DeviceId);
             photoTours.First().Comment.Should().Be("comment");
@@ -74,6 +77,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTour12
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
+
             Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));
             await action.Should().ThrowAsync<Exception>().WithMessage("*Not all requested temperature measurement devices are available*");
         }
@@ -94,6 +98,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTour12
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
+
             Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));
             await action.Should().ThrowAsync<Exception>().WithMessage("*tempDev1 has no temperature sensor*tempDev2 has no temperature sensor*");
         }
@@ -117,7 +122,9 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTour12
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
+
             await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));
+
             photoTours.Count.Should().Be(1);
             photoTours.First().DeviceId.Should().Be(DeviceId);
             photoTours.First().Comment.Should().Be("comment");

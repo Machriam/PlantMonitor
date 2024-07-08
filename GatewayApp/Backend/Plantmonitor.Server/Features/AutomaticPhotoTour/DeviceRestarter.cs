@@ -56,7 +56,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         s_lastRestarts.AddOrUpdate(deviceGuid, DateTime.UtcNow, (_1, _2) => DateTime.UtcNow);
         foreach (var switchDevice in switchingDevices)
         {
-            await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOffFkNavigation.Code);
+            await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOnFkNavigation.Code);
             await Task.Delay(200);
         }
         return;

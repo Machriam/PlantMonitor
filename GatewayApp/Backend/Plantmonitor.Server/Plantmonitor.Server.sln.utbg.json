@@ -1,0 +1,17 @@
+{
+  "Version": 1,
+  "TestProjectNameFormat": "$ProjectName$.Test",
+  "FileNameTemplate": "$ClassName$Tests",
+  "CustomMockFieldDeclarationTemplate": "private $CustomMockClass$ mock$InterfaceMockName$;",
+  "CustomMockFieldInitializationTemplate": "this.mock$InterfaceMockName$ = new $CustomMockClass$();",
+  "CustomMockObjectReferenceTemplate": "this.mock$InterfaceMockName$",
+  "Templates": {
+    "xUnit_NSubstitute_File": "$UsingStatements$\r\n\r\nnamespace $Namespace$;\r\n\r\n\tpublic class $ClassName$Tests\r\n\t{\r\n\t\t$MockFieldDeclarations$\r\n\t\t\r\n\t\tpublic $ClassName$Tests()\r\n\t\t{\r\n\t\t\t$MockFieldInitializations$\r\n\t\t}\r\n\t\t\r\n\t\tprivate $ClassName$ Create$ClassNameShort$()\r\n\t\t{\r\n\t\t\treturn $ExplicitConstructor$;\r\n\t\t}\r\n\t\t\r\n\t\t$TestMethods$\r\n\t}\r\n",
+    "xUnit_NSubstitute_MockFieldDeclaration": "private readonly $InterfaceType$ _$InterfaceMockName$;",
+    "xUnit_NSubstitute_MockFieldInitialization": "_$InterfaceMockName$ = Substitute.For<$InterfaceType$>();",
+    "xUnit_NSubstitute_MockObjectReference": "_$InterfaceMockName$",
+    "xUnit_NSubstitute_TestMethodInvocation": "[Fact]\r\npublic $AsyncModifier$ $AsyncReturnType$ $TestMethodName$()\r\n{\r\n\tvar sut = Create$ClassNameShort$();\r\n\t$ParameterSetupDefaults.NewLineIfPopulated$\t\r\n}",
+    "xUnit_NSubstitute_TestMethodEmpty": "[Fact]\r\npublic void TestMethod1()\r\n{\r\n\tvar sut = Create$ClassNameShort$();\r\n}",
+    "xUnit_NSubstitute_TestMethodName": "$TestedMethodName$_ShouldWork"
+  }
+}
