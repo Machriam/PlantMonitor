@@ -13,10 +13,11 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
     private static readonly object s_lock = new();
 
     private static Timer? s_scheduleTimer;
+    private static readonly int s_scheduleTimeOut = (int)TimeSpan.FromSeconds(5).TotalMilliseconds;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        s_scheduleTimer = new Timer(async _ => await SchedulePhotoTrips(), default, 0, (int)TimeSpan.FromSeconds(5).TotalMilliseconds);
+        s_scheduleTimer = new Timer(async _ => await SchedulePhotoTrips(), default, 0, s_scheduleTimeOut);
         return Task.CompletedTask;
     }
 
@@ -47,8 +48,9 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
         await using var irStreamer = scope.ServiceProvider.GetRequiredService<IPictureDiskStreamer>();
         await using var visStreamer = scope.ServiceProvider.GetRequiredService<IPictureDiskStreamer>();
+        var deviceRestarter = scope.ServiceProvider.GetRequiredService<IDeviceRestarter>();
         var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
-        var (healthy, device) = await CheckDeviceHealth(photoTourId, scope, dataContext);
+        var (healthy, device) = await deviceRestarter.CheckDeviceHealth(photoTourId, scope, dataContext);
         var deviceGuid = Guid.Parse(device.Health.DeviceId ?? "");
         if (healthy != true)
         {
@@ -76,8 +78,6 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         var movementClient = deviceApi.MovementClient(device.Ip);
         var irClient = deviceApi.IrImageTakingClient(device.Ip);
         var logger = dataContext.CreatePhotoTourEventLogger(photoTourId);
-        var currentPosition = await movementClient.CurrentpositionAsync();
-        if (currentPosition != 0) await movementClient.MovemotorAsync(-currentPosition, 1000, 4000, 400);
         var movementPlan = dataContext.DeviceMovements.FirstOrDefault(dm => dm.DeviceId == deviceGuid);
         if (movementPlan == null)
         {
@@ -85,6 +85,10 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             CreateEmptyTrip(photoTourId, dataContext);
             return ("", "");
         }
+        var (maxStop, minStop) = movementPlan.GetSafetyStops();
+        var currentPosition = await movementClient.CurrentpositionAsync();
+        if (currentPosition.Engaged != true) logger("Aborting movement, motor is disengaged", PhotoTourEventType.Error);
+        if (currentPosition.Position != 0) await movementClient.MovemotorAsync(-currentPosition.Position, 1000, 4000, 400, maxStop, minStop);
         var pointsToReach = new List<int>();
         foreach (var point in movementPlan.MovementPlan.StepPoints) pointsToReach.Add(pointsToReach.LastOrDefault() + point.StepOffset);
         var currentStep = 0;
@@ -114,7 +118,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
              x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None).RunInBackground(ex => ex.LogError());
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
-            await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400);
+            await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400, maxStop, minStop);
             currentStep += step.StepOffset;
             while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(100);
             await irClient.RunffcAsync();
@@ -137,40 +141,6 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             Timestamp = DateTime.UtcNow,
         });
         dataContext.SaveChanges();
-    }
-
-    private static async Task<(bool? DeviceHealthy, DeviceHealthState ImagingDevice)> CheckDeviceHealth(long photoTourId, IServiceScope scope, IDataContext dataContext)
-    {
-        var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
-        var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
-        var deviceRestarter = scope.ServiceProvider.GetRequiredService<IDeviceRestarter>();
-        var photoTourData = dataContext.AutomaticPhotoTours
-            .Include(apt => apt.TemperatureMeasurements)
-            .First(apt => apt.Id == photoTourId);
-        var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
-        var deviceHealth = eventBus.GetDeviceHealthInformation()
-            .FirstOrDefault(h => h.Health.DeviceId == photoTourData.DeviceId.ToString());
-        if (deviceHealth == default)
-        {
-            logEvent($"Camera Device {photoTourData.DeviceId} not found. Trying Restart.", PhotoTourEventType.Error);
-            deviceRestarter.RestartDevice(photoTourData.DeviceId.ToString(), photoTourId).RunInBackground(ex => ex.LogError());
-            return (null, deviceHealth);
-        }
-        logEvent($"Checking Camera {photoTourData.DeviceId}", PhotoTourEventType.Information);
-        var irTest = await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
-        var visTest = await deviceApi.VisImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
-        var irImage = irTest.Stream.ConvertToArray();
-        var visImage = visTest.Stream.ConvertToArray();
-        if (irImage.Length < 100 || visImage.Length < 100)
-        {
-            var notWorkingCameras = new[] { irImage.Length < 100 ? "IR" : "", visImage.Length < 100 ? "VIS" : "" }.Concat(", ");
-            logEvent($"Camera {notWorkingCameras} not working. Trying Restart.", PhotoTourEventType.Error);
-            deviceRestarter.RestartDevice(photoTourData.DeviceId.ToString(), photoTourId).RunInBackground(ex => ex.LogError());
-            return (null, deviceHealth);
-        }
-        logEvent($"Camera working {photoTourData.DeviceId}", PhotoTourEventType.Information);
-
-        return (true, deviceHealth);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

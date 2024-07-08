@@ -17,12 +17,8 @@ activate gc
 loop until disabled
   td -> gc: Send temperature value
   alt Temperature not received for x seconds
-    alt photo trip overdue
-      gc -> gc: Do nothing
-    else photo trip not overdue
-      gc -> gc: Restart TemperatureDevice, see AutomaticDeviceRestart
-      note right: TemperatureDevice might still be useful for\nrestart of CameraDevice, even if faulty
-    end
+    gc -> gc: Restart TemperatureDevice, see AutomaticDeviceRestart
+    note right: TemperatureDevice might still be useful for\nrestart of CameraDevice, even if faulty
   end
 end
 deactivate gc

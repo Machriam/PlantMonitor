@@ -27,11 +27,12 @@ builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfigur
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
 builder.Services.AddTransient<IFileStreamingReader, FileStreamingReader>();
 builder.Services.AddTransient<IExposureSettingsEditor, ExposureSettingsEditor>();
+builder.Services.AddSingleton<IMotorPositionCalculator, MotorPositionCalculator>();
 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopVisCameraInterop>(ICameraInterop.VisCamera);
     builder.Services.AddKeyedTransient<ICameraInterop, DevelopIrCameraInterop>(ICameraInterop.IrCamera);
-    builder.Services.AddSingleton<IMotorPositionCalculator, DevelopMotorPositionCalculator>();
+    builder.Services.AddTransient<IGpioInteropFactory, GpioInteropFactoryDevelop>();
     builder.Services.AddTransient<IClick2TempInterop, DevelopClick2TempInterop>();
     builder.Services.AddTransient<IOutletSwitcher, OutletSwitcherDevelop>();
 }
@@ -40,7 +41,7 @@ else
     builder.Services.AddTransient<IOutletSwitcher, OutletSwitcher433MHz>();
     builder.Services.AddKeyedTransient<ICameraInterop, RaspberryCameraInterop>(ICameraInterop.VisCamera);
     builder.Services.AddKeyedTransient<ICameraInterop, FlirLeptonCameraInterop>(ICameraInterop.IrCamera);
-    builder.Services.AddSingleton<IMotorPositionCalculator, MotorPositionCalculator>();
+    builder.Services.AddTransient<IGpioInteropFactory, GpioInteropFactory>();
     builder.Services.AddTransient<IClick2TempInterop, Click2TempInterop>();
 }
 builder.Services.AddCors(options =>

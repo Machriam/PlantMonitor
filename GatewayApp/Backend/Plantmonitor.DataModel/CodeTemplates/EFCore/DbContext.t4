@@ -29,7 +29,8 @@
     {
         "System",
         "System.Collections.Generic",
-        "Microsoft.EntityFrameworkCore"
+        "Microsoft.EntityFrameworkCore",
+        "Microsoft.EntityFrameworkCore.Infrastructure"
     };
 
     if (NamespaceHint != Options.ModelNamespace
@@ -43,10 +44,29 @@
 #>
 namespace <#= NamespaceHint #>;
 
+public interface I<#= Options.ContextName #> : IAsyncDisposable, IDisposable
+{
+    public DatabaseFacade Database { get; }
+
+    public int SaveChanges();
+
+    DataContext.EventLogger CreatePhotoTourEventLogger(long photourId);
+
+<#
+    foreach (var entityType in Model.GetEntityTypes().Where(e => !e.IsSimpleManyToManyJoinEntityType()))
+    {
+#>
+    IQueryable<<#= entityType.Name #>> <#= entityType.GetDbSetName() #> { get; }
+
 <#
     }
 #>
-public partial class <#= Options.ContextName #> : DbContext
+<#
+    }
+#>
+}
+
+public partial class <#= Options.ContextName #> : DbContext, I<#= Options.ContextName #>
 {
 <#
     if (!Options.SuppressOnConfiguring)
@@ -69,6 +89,8 @@ public partial class <#= Options.ContextName #> : DbContext
     {
 #>
     public virtual DbSet<<#= entityType.Name #>> <#= entityType.GetDbSetName() #> { get; set; }
+
+    IQueryable<<#= entityType.Name #>> IDataContext.<#= entityType.GetDbSetName() #> => <#= entityType.GetDbSetName() #>;
 
 <#
     }
