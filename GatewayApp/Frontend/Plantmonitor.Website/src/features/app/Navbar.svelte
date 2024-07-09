@@ -3,7 +3,7 @@
     let ToggleNavMenu = function () {
         collapseNavMenu = !collapseNavMenu;
     };
-    let selectedItem: string | undefined = "";
+    let selectedItem: string | undefined = location.href.split("/").pop();
     let NavMenuCssClass = function () {
         return collapseNavMenu ? "collapse" : "";
     };
@@ -33,7 +33,7 @@
                 on:click={(x) => {
                     if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'about' ? 'nav-selected' : ''}"
+                class="nav-link {selectedItem == 'about' || selectedItem == '' ? 'nav-selected' : ''}"
                 href="about">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </a>
