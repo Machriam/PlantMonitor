@@ -24,7 +24,12 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
         var photoTourData = dataContext.AutomaticPhotoTours
             .Include(apt => apt.TemperatureMeasurements)
-            .First(apt => apt.Id == photoTourId);
+            .FirstOrDefault(apt => apt.Id == photoTourId);
+        if (photoTourData == default)
+        {
+            Log.Logger.Log("Phototour not found", PhotoTourEventType.Error);
+            return (false, default);
+        }
         var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
         var deviceHealth = eventBus.GetDeviceHealthInformation()
             .FirstOrDefault(h => h.Health.DeviceId == photoTourData.DeviceId.ToString());
@@ -41,7 +46,10 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         var visImage = visTest.Stream.ConvertToArray();
         if (irImage.Length < 100 || visImage.Length < 100)
         {
-            var notWorkingCameras = new[] { irImage.Length < 100 ? "IR" : "", visImage.Length < 100 ? "VIS" : "" }.Concat(", ");
+            var notWorkingCameras = new List<string>()
+                .PushIf("IR", _ => irImage.Length < 100)
+                .PushIf("VIS", _ => visImage.Length < 100)
+                .Concat(", ");
             logEvent($"Camera {notWorkingCameras} not working. Trying Restart.", PhotoTourEventType.Error);
             RestartDevice(photoTourData.DeviceId.ToString(), photoTourId).RunInBackground(ex => ex.LogError());
             return (null, deviceHealth);

@@ -18,6 +18,8 @@ public class DeviceRestarterTests
     private readonly IServiceProvider _provider = Substitute.For<IServiceProvider>();
     private readonly IDeviceConnectionEventBus _eventBus = Substitute.For<IDeviceConnectionEventBus>();
     private readonly IDataContext _context = Substitute.For<IDataContext>();
+    private readonly IIrImageTakingClient _irClient = Substitute.For<IIrImageTakingClient>();
+    private readonly IVisImageTakingClient _visClient = Substitute.For<IVisImageTakingClient>();
     private readonly IDeviceApiFactory _deviceApi = Substitute.For<IDeviceApiFactory>();
 
     public DeviceRestarterTests()
@@ -28,12 +30,125 @@ public class DeviceRestarterTests
         _provider.GetService(typeof(IDeviceConnectionEventBus)).Returns(_eventBus);
         _provider.GetService(typeof(IDataContext)).Returns(_context);
         _provider.GetService(typeof(IDeviceApiFactory)).Returns(_deviceApi);
+        _deviceApi.IrImageTakingClient("").ReturnsForAnyArgs(_irClient);
+        _deviceApi.VisImageTakingClient("").ReturnsForAnyArgs(_visClient);
         _context.CreatePhotoTourEventLogger(default).ReturnsForAnyArgs((message, type) => _context.PhotoTourEvents.Add(new PhotoTourEvent() { Message = message, Type = type }));
     }
 
     private DeviceRestarter CreateDeviceRestarter()
     {
         return new DeviceRestarter(_serviceScopeFactory);
+    }
+
+    [Fact]
+    public async Task CheckDeviceHealth_InvalidPhotoTour_ShouldErrorLog()
+    {
+        var deviceGuid = Guid.NewGuid().ToString();
+        var switchDevice = Guid.NewGuid().ToString();
+        var sut = CreateDeviceRestarter();
+        _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
+        {
+            new(){ DeviceId=Guid.Parse(deviceGuid)}
+        });
+        var devices = new List<DeviceHealthState>() {
+            new(new(default, switchDevice, "testSwitcher", HealthState.NA), 0, ""),
+            new(new(default, deviceGuid, "faultyDevice", HealthState.ThermalCameraFunctional), 5, "")
+        };
+        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        var client = Substitute.For<ISwitchOutletsClient>();
+        _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
+        _context.DeviceSwitchAssociations.ReturnsForAnyArgs(new QueryableList<DeviceSwitchAssociation>()
+        {
+            new(){DeviceId=Guid.NewGuid(),OutletOffFkNavigation=new(){Code=1234},OutletOnFkNavigation=new(){ Code=5678} }
+        });
+
+        var result = await sut.CheckDeviceHealth(1, _serviceScope, _context);
+        result.DeviceHealthy.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task CheckDeviceHealth_DefaultCase_ShouldWork()
+    {
+        var deviceGuid = Guid.NewGuid().ToString();
+        var sut = CreateDeviceRestarter();
+        _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
+        {
+            new(){Id=1, DeviceId=Guid.Parse(deviceGuid)}
+        });
+        var devices = new List<DeviceHealthState>() {
+            new(new(default, deviceGuid, "device", HealthState.NA), 0, ""),
+        };
+        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        var client = Substitute.For<ISwitchOutletsClient>();
+        _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
+        await using var visStream = new MemoryStream(new byte[1000]);
+        await using var irStream = new MemoryStream(new byte[1000]);
+        _irClient.PreviewimageAsync().ReturnsForAnyArgs(new FileResponse(200, new Dictionary<string, IEnumerable<string>>(), irStream, default, default));
+        _visClient.PreviewimageAsync().ReturnsForAnyArgs(new FileResponse(200, new Dictionary<string, IEnumerable<string>>(), visStream, default, default));
+
+        await sut.CheckDeviceHealth(1, _serviceScope, _context);
+
+        _context.PhotoTourEvents.Count().Should().Be(2);
+        _context.PhotoTourEvents.Should().AllSatisfy(x => x.Type.Should().Be(PhotoTourEventType.Information));
+        _context.PhotoTourEvents.First().Message.Should().Contain("Checking Camera");
+        _context.PhotoTourEvents.Last().Message.Should().Contain("Camera working");
+    }
+
+    [Fact]
+    public async Task CheckDeviceHealth_NoImages_ShouldErrorLog()
+    {
+        var deviceGuid = Guid.NewGuid().ToString();
+        var sut = CreateDeviceRestarter();
+        _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
+        {
+            new(){Id=1, DeviceId=Guid.Parse(deviceGuid)}
+        });
+        var devices = new List<DeviceHealthState>() {
+            new(new(default, deviceGuid, "device", HealthState.NA), 0, ""),
+        };
+        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        var client = Substitute.For<ISwitchOutletsClient>();
+        _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
+        await using var failStream = new MemoryStream();
+        await using var successStream = new MemoryStream(new byte[1000]);
+        _irClient.PreviewimageAsync().ReturnsForAnyArgs(new FileResponse(200, new Dictionary<string, IEnumerable<string>>(), failStream, default, default));
+        _visClient.PreviewimageAsync().ReturnsForAnyArgs(new FileResponse(200, new Dictionary<string, IEnumerable<string>>(), successStream, default, default));
+
+        await sut.CheckDeviceHealth(1, _serviceScope, _context);
+
+        _context.PhotoTourEvents.Count().Should().Be(3);
+        _context.PhotoTourEvents.First().Type.Should().Be(PhotoTourEventType.Information);
+        _context.PhotoTourEvents.First().Message.Should().Contain("Checking Camera");
+        _context.PhotoTourEvents.Skip(1).Take(1).First().Type.Should().Be(PhotoTourEventType.Error);
+        _context.PhotoTourEvents.Skip(1).Take(1).First().Message.Should().Contain("Camera IR not working. Trying Restart");
+    }
+
+    [Fact]
+    public async Task CheckDeviceHealth_NoDeviceHealth_ShouldErrorLog()
+    {
+        var deviceGuid = Guid.NewGuid().ToString();
+        var switchDevice = Guid.NewGuid().ToString();
+        var sut = CreateDeviceRestarter();
+        _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
+        {
+            new(){Id=1, DeviceId=Guid.Parse(deviceGuid)}
+        });
+        var devices = new List<DeviceHealthState>() {
+            new(new(default, switchDevice, "testSwitcher", HealthState.NA), 0, ""),
+        };
+        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        var client = Substitute.For<ISwitchOutletsClient>();
+        _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
+
+        await sut.CheckDeviceHealth(1, _serviceScope, _context);
+
+        _context.PhotoTourEvents.Count().Should().Be(2);
+        _context.PhotoTourEvents.First().Type.Should().Be(PhotoTourEventType.Error);
+        _context.PhotoTourEvents.First().Message.Should().Contain("Camera Device").And.Contain("not found. Trying Restart.");
     }
 
     [Fact]
