@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AutomaticPhotoTour;
@@ -17,6 +18,8 @@ public class AutomaticPhotoTourWorkerTests
     private readonly IServiceScope _serviceScope = Substitute.For<IServiceScope>();
     private readonly IServiceProvider _provider = Substitute.For<IServiceProvider>();
     private readonly IDeviceConnectionEventBus _eventBus = Substitute.For<IDeviceConnectionEventBus>();
+    private readonly IDeviceRestarter _restarter = Substitute.For<IDeviceRestarter>();
+    private readonly IPictureDiskStreamer _pictureStreamer = Substitute.For<IPictureDiskStreamer>();
     private readonly IDataContext _context = Substitute.For<IDataContext>();
     private readonly IDeviceApiFactory _deviceApi = Substitute.For<IDeviceApiFactory>();
 
@@ -28,7 +31,10 @@ public class AutomaticPhotoTourWorkerTests
         _provider.GetService(typeof(IDeviceConnectionEventBus)).Returns(_eventBus);
         _provider.GetService(typeof(IDataContext)).Returns(_context);
         _provider.GetService(typeof(IDeviceApiFactory)).Returns(_deviceApi);
-        _context.CreatePhotoTourEventLogger(default).ReturnsForAnyArgs((message, type) => _context.PhotoTourEvents.Add(new PhotoTourEvent() { Message = message, Type = type }));
+        _provider.GetService(typeof(IPictureDiskStreamer)).Returns(_pictureStreamer);
+        _provider.GetService(typeof(IDeviceRestarter)).Returns(_restarter);
+        _context.CreatePhotoTourEventLogger(default)
+            .ReturnsForAnyArgs((message, type) => _context.PhotoTourEvents.Add(new PhotoTourEvent() { Message = message, Type = type }));
     }
 
     private AutomaticPhotoTourWorker CreateAutomaticPhotoTourWorker()
@@ -57,5 +63,39 @@ public class AutomaticPhotoTourWorkerTests
         SchedulePhotoTrips(sut);
 
         _provider.ReceivedWithAnyArgs(1).GetService(default!);
+    }
+
+    [Fact]
+    public async Task RunPhotoTrip_HealthyMultipleInParallel_ShouldCreateOneEmptyTrip()
+    {
+        var sut = CreateAutomaticPhotoTourWorker();
+
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
+        _context.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>());
+        _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
+        _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs((true, new()
+        {
+            Health = new DeviceHealth(null, Guid.NewGuid().ToString(), "device", HealthState.NoirCameraFunctional)
+        }));
+        await Task.WhenAll([RunPhotoTrip(sut, 1), RunPhotoTrip(sut, 1), RunPhotoTrip(sut, 1)]);
+
+        _context.PhotoTourTrips.Count().Should().Be(1);
+    }
+
+    [Fact]
+    public async Task RunPhotoTrip_UnhealthyMultipleInParallel_ShouldCreateOneEmptyTrip()
+    {
+        var sut = CreateAutomaticPhotoTourWorker();
+
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
+        _context.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>());
+        _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
+        _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs((false, new()
+        {
+            Health = new DeviceHealth(null, Guid.NewGuid().ToString(), "device", HealthState.NoirCameraFunctional)
+        }));
+        await Task.WhenAll([RunPhotoTrip(sut, 1), RunPhotoTrip(sut, 1), RunPhotoTrip(sut, 1)]);
+
+        _context.PhotoTourTrips.Count().Should().Be(1);
     }
 }

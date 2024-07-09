@@ -59,6 +59,11 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             return;
         }
         var (irFolder, visFolder) = await TakePhotos(photoTourId, dataContext, irStreamer, visStreamer, deviceApi, device, deviceGuid);
+        if (irFolder.IsEmpty() && visFolder.IsEmpty())
+        {
+            lock (s_lock) s_photoTripRunning = false;
+            return;
+        }
 
         dataContext.PhotoTourTrips.Add(new PhotoTourTrip()
         {

@@ -7,6 +7,7 @@
         DeviceClient,
         DeviceHealthState,
         DeviceMovement,
+        MotorPosition,
         MovementPoint,
         MovementProgrammingClient
     } from "~/services/GatewayAppApi";
@@ -22,7 +23,7 @@
     let moveSteps = 100;
     let currentlyMoving = false;
     let removeSteps = false;
-    let currentPosition: number | undefined;
+    let currentPosition: MotorPosition | undefined;
     let movementPlan = new DeviceMovement();
     let defaultFocus = 100;
     let newStep = new MovementPoint({focusInCentimeter: defaultFocus, speed: 200, stepOffset: 500, comment: ""});
@@ -81,18 +82,18 @@
         await client.updatePlan(movementPlan);
     }
     async function moveTo(step: MovementPoint) {
-        if (currentPosition == undefined) return;
-        const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition);
+        if (currentPosition?.position == undefined) return;
+        const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition.position);
         currentlyMoving = true;
         await move(stepsToMove);
         currentlyMoving = false;
     }
     async function moveToAll() {
-        if (currentPosition == undefined || selectedDeviceData == undefined) return;
+        if (currentPosition?.position == undefined || selectedDeviceData == undefined) return;
         currentlyMoving = true;
         for (let i = 0; i < movementPlan.movementPlan.stepPoints.length; i++) {
             const step = movementPlan.movementPlan.stepPoints[i];
-            const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition);
+            const stepsToMove = step[calculateMoveTo](movementPlan.movementPlan.stepPoints, currentPosition.position);
             const moveable = await move(stepsToMove);
             if (!moveable) {
                 currentlyMoving = false;
@@ -100,10 +101,10 @@
             }
             const stepCountAfterMove = step[stepsToReach](movementPlan.movementPlan.stepPoints);
             while (stepCountAfterMove != visStreamer.currentPosition || stepCountAfterMove != irStreamer.currentPosition) {
-                currentPosition = irStreamer.currentPosition;
+                currentPosition.position = irStreamer.currentPosition;
                 await Task.delay(100);
             }
-            currentPosition = stepCountAfterMove;
+            currentPosition.position = stepCountAfterMove;
             await Task.delay(1000);
         }
         currentlyMoving = false;
@@ -134,7 +135,7 @@
     <div class="col-md-4 colm-2 row">
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>
         <div class="col-md-8">
-            <label>Pos: {currentPosition}</label>
+            <div>Pos: {currentPosition?.position}</div>
         </div>
         {#if previewEnabled}
             <button on:click={async () => await stopPreview()} class="btn btn-danger col-md-8">Stop Preview</button>
