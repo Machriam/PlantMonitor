@@ -73,6 +73,7 @@
         if (selectedDeviceData?.ip == undefined) return;
         const client = new DeviceClient();
         await client.toggleMotorEngage(selectedDeviceData.ip, shouldBeEngaged);
+        currentPosition = await client.currentPosition(selectedDeviceData.ip);
     }
     async function updateSteps() {
         if (selectedDeviceData?.ip == undefined || selectedDeviceData.health.deviceId == undefined) return;
@@ -136,6 +137,7 @@
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>
         <div class="col-md-8">
             <div>Pos: {currentPosition?.position}</div>
+            <div>Engaged: {currentPosition?.engaged}</div>
         </div>
         {#if previewEnabled}
             <button on:click={async () => await stopPreview()} class="btn btn-danger col-md-8">Stop Preview</button>

@@ -1,6 +1,7 @@
 <script lang="ts">
     interface IEventMap {
         select: DeviceHealthState | undefined;
+        allDevices: DeviceHealthState[];
     }
     import {onDestroy, onMount} from "svelte";
     import {DeviceConfigurationClient, DeviceHealthState} from "~/services/GatewayAppApi";
@@ -19,6 +20,7 @@
         intervalId = setInterval(async () => {
             const healthClient = new DeviceConfigurationClient();
             devices = await healthClient.getDevices();
+            dispatch("allDevices", devices);
             if (selectedDevice != undefined && !devices.map((d) => d.ip).includes(selectedDevice.ip)) deviceSelected(undefined);
         }, 1000 * refreshTimeInSeconds);
     });

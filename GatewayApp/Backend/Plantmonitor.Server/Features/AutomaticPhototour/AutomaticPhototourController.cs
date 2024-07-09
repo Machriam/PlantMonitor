@@ -26,6 +26,12 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
         context.SaveChanges();
     }
 
+    [HttpGet]
+    public IEnumerable<DataModel.DataModel.AutomaticPhotoTour> GetRunningPhotoTours()
+    {
+        return context.AutomaticPhotoTours.Where(apt => !apt.Finished);
+    }
+
     [HttpPost("startphototour")]
     public async Task StartAutomaticTour([FromBody] AutomaticTourStartInfo startInfo)
     {

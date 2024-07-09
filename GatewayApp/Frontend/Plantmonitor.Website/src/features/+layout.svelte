@@ -2,7 +2,7 @@
     import "typeExtensions";
     import Header from "./app/Navbar.svelte";
     import DeviceSelection from "./reuseableComponents/DeviceSelection.svelte";
-    import {selectedDevice} from "./store";
+    import {allDevices, selectedDevice} from "./store";
     import "./styles.css";
 </script>
 
@@ -15,6 +15,7 @@
         <div class="top-row px-4">
             <DeviceSelection
                 refreshTimeInSeconds={2}
+                on:allDevices={(x) => ($allDevices = x.detail)}
                 on:select={(x) => ($selectedDevice = x.detail)}
                 class="col-md-12 d-flex flex-row"></DeviceSelection>
         </div>
