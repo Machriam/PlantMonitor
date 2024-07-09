@@ -10,6 +10,8 @@ namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IHostedService
 {
     private static bool s_photoTripRunning;
+    private readonly int _ffcTimeout = (int)TimeSpan.FromSeconds(5).TotalMilliseconds;
+    private readonly int _positionCheckTimeout = (int)TimeSpan.FromMilliseconds(100).TotalMilliseconds;
     private static readonly object s_lock = new();
 
     private static Timer? s_scheduleTimer;
@@ -51,14 +53,13 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         var deviceRestarter = scope.ServiceProvider.GetRequiredService<IDeviceRestarter>();
         var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
         var (healthy, device) = await deviceRestarter.CheckDeviceHealth(photoTourId, scope, dataContext);
-        var deviceGuid = Guid.Parse(device.Health.DeviceId ?? "");
         if (healthy != true)
         {
             CreateEmptyTrip(photoTourId, dataContext);
             lock (s_lock) s_photoTripRunning = false;
             return;
         }
-        var (irFolder, visFolder) = await TakePhotos(photoTourId, dataContext, irStreamer, visStreamer, deviceApi, device, deviceGuid);
+        var (irFolder, visFolder) = await TakePhotos(photoTourId, dataContext, irStreamer, visStreamer, deviceApi, device);
         if (irFolder.IsEmpty() && visFolder.IsEmpty())
         {
             lock (s_lock) s_photoTripRunning = false;
@@ -76,13 +77,20 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         lock (s_lock) s_photoTripRunning = false;
     }
 
-    private static async Task<(string IrFolder, string VisFolder)> TakePhotos(long photoTourId, IDataContext dataContext, IPictureDiskStreamer irStreamer, IPictureDiskStreamer visStreamer, IDeviceApiFactory deviceApi, DeviceHealthState device, Guid deviceGuid)
+    private async Task<(string IrFolder, string VisFolder)> TakePhotos(long photoTourId, IDataContext dataContext, IPictureDiskStreamer irStreamer, IPictureDiskStreamer visStreamer,
+        IDeviceApiFactory deviceApi, DeviceHealthState device)
     {
+        var logger = dataContext.CreatePhotoTourEventLogger(photoTourId);
+        if (device.Health.DeviceId == null || !Guid.TryParse(device.Health.DeviceId, out var deviceGuid))
+        {
+            logger("Device Id not a valid Guid", PhotoTourEventType.Error);
+            CreateEmptyTrip(photoTourId, dataContext);
+            return ("", "");
+        }
         var irFolder = "";
         var visFolder = "";
         var movementClient = deviceApi.MovementClient(device.Ip);
         var irClient = deviceApi.IrImageTakingClient(device.Ip);
-        var logger = dataContext.CreatePhotoTourEventLogger(photoTourId);
         var movementPlan = dataContext.DeviceMovements.FirstOrDefault(dm => dm.DeviceId == deviceGuid);
         if (movementPlan == null)
         {
@@ -101,13 +109,13 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         var irPosition = 0;
         var deviceTemperature = dataContext.AutomaticPhotoTours
             .Include(pt => pt.TemperatureMeasurements)
-            .First(pt => pt.Id == photoTourId)
+            .FirstOrDefault(pt => pt.Id == photoTourId)?
             .TemperatureMeasurements.First(tm => tm.DeviceId == deviceGuid);
         Task DataReceived(CameraStreamFormatter data, CameraType type)
         {
             if (type == CameraType.IR) irPosition = data.Steps;
             if (type == CameraType.Vis) visPosition = data.Steps;
-            if (data.TemperatureInK != default)
+            if (data.TemperatureInK != default && deviceTemperature != null)
             {
                 deviceTemperature.TemperatureMeasurementValues
                     .Add(new TemperatureMeasurementValue() { Temperature = data.TemperatureInK.KelvinToCelsius(), Timestamp = DateTime.UtcNow });
@@ -118,21 +126,21 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         irStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.IR.GetAttributeOfType<CameraTypeInfo>(),
              StreamingMetaData.Create(1, 100, default, true, [.. pointsToReach], CameraType.IR),
              x => irFolder = x, x => DataReceived(x, CameraType.IR), CancellationToken.None).RunInBackground(ex => ex.LogError());
-        visStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.IR.GetAttributeOfType<CameraTypeInfo>(),
+        visStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.Vis.GetAttributeOfType<CameraTypeInfo>(),
              StreamingMetaData.Create(1, 100, movementPlan.MovementPlan.StepPoints.FirstOrDefault().FocusInCentimeter, true, [.. pointsToReach], CameraType.Vis),
              x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None).RunInBackground(ex => ex.LogError());
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
             await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400, maxStop, minStop);
             currentStep += step.StepOffset;
-            while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(100);
+            while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(_positionCheckTimeout);
             await irClient.RunffcAsync();
-            await Task.Delay(5000);
+            await Task.Delay(_ffcTimeout);
         }
 
         await deviceApi.IrImageTakingClient(device.Ip).KillcameraAsync();
         await deviceApi.VisImageTakingClient(device.Ip).KillcameraAsync();
-        while (!irStreamer.StreamingFinished() || !visStreamer.StreamingFinished()) await Task.Delay(1000);
+        while (!irStreamer.StreamingFinished() || !visStreamer.StreamingFinished()) await Task.Delay(_positionCheckTimeout);
         return (irFolder, visFolder);
     }
 
