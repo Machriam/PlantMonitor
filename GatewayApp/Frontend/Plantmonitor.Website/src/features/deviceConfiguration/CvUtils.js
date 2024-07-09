@@ -7,12 +7,15 @@
 // CV_32F  5  13  21  29  float   Float32Array  ( -FLT_MAX..FLT_MAX, INF, NAN )
 // CV_64F  6  14  22  30  double  Float64Array  ( -DBL_MAX..DBL_MAX, INF, NAN )
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 export function printError(err) {
     if (typeof err === "undefined") {
         err = "";
     } else if (typeof err === "number") {
         if (!isNaN(err)) {
             if (typeof cv !== "undefined") {
+                // eslint-disable-next-line no-undef
                 err = "Exception: " + cv.exceptionFromPtr(err).msg;
             }
         }
@@ -20,6 +23,7 @@ export function printError(err) {
         let ptr = Number(err.split(" ")[0]);
         if (!isNaN(ptr)) {
             if (typeof cv !== "undefined") {
+                // eslint-disable-next-line no-undef
                 err = "Exception: " + cv.exceptionFromPtr(ptr).msg;
             }
         }
@@ -28,12 +32,20 @@ export function printError(err) {
     console.log(err);
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 export function printMat(mat) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     console.log(this.matInfo(mat));
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 export function matInfo(mat) {
     return {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         _matType: this.matType(mat),
         _depth: mat.depth(),
         matSize: mat.matSize,
@@ -46,10 +58,14 @@ export function matInfo(mat) {
         _elemSize: mat.elemSize(),
         _step: mat.step,
         //_empty: mat.empty(),
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
         _data: this.matData(mat)
     };
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 export function matType(mat) {
     let types = [
         "CV_8UC1",
@@ -85,6 +101,8 @@ export function matType(mat) {
     return types[mat.type()];
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 export function matData(mat) {
     let data;
     switch (mat.type() % 7) {
@@ -116,11 +134,15 @@ export function matData(mat) {
     return data;
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
 export function matAtIdx(mat, idx) {
     let ptr = 0;
     for (let i = 0; i < idx.length; i++) {
         ptr += (idx[i] * mat.step[i]) / mat.elemSize();
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     return this.matData(mat)[ptr];
 }
