@@ -30,6 +30,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             Log.Logger.Log("Phototour not found", PhotoTourEventType.Error);
             return (false, default);
         }
+        var hasIrCamera = photoTourData.TemperatureMeasurements.Any(tm => tm.IsThermalCamera());
         var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
         var deviceHealth = eventBus.GetDeviceHealthInformation()
             .FirstOrDefault(h => h.Health.DeviceId == photoTourData.DeviceId.ToString());
@@ -40,11 +41,11 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             return (null, deviceHealth);
         }
         logEvent($"Checking Camera {photoTourData.DeviceId}", PhotoTourEventType.Information);
-        var irTest = await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
+        var irTest = hasIrCamera ? await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync() : default;
+        var irImage = irTest?.Stream.ConvertToArray() ?? [];
         var visTest = await deviceApi.VisImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
-        var irImage = irTest.Stream.ConvertToArray();
         var visImage = visTest.Stream.ConvertToArray();
-        if (irImage.Length < 100 || visImage.Length < 100)
+        if ((hasIrCamera && irImage.Length < 100) || visImage.Length < 100)
         {
             var notWorkingCameras = new List<string>()
                 .PushIf("IR", _ => irImage.Length < 100)

@@ -31,7 +31,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         {
             var lastTrip = dataContext.PhotoTourTrips.OrderByDescending(j => j.Timestamp)
                 .FirstOrDefault(j => j.PhotoTourFk == photoTour.Id);
-            if (lastTrip == default || (lastTrip.Timestamp - DateTime.UtcNow).TotalMinutes >= photoTour.IntervallInMinutes)
+            if (lastTrip == default || (DateTime.UtcNow - lastTrip.Timestamp).TotalMinutes >= photoTour.IntervallInMinutes)
             {
                 RunPhotoTrip(photoTour.Id).RunInBackground(ex => ex.LogError());
             }
