@@ -38,9 +38,11 @@ public class HealthSettingsEditor : IHealthSettingsEditor
     public DeviceHealth UpdateHealthState(params (HealthState state, bool isActive)[] data)
     {
         var health = GetHealth();
+        if (health.State < 0) health.State = HealthState.NA;
         foreach (var (state, isActive) in data)
         {
-            health.State |= (isActive ? state : ~state);
+            if (isActive) health.State |= state;
+            else if (health.State.HasFlag(state)) health.State &= ~state;
         }
         File.WriteAllText(s_filePath, health.AsJson());
         return health;
