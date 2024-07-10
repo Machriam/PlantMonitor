@@ -20,6 +20,7 @@
     import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
     import PictureStreamer from "../deviceProgramming/PictureStreamer.svelte";
     import Select from "../reuseableComponents/Select.svelte";
+    import {formatHealthState} from "~/services/healthStateExtensions";
 
     let configurationData: {ipFrom: string; ipTo: string; userName: string; userPassword: string} = {
         ipFrom: "",
@@ -39,13 +40,6 @@
 
     let searchingForDevices = true;
     let webSshLink = ""; // @hmr:keep
-    function healthStateFormatter(state: HealthState) {
-        const result = Object.getOwnPropertyNames(HealthState)
-            .filter((x) => !parseInt(x) && x != "0")
-            .filter((x) => (HealthState as unknown as {[key: string]: number})[x] & state);
-        if (result.length == 0) return [HealthState[HealthState.NA]];
-        return result;
-    }
     let webSshCredentials: WebSshCredentials;
     onMount(async () => {
         configurationClient = new DeviceConfigurationClient();
@@ -214,7 +208,7 @@
                                 <span>{device.health.deviceName}</span><br />
                                 <span>{device.health.deviceId}</span><br />
                                 <span>
-                                    {#each healthStateFormatter(device.health.state ?? HealthState.NA) as state}
+                                    {#each formatHealthState(device.health.state ?? HealthState.NA) as state}
                                         <span>{state}<br /></span>
                                     {/each}
                                 </span>
@@ -238,7 +232,8 @@
                                 </button>
                                 <button on:click={() => getLogData(device.ip)} class="btn btn-primary"> Show Logs </button>
                                 <button on:click={() => runFFC(device.ip)} class="btn btn-primary"> FFC</button>
-                                <button on:click={() => calibrateExposure(device.ip)} class="btn btn-primary"> Update Exposure</button>
+                                <button on:click={() => calibrateExposure(device.ip)} class="btn btn-primary">
+                                    Update Exposure</button>
                                 {#if device.health.deviceId != undefined && allOutletsFetched}
                                     <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
                                         Associated Outlet:

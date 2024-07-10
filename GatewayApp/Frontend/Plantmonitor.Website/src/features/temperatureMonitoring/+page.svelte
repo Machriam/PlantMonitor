@@ -36,7 +36,7 @@
         if ($selectedDevice == undefined || $selectedDevice == null) return;
         const temperatureClient = new TemperatureClient();
         _devices = (await temperatureClient.getDevices($selectedDevice.ip)).map(
-            (x) => new MeasurementDevice({deviceId: x, comment: ""})
+            (x) => new MeasurementDevice({sensorId: x, comment: ""})
         );
         await getMeasurements();
     }
@@ -67,7 +67,7 @@
     <button on:click={getDevices} class="btn btn-primary">Get Devices</button>
     <div class="col-md-12">
         {#each _devices as device}
-            <div>{device.deviceId}</div>
+            <div>{device.sensorId}</div>
             <input type="text" class="form-control" bind:value={device.comment} />
         {/each}
     </div>

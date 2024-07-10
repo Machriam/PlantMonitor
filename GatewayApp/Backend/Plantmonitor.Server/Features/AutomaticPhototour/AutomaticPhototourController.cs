@@ -10,7 +10,7 @@ namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectionEventBus eventBus, IDeviceApiFactory deviceFactory)
 {
     public record struct TemperatureMeasurementInfo(string Guid, string Comment);
-    public record struct AutomaticTourStartInfo(int IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice, string Comment, string Name, string DeviceGuid);
+    public record struct AutomaticTourStartInfo(float IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice, string Comment, string Name, string DeviceGuid);
 
     [HttpPost("stopphototour")]
     public void StopPhotoTour(long id)
@@ -24,6 +24,12 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
             Message = "Photo tour finished",
         });
         context.SaveChanges();
+    }
+
+    [HttpGet]
+    public IEnumerable<DataModel.DataModel.AutomaticPhotoTour> GetRunningPhotoTours()
+    {
+        return context.AutomaticPhotoTours.Where(apt => !apt.Finished);
     }
 
     [HttpPost("startphototour")]
@@ -48,8 +54,9 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
         if (devicesWithoutSensor.Any(d => !d.IsEmpty())) throw new Exception(devicesWithoutSensor.Concat("\n"));
         var alreadyOccupiedDevices = context.AutomaticPhotoTours
             .Where(pt => !pt.Finished)
-            .SelectMany(pt => pt.TemperatureMeasurements.Select(tm => tm.DeviceId).Append(pt.DeviceId))
+            .SelectMany(pt => pt.TemperatureMeasurements.Select(tm => tm.DeviceId))
             .ToHashSet();
+        foreach (var device in context.AutomaticPhotoTours.Where(pt => !pt.Finished).Select(pt => pt.DeviceId)) alreadyOccupiedDevices.Add(device);
         if (alreadyOccupiedDevices.Contains(Guid.Parse(startInfo.DeviceGuid))) throw new Exception("The imaging device is already busy with another photo tour");
         var busyTemperatureDevices = temperatureDevices
             .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health.DeviceId ?? "")) ? $"{td.DeviceHealth.Health.DeviceName} is used in another photo tour" : "");
