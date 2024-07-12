@@ -42,19 +42,22 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
     private async Task ReadImagesFromFiles(Channel<byte[]> channel, string imagePath, StreamingMetaData data, ICameraInterop camera, CancellationToken token)
     {
         var typeInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
+        logger.LogInformation("Reading images from file type: {type}, live: {live}", data.Type, !data.StoreData);
         while (data.StoreData && camera.CameraIsRunning())
         {
-            await Task.Delay(50, token);
+            await Task.Delay(100, token);
             var steps = BitConverter.GetBytes(motorPosition.CurrentPosition().Position);
             var tickBytes = BitConverter.GetBytes(DateTime.UtcNow.Ticks);
             await channel.Writer.WriteAsync([.. steps, .. tickBytes], token);
         }
         if (!data.StoreData)
         {
+            logger.LogInformation("Start live streaming");
             await StreamLive(channel, imagePath, data, camera, token);
         }
         else
         {
+            logger.LogInformation("Start file reading");
             foreach (var file in Directory.EnumerateFiles(imagePath).OrderBy(x => x))
             {
                 var fileCreationTime = File.GetCreationTimeUtc(file);
@@ -62,6 +65,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                 var bytesToSend = await fileStreamer.ReadFromFile(typeInfo, file, token);
                 if (data.PositionsToStream.Contains(stepCount))
                 {
+                    logger.LogInformation("Sending file: {file}", file);
                     await channel.Writer.WaitToWriteAsync(token);
                     await channel.Writer.WriteAsync(bytesToSend.CreateFormatter(stepCount).GetBytes(), token);
                 }
