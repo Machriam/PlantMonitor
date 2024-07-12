@@ -32,7 +32,7 @@ public class OutletSwitcher433MHz(IEnvironmentConfiguration configuration) : IOu
         void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data?.Trim() == "Waiting for data") waitingForData = true;
-            success = e.Data?.Trim() == TestPayload.ToString();
+            if (e.Data?.Trim() == TestPayload.ToString()) success = true;
         }
         var process = new Process() { StartInfo = startInfo };
         process.OutputDataReceived += Process_OutputDataReceived;
