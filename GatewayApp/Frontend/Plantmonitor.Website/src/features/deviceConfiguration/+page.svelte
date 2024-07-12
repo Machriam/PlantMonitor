@@ -13,7 +13,7 @@
         PowerOutletClient,
         WebSshCredentials,
         type IAssociatePowerOutletModel
-    } from "../../services/GatewayAppApi";
+    } from "~/services/GatewayAppApi";
     import {Task} from "~/types/task";
     import {CvInterop, ThermalImage} from "./CvInterop";
     import TextInput from "../reuseableComponents/TextInput.svelte";
@@ -63,10 +63,10 @@
         if (ip == undefined) return;
         webSshLink = "";
         await Task.delay(100);
-        var certificate = await configurationClient.getCertificateData();
+        const certificate = await configurationClient.getCertificateData();
         const command =
             `sudo mkdir /srv/certs/;echo '${certificate.certificate}' | sudo tee /srv/certs/plantmonitor.crt;echo '${certificate.key}' | sudo tee /srv/certs/plantmonitor.key;` +
-            `sudo echo -e "set -g mouse on\\nset -g history-limit 4096" > ~/.tmux.conf;` +
+            `sudo echo -e "set -g mouse on\\n set -g history-limit 4096" > ~/.tmux.conf;` +
             `sudo apt-get update;sudo apt-get install -y tmux;tmux new '` +
             `sudo apt-get install -y git;` +
             `git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor;git reset --hard;git pull; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;` +
@@ -82,12 +82,12 @@
     async function calibrateExposure(ip: string | undefined) {
         if (ip == undefined) return;
         const client = new DeviceClient();
-        client.calibrateExposure(ip);
+        await client.calibrateExposure(ip);
     }
     async function runFFC(ip: string | undefined) {
         if (ip == undefined) return;
         const client = new DeviceClient();
-        client.runFFC(ip);
+        await client.runFFC(ip);
     }
     async function getLogData(ip: string | undefined) {
         if (ip == undefined) return;
@@ -119,11 +119,15 @@
     }
     async function checkStatus(ip: string) {
         const deviceClient = new DeviceConfigurationClient();
-        await deviceClient.recheckDevice(ip);
+        const newHealth = await deviceClient.recheckDevice(ip);
+        const checkedDevice = devices.find((d) => d.ip == ip);
+        if (checkedDevice == undefined) return;
+        checkedDevice.health = newHealth;
+        devices = devices;
     }
     async function updateIpRange() {
         const client = new AppConfigurationClient();
-        client.updateIpRanges(configurationData.ipFrom, configurationData.ipTo);
+        await client.updateIpRanges(configurationData.ipFrom, configurationData.ipTo);
         configurationData.ipFrom = "";
         configurationData.ipTo = "";
     }
@@ -137,7 +141,7 @@
     }
     async function switchPowerOutlet(code: number | undefined) {
         if (code == undefined) return;
-        const switchDevices = devices.filter((d) => d.health.state != undefined && d.health.state & HealthState.CanSwitchOutlets);
+        const switchDevices = devices.filter((d) => d.health.state != undefined && (d.health.state & HealthState.CanSwitchOutlets));
         const outletClient = new PowerOutletClient();
         for (let i = 0; i < switchDevices.length; i++) {
             await outletClient.disablePrompts().switchOutlet(switchDevices[i].ip, code).try();
@@ -173,7 +177,7 @@
             switchOnId: model?.switchOnId,
             switchOffId: model?.switchOffId
         };
-        outletClient.associateDeviceWithPowerOutlet(new AssociatePowerOutletModel(data));
+        await outletClient.associateDeviceWithPowerOutlet(new AssociatePowerOutletModel(data));
         await getDeviceStatus();
     }
 </script>
@@ -203,7 +207,7 @@
                 <tbody>
                     <tr>
                         <td class="col-md-3">
-                            {#if device.health != undefined}
+                            {#if device.health !== undefined}
                                 <span class="badge bg-success">{device.ip}</span><br />
                                 <span>{device.health.deviceName}</span><br />
                                 <span>{device.health.deviceId}</span><br />
@@ -218,7 +222,7 @@
                         </td>
                         <td>
                             <button on:click={() => configureDevice(device.ip)} class="btn btn-primary"> Configure </button>
-                            {#if device.health != undefined}
+                            {#if device.health !== undefined}
                                 <button on:click={() => showPreviewImage(device.ip)} class="btn btn-primary">
                                     Preview Image
                                 </button>
@@ -234,7 +238,7 @@
                                 <button on:click={() => runFFC(device.ip)} class="btn btn-primary"> FFC</button>
                                 <button on:click={() => calibrateExposure(device.ip)} class="btn btn-primary">
                                     Update Exposure</button>
-                                {#if device.health.deviceId != undefined && allOutletsFetched}
+                                {#if device.health.deviceId !== undefined && allOutletsFetched}
                                     <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
                                         Associated Outlet:
                                         <Select
@@ -261,7 +265,7 @@
             textSelector={(x) => `${x.name} Channel: ${x.channel} Button: ${x.buttonNumber}`}
             items={existingOutlets}
             class="col-md-6"></Select>
-        {#if selectedOutlet != undefined}
+        {#if selectedOutlet !== undefined}
             <button on:click={async () => await switchPowerOutlet(selectedOutlet?.switchOnId)} class="btn btn-success"
                 >Power On</button>
             <button on:click={async () => await switchPowerOutlet(selectedOutlet?.switchOffId)} class="btn btn-danger"

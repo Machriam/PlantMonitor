@@ -13,7 +13,7 @@
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
     import {selectedDevice, allDevices} from "../store";
     import {isValid} from "./AutomaticTourStartInfoExtensions";
-    import {calculateMoveTo, stepsToReach} from "~/services/movementPointExtensions";
+    import {calculateMoveTo} from "~/services/movementPointExtensions";
     onDestroy(() => {});
     let runningTours: AutomaticPhotoTour[] = [];
     let movementPlan: DeviceMovement | undefined;
@@ -22,7 +22,7 @@
     selectedDevice.subscribe(async (x) => {
         if (x?.health.deviceId == undefined || $selectedDevice?.health.deviceId == undefined) return;
         startInfo.deviceGuid = $selectedDevice?.health.deviceId;
-        var movementClient = new MovementProgrammingClient();
+        const movementClient = new MovementProgrammingClient();
         movementPlan = await movementClient.getPlan(x?.health.deviceId);
         if (movementPlan.movementPlan.stepPoints.length > 0) startInfo.movementPlan = movementPlan.id;
         else startInfo.movementPlan = 0;
@@ -85,7 +85,7 @@
                         style="text-align: center">
                         {sensor.name}<br />
                         <div class="col-md-12 d-flex flex-row justify-content-center">
-                            {#if sensor.sensors.length == 0}
+                            {#if sensor.sensors.length === 0}
                                 <span class=""> No sensors </span>
                             {/if}
                             {#each sensor.sensors as s}
@@ -98,7 +98,7 @@
         </div>
         <div class="col-md-4 d-flex flex-column card mt-2">
             <h4>Movement Plan</h4>
-            {#if movementPlan != undefined}
+            {#if movementPlan !== undefined}
                 {#each movementPlan.movementPlan.stepPoints as point, index}
                     <div class="row col-md-12">
                         <span class="col-md-3"> Step {index + 1}: </span>
