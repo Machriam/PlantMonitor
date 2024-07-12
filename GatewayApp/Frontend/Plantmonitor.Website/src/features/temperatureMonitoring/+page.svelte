@@ -6,58 +6,62 @@
         MeasurementStartInfo,
         RunningMeasurement,
         TemperatureClient,
-        TemperatureMeasurement,
-        type IMeasurementStartInfo
+        TemperatureMeasurement
     } from "~/services/GatewayAppApi";
     import {onDestroy, onMount} from "svelte";
     import {HubConnection} from "@microsoft/signalr";
     import {Task} from "~/types/task";
+
     let _connection: HubConnection | undefined;
     let _temperatureMeasurementById: Map<number, TemperatureMeasurement> = new Map();
     let _runningMeasurementByIp: Map<string, RunningMeasurement[]> = new Map();
     let _devices: MeasurementDevice[] = [];
-    onDestroy(() => {});
+    onDestroy(() => {
+        _connection?.stop();
+    });
     onMount(async () => {
         await getMeasurements();
     });
+
     async function getMeasurements() {
         const temperatureClient = new TemperatureClient();
         _temperatureMeasurementById = (await temperatureClient.measurements()).toDictionary((x) => x.id);
         _runningMeasurementByIp = (await temperatureClient.getRunningMeasurements()).groupBy((x) => x.ip);
     }
+
     async function startMeasurement() {
-        if ($selectedDevice == undefined || $selectedDevice == null) return;
+        if ($selectedDevice == undefined) return;
         const temperatureClient = new TemperatureClient();
-        temperatureClient.addMeasurement(new MeasurementStartInfo({devices: _devices, ip: $selectedDevice.ip}));
+        await temperatureClient.addMeasurement(new MeasurementStartInfo({devices: _devices, ip: $selectedDevice.ip}));
         await Task.delay(3000);
         await getMeasurements();
     }
+
     async function getDevices() {
-        if ($selectedDevice == undefined || $selectedDevice == null) return;
+        if ($selectedDevice == undefined) return;
         const temperatureClient = new TemperatureClient();
         _devices = (await temperatureClient.getDevices($selectedDevice.ip)).map(
             (x) => new MeasurementDevice({sensorId: x, comment: ""})
         );
         await getMeasurements();
     }
+
     async function stopMeasurement(ip: string) {
         const temperatureClient = new TemperatureClient();
         await temperatureClient.stopMeasurement(ip);
         await getMeasurements();
     }
+
     async function getTemperatures() {
-        if ($selectedDevice == undefined || $selectedDevice == null) return;
+        if ($selectedDevice == undefined) return;
         const temperatureClient = new TemperatureClient();
         const streamer = new DeviceStreaming();
         const devices = await temperatureClient.getDevices($selectedDevice.ip);
         const connection = streamer.temperatureConnection($selectedDevice.ip, devices);
         _connection = connection.connection;
-        connection.start(async (temperature, device, date) => {
+        await connection.start(async (temperature, device, date) => {
             console.log(device, temperature, date);
         });
-    }
-    function measurementsByIp(ip: string) {
-        return _runningMeasurementByIp.get(ip) ?? [];
     }
 </script>
 

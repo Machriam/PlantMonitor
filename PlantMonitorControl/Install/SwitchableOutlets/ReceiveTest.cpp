@@ -11,6 +11,7 @@ int main(int argc, char *argv[]) {
 
     RCSwitch mySwitch = RCSwitch();
     mySwitch.enableReceive(PIN);
+    printf("Waiting for data");
     while(1) {
       if (mySwitch.available()) {
         unsigned long value = mySwitch.getReceivedValue();

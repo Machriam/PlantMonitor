@@ -26,15 +26,19 @@ public class OutletSwitcher433MHz(IEnvironmentConfiguration configuration) : IOu
             RedirectStandardOutput = true,
         };
         var success = false;
+        var waitingForData = false;
+        async Task Timeout() { await Task.Delay(2000); waitingForData = true; }
+        Timeout().RunInBackground(ex => ex.LogError());
         void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
+            if (e.Data?.Trim() == "Waiting for data") waitingForData = true;
             success = e.Data?.Trim() == TestPayload.ToString();
         }
         var process = new Process() { StartInfo = startInfo };
         process.OutputDataReceived += Process_OutputDataReceived;
         process.Start();
         process.BeginOutputReadLine();
-        await Task.Yield();
+        while (!waitingForData) await Task.Delay(200);
         SwitchOutlet(TestPayload);
         await Task.Delay(200);
         if (!process.HasExited) process.Kill();

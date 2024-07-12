@@ -19,7 +19,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        s_scheduleTimer = new Timer(async _ => await SchedulePhotoTrips(), default, 0, s_scheduleTimeOut);
+        s_scheduleTimer = new Timer(_ => SchedulePhotoTrips().RunInBackground(ex => ex.LogError()), default, 0, s_scheduleTimeOut);
         return Task.CompletedTask;
     }
 
@@ -33,7 +33,11 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
                 .FirstOrDefault(j => j.PhotoTourFk == photoTour.Id);
             if (lastTrip == default || (DateTime.UtcNow - lastTrip.Timestamp).TotalMinutes >= photoTour.IntervallInMinutes)
             {
-                RunPhotoTrip(photoTour.Id).RunInBackground(ex => ex.LogError());
+                RunPhotoTrip(photoTour.Id).RunInBackground(ex =>
+                {
+                    ex.LogError();
+                    lock (s_lock) s_photoTripRunning = false;
+                });
             }
         }
     }
@@ -101,7 +105,11 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         var (maxStop, minStop) = movementPlan.GetSafetyStops();
         var currentPosition = await movementClient.CurrentpositionAsync();
         if (currentPosition.Engaged != true) logger("Aborting movement, motor is disengaged", PhotoTourEventType.Error);
-        if (currentPosition.Position != 0) await movementClient.MovemotorAsync(-currentPosition.Position, 1000, 4000, 400, maxStop, minStop);
+        if (currentPosition.Position != 0)
+        {
+            logger($"Trying to zero position with Offset: {-currentPosition.Position}", PhotoTourEventType.Debug);
+            await movementClient.MovemotorAsync(-currentPosition.Position, 1000, 4000, 400, maxStop, minStop);
+        }
         var pointsToReach = new List<int>();
         foreach (var point in movementPlan.MovementPlan.StepPoints) pointsToReach.Add(pointsToReach.LastOrDefault() + point.StepOffset);
         var currentStep = 0;
@@ -110,9 +118,15 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         var deviceTemperature = dataContext.AutomaticPhotoTours
             .Include(pt => pt.TemperatureMeasurements)
             .FirstOrDefault(pt => pt.Id == photoTourId)?
-            .TemperatureMeasurements.First(tm => tm.DeviceId == deviceGuid);
+            .TemperatureMeasurements.FirstOrDefault(tm => tm.DeviceId == deviceGuid);
+        var firstImageReceived = new HashSet<CameraType>();
         Task DataReceived(CameraStreamFormatter data, CameraType type)
         {
+            if (data.PictureData?.Length > 0 && !firstImageReceived.Contains(type))
+            {
+                firstImageReceived.Add(type);
+                logger($"Received first image of type {Enum.GetName(type)}", PhotoTourEventType.Debug);
+            }
             if (type == CameraType.IR) irPosition = data.Steps;
             if (type == CameraType.Vis) visPosition = data.Steps;
             if (data.TemperatureInK != default && deviceTemperature != null)
@@ -125,22 +139,34 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         }
         irStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.IR.GetAttributeOfType<CameraTypeInfo>(),
              StreamingMetaData.Create(1, 100, default, true, [.. pointsToReach], CameraType.IR),
-             x => irFolder = x, x => DataReceived(x, CameraType.IR), CancellationToken.None).RunInBackground(ex => ex.LogError());
+             x => irFolder = x, x => DataReceived(x, CameraType.IR), CancellationToken.None).RunInBackground(ex =>
+             {
+                 ex.LogError();
+                 logger("Ir streaming error: " + ex.Message, PhotoTourEventType.Error);
+             });
         visStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.Vis.GetAttributeOfType<CameraTypeInfo>(),
              StreamingMetaData.Create(1, 100, movementPlan.MovementPlan.StepPoints.FirstOrDefault().FocusInCentimeter, true, [.. pointsToReach], CameraType.Vis),
-             x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None).RunInBackground(ex => ex.LogError());
+             x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None).RunInBackground(ex =>
+             {
+                 ex.LogError();
+                 logger("Vis streaming error: " + ex.Message, PhotoTourEventType.Error);
+             });
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
+            logger($"Moving to position: {currentStep + step.StepOffset}", PhotoTourEventType.Debug);
             await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400, maxStop, minStop);
             currentStep += step.StepOffset;
             while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(_positionCheckTimeout);
+            logger($"Moved to position: {currentStep}, performing FFC", PhotoTourEventType.Debug);
             await irClient.RunffcAsync();
             await Task.Delay(_ffcTimeout);
         }
 
+        logger("Killing image taking processes", PhotoTourEventType.Debug);
         await deviceApi.IrImageTakingClient(device.Ip).KillcameraAsync();
         await deviceApi.VisImageTakingClient(device.Ip).KillcameraAsync();
         while (!irStreamer.StreamingFinished() || !visStreamer.StreamingFinished()) await Task.Delay(_positionCheckTimeout);
+        logger("Streaming of data has finished", PhotoTourEventType.Debug);
         return (irFolder, visFolder);
     }
 

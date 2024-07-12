@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using Plantmonitor.Server.Features.AppConfiguration;
-using MessagePack.Formatters;
+using System.Diagnostics;
 
 namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
@@ -50,11 +50,26 @@ public class PictureDiskStreamer(IEnvironmentConfiguration configuration) : IPic
     private async Task StreamData(string path, CameraTypeInfo cameraInfo, StreamingMetaData data, Func<CameraStreamFormatter, Task> callback, CancellationToken token)
     {
         if (_connection == null) return;
+        var timeoutWatcher = new Stopwatch();
+        async Task CheckTimeout()
+        {
+            await Task.Yield();
+            while (!_connectionClosed)
+            {
+                if (timeoutWatcher.Elapsed.TotalSeconds > 30)
+                {
+                    await Connection_Closed(null);
+                    throw new Exception("No data received for 30 seconds.");
+                }
+            }
+        }
         var stream = await _connection.StreamAsChannelAsync<byte[]>(cameraInfo.SignalRMethod, data, token);
+        CheckTimeout().RunInBackground(ex => ex.LogError());
         while (await stream.WaitToReadAsync(token))
         {
             await foreach (var image in stream.ReadAllAsync(token))
             {
+                timeoutWatcher.Restart();
                 var cameraStream = CameraStreamFormatter.FromBytes(image);
                 callback(cameraStream).RunInBackground(ex => ex.LogError());
                 if (!path.IsEmpty() && cameraStream.PictureData != null)
