@@ -72,7 +72,11 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             logEvent($"Camera Device has no valid GUID: {restartDeviceId}", PhotoTourEventType.Error);
             return;
         }
-        if (s_lastRestarts.TryGetValue(deviceGuid, out var lastRestart) && (DateTime.UtcNow - lastRestart).TotalMinutes < 5) return;
+        if (s_lastRestarts.TryGetValue(deviceGuid, out var lastRestart) && (DateTime.UtcNow - lastRestart).TotalMinutes < 5)
+        {
+            logEvent($"Restart is at most possible every 5 minutes: {restartDeviceId}", PhotoTourEventType.Information);
+            return;
+        }
         var switchData = dataContext.DeviceSwitchAssociations
             .Include(sw => sw.OutletOffFkNavigation)
             .Include(sw => sw.OutletOnFkNavigation)
