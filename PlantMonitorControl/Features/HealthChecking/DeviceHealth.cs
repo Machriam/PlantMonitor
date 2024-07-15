@@ -8,7 +8,7 @@
         ThermalCameraFound = 2,
         NoirCameraFunctional = 4,
         ThermalCameraFunctional = 8,
-        SystemCalibrated = 16,
+        HasTemperatureSensor = 16,
         CanSwitchOutlets = 32,
     }
 

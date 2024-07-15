@@ -2589,7 +2589,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
 
         ThermalCameraFunctional = 8,
 
-        SystemCalibrated = 16,
+        HasTemperatureSensor = 16,
 
         CanSwitchOutlets = 32,
 
