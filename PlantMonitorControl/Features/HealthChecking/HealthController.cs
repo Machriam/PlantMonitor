@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.ImageTaking;
+using PlantMonitorControl.Features.MeasureTemperature;
 using PlantMonitorControl.Features.SwitchOutlets;
 
 namespace PlantMonitorControl.Features.HealthChecking;
@@ -18,17 +19,19 @@ public class HealthController(IHealthSettingsEditor healthSettings) : Controller
     [HttpGet("checkdevicehealth")]
     public async Task<DeviceHealth> CheckDeviceHealth([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop visCamera,
         [FromKeyedServices(ICameraInterop.IrCamera)] ICameraInterop irCamera,
-        [FromServices] IOutletSwitcher switcher)
+        [FromServices] IOutletSwitcher switcher, [FromServices] IClick2TempInterop tempInterop)
     {
         var cameraFunctional = await visCamera.CameraFunctional();
         var cameraFound = await visCamera.CameraFound();
         var irFunctional = await irCamera.CameraFunctional();
         var irFound = await irCamera.CameraFound();
         var canSwitchOutlets = await switcher.DeviceCanSwitchOutlets();
+        var tempDevices = tempInterop.GetDevices();
         return healthSettings.UpdateHealthState(
             (HealthState.NoirCameraFound, cameraFound),
             (HealthState.NoirCameraFunctional, cameraFunctional),
             (HealthState.ThermalCameraFunctional, irFunctional),
+            (HealthState.HasTemperatureSensor, tempDevices.Any()),
             (HealthState.ThermalCameraFound, irFound),
             (HealthState.CanSwitchOutlets, canSwitchOutlets));
     }
