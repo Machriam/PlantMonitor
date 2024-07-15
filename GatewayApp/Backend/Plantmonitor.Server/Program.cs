@@ -101,7 +101,7 @@ app.Use(async (context, next) =>
     await next();
     var path = context.Request.Path.Value;
 
-    if (path?.StartsWith("/api") == false && path?.StartsWith("/hub") == false)
+    if (context.Response.StatusCode != StatusCodes.Status304NotModified && path?.StartsWith("/api") == false && path?.StartsWith("/hub") == false)
     {
         context.Request.Path = "/index.html";
         await next();
