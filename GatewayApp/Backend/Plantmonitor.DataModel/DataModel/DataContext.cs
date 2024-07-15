@@ -30,6 +30,7 @@ public interface IDataContext : IAsyncDisposable, IDisposable
     IQueryable<TemperatureMeasurement> TemperatureMeasurements { get; }
 
     IQueryable<TemperatureMeasurementValue> TemperatureMeasurementValues { get; }
+
 }
 
 public partial class DataContext : DbContext, IDataContext
@@ -170,7 +171,7 @@ public partial class DataContext : DbContext, IDataContext
 
         modelBuilder.Entity<PhotoTourTrip>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("photo_tour_journey_pkey");
+            entity.HasKey(e => e.Id).HasName("photo_tour_trip_pkey");
 
             entity.ToTable("photo_tour_trip", "plantmonitor");
 
@@ -185,7 +186,7 @@ public partial class DataContext : DbContext, IDataContext
             entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourTrips)
                 .HasForeignKey(d => d.PhotoTourFk)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("photo_tour_journey_photo_tour_fk_fkey");
+                .HasConstraintName("photo_tour_trip_photo_tour_fk_fkey");
         });
 
         modelBuilder.Entity<SwitchableOutletCode>(entity =>

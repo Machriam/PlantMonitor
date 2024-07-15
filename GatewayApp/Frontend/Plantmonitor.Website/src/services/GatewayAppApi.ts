@@ -1299,7 +1299,9 @@ export interface IAutomaticPhotoTourClient {
 
     stopPhotoTour(id?: number | undefined): Promise<void>;
 
-    getRunningPhotoTours(): Promise<AutomaticPhotoTour[]>;
+    getEvents(photoTourId?: number | undefined): Promise<PhotoTourEvent[]>;
+
+    getPhotoTours(): Promise<PhotoTourInfo[]>;
 
     startAutomaticTour(startInfo: AutomaticTourStartInfo): Promise<void>;
 }
@@ -1351,8 +1353,12 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
         return Promise.resolve<void>(null as any);
     }
 
-    getRunningPhotoTours(): Promise<AutomaticPhotoTour[]> {
-        let url_ = this.baseUrl + "/api/AutomaticPhotoTour";
+    getEvents(photoTourId?: number | undefined): Promise<PhotoTourEvent[]> {
+        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/events?";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -1365,11 +1371,11 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
         return this.transformOptions(options_).then(transformedOptions_ => {
             return this.http.fetch(url_, transformedOptions_);
         }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processGetRunningPhotoTours(_response));
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetEvents(_response));
         });
     }
 
-    protected processGetRunningPhotoTours(response: Response): Promise<AutomaticPhotoTour[]> {
+    protected processGetEvents(response: Response): Promise<PhotoTourEvent[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1379,7 +1385,7 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(AutomaticPhotoTour.fromJS(item));
+                    result200!.push(PhotoTourEvent.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -1391,7 +1397,50 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<AutomaticPhotoTour[]>(null as any);
+        return Promise.resolve<PhotoTourEvent[]>(null as any);
+    }
+
+    getPhotoTours(): Promise<PhotoTourInfo[]> {
+        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/phototours";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetPhotoTours(_response));
+        });
+    }
+
+    protected processGetPhotoTours(response: Response): Promise<PhotoTourInfo[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PhotoTourInfo.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PhotoTourInfo[]>(null as any);
     }
 
     startAutomaticTour(startInfo: AutomaticTourStartInfo): Promise<void> {
@@ -2761,6 +2810,65 @@ export interface IDeviceHealthState {
     health: DeviceHealth;
     retryTimes: number;
     ip: string;
+}
+
+export class PhotoTourInfo implements IPhotoTourInfo {
+    name!: string;
+    finished!: boolean;
+    id!: number;
+    firstEvent!: Date;
+    lastEvent!: Date;
+
+    constructor(data?: IPhotoTourInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["Name"];
+            this.finished = _data["Finished"];
+            this.id = _data["Id"];
+            this.firstEvent = _data["FirstEvent"] ? new Date(_data["FirstEvent"].toString()) : <any>undefined;
+            this.lastEvent = _data["LastEvent"] ? new Date(_data["LastEvent"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): PhotoTourInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new PhotoTourInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Name"] = this.name;
+        data["Finished"] = this.finished;
+        data["Id"] = this.id;
+        data["FirstEvent"] = this.firstEvent ? this.firstEvent.toISOString() : <any>undefined;
+        data["LastEvent"] = this.lastEvent ? this.lastEvent.toISOString() : <any>undefined;
+        return data;
+    }
+
+    clone(): PhotoTourInfo {
+        const json = this.toJSON();
+        let result = new PhotoTourInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPhotoTourInfo {
+    name: string;
+    finished: boolean;
+    id: number;
+    firstEvent: Date;
+    lastEvent: Date;
 }
 
 export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
