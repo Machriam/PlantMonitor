@@ -1,4 +1,4 @@
-import { HealthState } from "./GatewayAppApi";
+import {HealthState} from "./GatewayAppApi";
 
 export function formatHealthState(state: HealthState) {
     const flagCount = (Object.getOwnPropertyNames(HealthState).length / 2) - 1;
@@ -8,4 +8,10 @@ export function formatHealthState(state: HealthState) {
     }
     if (result.length == 0) return [HealthState[HealthState.NA]];
     return result;
+}
+
+export function hasFlag(state: HealthState | undefined, flagState: HealthState) {
+    if (state == undefined) return false;
+    return !!(state & flagState);
+
 }

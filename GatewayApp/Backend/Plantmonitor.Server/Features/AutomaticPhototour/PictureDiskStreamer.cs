@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
-public interface IPictureDiskStreamer : IAsyncDisposable
+public interface IPictureDiskStreamer : IAsyncDisposable, IDisposable
 {
     Task StartStreamingToDisc(string ip, string deviceId, CameraTypeInfo cameraType, StreamingMetaData data, Action<string> picturePathCallback,
             Func<CameraStreamFormatter, Task> imageReceivedCallback, CancellationToken token);
@@ -85,5 +85,12 @@ public class PictureDiskStreamer(IEnvironmentConfiguration configuration) : IPic
         if (_connection == null) return ValueTask.CompletedTask;
         _connection.Closed -= Connection_Closed;
         return _connection.DisposeAsync();
+    }
+
+    public void Dispose()
+    {
+        if (_connection == null) return;
+        _connection.Closed -= Connection_Closed;
+        _ = _connection.DisposeAsync();
     }
 }
