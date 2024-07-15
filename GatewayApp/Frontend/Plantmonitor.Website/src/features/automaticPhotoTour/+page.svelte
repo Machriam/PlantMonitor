@@ -7,18 +7,22 @@
         MovementProgrammingClient,
         TemperatureClient,
         TemperatureMeasurementInfo,
-        type AutomaticPhotoTour
+        type AutomaticPhotoTour, PhotoTourInfo, PhotoTourEvent, PhotoTourEventType
     } from "~/services/GatewayAppApi";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
     import {selectedDevice, allDevices} from "../store";
     import {isValid} from "./AutomaticTourStartInfoExtensions";
     import {calculateMoveTo} from "~/services/movementPointExtensions";
-    onDestroy(() => {});
-    let runningTours: AutomaticPhotoTour[] = [];
+
+    onDestroy(() => {
+    });
     let movementPlan: DeviceMovement | undefined;
     let startInfo: AutomaticTourStartInfo = new AutomaticTourStartInfo();
+    let existingPhototours: PhotoTourInfo[] = [];
     let availableSensors: {ip: string; guid: string; name: string; sensors: string[]}[] = [];
+    let selectedEvents: PhotoTourEvent[] = [];
+    let selectedPhotoTour: number | undefined;
     selectedDevice.subscribe(async (x) => {
         if (x?.health.deviceId == undefined || $selectedDevice?.health.deviceId == undefined) return;
         startInfo.deviceGuid = $selectedDevice?.health.deviceId;
@@ -30,6 +34,7 @@
     onMount(async () => {
         const photoTourClient = new AutomaticPhotoTourClient();
         const temperatureClient = new TemperatureClient();
+        existingPhototours = await photoTourClient.getPhotoTours();
         startInfo.temperatureMeasureDevice = [];
         for (let i = 0; i < $allDevices.length; i++) {
             const device = $allDevices[i];
@@ -41,8 +46,8 @@
                 availableSensors = availableSensors;
             });
         }
-        runningTours = await photoTourClient.getRunningPhotoTours();
     });
+
     function AddSensors(guid: string, comment: string) {
         const existingSensor = startInfo.temperatureMeasureDevice.find((x) => x.guid == guid);
         if (existingSensor == undefined) {
@@ -53,6 +58,13 @@
         startInfo.temperatureMeasureDevice = startInfo.temperatureMeasureDevice.filter((x) => x.guid != guid);
         startInfo.temperatureMeasureDevice = startInfo.temperatureMeasureDevice;
     }
+
+    async function GetEvents(photoTourId: number) {
+        const photoTourClient = new AutomaticPhotoTourClient();
+        selectedEvents = await photoTourClient.getEvents(photoTourId);
+        selectedPhotoTour = photoTourId;
+    }
+
     async function AddPhotoTour() {
         const photoTourClient = new AutomaticPhotoTourClient();
         await photoTourClient.startAutomaticTour(startInfo);
@@ -61,17 +73,13 @@
 
 <div class="col-md-12 row">
     <div class="col-md-12 row">
-        <div>Running Tours:</div>
-        {#each runningTours as tour}
-            <div class="ms-3">{tour.name}</div>
-        {/each}
-    </div>
-    <div class="col-md-12 row">
         <TextInput class="col-md-2" bind:value={startInfo.name} label="Name"></TextInput>
         <TextInput class="col-md-2" bind:value={startInfo.comment} label="Comment"></TextInput>
-        <NumberInput class="col-md-2" bind:value={startInfo.intervallInMinutes} step={0.1} label="Interval in min"></NumberInput>
+        <NumberInput class="col-md-2" bind:value={startInfo.intervallInMinutes} step={0.1}
+                     label="Interval in min"></NumberInput>
         <button on:click={AddPhotoTour} disabled={!startInfo[isValid]($selectedDevice)} class="btn btn-primary col-md-2"
-            >Add new Tour</button>
+        >Add new Tour
+        </button>
         <hr class="col-md-12 mt-2" />
         <h4 class="col-md-12">Avalailable Sensors</h4>
         <div class="col-md-12 row">
@@ -102,11 +110,44 @@
                 {#each movementPlan.movementPlan.stepPoints as point, index}
                     <div class="row col-md-12">
                         <span class="col-md-3"> Step {index + 1}: </span>
-                        <span class="col-md-3"> Pos {point[calculateMoveTo](movementPlan.movementPlan.stepPoints, 0)} </span>
+                        <span
+                            class="col-md-3"> Pos {point[calculateMoveTo](movementPlan.movementPlan.stepPoints, 0)} </span>
                         <span class="col-md-6">{point.comment}</span>
                     </div>
                 {/each}
             {/if}
+        </div>
+        <div class="col-md-12">
+            <h4>Previous Phototours</h4>
+            {#each existingPhototours as tour}
+                <button on:click={async ()=>await GetEvents(tour.id)}
+                        class="alert {(tour.id===selectedPhotoTour?'alert-info':'')}">
+                    <div> {tour.name} </div>
+                    <div> Finished: {tour.finished} </div>
+                    <div> {tour.firstEvent.toLocaleTimeString()} {tour.firstEvent.toDateString()} </div>
+                    <div> {tour.firstEvent.toLocaleTimeString()} {tour.lastEvent.toDateString()} </div>
+                </button>
+            {/each}
+        </div>
+        <div class="col-md-12">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Time</th>
+                    <th>Message</th>
+                </tr>
+                </thead>
+                <tbody>
+                {#each selectedEvents as event}
+                    <tr>
+                        <td>{PhotoTourEventType[event.type] }</td>
+                        <td>{event.timestamp.toLocaleTimeString()}</td>
+                        <td>{event.message}</td>
+                    </tr>
+                {/each}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

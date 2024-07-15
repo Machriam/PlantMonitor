@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
@@ -11,6 +12,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
 {
     public record struct TemperatureMeasurementInfo(string Guid, string Comment);
     public record struct AutomaticTourStartInfo(float IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice, string Comment, string Name, string DeviceGuid);
+    public record struct PhotoTourInfo(string Name, bool Finished, long Id, DateTime FirstEvent, DateTime LastEvent);
 
     [HttpPost("stopphototour")]
     public void StopPhotoTour(long id)
@@ -26,10 +28,20 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
         context.SaveChanges();
     }
 
-    [HttpGet]
-    public IEnumerable<DataModel.DataModel.AutomaticPhotoTour> GetRunningPhotoTours()
+    [HttpGet("events")]
+    public IEnumerable<PhotoTourEvent> GetEvents(long photoTourId)
     {
-        return context.AutomaticPhotoTours.Where(apt => !apt.Finished);
+        return context.PhotoTourEvents
+            .OrderByDescending(pte => pte.Timestamp)
+            .Where(pte => pte.PhotoTourFk == photoTourId);
+    }
+
+    [HttpGet("phototours")]
+    public IEnumerable<PhotoTourInfo> GetPhotoTours()
+    {
+        return context.AutomaticPhotoTours
+            .Include(apt => apt.PhotoTourEvents)
+            .Select(apt => new PhotoTourInfo(apt.Name, apt.Finished, apt.Id, apt.PhotoTourEvents.Min(pte => pte.Timestamp), apt.PhotoTourEvents.Max(pte => pte.Timestamp)));
     }
 
     [HttpPost("startphototour")]
