@@ -142,14 +142,18 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
              x => irFolder = x, x => DataReceived(x, CameraType.IR), CancellationToken.None).RunInBackground(ex =>
              {
                  ex.LogError();
-                 logger("Ir streaming error: " + ex.Message, PhotoTourEventType.Error);
+                 using var scope = serviceProvider.CreateScope();
+                 using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
+                 dataContext.CreatePhotoTourEventLogger(photoTourId)("Ir streaming error: " + ex.Message, PhotoTourEventType.Error);
              });
         visStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.Vis.GetAttributeOfType<CameraTypeInfo>(),
              StreamingMetaData.Create(1, 100, movementPlan.MovementPlan.StepPoints.FirstOrDefault().FocusInCentimeter, true, [.. pointsToReach], CameraType.Vis),
              x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None).RunInBackground(ex =>
              {
                  ex.LogError();
-                 logger("Vis streaming error: " + ex.Message, PhotoTourEventType.Error);
+                 using var scope = serviceProvider.CreateScope();
+                 using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
+                 dataContext.CreatePhotoTourEventLogger(photoTourId)("Vis streaming error: " + ex.Message, PhotoTourEventType.Error);
              });
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
