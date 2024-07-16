@@ -12,6 +12,8 @@ public interface ICameraInterop
 
     bool CameraIsRunning();
 
+    IEnumerable<DateTime> LastCalibrationTimes();
+
     Task<bool> CameraFound();
 
     Task<bool> CameraFunctional();
@@ -33,6 +35,8 @@ public class RaspberryCameraInterop(IExposureSettingsEditor exposureSettings) : 
     private const int MaxHeight = 1296;
     private bool _cameraFound;
     private bool _deviceFunctional;
+    private static readonly List<DateTime> s_lastCalibrationTimes = [];
+    private const int MaxCalibrationItems = 100;
     private static bool s_cameraIsRunning;
     private static readonly string s_tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "tempImages_VIS");
 
@@ -131,5 +135,12 @@ public class RaspberryCameraInterop(IExposureSettingsEditor exposureSettings) : 
         s_cameraIsRunning = false;
         var exposure = exposureSettings.GetExposureFromStdout(output);
         exposureSettings.UpdateExposure(exposure);
+        if (s_lastCalibrationTimes.Count >= MaxCalibrationItems) s_lastCalibrationTimes.RemoveAt(0);
+        s_lastCalibrationTimes.Add(DateTime.UtcNow);
+    }
+
+    public IEnumerable<DateTime> LastCalibrationTimes()
+    {
+        return [.. s_lastCalibrationTimes];
     }
 }

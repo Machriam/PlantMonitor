@@ -11,7 +11,7 @@ public interface IFileStreamingReader
     Task<FileInfo> ReadNextFileWithSkipping(string imagePath, int counter, int maxImageCount, CameraTypeInfo cameraInfo, CancellationToken token);
 }
 
-public record struct FileInfo(DateTime CreationDate, int NewCounter, byte[]? FileData, int TemperatureInK)
+public record struct FileInfo(DateTime CreationDate, int NewCounter, byte[]? FileData, int TemperatureInK, double TemperatureSum)
 {
     public readonly CameraStreamFormatter CreateFormatter(int stepCount)
     {
@@ -44,7 +44,7 @@ public class FileStreamingReader(ILogger<FileStreamingReader> logger) : IFileStr
     public async Task<FileInfo> ReadNextFile(string imagePath, int counter, CameraTypeInfo cameraInfo, CancellationToken token)
     {
         var currentPath = Directory.GetFiles(imagePath, $"{counter.ToString(CounterFormat)}*{cameraInfo.FileEnding}").FirstOrDefault();
-        if (currentPath == null || Directory.GetFiles(imagePath, $"{(counter + 1).ToString(CounterFormat)}*{cameraInfo.FileEnding}").Length == 0) return new(default, counter, default, default);
+        if (currentPath == null || Directory.GetFiles(imagePath, $"{(counter + 1).ToString(CounterFormat)}*{cameraInfo.FileEnding}").Length == 0) return new(default, counter, default, default, default);
         var result = await ReadFromFile(cameraInfo, currentPath, token);
         result.NewCounter = ++counter;
         return result;
@@ -55,10 +55,10 @@ public class FileStreamingReader(ILogger<FileStreamingReader> logger) : IFileStr
         try
         {
             int temperatureInK = default;
-            var bytesToSend = cameraInfo.FileEnding == s_irEnding ? currentPath.GetBytesFromIrFilePath(out temperatureInK) : await File.ReadAllBytesAsync(currentPath, token);
+            var fileData = cameraInfo.FileEnding == s_irEnding ? currentPath.GetBytesFromIrFilePath(out temperatureInK) : new(0d, await File.ReadAllBytesAsync(currentPath, token));
             var creationTime = File.GetCreationTimeUtc(currentPath);
             if (deleteFile) File.Delete(currentPath);
-            return new(creationTime, 0, bytesToSend, temperatureInK);
+            return new(creationTime, 0, fileData.Bytes, temperatureInK, fileData.SumOfTemperature);
         }
         catch (Exception ex)
         {

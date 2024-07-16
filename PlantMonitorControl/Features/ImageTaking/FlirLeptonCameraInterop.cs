@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 
 namespace PlantMonitorControl.Features.ImageTaking;
@@ -8,6 +9,8 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
     private static readonly string s_tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "tempImages_IR");
     private static bool s_cameraFound;
     private static bool s_cameraIsRunning;
+    private static readonly List<DateTime> s_lastCalibrationTimes = [];
+    private const int MaxCalibrationItems = 100;
     private static Process? s_streamProcess;
 
     public Task<bool> CameraFound()
@@ -39,9 +42,9 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
         await new Process().RunProcess(configuration.IRPrograms.CaptureImage, s_tempImagePath);
         await Task.Delay(100);
         var files = Directory.GetFiles(s_tempImagePath);
-        var bytes = files.FirstOrDefault()?.GetBytesFromIrFilePath(out _) ?? [];
-        if (bytes.Length > 0) s_cameraFound = true;
-        return Results.File(bytes, "image/raw");
+        var bytes = files.FirstOrDefault()?.GetBytesFromIrFilePath(out _) ?? new();
+        if (bytes.Bytes.Length > 0) s_cameraFound = true;
+        return Results.File(bytes.Bytes, "image/raw");
     }
 
     private static void InitializeFolder()
@@ -60,6 +63,8 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
     {
         if (s_streamProcess == null) return Task.CompletedTask;
         s_streamProcess.SendSignal(ProcessExtensions.Signum.SIGUSR1);
+        if (s_lastCalibrationTimes.Count >= MaxCalibrationItems) s_lastCalibrationTimes.RemoveAt(0);
+        s_lastCalibrationTimes.Add(DateTime.UtcNow);
         return Task.CompletedTask;
     }
 
@@ -72,5 +77,10 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
             .RunInBackground(ex => ex.LogError());
         s_cameraIsRunning = true;
         return s_tempImagePath;
+    }
+
+    public IEnumerable<DateTime> LastCalibrationTimes()
+    {
+        return [.. s_lastCalibrationTimes];
     }
 }

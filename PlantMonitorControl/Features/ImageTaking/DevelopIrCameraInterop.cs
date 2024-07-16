@@ -30,7 +30,7 @@ public class DevelopIrCameraInterop() : ICameraInterop
         var files = Directory.GetFiles(DataFolder);
         var bytes = files[Random.Shared.Next(0, files.Length)].GetBytesFromIrFilePath(out _);
         await Task.Yield();
-        return Results.File(bytes, "image/raw");
+        return Results.File(bytes.Bytes, "image/raw");
     }
 
     public Task KillImageTaking()
@@ -68,4 +68,6 @@ public class DevelopIrCameraInterop() : ICameraInterop
         CopyFiles().RunInBackground(ex => ex.LogError());
         return copyToDir;
     }
+
+    public IEnumerable<DateTime> LastCalibrationTimes() => [.. Enumerable.Range(0, 12).Select(x => DateTime.UtcNow.AddSeconds(-x * 5))];
 }
