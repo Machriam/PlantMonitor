@@ -1297,7 +1297,7 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
 
 export interface IAutomaticPhotoTourClient {
 
-    stopPhotoTour(id?: number | undefined): Promise<void>;
+    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined): Promise<void>;
 
     getEvents(photoTourId?: number | undefined): Promise<PhotoTourEvent[]>;
 
@@ -1317,12 +1317,16 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    stopPhotoTour(id?: number | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/stopphototour?";
+    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/pausephototour?";
         if (id === null)
             throw new Error("The parameter 'id' cannot be null.");
         else if (id !== undefined)
             url_ += "id=" + encodeURIComponent("" + id) + "&";
+        if (shouldBePaused === null)
+            throw new Error("The parameter 'shouldBePaused' cannot be null.");
+        else if (shouldBePaused !== undefined)
+            url_ += "shouldBePaused=" + encodeURIComponent("" + shouldBePaused) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -1334,11 +1338,11 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
         return this.transformOptions(options_).then(transformedOptions_ => {
             return this.http.fetch(url_, transformedOptions_);
         }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processStopPhotoTour(_response));
+            return this.transformResult(url_, _response, (_response: Response) => this.processPausePhotoTour(_response));
         });
     }
 
-    protected processStopPhotoTour(response: Response): Promise<void> {
+    protected processPausePhotoTour(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

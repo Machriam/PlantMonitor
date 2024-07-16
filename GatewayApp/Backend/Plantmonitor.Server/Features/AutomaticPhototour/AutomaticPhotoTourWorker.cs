@@ -139,16 +139,19 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         }
         irStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.IR.GetAttributeOfType<CameraTypeInfo>(),
              StreamingMetaData.Create(1, 100, default, true, [.. pointsToReach], CameraType.IR),
-             x => irFolder = x, x => DataReceived(x, CameraType.IR), CancellationToken.None).RunInBackground(ex =>
+             x => irFolder = x, x => DataReceived(x, CameraType.IR), CancellationToken.None)
+            .RunInBackground(ex =>
              {
                  ex.LogError();
                  using var scope = serviceProvider.CreateScope();
                  using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
                  dataContext.CreatePhotoTourEventLogger(photoTourId)("Ir streaming error: " + ex.Message, PhotoTourEventType.Error);
              });
+        await Task.Delay(10);
         visStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.Vis.GetAttributeOfType<CameraTypeInfo>(),
              StreamingMetaData.Create(1, 100, movementPlan.MovementPlan.StepPoints.FirstOrDefault().FocusInCentimeter, true, [.. pointsToReach], CameraType.Vis),
-             x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None).RunInBackground(ex =>
+             x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None)
+            .RunInBackground(ex =>
              {
                  ex.LogError();
                  using var scope = serviceProvider.CreateScope();
@@ -169,6 +172,8 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         logger("Killing image taking processes", PhotoTourEventType.Debug);
         await deviceApi.IrImageTakingClient(device.Ip).KillcameraAsync();
         await deviceApi.VisImageTakingClient(device.Ip).KillcameraAsync();
+        currentPosition = await movementClient.CurrentpositionAsync();
+        await movementClient.MovemotorAsync(-currentPosition.Position, 1000, 4000, 400, maxStop, minStop);
         while (!irStreamer.StreamingFinished() || !visStreamer.StreamingFinished()) await Task.Delay(_positionCheckTimeout);
         logger("Streaming of data has finished", PhotoTourEventType.Debug);
         return (irFolder, visFolder);
