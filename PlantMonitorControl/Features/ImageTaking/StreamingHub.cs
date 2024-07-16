@@ -69,7 +69,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                 .Where(x => data.PositionsToStream.Contains(x.StepCount))
                 .ToList();
             var lastCalibrationTimes = camera.LastCalibrationTimes().OrderBy(c => c).ToList();
-            string FormatFileInfo((string Name, FileInfo FileInfo) fileInfo) => $"{fileInfo.Name}, {fileInfo.FileInfo.CreationDate:HH-mm-ss:fff}";
+            string FormatFileInfo((string Name, FileInfo FileInfo) fileInfo) => $"{fileInfo.Name}, {fileInfo.FileInfo.CreationDate:HH:mm:ss}";
             foreach (var group in possibleImages.GroupBy(pi => pi.StepCount))
             {
                 logger.LogInformation("Sending {type} image of step {step}", data.GetCameraType(), group.Key);
@@ -81,9 +81,10 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                         fileInfos.Add((item.File, await item.BytesToSend()));
                     }
                     var firstImageInGroup = fileInfos.MinBy(fi => fi.Info.CreationDate);
-                    logger.LogInformation("First image of group: {image}", firstImageInGroup.Name);
-                    var calibration = lastCalibrationTimes.Find(ct => ct > firstImageInGroup.Info.CreationDate);
-                    logger.LogInformation("Last calibration time: {calibration}", calibration.ToString("yyyy-MM-dd_hh:mm:ss"));
+                    var (timeDiff, calibration) = lastCalibrationTimes
+                        .Select(ct => (TimeDiff: firstImageInGroup.Info.CreationDate - ct, Calibration: ct))
+                        .MinBy(ct => Math.Abs(ct.TimeDiff.TotalMilliseconds));
+                    logger.LogInformation("Last calibration time: {calibration} with time to first image: {timeDiff} ms", calibration.ToString("yyyy-MM-dd_HH:mm:ss"), timeDiff.TotalMilliseconds);
                     var calibrationFinished = firstImageInGroup.Info.CreationDate;
                     if (calibration != default) calibrationFinished = calibration.AddSeconds(2);
                     logger.LogInformation("Applicable ir-images: {from} to {end}", FormatFileInfo(fileInfos.FirstOrDefault()), FormatFileInfo(fileInfos.LastOrDefault()));
