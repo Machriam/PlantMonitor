@@ -28,7 +28,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
         }
 
         [Fact]
-        public void StopPhotoTour_ShouldWork()
+        public async Task StopPhotoTour_ShouldWork()
         {
             var result = new QueryableList<AutomaticPhotoTour>() { new() { Id = 1, Finished = false } };
             var events = new QueryableList<PhotoTourEvent>();
@@ -36,7 +36,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _context.PhotoTourEvents.ReturnsForAnyArgs(events);
             var sut = CreateAutomaticPhotoTourController();
 
-            sut.StopPhotoTour(1);
+            await sut.PausePhotoTour(1, true);
 
             _context.Received(1).SaveChanges();
             result.First().Finished.Should().BeTrue();

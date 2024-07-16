@@ -22,7 +22,7 @@
     let existingPhototours: PhotoTourInfo[] = [];
     let availableSensors: {ip: string; guid: string; name: string; sensors: string[]}[] = [];
     let selectedEvents: PhotoTourEvent[] = [];
-    let selectedPhotoTour: number | undefined;
+    let selectedPhotoTour: PhotoTourInfo | undefined;
     selectedDevice.subscribe(async (x) => {
         if (x?.health.deviceId == undefined || $selectedDevice?.health.deviceId == undefined) return;
         startInfo.deviceGuid = $selectedDevice?.health.deviceId;
@@ -50,7 +50,7 @@
 
     function AddSensors(guid: string, comment: string) {
         const existingSensor = startInfo.temperatureMeasureDevice.find((x) => x.guid == guid);
-        if (existingSensor == undefined) {
+        if (existingSensor === undefined) {
             startInfo.temperatureMeasureDevice.push(new TemperatureMeasurementInfo({comment: comment, guid: guid}));
             startInfo.temperatureMeasureDevice = startInfo.temperatureMeasureDevice;
             return;
@@ -62,7 +62,15 @@
     async function GetEvents(photoTourId: number) {
         const photoTourClient = new AutomaticPhotoTourClient();
         selectedEvents = await photoTourClient.getEvents(photoTourId);
-        selectedPhotoTour = photoTourId;
+        selectedPhotoTour = existingPhototours.find(ep => ep.id == photoTourId);
+    }
+
+    async function PausePhotoTour() {
+        if (selectedPhotoTour == undefined) return;
+        const photoTourClient = new AutomaticPhotoTourClient();
+        selectedPhotoTour.finished = !selectedPhotoTour.finished;
+        await photoTourClient.pausePhotoTour(selectedPhotoTour.id, selectedPhotoTour.finished);
+        existingPhototours = existingPhototours;
     }
 
     async function AddPhotoTour() {
@@ -81,13 +89,13 @@
         >Add new Tour
         </button>
         <hr class="col-md-12 mt-2" />
-        <h4 class="col-md-12">Avalailable Sensors</h4>
+        <h4 class="col-md-12">Available Sensors</h4>
         <div class="col-md-12 row">
             {#each availableSensors as sensor}
                 <div class="col-md-2 me-1">
                     <button
                         on:click={() => AddSensors(sensor.guid, sensor.name)}
-                        class="card-body card {startInfo.temperatureMeasureDevice?.filter((x) => x.guid == sensor.guid).length > 0
+                        class="card-body card {startInfo.temperatureMeasureDevice?.filter((x) => x.guid === sensor.guid).length > 0
                             ? 'bg-opacity-25 bg-info'
                             : ''}"
                         style="text-align: center">
@@ -117,16 +125,26 @@
                 {/each}
             {/if}
         </div>
-        <div class="col-md-12">
+        <div class="col-md-12 row">
             <h4>Previous Phototours</h4>
             {#each existingPhototours as tour}
-                <button on:click={async ()=>await GetEvents(tour.id)}
-                        class="alert {(tour.id===selectedPhotoTour?'alert-info':'')}">
-                    <div> {tour.name} </div>
-                    <div> Finished: {tour.finished} </div>
-                    <div> {tour.firstEvent.toLocaleTimeString()} {tour.firstEvent.toDateString()} </div>
-                    <div> {tour.firstEvent.toLocaleTimeString()} {tour.lastEvent.toDateString()} </div>
-                </button>
+                <div class="col-md-2">
+                    <button on:click={async ()=>await GetEvents(tour.id)}
+                            class="alert {(tour===selectedPhotoTour?'alert-info':'')}">
+                        <div> {tour.name} </div>
+                        <div> Finished: {tour.finished} </div>
+                        <div> {tour.firstEvent.toLocaleTimeString()} {tour.firstEvent.toDateString()} </div>
+                        <div> {tour.firstEvent.toLocaleTimeString()} {tour.lastEvent.toDateString()} </div>
+                    </button>
+                    {#if selectedPhotoTour !== undefined && tour === selectedPhotoTour}
+                        <div class="col-md-12 form-check form-switch">
+                            <label class="form-check-label">Stopped?</label>
+                            <input on:click={async ()=>await PausePhotoTour()} type="checkbox"
+                                   bind:checked={selectedPhotoTour.finished}
+                                   class="form-check-input" />
+                        </div>
+                    {/if}
+                </div>
             {/each}
         </div>
         <div class="col-md-12">

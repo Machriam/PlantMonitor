@@ -14,16 +14,27 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     public record struct AutomaticTourStartInfo(float IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice, string Comment, string Name, string DeviceGuid);
     public record struct PhotoTourInfo(string Name, bool Finished, long Id, DateTime FirstEvent, DateTime LastEvent);
 
-    [HttpPost("stopphototour")]
-    public void StopPhotoTour(long id)
+    [HttpPost("pausephototour")]
+    public async Task PausePhotoTour(long id, bool shouldBePaused)
     {
-        context.AutomaticPhotoTours.First(pt => pt.Id == id).Finished = true;
+        var tour = context.AutomaticPhotoTours
+            .Include(apt => apt.TemperatureMeasurements)
+            .First(pt => pt.Id == id);
+        var movementPlan = context.DeviceMovements.First(dm => dm.DeviceId == tour.DeviceId);
+        var associatedTemperatureDevices = tour.TemperatureMeasurements
+            .Select(tm => new TemperatureMeasurementInfo(tm.DeviceId.ToString(), tm.Comment))
+            .ToList();
+        if (!shouldBePaused)
+        {
+            _ = await CheckStartConditions(context, deviceFactory, associatedTemperatureDevices, tour.DeviceId.ToString(), movementPlan.Id, eventBus);
+        }
+        context.AutomaticPhotoTours.First(pt => pt.Id == id).Finished = shouldBePaused;
         context.PhotoTourEvents.Add(new PhotoTourEvent()
         {
             PhotoTourFk = id,
             Timestamp = DateTime.UtcNow,
             Type = PhotoTourEventType.Information,
-            Message = "Photo tour finished",
+            Message = $"Photo tour {(shouldBePaused ? "stopped" : "resumed")}",
         });
         context.SaveChanges();
     }
@@ -47,32 +58,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     [HttpPost("startphototour")]
     public async Task StartAutomaticTour([FromBody] AutomaticTourStartInfo startInfo)
     {
-        var deviceById = eventBus.GetDeviceHealthInformation()
-            .Where(d => !d.Health.DeviceId.IsEmpty())
-            .ToDictionary(d => d.Health.DeviceId ?? throw new Exception("DeviceId must not be empty"));
-        if (!deviceById.TryGetValue(startInfo.DeviceGuid, out var imagingDevice)) throw new Exception($"Device {startInfo.DeviceGuid} could not be found");
-        if (!startInfo.TemperatureMeasureDevice.All(td => deviceById.ContainsKey(td.Guid))) throw new Exception("Not all requested temperature measurement devices are available");
-        var movementPlan = context.DeviceMovements.FirstOrDefault(dm => dm.Id == startInfo.MovementPlan) ?? throw new Exception("Movementplan not found");
-        if (!imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.NoirCameraFunctional)) throw new Exception($"{imagingDevice.Health.DeviceName} has no functioning vis camera");
-        var temperatureDevices = startInfo.TemperatureMeasureDevice
-            .Select(td => (DeviceHealth: deviceById[td.Guid], MeasurementInfo: td, Sensors: new List<string>()))
-            .ToList();
-        foreach (var temperatureDevice in temperatureDevices)
-        {
-            var devices = await deviceFactory.TemperatureClient(temperatureDevice.DeviceHealth.Ip).DevicesAsync();
-            temperatureDevice.Sensors.AddRange(devices);
-        }
-        var devicesWithoutSensor = temperatureDevices.Select(td => td.Sensors.Count == 0 ? $"{td.DeviceHealth.Health.DeviceName} has no temperature sensor" : "");
-        if (devicesWithoutSensor.Any(d => !d.IsEmpty())) throw new Exception(devicesWithoutSensor.Concat("\n"));
-        var alreadyOccupiedDevices = context.AutomaticPhotoTours
-            .Where(pt => !pt.Finished)
-            .SelectMany(pt => pt.TemperatureMeasurements.Select(tm => tm.DeviceId))
-            .ToHashSet();
-        foreach (var device in context.AutomaticPhotoTours.Where(pt => !pt.Finished).Select(pt => pt.DeviceId)) alreadyOccupiedDevices.Add(device);
-        if (alreadyOccupiedDevices.Contains(Guid.Parse(startInfo.DeviceGuid))) throw new Exception("The imaging device is already busy with another photo tour");
-        var busyTemperatureDevices = temperatureDevices
-            .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health.DeviceId ?? "")) ? $"{td.DeviceHealth.Health.DeviceName} is used in another photo tour" : "");
-        if (busyTemperatureDevices.Any(td => !td.IsEmpty())) throw new Exception(busyTemperatureDevices.Concat("\n"));
+        var (imagingDevice, temperatureDevices) = await CheckStartConditions(context, deviceFactory, startInfo.TemperatureMeasureDevice, startInfo.DeviceGuid, startInfo.MovementPlan, eventBus);
 
         var photoTour = new DataModel.DataModel.AutomaticPhotoTour()
         {
@@ -98,5 +84,37 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
         };
         context.AutomaticPhotoTours.Add(photoTour);
         context.SaveChanges();
+    }
+
+    private static async Task<(DeviceHealthState ImagingDevice, List<(DeviceHealthState DeviceHealth, TemperatureMeasurementInfo MeasurementInfo, List<string> Sensors)> TemperatureDevices)> CheckStartConditions(
+        IDataContext context, IDeviceApiFactory deviceFactory, IEnumerable<TemperatureMeasurementInfo> measurementDevices, string deviceGuid, long movementPlanId, IDeviceConnectionEventBus eventBus)
+    {
+        var deviceById = eventBus.GetDeviceHealthInformation()
+            .Where(d => !d.Health.DeviceId.IsEmpty())
+            .ToDictionary(d => d.Health.DeviceId ?? throw new Exception("DeviceId must not be empty"));
+        if (!deviceById.TryGetValue(deviceGuid, out var imagingDevice)) throw new Exception($"Device {deviceGuid} could not be found");
+        if (!measurementDevices.All(td => deviceById.ContainsKey(td.Guid))) throw new Exception("Not all requested temperature measurement devices are available");
+        var movementPlan = context.DeviceMovements.FirstOrDefault(dm => dm.Id == movementPlanId) ?? throw new Exception("Movementplan not found");
+        if (!imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.NoirCameraFunctional)) throw new Exception($"{imagingDevice.Health.DeviceName} has no functioning vis camera");
+        var temperatureDevices = measurementDevices
+            .Select(td => (DeviceHealth: deviceById[td.Guid], MeasurementInfo: td, Sensors: new List<string>()))
+            .ToList();
+        foreach (var temperatureDevice in temperatureDevices)
+        {
+            var devices = await deviceFactory.TemperatureClient(temperatureDevice.DeviceHealth.Ip).DevicesAsync();
+            temperatureDevice.Sensors.AddRange(devices);
+        }
+        var devicesWithoutSensor = temperatureDevices.Select(td => td.Sensors.Count == 0 ? $"{td.DeviceHealth.Health.DeviceName} has no temperature sensor" : "");
+        if (devicesWithoutSensor.Any(d => !d.IsEmpty())) throw new Exception(devicesWithoutSensor.Concat("\n"));
+        var alreadyOccupiedDevices = context.AutomaticPhotoTours
+            .Where(pt => !pt.Finished)
+            .SelectMany(pt => pt.TemperatureMeasurements.Select(tm => tm.DeviceId))
+            .ToHashSet();
+        foreach (var device in context.AutomaticPhotoTours.Where(pt => !pt.Finished).Select(pt => pt.DeviceId)) alreadyOccupiedDevices.Add(device);
+        if (alreadyOccupiedDevices.Contains(Guid.Parse(deviceGuid))) throw new Exception("The imaging device is already busy with another photo tour");
+        var busyTemperatureDevices = temperatureDevices
+            .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health.DeviceId ?? "")) ? $"{td.DeviceHealth.Health.DeviceName} is used in another photo tour" : "");
+        if (busyTemperatureDevices.Any(td => !td.IsEmpty())) throw new Exception(busyTemperatureDevices.Concat("\n"));
+        return (imagingDevice, temperatureDevices);
     }
 }
