@@ -158,6 +158,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
                  using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
                  dataContext.CreatePhotoTourEventLogger(photoTourId)("Vis streaming error: " + ex.Message, PhotoTourEventType.Error);
              });
+        await Task.Delay(_ffcTimeout);
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
             logger($"Moving to position: {currentStep + step.StepOffset}", PhotoTourEventType.Debug);
