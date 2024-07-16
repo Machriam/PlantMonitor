@@ -67,4 +67,6 @@ public class DevelopVisCameraInterop() : ICameraInterop
         CopyTask().RunInBackground(ex => ex.LogError());
         return copyToDir;
     }
+
+    public IEnumerable<DateTime> LastCalibrationTimes() => [DateTime.UtcNow.AddMinutes(-1)];
 }

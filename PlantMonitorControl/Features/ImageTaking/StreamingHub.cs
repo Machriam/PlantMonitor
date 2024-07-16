@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Plantmonitor.Shared.Features.ImageStreaming;
-using PlantMonitorControl;
 using PlantMonitorControl.Features.MotorMovement;
 using System.Threading.Channels;
 
@@ -58,16 +57,44 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         else
         {
             logger.LogInformation("Start file reading");
-            foreach (var file in Directory.EnumerateFiles(imagePath).OrderBy(x => x))
-            {
-                var fileCreationTime = File.GetCreationTimeUtc(file);
-                var stepCount = motorPosition.StepForTime(new DateTimeOffset(fileCreationTime).ToUnixTimeMilliseconds());
-                var bytesToSend = await fileStreamer.ReadFromFile(typeInfo, file, token);
-                if (data.PositionsToStream.Contains(stepCount))
+            var possibleImages = Directory.EnumerateFiles(imagePath)
+                .OrderBy(x => x)
+                .Select(file =>
                 {
-                    logger.LogInformation("Sending file: {file}", file);
+                    var fileCreationTime = File.GetCreationTimeUtc(file);
+                    var stepCount = motorPosition.StepForTime(new DateTimeOffset(fileCreationTime).ToUnixTimeMilliseconds());
+                    Func<Task<FileInfo>> BytesToSend() => async () => await fileStreamer.ReadFromFile(typeInfo, file, token);
+                    return (StepCount: stepCount, CreationTime: fileCreationTime, File: file, BytesToSend: BytesToSend());
+                })
+                .Where(x => data.PositionsToStream.Contains(x.StepCount))
+                .ToList();
+            var lastCalibrationTimes = camera.LastCalibrationTimes().OrderBy(c => c).ToList();
+            foreach (var group in possibleImages.GroupBy(pi => pi.StepCount))
+            {
+                if (data.GetCameraType() == CameraType.IR)
+                {
+                    var fileInfos = new List<(string Name, FileInfo Info)>();
+                    foreach (var item in group)
+                    {
+                        fileInfos.Add((item.File, await item.BytesToSend()));
+                    }
+                    var firstImageInGroup = fileInfos.MinBy(fi => fi.Info.CreationDate);
+                    var calibration = lastCalibrationTimes.Find(ct => ct > firstImageInGroup.Info.CreationDate);
+                    var calibrationFinished = firstImageInGroup.Info.CreationDate;
+                    if (calibration != default) calibrationFinished = calibration.AddSeconds(2);
+                    var (bestName, bestInfo) = fileInfos.Where(fi => fi.Info.CreationDate > calibrationFinished)
+                        .MaxBy(fi => fi.Info.TemperatureSum);
+                    logger.LogInformation("Sending file: {file}", bestName);
                     await channel.Writer.WaitToWriteAsync(token);
-                    await channel.Writer.WriteAsync(bytesToSend.CreateFormatter(stepCount).GetBytes(), token);
+                    await channel.Writer.WriteAsync(bestInfo.CreateFormatter(group.Key).GetBytes(), token);
+                }
+                else if (data.GetCameraType() == CameraType.Vis)
+                {
+                    var bestImage = group.OrderBy(pi => pi.CreationTime).Last();
+                    var bytesToSend = await bestImage.BytesToSend();
+                    logger.LogInformation("Sending file: {file}", bestImage.File);
+                    await channel.Writer.WaitToWriteAsync(token);
+                    await channel.Writer.WriteAsync(bytesToSend.CreateFormatter(group.Key).GetBytes(), token);
                 }
             }
             channel.Writer.Complete();

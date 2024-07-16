@@ -5,15 +5,21 @@ namespace Plantmonitor.Shared.Extensions;
 
 public static class StringExtensions
 {
-    public static byte[] GetBytesFromIrFilePath(this string irFilePath, out int temperatureInK)
+    public static FileData GetBytesFromIrFilePath(this string irFilePath, out int temperatureInK)
     {
         temperatureInK = int.TryParse(Path.GetFileNameWithoutExtension(irFilePath).Split('_').Last(), out var temperature) ? temperature : default;
-        return File.ReadAllText(irFilePath)
+        var data = File.ReadAllText(irFilePath)
             .Replace("\n", " ")
             .Split(" ")
             .Where(x => !string.IsNullOrWhiteSpace(x))
-            .SelectMany(x => BitConverter.GetBytes(int.Parse(x.Trim())))
+            .Select(x =>
+            {
+                var temperature = int.Parse(x.Trim());
+                var bytes = BitConverter.GetBytes(temperature);
+                return (Temperature: temperature, Bytes: bytes);
+            })
             .ToArray();
+        return new(data.Sum(d => d.Temperature), data.SelectMany(d => d.Bytes).ToArray());
     }
 
     [MemberNotNullWhen(false)]
@@ -22,3 +28,5 @@ public static class StringExtensions
         return string.IsNullOrEmpty(value);
     }
 }
+
+public record struct FileData(double SumOfTemperature, byte[] Bytes);
