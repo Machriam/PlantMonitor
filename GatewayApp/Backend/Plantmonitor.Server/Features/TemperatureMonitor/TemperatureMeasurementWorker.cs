@@ -1,7 +1,7 @@
-﻿using System.Diagnostics.Metrics;
-using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.SignalR.Client;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Shared.Features.MeasureTemperature;
 using Serilog;
@@ -48,10 +48,16 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
         {
             using var scope = scopeFactory.CreateScope();
             await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
+            var deviceRestarter = scope.ServiceProvider.GetRequiredService<IDeviceRestarter>();
             var connectedDevices = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
+            var deviceId = measurements.FirstOrDefault()?.DeviceId.ToString();
             var healthInfo = connectedDevices.GetDeviceHealthInformation()
-                .FirstOrDefault(h => h.Health.DeviceId == measurements.FirstOrDefault()?.DeviceId.ToString());
-            if (healthInfo == default) return;
+                .FirstOrDefault(h => h.Health.DeviceId == deviceId);
+            if (healthInfo == default)
+            {
+                if (!deviceId.IsEmpty()) await deviceRestarter.RestartDevice(deviceId!, measurements.FirstOrDefault()?.PhotoTourFk);
+                return;
+            }
             var token = new CancellationTokenSource();
             var connection = new HubConnectionBuilder()
                 .WithUrl($"https://{healthInfo.Ip}/hub/temperatures")
