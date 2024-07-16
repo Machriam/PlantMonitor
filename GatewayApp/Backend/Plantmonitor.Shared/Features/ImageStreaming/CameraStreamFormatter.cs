@@ -8,6 +8,8 @@ public record struct CameraStreamData(DateTime Timestamp, int Steps, int Tempera
 public class CameraStreamFormatter
 {
     public const string PictureDateFormat = "yyyy-MM-dd_HH-mm-ss-fff";
+    private static readonly byte[] s_finishedSignal = Enumerable.Repeat(byte.MaxValue, 3).ToArray();
+    public static byte[] FinishSignal => s_finishedSignal;
 
     public static CameraStreamFormatter FromBytes(byte[] bytes)
     {
@@ -17,11 +19,13 @@ public class CameraStreamFormatter
             Timestamp = bytes.Length >= 12 ? new DateTime(BitConverter.ToInt64(bytes.AsSpan()[4..12])) : default,
             TemperatureInK = bytes.Length >= 16 ? BitConverter.ToInt32(bytes.AsSpan()[12..16]) : default,
             PictureData = bytes.Length > 16 ? bytes[16..] : null,
+            Finished = bytes.Length == s_finishedSignal.Length && bytes.All(b => b == byte.MaxValue)
         };
     }
 
     public CameraStreamData ConvertToStreamObject() => new(Timestamp, Steps, TemperatureInK, PictureData);
 
+    public bool Finished { get; set; }
     public int Steps { get; set; }
     public DateTime Timestamp { get; set; }
     public int TemperatureInK { get; set; }

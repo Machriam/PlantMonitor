@@ -71,6 +71,11 @@ public class PictureDiskStreamer(IEnvironmentConfiguration configuration) : IPic
             {
                 timeoutWatcher.Restart();
                 var cameraStream = CameraStreamFormatter.FromBytes(image);
+                if (cameraStream.Finished)
+                {
+                    await Connection_Closed(null);
+                    break;
+                }
                 callback(cameraStream).RunInBackground(ex => ex.LogError());
                 if (!path.IsEmpty() && cameraStream.PictureData != null)
                 {

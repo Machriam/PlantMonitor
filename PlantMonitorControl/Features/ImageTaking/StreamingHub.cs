@@ -69,6 +69,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                 .Where(x => data.PositionsToStream.Contains(x.StepCount))
                 .ToList();
             var lastCalibrationTimes = camera.LastCalibrationTimes().OrderBy(c => c).ToList();
+            string FormatFileInfo((string Name, FileInfo FileInfo) fileInfo) => $"{fileInfo.Name}, {fileInfo.FileInfo.CreationDate:HH-mm-ss:fff}";
             foreach (var group in possibleImages.GroupBy(pi => pi.StepCount))
             {
                 logger.LogInformation("Sending {type} image of step {step}", data.GetCameraType(), group.Key);
@@ -85,9 +86,14 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                     logger.LogInformation("Last calibration time: {calibration}", calibration.ToString("yyyy-MM-dd_hh:mm:ss"));
                     var calibrationFinished = firstImageInGroup.Info.CreationDate;
                     if (calibration != default) calibrationFinished = calibration.AddSeconds(2);
-                    logger.LogInformation("Applicable ir-images: {images}", fileInfos.Select(f => f.Name).Concat(", "));
-                    var (bestName, bestInfo) = fileInfos.Where(fi => fi.Info.CreationDate > calibrationFinished)
-                        .MaxBy(fi => fi.Info.TemperatureSum);
+                    logger.LogInformation("Applicable ir-images: {from} to {end}", FormatFileInfo(fileInfos.FirstOrDefault()), FormatFileInfo(fileInfos.LastOrDefault()));
+                    var calibratedImages = fileInfos.Where(fi => fi.Info.CreationDate > calibrationFinished).ToList();
+                    if (calibratedImages.Count == 0)
+                    {
+                        logger.LogError("No calibrated image found for step: {step}", group.Key);
+                        continue;
+                    }
+                    var (bestName, bestInfo) = calibratedImages.MaxBy(fi => fi.Info.TemperatureSum);
                     logger.LogInformation("Sending file: {file}", bestName);
                     await channel.Writer.WaitToWriteAsync(token);
                     await channel.Writer.WriteAsync(bestInfo.CreateFormatter(group.Key).GetBytes(), token);
@@ -106,6 +112,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             logger.LogInformation("Deleting all files of type: {type}", Enum.GetName(data.GetCameraType()));
             foreach (var file in Directory.EnumerateFiles(imagePath)) File.Delete(file);
             logger.LogInformation("Closing channel writer {type}", Enum.GetName(data.GetCameraType()));
+            await channel.Writer.WriteAsync(CameraStreamFormatter.FinishSignal, token);
             channel.Writer.Complete();
         }
     }
