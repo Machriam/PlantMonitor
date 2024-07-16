@@ -112,6 +112,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             logger.LogInformation("Deleting all files of type: {type}", Enum.GetName(data.GetCameraType()));
             foreach (var file in Directory.EnumerateFiles(imagePath)) File.Delete(file);
             logger.LogInformation("Closing channel writer {type}", Enum.GetName(data.GetCameraType()));
+            await channel.Writer.WriteAsync(CameraStreamFormatter.FinishSignal, token);
             channel.Writer.Complete();
         }
     }
