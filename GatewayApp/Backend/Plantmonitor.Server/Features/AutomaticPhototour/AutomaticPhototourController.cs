@@ -28,7 +28,8 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
         {
             _ = await CheckStartConditions(context, deviceFactory, associatedTemperatureDevices, tour.DeviceId.ToString(), movementPlan.Id, eventBus);
         }
-        context.AutomaticPhotoTours.First(pt => pt.Id == id).Finished = shouldBePaused;
+        tour.Finished = shouldBePaused;
+        foreach (var measurement in tour.TemperatureMeasurements) measurement.Finished = shouldBePaused;
         context.PhotoTourEvents.Add(new PhotoTourEvent()
         {
             PhotoTourFk = id,
@@ -87,7 +88,8 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     }
 
     private static async Task<(DeviceHealthState ImagingDevice, List<(DeviceHealthState DeviceHealth, TemperatureMeasurementInfo MeasurementInfo, List<string> Sensors)> TemperatureDevices)> CheckStartConditions(
-        IDataContext context, IDeviceApiFactory deviceFactory, IEnumerable<TemperatureMeasurementInfo> measurementDevices, string deviceGuid, long movementPlanId, IDeviceConnectionEventBus eventBus)
+        IDataContext context, IDeviceApiFactory deviceFactory, IEnumerable<TemperatureMeasurementInfo> measurementDevices, string deviceGuid, long movementPlanId,
+        IDeviceConnectionEventBus eventBus)
     {
         var deviceById = eventBus.GetDeviceHealthInformation()
             .Where(d => !d.Health.DeviceId.IsEmpty())
