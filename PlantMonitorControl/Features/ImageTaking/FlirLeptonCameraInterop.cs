@@ -4,7 +4,7 @@ using PlantMonitorControl.Features.AppsettingsConfiguration;
 
 namespace PlantMonitorControl.Features.ImageTaking;
 
-public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : ICameraInterop
+public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration, ILogger<FlirLeptonCameraInterop> logger) : ICameraInterop
 {
     private static readonly string s_tempImagePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "tempImages_IR");
     private static bool s_cameraFound;
@@ -65,6 +65,7 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration) : 
         s_streamProcess.SendSignal(ProcessExtensions.Signum.SIGUSR1);
         if (s_lastCalibrationTimes.Count >= MaxCalibrationItems) s_lastCalibrationTimes.RemoveAt(0);
         s_lastCalibrationTimes.Add(DateTime.UtcNow);
+        logger.LogInformation("Added calibration time {time}", s_lastCalibrationTimes.Last().ToString("HH:mm:ss"));
         return Task.CompletedTask;
     }
 
