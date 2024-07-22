@@ -28,7 +28,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             {
                 Message = "Phototour was stopped after restart of the Gateway machine",
                 PhotoTourFk = tour.Id,
-                Timestamp = DateTime.Now,
+                Timestamp = DateTime.UtcNow,
                 Type = PhotoTourEventType.Warning,
             });
             tour.Finished = true;
