@@ -18,8 +18,15 @@ public class MovementProgrammingController(IDataContext context)
     public void UpdatePlan([FromBody] DeviceMovement movement)
     {
         var existingPlan = context.DeviceMovements.FirstOrDefault(dm => dm.Id == movement.Id);
-        if (existingPlan == null) context.DeviceMovements.Add(movement);
-        else existingPlan.MovementPlan = movement.MovementPlan;
+        if (existingPlan == null)
+        {
+            context.DeviceMovements.Add(movement);
+        }
+        else
+        {
+            existingPlan.MovementPlan = movement.MovementPlan;
+            existingPlan.Name = movement.Name;
+        }
         context.SaveChanges();
     }
 }
