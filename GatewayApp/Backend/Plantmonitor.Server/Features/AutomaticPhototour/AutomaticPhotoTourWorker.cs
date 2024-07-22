@@ -17,10 +17,14 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
     private static Timer? s_scheduleTimer;
     private static readonly int s_scheduleTimeOut = (int)TimeSpan.FromSeconds(5).TotalMilliseconds;
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
         s_scheduleTimer = new Timer(_ => SchedulePhotoTrips().RunInBackground(ex => ex.LogError()), default, 0, s_scheduleTimeOut);
-        return Task.CompletedTask;
+        using var scope = serviceProvider.CreateScope();
+        await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
+        foreach (var tour in dataContext.AutomaticPhotoTours.Where(apt => !apt.Finished)) tour.Finished = true;
+        dataContext.SaveChanges();
+        await Task.CompletedTask;
     }
 
     private async Task SchedulePhotoTrips()
