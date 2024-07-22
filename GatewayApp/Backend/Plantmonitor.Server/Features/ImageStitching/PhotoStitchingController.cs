@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
 using Plantmonitor.DataModel.DataModel;
 
 namespace Plantmonitor.Server.Features.DeviceProgramming;
@@ -10,8 +11,9 @@ public class PhotoStitchingController(IDataContext context)
 {
     public record struct AddPlantModel(IEnumerable<PlantModel> Plants, long TourId);
     public record struct PlantModel(string Name, string Comment, string QrCode);
+    public record struct PlantImageSection(int StepCount, long[] PhotoTours, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
 
-    [HttpGet("plantsfortours")]
+    [HttpGet("plantsfortour")]
     public IEnumerable<PhotoTourPlant> PlantsForTour(long tourId)
     {
         return context.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == tourId);
@@ -38,7 +40,27 @@ public class PhotoStitchingController(IDataContext context)
         context.SaveChanges();
     }
 
-    [HttpPost("addplanttotour")]
+    [HttpPost("associateplantimagesection")]
+    public void AssociatePlantImageSection(PlantImageSection section)
+    {
+        context.PlantExtractionTemplates.AddRange(section.PhotoTours.Select(pt => new PlantExtractionTemplate()
+        {
+            PhotoBoundingBox = section.Polygon,
+            PhotoTripFk = pt,
+            PhotoTourPlantFk = section.PlantId,
+            IrBoundingBoxOffset = section.IrPolygonOffset
+        }));
+        context.SaveChanges();
+    }
+
+    [HttpPost("removeplantimagesection")]
+    public void RemovePlantImageSections(long[] sectionIds)
+    {
+        context.PlantExtractionTemplates.RemoveRange(context.PlantExtractionTemplates.Where(pet => sectionIds.Contains(pet.Id)));
+        context.SaveChanges();
+    }
+
+    [HttpPost("addplantstotour")]
     public void AddPlantsToTour(AddPlantModel plants)
     {
         context.PhotoTourPlants.AddRange(plants.Plants.Select(p => new PhotoTourPlant()

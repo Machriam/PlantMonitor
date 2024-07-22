@@ -37,4 +37,6 @@ ALTER TABLE IF EXISTS plantmonitor.photo_stitching_template OWNER to postgres;
 
 ALTER TABLE IF EXISTS plantmonitor.photo_tour_trip ADD COLUMN virtual_picture_path text;
 
+ALTER TABLE IF EXISTS plantmonitor.plant_extraction_template ADD COLUMN ir_bounding_box_offset point NOT NULL;
+
 update plantmonitor.configuration_data set value='6' where key='PatchNumber';

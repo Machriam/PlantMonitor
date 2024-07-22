@@ -525,6 +525,10 @@ export interface IPhotoStitchingClient {
 
     removePlantsFromTour(plantIds: number[]): Promise<void>;
 
+    associatePlantImageSection(section: PlantImageSection): Promise<void>;
+
+    removePlantImageSections(sectionIds: number[]): Promise<void>;
+
     addPlantsToTour(plants: AddPlantModel): Promise<void>;
 }
 
@@ -540,7 +544,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
     }
 
     plantsForTour(tourId?: number | undefined): Promise<PhotoTourPlant[]> {
-        let url_ = this.baseUrl + "/api/PhotoStitching/plantsfortours?";
+        let url_ = this.baseUrl + "/api/PhotoStitching/plantsfortour?";
         if (tourId === null)
             throw new Error("The parameter 'tourId' cannot be null.");
         else if (tourId !== undefined)
@@ -669,8 +673,80 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
         return Promise.resolve<void>(null as any);
     }
 
+    associatePlantImageSection(section: PlantImageSection): Promise<void> {
+        let url_ = this.baseUrl + "/api/PhotoStitching/associateplantimagesection";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(section);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processAssociatePlantImageSection(_response));
+        });
+    }
+
+    protected processAssociatePlantImageSection(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    removePlantImageSections(sectionIds: number[]): Promise<void> {
+        let url_ = this.baseUrl + "/api/PhotoStitching/removeplantimagesection";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(sectionIds);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processRemovePlantImageSections(_response));
+        });
+    }
+
+    protected processRemovePlantImageSections(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     addPlantsToTour(plants: AddPlantModel): Promise<void> {
-        let url_ = this.baseUrl + "/api/PhotoStitching/addplanttotour";
+        let url_ = this.baseUrl + "/api/PhotoStitching/addplantstotour";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(plants);
@@ -2183,6 +2259,7 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
     photoTripFk!: number;
     photoTourPlantFk!: number;
     photoBoundingBox!: NpgsqlPoint[];
+    irBoundingBoxOffset!: NpgsqlPoint;
     photoTourPlantFkNavigation!: PhotoTourPlant;
     photoTripFkNavigation!: PhotoTourTrip;
 
@@ -2205,6 +2282,7 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
                 for (let item of _data["PhotoBoundingBox"])
                     this.photoBoundingBox!.push(NpgsqlPoint.fromJS(item));
             }
+            this.irBoundingBoxOffset = _data["IrBoundingBoxOffset"] ? NpgsqlPoint.fromJS(_data["IrBoundingBoxOffset"]) : <any>undefined;
             this.photoTourPlantFkNavigation = _data["PhotoTourPlantFkNavigation"] ? PhotoTourPlant.fromJS(_data["PhotoTourPlantFkNavigation"]) : <any>undefined;
             this.photoTripFkNavigation = _data["PhotoTripFkNavigation"] ? PhotoTourTrip.fromJS(_data["PhotoTripFkNavigation"]) : <any>undefined;
         }
@@ -2227,6 +2305,7 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
             for (let item of this.photoBoundingBox)
                 data["PhotoBoundingBox"].push(item.toJSON());
         }
+        data["IrBoundingBoxOffset"] = this.irBoundingBoxOffset ? this.irBoundingBoxOffset.toJSON() : <any>undefined;
         data["PhotoTourPlantFkNavigation"] = this.photoTourPlantFkNavigation ? this.photoTourPlantFkNavigation.toJSON() : <any>undefined;
         data["PhotoTripFkNavigation"] = this.photoTripFkNavigation ? this.photoTripFkNavigation.toJSON() : <any>undefined;
         return data;
@@ -2245,6 +2324,7 @@ export interface IPlantExtractionTemplate {
     photoTripFk: number;
     photoTourPlantFk: number;
     photoBoundingBox: NpgsqlPoint[];
+    irBoundingBoxOffset: NpgsqlPoint;
     photoTourPlantFkNavigation: PhotoTourPlant;
     photoTripFkNavigation: PhotoTourTrip;
 }
@@ -2811,6 +2891,81 @@ export interface IOutletModel {
     name: string;
     buttonNumber: number;
     channel: number;
+}
+
+export class PlantImageSection implements IPlantImageSection {
+    stepCount!: number;
+    photoTours!: number[];
+    polygon!: NpgsqlPoint[];
+    irPolygonOffset!: NpgsqlPoint;
+    plantId!: number;
+
+    constructor(data?: IPlantImageSection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.stepCount = _data["StepCount"];
+            if (Array.isArray(_data["PhotoTours"])) {
+                this.photoTours = [] as any;
+                for (let item of _data["PhotoTours"])
+                    this.photoTours!.push(item);
+            }
+            if (Array.isArray(_data["Polygon"])) {
+                this.polygon = [] as any;
+                for (let item of _data["Polygon"])
+                    this.polygon!.push(NpgsqlPoint.fromJS(item));
+            }
+            this.irPolygonOffset = _data["IrPolygonOffset"] ? NpgsqlPoint.fromJS(_data["IrPolygonOffset"]) : <any>undefined;
+            this.plantId = _data["PlantId"];
+        }
+    }
+
+    static fromJS(data: any): PlantImageSection {
+        data = typeof data === 'object' ? data : {};
+        let result = new PlantImageSection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["StepCount"] = this.stepCount;
+        if (Array.isArray(this.photoTours)) {
+            data["PhotoTours"] = [];
+            for (let item of this.photoTours)
+                data["PhotoTours"].push(item);
+        }
+        if (Array.isArray(this.polygon)) {
+            data["Polygon"] = [];
+            for (let item of this.polygon)
+                data["Polygon"].push(item.toJSON());
+        }
+        data["IrPolygonOffset"] = this.irPolygonOffset ? this.irPolygonOffset.toJSON() : <any>undefined;
+        data["PlantId"] = this.plantId;
+        return data;
+    }
+
+    clone(): PlantImageSection {
+        const json = this.toJSON();
+        let result = new PlantImageSection();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPlantImageSection {
+    stepCount: number;
+    photoTours: number[];
+    polygon: NpgsqlPoint[];
+    irPolygonOffset: NpgsqlPoint;
+    plantId: number;
 }
 
 export class AddPlantModel implements IAddPlantModel {

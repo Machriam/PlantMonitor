@@ -14,6 +14,8 @@ public partial class PlantExtractionTemplate
 
     public NpgsqlPolygon PhotoBoundingBox { get; set; }
 
+    public NpgsqlPoint IrBoundingBoxOffset { get; set; }
+
     public virtual PhotoTourPlant PhotoTourPlantFkNavigation { get; set; } = null!;
 
     public virtual PhotoTourTrip PhotoTripFkNavigation { get; set; } = null!;
