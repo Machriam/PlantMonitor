@@ -22,7 +22,18 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
         s_scheduleTimer = new Timer(_ => SchedulePhotoTrips().RunInBackground(ex => ex.LogError()), default, 0, s_scheduleTimeOut);
         using var scope = serviceProvider.CreateScope();
         await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
-        foreach (var tour in dataContext.AutomaticPhotoTours.Where(apt => !apt.Finished)) tour.Finished = true;
+        foreach (var tour in dataContext.AutomaticPhotoTours.Where(apt => !apt.Finished))
+        {
+            dataContext.PhotoTourEvents.Add(new PhotoTourEvent()
+            {
+                Message = "Phototour was stopped after restart of the Gateway machine",
+                PhotoTourFk = tour.Id,
+                Timestamp = DateTime.Now,
+                Type = PhotoTourEventType.Warning,
+            });
+            tour.Finished = true;
+        }
+        foreach (var measurement in dataContext.TemperatureMeasurements.Where(measurement => !measurement.Finished)) measurement.Finished = true;
         dataContext.SaveChanges();
         await Task.CompletedTask;
     }
