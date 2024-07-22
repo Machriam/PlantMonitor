@@ -53,7 +53,8 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     {
         return context.AutomaticPhotoTours
             .Include(apt => apt.PhotoTourEvents)
-            .Select(apt => new PhotoTourInfo(apt.Name, apt.Finished, apt.Id, apt.PhotoTourEvents.Min(pte => pte.Timestamp), apt.PhotoTourEvents.Max(pte => pte.Timestamp)));
+            .Select(apt => new PhotoTourInfo(apt.Name, apt.Finished, apt.Id, apt.PhotoTourEvents.Select(pte => pte.Timestamp).OrderBy(t => t).FirstOrDefault(),
+            apt.PhotoTourEvents.Select(pte => pte.Timestamp).OrderByDescending(t => t).FirstOrDefault()));
     }
 
     [HttpPost("startphototour")]

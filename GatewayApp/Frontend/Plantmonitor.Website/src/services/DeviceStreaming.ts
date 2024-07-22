@@ -2,7 +2,7 @@ import { dev } from "$app/environment";
 import * as signalR from "@microsoft/signalr";
 import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 import { Constants } from "~/Constants";
-import { CameraType, StreamingMetaData, TemperatureStreamData, type ITemperatureStreamData } from "./GatewayAppApi";
+import { CameraType, StreamingMetaData, TemperatureStreamData } from "./GatewayAppApi";
 import type { IRetryPolicy } from "@microsoft/signalr";
 
 export interface IReplayedPicture {

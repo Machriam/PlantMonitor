@@ -240,6 +240,206 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
     }
 }
 
+export interface IPictureClient {
+
+    getAllPicturedDevices(): Promise<SeriesByDevice[]>;
+
+    updateIrOffset(offset: IrCameraOffset, ip?: string | undefined): Promise<void>;
+
+    getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]>;
+
+    pictureSeriesOfTour(photoTour?: number | undefined): Promise<PictureSeriesTourData[]>;
+}
+
+export class PictureClient extends GatewayAppApiBase implements IPictureClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    getAllPicturedDevices(): Promise<SeriesByDevice[]> {
+        let url_ = this.baseUrl + "/api/Picture/allpictureddevices";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetAllPicturedDevices(_response));
+        });
+    }
+
+    protected processGetAllPicturedDevices(response: Response): Promise<SeriesByDevice[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(SeriesByDevice.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SeriesByDevice[]>(null as any);
+    }
+
+    updateIrOffset(offset: IrCameraOffset, ip?: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Picture/updateiroffset?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(offset);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdateIrOffset(_response));
+        });
+    }
+
+    protected processUpdateIrOffset(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]> {
+        let url_ = this.baseUrl + "/api/Picture/pictureseriesnames?";
+        if (deviceId === null)
+            throw new Error("The parameter 'deviceId' cannot be null.");
+        else if (deviceId !== undefined)
+            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetPictureSeries(_response));
+        });
+    }
+
+    protected processGetPictureSeries(response: Response): Promise<PictureSeriesData[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PictureSeriesData.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PictureSeriesData[]>(null as any);
+    }
+
+    pictureSeriesOfTour(photoTour?: number | undefined): Promise<PictureSeriesTourData[]> {
+        let url_ = this.baseUrl + "/api/Picture/pictureseriesoftour?";
+        if (photoTour === null)
+            throw new Error("The parameter 'photoTour' cannot be null.");
+        else if (photoTour !== undefined)
+            url_ += "photoTour=" + encodeURIComponent("" + photoTour) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processPictureSeriesOfTour(_response));
+        });
+    }
+
+    protected processPictureSeriesOfTour(response: Response): Promise<PictureSeriesTourData[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PictureSeriesTourData.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PictureSeriesTourData[]>(null as any);
+    }
+}
+
 export interface IMovementProgrammingClient {
 
     getPlan(deviceId?: string | undefined): Promise<DeviceMovement>;
@@ -1185,157 +1385,6 @@ export class DeviceClient extends GatewayAppApiBase implements IDeviceClient {
             });
         }
         return Promise.resolve<void>(null as any);
-    }
-}
-
-export interface IPictureClient {
-
-    getAllPicturedDevices(): Promise<SeriesByDevice[]>;
-
-    updateIrOffset(offset: IrCameraOffset, ip?: string | undefined): Promise<void>;
-
-    getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]>;
-}
-
-export class PictureClient extends GatewayAppApiBase implements IPictureClient {
-    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
-    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
-
-    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
-        super();
-        this.http = http ? http : window as any;
-        this.baseUrl = this.getBaseUrl("", baseUrl);
-    }
-
-    getAllPicturedDevices(): Promise<SeriesByDevice[]> {
-        let url_ = this.baseUrl + "/api/Picture/allpictureddevices";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processGetAllPicturedDevices(_response));
-        });
-    }
-
-    protected processGetAllPicturedDevices(response: Response): Promise<SeriesByDevice[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(SeriesByDevice.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<SeriesByDevice[]>(null as any);
-    }
-
-    updateIrOffset(offset: IrCameraOffset, ip?: string | undefined): Promise<void> {
-        let url_ = this.baseUrl + "/api/Picture/updateiroffset?";
-        if (ip === null)
-            throw new Error("The parameter 'ip' cannot be null.");
-        else if (ip !== undefined)
-            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        const content_ = JSON.stringify(offset);
-
-        let options_: RequestInit = {
-            body: content_,
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processUpdateIrOffset(_response));
-        });
-    }
-
-    protected processUpdateIrOffset(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
-    getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]> {
-        let url_ = this.baseUrl + "/api/Picture/pictureseriesnames?";
-        if (deviceId === null)
-            throw new Error("The parameter 'deviceId' cannot be null.");
-        else if (deviceId !== undefined)
-            url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.transformOptions(options_).then(transformedOptions_ => {
-            return this.http.fetch(url_, transformedOptions_);
-        }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processGetPictureSeries(_response));
-        });
-    }
-
-    protected processGetPictureSeries(response: Response): Promise<PictureSeriesData[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(PictureSeriesData.fromJS(item));
-            }
-            else {
-                result200 = <any>null;
-            }
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<PictureSeriesData[]>(null as any);
     }
 }
 
@@ -2618,6 +2667,211 @@ export interface IMeasurementDevice {
     comment: string;
 }
 
+export class SeriesByDevice implements ISeriesByDevice {
+    deviceId!: string;
+    folderName!: string;
+
+    constructor(data?: ISeriesByDevice) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.deviceId = _data["DeviceId"];
+            this.folderName = _data["FolderName"];
+        }
+    }
+
+    static fromJS(data: any): SeriesByDevice {
+        data = typeof data === 'object' ? data : {};
+        let result = new SeriesByDevice();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["DeviceId"] = this.deviceId;
+        data["FolderName"] = this.folderName;
+        return data;
+    }
+
+    clone(): SeriesByDevice {
+        const json = this.toJSON();
+        let result = new SeriesByDevice();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ISeriesByDevice {
+    deviceId: string;
+    folderName: string;
+}
+
+export class IrCameraOffset implements IIrCameraOffset {
+    left!: number | undefined;
+    top!: number | undefined;
+
+    constructor(data?: IIrCameraOffset) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.left = _data["left"];
+            this.top = _data["top"];
+        }
+    }
+
+    static fromJS(data: any): IrCameraOffset {
+        data = typeof data === 'object' ? data : {};
+        let result = new IrCameraOffset();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["left"] = this.left;
+        data["top"] = this.top;
+        return data;
+    }
+
+    clone(): IrCameraOffset {
+        const json = this.toJSON();
+        let result = new IrCameraOffset();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IIrCameraOffset {
+    left: number | undefined;
+    top: number | undefined;
+}
+
+export class PictureSeriesData implements IPictureSeriesData {
+    count!: number;
+    folderName!: string;
+    type!: CameraType | undefined;
+
+    constructor(data?: IPictureSeriesData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.count = _data["Count"];
+            this.folderName = _data["FolderName"];
+            this.type = _data["Type"];
+        }
+    }
+
+    static fromJS(data: any): PictureSeriesData {
+        data = typeof data === 'object' ? data : {};
+        let result = new PictureSeriesData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Count"] = this.count;
+        data["FolderName"] = this.folderName;
+        data["Type"] = this.type;
+        return data;
+    }
+
+    clone(): PictureSeriesData {
+        const json = this.toJSON();
+        let result = new PictureSeriesData();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPictureSeriesData {
+    count: number;
+    folderName: string;
+    type: CameraType | undefined;
+}
+
+export enum CameraType {
+    Vis = 0,
+    IR = 1,
+}
+
+export class PictureSeriesTourData implements IPictureSeriesTourData {
+    irData!: PictureSeriesData;
+    visData!: PictureSeriesData;
+    timeStamp!: Date;
+    deviceId!: string;
+
+    constructor(data?: IPictureSeriesTourData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.irData = _data["IrData"] ? PictureSeriesData.fromJS(_data["IrData"]) : <any>undefined;
+            this.visData = _data["VisData"] ? PictureSeriesData.fromJS(_data["VisData"]) : <any>undefined;
+            this.timeStamp = _data["TimeStamp"] ? new Date(_data["TimeStamp"].toString()) : <any>undefined;
+            this.deviceId = _data["DeviceId"];
+        }
+    }
+
+    static fromJS(data: any): PictureSeriesTourData {
+        data = typeof data === 'object' ? data : {};
+        let result = new PictureSeriesTourData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["IrData"] = this.irData ? this.irData.toJSON() : <any>undefined;
+        data["VisData"] = this.visData ? this.visData.toJSON() : <any>undefined;
+        data["TimeStamp"] = this.timeStamp ? this.timeStamp.toISOString() : <any>undefined;
+        data["DeviceId"] = this.deviceId;
+        return data;
+    }
+
+    clone(): PictureSeriesTourData {
+        const json = this.toJSON();
+        let result = new PictureSeriesTourData();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPictureSeriesTourData {
+    irData: PictureSeriesData;
+    visData: PictureSeriesData;
+    timeStamp: Date;
+    deviceId: string;
+}
+
 export class DeviceMovement implements IDeviceMovement {
     id!: number;
     deviceId!: string;
@@ -3074,11 +3328,6 @@ export interface IPlantModel {
     qrCode: string;
 }
 
-export enum CameraType {
-    Vis = 0,
-    IR = 1,
-}
-
 export class MotorPosition implements IMotorPosition {
     engaged!: boolean | undefined;
     position!: number | undefined;
@@ -3124,151 +3373,6 @@ export class MotorPosition implements IMotorPosition {
 export interface IMotorPosition {
     engaged: boolean | undefined;
     position: number | undefined;
-}
-
-export class SeriesByDevice implements ISeriesByDevice {
-    deviceId!: string;
-    folderName!: string;
-
-    constructor(data?: ISeriesByDevice) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.deviceId = _data["DeviceId"];
-            this.folderName = _data["FolderName"];
-        }
-    }
-
-    static fromJS(data: any): SeriesByDevice {
-        data = typeof data === 'object' ? data : {};
-        let result = new SeriesByDevice();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["DeviceId"] = this.deviceId;
-        data["FolderName"] = this.folderName;
-        return data;
-    }
-
-    clone(): SeriesByDevice {
-        const json = this.toJSON();
-        let result = new SeriesByDevice();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface ISeriesByDevice {
-    deviceId: string;
-    folderName: string;
-}
-
-export class IrCameraOffset implements IIrCameraOffset {
-    left!: number | undefined;
-    top!: number | undefined;
-
-    constructor(data?: IIrCameraOffset) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.left = _data["left"];
-            this.top = _data["top"];
-        }
-    }
-
-    static fromJS(data: any): IrCameraOffset {
-        data = typeof data === 'object' ? data : {};
-        let result = new IrCameraOffset();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["left"] = this.left;
-        data["top"] = this.top;
-        return data;
-    }
-
-    clone(): IrCameraOffset {
-        const json = this.toJSON();
-        let result = new IrCameraOffset();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IIrCameraOffset {
-    left: number | undefined;
-    top: number | undefined;
-}
-
-export class PictureSeriesData implements IPictureSeriesData {
-    count!: number;
-    folderName!: string;
-    type!: CameraType | undefined;
-
-    constructor(data?: IPictureSeriesData) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.count = _data["Count"];
-            this.folderName = _data["FolderName"];
-            this.type = _data["Type"];
-        }
-    }
-
-    static fromJS(data: any): PictureSeriesData {
-        data = typeof data === 'object' ? data : {};
-        let result = new PictureSeriesData();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["Count"] = this.count;
-        data["FolderName"] = this.folderName;
-        data["Type"] = this.type;
-        return data;
-    }
-
-    clone(): PictureSeriesData {
-        const json = this.toJSON();
-        let result = new PictureSeriesData();
-        result.init(json);
-        return result;
-    }
-}
-
-export interface IPictureSeriesData {
-    count: number;
-    folderName: string;
-    type: CameraType | undefined;
 }
 
 export class CertificateData implements ICertificateData {
