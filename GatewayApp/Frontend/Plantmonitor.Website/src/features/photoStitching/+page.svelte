@@ -37,7 +37,7 @@
     {/each}
 </div>
 <div class="row">
-    <div class="d-flex flex-column col-md-2">
+    <div style="overflow-y: auto;height:80vh" class="d-flex flex-column col-md-2">
         {#each pictureSeries as series}
             <button on:click={async () => await selectedPhotoSeriesChanged(series)} class="row border-secondary border mt-2">
                 <div class="col-md-6">{series.timeStamp.toLocaleString()}</div>
