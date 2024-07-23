@@ -3,10 +3,9 @@
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import {CvInterop} from "../deviceConfiguration/CvInterop";
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
-    import {drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
+    import {cropImage, drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
     import type {ImageToCut} from "./ImageToCut";
     import {NpgsqlPoint} from "~/services/GatewayAppApi";
-    import {Task} from "~/types/task";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import type {HubConnection} from "@microsoft/signalr";
 
@@ -19,12 +18,12 @@
     let _lastPointerPosition: MouseEvent | undefined;
     let _tooltip: TooltipCreatorResult | undefined;
     let _cutPolygon: {point: NpgsqlPoint; rendered: boolean}[] = [];
-    let _addPolygonOn = {activated: false, name: ""};
+    let _addPolygonOn = {activated: false, name: "", imageRatio: 0};
     let _visConnection: HubConnection | undefined;
     let _irConnection: HubConnection | undefined;
-    const selectedThumbnailId = Math.random().toString(36);
-    const selectedImageCanvasId = Math.random().toString(36);
-    const cvInterop = new CvInterop();
+    const _selectedThumbnailId = Math.random().toString(36);
+    const _selectedImageCanvasId = Math.random().toString(36);
+    const _cvInterop = new CvInterop();
     onMount(() => {
         startStream();
     });
@@ -66,7 +65,7 @@
             irConnection.start(async (step, date, image, temperature) => {
                 let dataUrl = "";
                 let pixelConverter = undefined;
-                const convertedImage = cvInterop.thermalDataToImage(new Uint32Array(await image.arrayBuffer()));
+                const convertedImage = _cvInterop.thermalDataToImage(new Uint32Array(await image.arrayBuffer()));
                 pixelConverter = convertedImage.pixelConverter;
                 dataUrl = convertedImage.dataUrl ?? "";
                 const visImage = _images.find((i) => i.stepCount == step);
@@ -95,7 +94,7 @@
     }
     function drawLine() {
         if (_cutPolygon.length == 1) return;
-        const image = document.getElementById(selectedImageCanvasId) as HTMLCanvasElement;
+        const image = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
         const context = image.getContext("2d");
         if (context == null) return;
         context.beginPath();
@@ -107,18 +106,24 @@
         context.strokeStyle = "yellow";
         context.stroke();
     }
-    function connectPolygon() {
-        if (!_addPolygonOn.activated || _cutPolygon.length <= 2) return;
+    async function connectPolygon() {
+        if (!_addPolygonOn.activated || _cutPolygon.length <= 2 || _selectedImage == null) return;
         _cutPolygon.push(_cutPolygon[0]);
         drawLine();
+        const croppedImage = await cropImage(
+            _selectedImage.imageUrl,
+            _cutPolygon.map((p) => ({x: p.point.x / _addPolygonOn.imageRatio, y: p.point.y / _addPolygonOn.imageRatio}))
+        );
+        const qrCode = _cvInterop.readQRCode(croppedImage);
         _cutPolygon = _cutPolygon;
     }
     async function changeImage(newIndex: number) {
         _currentImageIndex = newIndex;
         _selectedImage = _images[_currentImageIndex];
-        const canvas = document.getElementById(selectedImageCanvasId) as HTMLCanvasElement;
-        await drawImageOnCanvas(_selectedImage.imageUrl, canvas);
-        const activatedTooltip = document.getElementById(selectedThumbnailId + "_" + _currentImageIndex);
+        const canvas = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
+        const ratio = await drawImageOnCanvas(_selectedImage.imageUrl, canvas);
+        _addPolygonOn.imageRatio = ratio.ratio;
+        const activatedTooltip = document.getElementById(_selectedThumbnailId + "_" + _currentImageIndex);
         activatedTooltip?.scrollIntoView({behavior: "instant", block: "nearest", inline: "center"});
         updateTooltip();
     }
@@ -148,7 +153,7 @@
                 updateTooltip();
             }}
             on:mousedown={(x) => addLine(x)}
-            id={selectedImageCanvasId}
+            id={_selectedImageCanvasId}
             style="width:{_selectedImage?.pixelConverter != undefined ? 'initial' : ''}">
         </canvas>
         {#if _selectedImage != undefined}
@@ -162,7 +167,7 @@
             </div>
             <div style="overflow-x:auto;width:40vw;flex-flow:nowrap;min-height:120px" class="row p-0">
                 {#each _images as image, i}
-                    <div id={selectedThumbnailId + "_" + i} style="height: 80px;width:70px">
+                    <div id={_selectedThumbnailId + "_" + i} style="height: 80px;width:70px">
                         <button class="p-0 m-0" on:click={() => changeImage(i)} style="height: 70px;width:70px;border:unset">
                             <img style="height: 100%;width:100%" alt="visual scrollbar" src={image.thumbnailUrl} />
                         </button>
@@ -174,7 +179,12 @@
     </div>
     <div class="d-flex flex-row">
         <button
-            on:click={() => (_addPolygonOn = {activated: !_addPolygonOn.activated, name: _addPolygonOn.name})}
+            on:click={() =>
+                (_addPolygonOn = {
+                    activated: !_addPolygonOn.activated,
+                    name: _addPolygonOn.name,
+                    imageRatio: _addPolygonOn.imageRatio
+                })}
             class="btn btn-primary">{_addPolygonOn.activated ? "Add Plant" : "Cut Plant"}</button>
         {#if _addPolygonOn.activated}
             {#if _cutPolygon.length > 2}

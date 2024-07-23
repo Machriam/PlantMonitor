@@ -70,6 +70,10 @@ export class CvInterop {
     medianBlur(src: Mat, dest: Mat, ksize: number) {
         cv.medianBlur(src, dest, ksize);
     }
+    readQRCode(src: string): string {
+        console.log(src);
+        return "";
+    }
     thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
             const optCv = new optionalCvFunctions();
