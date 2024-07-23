@@ -18,7 +18,7 @@
     let _lastPointerPosition: MouseEvent | undefined;
     let _tooltip: TooltipCreatorResult | undefined;
     let _cutPolygon: {point: NpgsqlPoint; rendered: boolean}[] = [];
-    let _addPolygonOn = {activated: false, name: "", imageRatio: 0};
+    let _addPolygonOn = {activated: false, name: "", imageRatio: 0, qrCode: ""};
     let _visConnection: HubConnection | undefined;
     let _irConnection: HubConnection | undefined;
     const _selectedThumbnailId = Math.random().toString(36);
@@ -115,6 +115,7 @@
             _cutPolygon.map((p) => ({x: p.point.x / _addPolygonOn.imageRatio, y: p.point.y / _addPolygonOn.imageRatio}))
         );
         const qrCode = _cvInterop.readQRCode(croppedImage);
+        _addPolygonOn.qrCode = qrCode;
         _cutPolygon = _cutPolygon;
     }
     async function changeImage(newIndex: number) {
@@ -182,6 +183,7 @@
             on:click={() =>
                 (_addPolygonOn = {
                     activated: !_addPolygonOn.activated,
+                    qrCode: _addPolygonOn.qrCode,
                     name: _addPolygonOn.name,
                     imageRatio: _addPolygonOn.imageRatio
                 })}
@@ -191,6 +193,7 @@
                 <button on:click={() => connectPolygon()} class="btn btn-primary">Connect Cut</button>
             {/if}
             <TextInput class="col-md-3" label="Plant Name" bind:value={_addPolygonOn.name}></TextInput>
+            <div>{_addPolygonOn.qrCode}</div>
         {/if}
         <button class="btn btn-danger">Delete Cut</button>
     </div>

@@ -71,8 +71,7 @@ export class CvInterop {
         cv.medianBlur(src, dest, ksize);
     }
     readQRCode(src: string): string {
-        console.log(src);
-        return "";
+        return "QR Code reading not implemented";
     }
     thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
