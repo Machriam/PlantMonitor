@@ -3,8 +3,10 @@
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import {CvInterop} from "../deviceConfiguration/CvInterop";
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
-    import {resizeBase64Img} from "../replayPictures/ImageResizer";
+    import {drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
     import type {ImageToCut} from "./ImageToCut";
+    import type {NpgsqlPoint} from "~/services/GatewayAppApi";
+    import {Task} from "~/types/task";
 
     export let deviceId: string;
     export let irSeries: string;
@@ -14,7 +16,9 @@
     let images: ImageToCut[] = [];
     let lastPointerPosition: MouseEvent | undefined;
     let tooltip: TooltipCreatorResult | undefined;
-    const selectedImageDivId = Math.random().toString(36);
+    let cutPolygon: NpgsqlPoint[] = [];
+    const selectedThumbnailId = Math.random().toString(36);
+    const selectedImageCanvasId = Math.random().toString(36);
     const cvInterop = new CvInterop();
     onMount(() => {
         startStream();
@@ -26,7 +30,6 @@
         images = [];
         currentImageIndex = -1;
         visConnection.start(async (step, date, image, temperature) => {
-            console.log(step);
             let dataUrl = "";
             let pixelConverter = undefined;
             dataUrl = await image.asBase64Url();
@@ -41,8 +44,7 @@
                 pixelConverter: pixelConverter
             });
             if (images.length == 1) {
-                currentImageIndex = 0;
-                selectedImage = images[currentImageIndex];
+                await changeImage(0);
             }
             images = images;
         });
@@ -50,7 +52,6 @@
             irConnection.start(async (step, date, image, temperature) => {
                 let dataUrl = "";
                 let pixelConverter = undefined;
-                debugger;
                 const convertedImage = cvInterop.thermalDataToImage(new Uint32Array(await image.arrayBuffer()));
                 pixelConverter = convertedImage.pixelConverter;
                 dataUrl = convertedImage.dataUrl ?? "";
@@ -73,10 +74,15 @@
         changeImage(currentIndex);
         event.preventDefault();
     }
-    function changeImage(newIndex: number) {
+    function addLine() {
+        const image = document.getElementById(selectedImageCanvasId) as HTMLImageElement;
+    }
+    async function changeImage(newIndex: number) {
         currentImageIndex = newIndex;
         selectedImage = images[currentImageIndex];
-        const activatedTooltip = document.getElementById(selectedImageDivId + "_" + currentImageIndex);
+        const canvas = document.getElementById(selectedImageCanvasId) as HTMLCanvasElement;
+        await drawImageOnCanvas(selectedImage.imageUrl, canvas);
+        const activatedTooltip = document.getElementById(selectedThumbnailId + "_" + currentImageIndex);
         activatedTooltip?.scrollIntoView({behavior: "instant", block: "nearest", inline: "center"});
         updateTooltip();
     }
@@ -89,26 +95,26 @@
 
 <div class={$$restProps.class || ""}>
     <div class="col-md-12 row p-0" style="min-height: 120px;" on:wheel={(x) => onScroll(x)}>
+        <canvas
+            on:mouseenter={(x) => {
+                if (tooltip != undefined || selectedImage?.pixelConverter == null) return;
+                lastPointerPosition = x;
+                tooltip = TooltipCreator.CreateTooltip("", x);
+                updateTooltip();
+            }}
+            on:mouseleave={() => {
+                if (tooltip == undefined) return;
+                tooltip.dispose();
+                tooltip = undefined;
+            }}
+            on:pointermove={(x) => {
+                lastPointerPosition = x;
+                updateTooltip();
+            }}
+            id={selectedImageCanvasId}
+            style="width:{selectedImage?.pixelConverter != undefined ? 'initial' : ''}">
+        </canvas>
         {#if selectedImage != undefined}
-            <img
-                on:mouseenter={(x) => {
-                    if (tooltip != undefined || selectedImage?.pixelConverter == null) return;
-                    lastPointerPosition = x;
-                    tooltip = TooltipCreator.CreateTooltip("", x);
-                    updateTooltip();
-                }}
-                on:mouseleave={() => {
-                    if (tooltip == undefined) return;
-                    tooltip.dispose();
-                    tooltip = undefined;
-                }}
-                on:pointermove={(x) => {
-                    lastPointerPosition = x;
-                    updateTooltip();
-                }}
-                alt="preview"
-                style="width:{selectedImage.pixelConverter != undefined ? 'initial' : ''}"
-                src={selectedImage?.imageUrl} />
             <div class="col-md-3">
                 <div>{selectedImage.date.toLocaleTimeString()}</div>
                 <div>Position: {selectedImage.stepCount}</div>
@@ -119,7 +125,7 @@
             </div>
             <div style="overflow-x:auto;width:40vw;flex-flow:nowrap;min-height:120px" class="row p-0">
                 {#each images as image, i}
-                    <div id={selectedImageDivId + "_" + i} style="height: 80px;width:70px">
+                    <div id={selectedThumbnailId + "_" + i} style="height: 80px;width:70px">
                         <button class="p-0 m-0" on:click={() => changeImage(i)} style="height: 70px;width:70px;border:unset">
                             <img style="height: 100%;width:100%" alt="visual scrollbar" src={image.thumbnailUrl} />
                         </button>
@@ -129,4 +135,6 @@
             </div>
         {/if}
     </div>
+    <button class="btn btn-primary">Cut Plant</button>
+    <button class="btn btn-danger">Delete Cut</button>
 </div>

@@ -2,6 +2,7 @@
     import {onDestroy, onMount} from "svelte";
     import {AutomaticPhotoTourClient, PhotoTourInfo, PictureClient, PictureSeriesTourData} from "~/services/GatewayAppApi";
     import ImageCutter from "./ImageCutter.svelte";
+    import {Task} from "~/types/task";
     let availableTours: PhotoTourInfo[] = [];
     let selectedTour: PhotoTourInfo | undefined;
     let pictureSeries: PictureSeriesTourData[] = [];
@@ -16,8 +17,11 @@
         selectedTour = newTour;
         const pictureClient = new PictureClient();
         pictureSeries = await pictureClient.pictureSeriesOfTour(newTour.id);
+        selectedSeries = undefined;
     }
     async function selectedPhotoSeriesChanged(data: PictureSeriesTourData) {
+        selectedSeries = undefined;
+        await Task.delay(1);
         selectedSeries = data;
     }
 </script>
