@@ -14,18 +14,25 @@
     import ImageCutter from "./ImageCutter.svelte";
     import {Task} from "~/types/task";
     import TextInput from "../reuseableComponents/TextInput.svelte";
-    import {selectedPhotoTourPlantInfo} from "../store";
+    import {plantPolygonChanged, selectedPhotoTourPlantInfo} from "../store";
+    import type {Unsubscriber} from "svelte/motion";
     let _availableTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _pictureTrips: PictureTripData[] = [];
     let _selectedTrip: PictureTripData | undefined;
     let _plants: PhotoTourPlantInfo[] = [];
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
+    let _unsubscribe: Unsubscriber;
 
-    onDestroy(() => {});
+    onDestroy(() => {
+        _unsubscribe();
+    });
     onMount(async () => {
         const photoTourClient = new AutomaticPhotoTourClient();
         _availableTours = await photoTourClient.getPhotoTours();
+        _unsubscribe = plantPolygonChanged.subscribe(async (x) => {
+            await updatePlantInfo();
+        });
     });
     async function selectedTourChanged(newTour: PhotoTourInfo) {
         _selectedTour = newTour;
@@ -35,7 +42,12 @@
         _plants = await stitchingClient.plantsForTour(newTour.id);
         _selectedTrip = undefined;
     }
-    async function selectedPhotoSeriesChanged(data: PictureTripData) {
+    async function updatePlantInfo() {
+        if (_selectedTour == undefined) return;
+        const stitchingClient = new PhotoStitchingClient();
+        _plants = await stitchingClient.plantsForTour(_selectedTour.id);
+    }
+    async function selectedTripChanged(data: PictureTripData) {
         _selectedTrip = undefined;
         await Task.delay(1);
         _selectedTrip = data;
@@ -43,7 +55,7 @@
     async function removePlant() {
         if ($selectedPhotoTourPlantInfo == undefined || _selectedTour == undefined) return;
         const stitchingClient = new PhotoStitchingClient();
-        await stitchingClient.removePlantsFromTour([$selectedPhotoTourPlantInfo.id]);
+        await stitchingClient.removePlantsFromTour($selectedPhotoTourPlantInfo.map((p) => p.id));
         _plants = await stitchingClient.plantsForTour(_selectedTour.id);
     }
     async function addPlant() {
@@ -74,7 +86,7 @@
 <div class="row">
     <div style="overflow-y: auto;height:80vh" class="d-flex flex-column col-md-2">
         {#each _pictureTrips as series}
-            <button on:click={async () => await selectedPhotoSeriesChanged(series)} class="row border-secondary border mt-2">
+            <button on:click={async () => await selectedTripChanged(series)} class="row border-secondary border mt-2">
                 <div class="col-md-6">{series.timeStamp.toLocaleString()}</div>
                 <div class="col-md-3">IR: {series.irData.count}</div>
                 <div class="col-md-3">VIS: {series.visData.count}</div>
@@ -84,6 +96,7 @@
     <div class="col-md-8">
         {#if _selectedTrip !== undefined && _selectedTrip !== undefined}
             <ImageCutter
+                polygonChanged={updatePlantInfo}
                 _selectedPhotoTrip={_selectedTrip}
                 deviceId={_selectedTrip.deviceId}
                 visSeries={_selectedTrip.visData.folderName.getFileName()}
@@ -98,13 +111,16 @@
             <button on:click={addPlant} class="btn btn-primary">Add Plant</button>
             <button on:click={removePlant} class="btn btn-danger">Remove Plant</button>
         </div>
+        <div class="d-flex flex-row justify-content-around mt-2">
+            <button on:click={() => ($selectedPhotoTourPlantInfo = _plants)} class="btn btn-primary"
+                >Show polygons on image</button>
+        </div>
         <div style="overflow-y:auto;height:60vh" class="mt-3">
             {#each _plants as plant}
                 <button
-                    on:click={() => ($selectedPhotoTourPlantInfo = plant)}
-                    class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25 {plant == $selectedPhotoTourPlantInfo
-                        ? 'bg-info'
-                        : 'bg-white'}">
+                    on:click={() => ($selectedPhotoTourPlantInfo = [plant])}
+                    class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25
+                        {$selectedPhotoTourPlantInfo?.find((p) => p.id == plant.id) != undefined ? 'bg-info' : 'bg-white'}">
                     <div>Pos: {plant.extractionTemplate.map((et) => et.motorPosition)}</div>
                     <div style="align-self: center;">
                         {plant.name} - {plant.qrCode?.isEmpty() ? "No QR" : plant.qrCode}

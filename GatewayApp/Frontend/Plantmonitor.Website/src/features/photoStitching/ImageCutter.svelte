@@ -13,7 +13,7 @@
         PlantImageSection
     } from "~/services/GatewayAppApi";
     import type {HubConnection} from "@microsoft/signalr";
-    import {selectedPhotoTourPlantInfo} from "../store";
+    import {plantPolygonChanged, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
 
     export let deviceId: string;
@@ -40,21 +40,24 @@
         _unsubscribe = selectedPhotoTourPlantInfo.subscribe(async (x) => {
             _cutPolygon = [];
             await changeImage(_currentImageIndex);
-            debugger;
-            const existingTemplate = x?.extractionTemplate
-                .filter(
-                    (et) =>
-                        et.motorPosition == _selectedImage?.stepCount &&
-                        et.applicablePhotoTripFrom <= _selectedPhotoTrip.timeStamp
-                )
-                .toSorted((a, b) => b.applicablePhotoTripFrom.getTime() - a.applicablePhotoTripFrom.getTime())
-                .at(0);
-            _selectedPlant = x;
-            if (existingTemplate == undefined) return;
-            existingTemplate.photoBoundingBox.forEach((bb) => {
-                _cutPolygon.push({point: new NpgsqlPoint({x: bb.x * _imageRatio, y: bb.y * _imageRatio})});
-                drawLine();
-            });
+            if (x == undefined) return;
+            if (x.length == 1) _selectedPlant = x[0];
+            else _selectedPlant = undefined;
+            const stepCount = _selectedImage?.stepCount;
+            const tripTime = _selectedPhotoTrip.timeStamp;
+            for (let i = 0; i < x.length; i++) {
+                const plant = x[i];
+                const existingTemplate = plant.extractionTemplate
+                    .filter((et) => et.motorPosition == stepCount && et.applicablePhotoTripFrom <= tripTime)
+                    .toSorted((a, b) => b.applicablePhotoTripFrom.getTime() - a.applicablePhotoTripFrom.getTime())
+                    .at(0);
+                if (existingTemplate == undefined) continue;
+                _cutPolygon = [];
+                existingTemplate.photoBoundingBox.forEach((bb) => {
+                    _cutPolygon.push({point: new NpgsqlPoint({x: bb.x * _imageRatio, y: bb.y * _imageRatio})});
+                    drawLine();
+                });
+            }
         });
     });
     onDestroy(() => {
@@ -155,6 +158,7 @@
     async function changeImage(newIndex: number) {
         _currentImageIndex = newIndex;
         _selectedImage = _images[_currentImageIndex];
+        if (_selectedImage.imageUrl == undefined) return;
         const canvas = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
         const ratio = await drawImageOnCanvas(_selectedImage.imageUrl, canvas);
         _imageRatio = ratio.ratio;
@@ -172,7 +176,7 @@
     async function savePolygon() {
         if (_selectedImage == undefined || _selectedPlant == undefined || !_polygonValid) return;
         const client = new PhotoStitchingClient();
-        client.associatePlantImageSection(
+        await client.associatePlantImageSection(
             new PlantImageSection({
                 plantId: _selectedPlant.id,
                 irPolygonOffset: new NpgsqlPoint({x: 0, y: 0}),
@@ -181,15 +185,17 @@
                 polygon: _cutPolygon.map((p) => new NpgsqlPoint({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
             })
         );
+        $plantPolygonChanged = _selectedPlant;
     }
     async function removePolygon() {
         if (_selectedPlant == undefined || _selectedImage == undefined) return;
         const client = new PhotoStitchingClient();
         const template = _selectedPlant.extractionTemplate.find((et) => et.motorPosition == _selectedImage!.stepCount);
         _cutPolygon = [];
-        changeImage(_currentImageIndex);
+        await changeImage(_currentImageIndex);
         if (template == undefined) return;
         await client.removePlantImageSections([template.id]);
+        $plantPolygonChanged = _selectedPlant;
     }
     function updateTooltip() {
         if (_selectedImage?.pixelConverter == null || _tooltip == undefined || _lastPointerPosition == null) return;
