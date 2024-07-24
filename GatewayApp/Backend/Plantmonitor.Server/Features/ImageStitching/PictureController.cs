@@ -7,7 +7,7 @@ using Plantmonitor.Shared.Features.ImageStreaming;
 namespace Plantmonitor.Server.Features.ImageStitching;
 
 public record struct PictureSeriesData(int Count, string FolderName, CameraType? Type);
-public record struct PictureSeriesTourData(PictureSeriesData IrData, PictureSeriesData VisData, DateTime TimeStamp, string DeviceId);
+public record struct PictureTripData(PictureSeriesData IrData, PictureSeriesData VisData, DateTime TimeStamp, string DeviceId, long TripId);
 public record struct SeriesByDevice(string DeviceId, string FolderName);
 
 [ApiController]
@@ -52,7 +52,7 @@ public class PictureController(IEnvironmentConfiguration configuration, IDeviceA
     }
 
     [HttpGet("pictureseriesoftour")]
-    public IEnumerable<PictureSeriesTourData> PictureSeriesOfTour(long photoTour)
+    public IEnumerable<PictureTripData> PictureSeriesOfTour(long photoTour)
     {
         var trips = context.PhotoTourTrips
             .Where(ptt => ptt.PhotoTourFk == photoTour && ptt.VisDataFolder.Length > 3).ToList();
@@ -60,7 +60,7 @@ public class PictureController(IEnvironmentConfiguration configuration, IDeviceA
         var directories = trips
             .Select(t => (Trip: t, IrCount: Path.Exists(t.IrDataFolder) ? Directory.GetFiles(t.IrDataFolder).Length : 0,
                           VisCount: Path.Exists(t.VisDataFolder) ? Directory.GetFiles(t.VisDataFolder).Length : 0));
-        return directories.Select(d => new PictureSeriesTourData(new(d.IrCount, d.Trip.IrDataFolder, CameraType.IR),
-            new(d.VisCount, d.Trip.VisDataFolder, CameraType.Vis), d.Trip.Timestamp, deviceId));
+        return directories.Select(d => new PictureTripData(new(d.IrCount, d.Trip.IrDataFolder, CameraType.IR),
+            new(d.VisCount, d.Trip.VisDataFolder, CameraType.Vis), d.Trip.Timestamp, deviceId, d.Trip.Id));
     }
 }

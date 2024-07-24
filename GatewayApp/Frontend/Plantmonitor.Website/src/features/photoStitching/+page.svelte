@@ -8,7 +8,7 @@
         PhotoTourPlant,
         PhotoTourPlantInfo,
         PictureClient,
-        PictureSeriesTourData,
+        PictureTripData,
         PlantModel
     } from "~/services/GatewayAppApi";
     import ImageCutter from "./ImageCutter.svelte";
@@ -17,8 +17,8 @@
     import {selectedPhotoTourPlantInfo} from "../store";
     let _availableTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
-    let _pictureSeries: PictureSeriesTourData[] = [];
-    let _selectedSeries: PictureSeriesTourData | undefined;
+    let _pictureTrips: PictureTripData[] = [];
+    let _selectedTrip: PictureTripData | undefined;
     let _plants: PhotoTourPlantInfo[] = [];
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
 
@@ -30,15 +30,15 @@
     async function selectedTourChanged(newTour: PhotoTourInfo) {
         _selectedTour = newTour;
         const pictureClient = new PictureClient();
-        _pictureSeries = await pictureClient.pictureSeriesOfTour(newTour.id);
+        _pictureTrips = await pictureClient.pictureSeriesOfTour(newTour.id);
         const stitchingClient = new PhotoStitchingClient();
         _plants = await stitchingClient.plantsForTour(newTour.id);
-        _selectedSeries = undefined;
+        _selectedTrip = undefined;
     }
-    async function selectedPhotoSeriesChanged(data: PictureSeriesTourData) {
-        _selectedSeries = undefined;
+    async function selectedPhotoSeriesChanged(data: PictureTripData) {
+        _selectedTrip = undefined;
         await Task.delay(1);
-        _selectedSeries = data;
+        _selectedTrip = data;
     }
     async function removePlant() {
         if ($selectedPhotoTourPlantInfo == undefined || _selectedTour == undefined) return;
@@ -73,7 +73,7 @@
 </div>
 <div class="row">
     <div style="overflow-y: auto;height:80vh" class="d-flex flex-column col-md-2">
-        {#each _pictureSeries as series}
+        {#each _pictureTrips as series}
             <button on:click={async () => await selectedPhotoSeriesChanged(series)} class="row border-secondary border mt-2">
                 <div class="col-md-6">{series.timeStamp.toLocaleString()}</div>
                 <div class="col-md-3">IR: {series.irData.count}</div>
@@ -82,12 +82,12 @@
         {/each}
     </div>
     <div class="col-md-8">
-        {#if _selectedSeries !== undefined && _selectedTour !== undefined}
+        {#if _selectedTrip !== undefined && _selectedTrip !== undefined}
             <ImageCutter
-                _selectedPhotoTourId={_selectedTour.id}
-                deviceId={_selectedSeries.deviceId}
-                visSeries={_selectedSeries.visData.folderName.getFileName()}
-                irSeries={_selectedSeries.irData.folderName.getFileName()}></ImageCutter>
+                _selectedPhotoTrip={_selectedTrip}
+                deviceId={_selectedTrip.deviceId}
+                visSeries={_selectedTrip.visData.folderName.getFileName()}
+                irSeries={_selectedTrip.irData.folderName.getFileName()}></ImageCutter>
         {/if}
     </div>
     <div class="col-md-2">

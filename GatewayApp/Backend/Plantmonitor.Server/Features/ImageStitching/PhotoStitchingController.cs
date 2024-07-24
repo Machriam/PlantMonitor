@@ -11,17 +11,20 @@ public class PhotoStitchingController(IDataContext context)
 {
     public record struct AddPlantModel(IEnumerable<PlantModel> Plants, long TourId);
     public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? QrCode, long PhotoTourFk, IEnumerable<PlantExtractionTemplateModel> ExtractionTemplate);
-    public record struct PlantExtractionTemplateModel(long Id, long PhotoTripFk, long PhotoTourPlantFk, NpgsqlPolygon PhotoBoundingBox, NpgsqlPoint IrBoundingBoxOffset, int MotorPosition);
+    public record struct PlantExtractionTemplateModel(long Id, long PhotoTripFk, long PhotoTourPlantFk, NpgsqlPolygon PhotoBoundingBox, NpgsqlPoint IrBoundingBoxOffset, int MotorPosition, DateTime ApplicablePhotoTripFrom);
     public record struct PlantModel(string Name, string Comment, string QrCode);
-    public record struct PlantImageSection(int StepCount, long[] PhotoTours, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
+    public record struct PlantImageSection(int StepCount, long PhotoTripId, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
 
     [HttpGet("plantsfortour")]
     public IEnumerable<PhotoTourPlantInfo> PlantsForTour(long tourId)
     {
-        return context.PhotoTourPlants.Include(ptp => ptp.PlantExtractionTemplates)
-                .Where(ptp => ptp.PhotoTourFk == tourId)
-                .Select(ptp => new PhotoTourPlantInfo(ptp.Id, ptp.Name, ptp.Comment, ptp.QrCode, ptp.PhotoTourFk, ptp.PlantExtractionTemplates
-                    .Select(pet => new PlantExtractionTemplateModel(pet.Id, pet.PhotoTripFk, pet.PhotoTourPlantFk, pet.PhotoBoundingBox, pet.IrBoundingBoxOffset, pet.MotorPosition))));
+        return context.PhotoTourPlants
+            .Include(ptp => ptp.PlantExtractionTemplates)
+            .ThenInclude(pet => pet.PhotoTripFkNavigation)
+            .Where(ptp => ptp.PhotoTourFk == tourId)
+            .Select(ptp => new PhotoTourPlantInfo(ptp.Id, ptp.Name, ptp.Comment, ptp.QrCode, ptp.PhotoTourFk, ptp.PlantExtractionTemplates
+                .Select(pet => new PlantExtractionTemplateModel(pet.Id, pet.PhotoTripFk, pet.PhotoTourPlantFk,
+                               pet.PhotoBoundingBox, pet.IrBoundingBoxOffset, pet.MotorPosition, pet.PhotoTripFkNavigation.Timestamp))));
     }
 
     [HttpGet("tripsoftour")]
@@ -48,14 +51,15 @@ public class PhotoStitchingController(IDataContext context)
     [HttpPost("associateplantimagesection")]
     public void AssociatePlantImageSection(PlantImageSection section)
     {
-        context.PlantExtractionTemplates.AddRange(section.PhotoTours.Select(pt => new PlantExtractionTemplate()
+        context.PlantExtractionTemplates.Add(
+        new PlantExtractionTemplate()
         {
             PhotoBoundingBox = section.Polygon,
             MotorPosition = section.StepCount,
-            PhotoTripFk = pt,
+            PhotoTripFk = section.PhotoTripId,
             PhotoTourPlantFk = section.PlantId,
             IrBoundingBoxOffset = section.IrPolygonOffset
-        }));
+        });
         context.SaveChanges();
     }
 

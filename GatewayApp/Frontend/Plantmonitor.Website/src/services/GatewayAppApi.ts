@@ -248,7 +248,7 @@ export interface IPictureClient {
 
     getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]>;
 
-    pictureSeriesOfTour(photoTour?: number | undefined): Promise<PictureSeriesTourData[]>;
+    pictureSeriesOfTour(photoTour?: number | undefined): Promise<PictureTripData[]>;
 }
 
 export class PictureClient extends GatewayAppApiBase implements IPictureClient {
@@ -392,7 +392,7 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
         return Promise.resolve<PictureSeriesData[]>(null as any);
     }
 
-    pictureSeriesOfTour(photoTour?: number | undefined): Promise<PictureSeriesTourData[]> {
+    pictureSeriesOfTour(photoTour?: number | undefined): Promise<PictureTripData[]> {
         let url_ = this.baseUrl + "/api/Picture/pictureseriesoftour?";
         if (photoTour === null)
             throw new Error("The parameter 'photoTour' cannot be null.");
@@ -414,7 +414,7 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
         });
     }
 
-    protected processPictureSeriesOfTour(response: Response): Promise<PictureSeriesTourData[]> {
+    protected processPictureSeriesOfTour(response: Response): Promise<PictureTripData[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -424,7 +424,7 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(PictureSeriesTourData.fromJS(item));
+                    result200!.push(PictureTripData.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -436,7 +436,7 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<PictureSeriesTourData[]>(null as any);
+        return Promise.resolve<PictureTripData[]>(null as any);
     }
 }
 
@@ -2821,13 +2821,14 @@ export enum CameraType {
     IR = 1,
 }
 
-export class PictureSeriesTourData implements IPictureSeriesTourData {
+export class PictureTripData implements IPictureTripData {
     irData!: PictureSeriesData;
     visData!: PictureSeriesData;
     timeStamp!: Date;
     deviceId!: string;
+    tripId!: number;
 
-    constructor(data?: IPictureSeriesTourData) {
+    constructor(data?: IPictureTripData) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -2842,12 +2843,13 @@ export class PictureSeriesTourData implements IPictureSeriesTourData {
             this.visData = _data["VisData"] ? PictureSeriesData.fromJS(_data["VisData"]) : <any>undefined;
             this.timeStamp = _data["TimeStamp"] ? new Date(_data["TimeStamp"].toString()) : <any>undefined;
             this.deviceId = _data["DeviceId"];
+            this.tripId = _data["TripId"];
         }
     }
 
-    static fromJS(data: any): PictureSeriesTourData {
+    static fromJS(data: any): PictureTripData {
         data = typeof data === 'object' ? data : {};
-        let result = new PictureSeriesTourData();
+        let result = new PictureTripData();
         result.init(data);
         return result;
     }
@@ -2858,22 +2860,24 @@ export class PictureSeriesTourData implements IPictureSeriesTourData {
         data["VisData"] = this.visData ? this.visData.toJSON() : <any>undefined;
         data["TimeStamp"] = this.timeStamp ? this.timeStamp.toISOString() : <any>undefined;
         data["DeviceId"] = this.deviceId;
+        data["TripId"] = this.tripId;
         return data;
     }
 
-    clone(): PictureSeriesTourData {
+    clone(): PictureTripData {
         const json = this.toJSON();
-        let result = new PictureSeriesTourData();
+        let result = new PictureTripData();
         result.init(json);
         return result;
     }
 }
 
-export interface IPictureSeriesTourData {
+export interface IPictureTripData {
     irData: PictureSeriesData;
     visData: PictureSeriesData;
     timeStamp: Date;
     deviceId: string;
+    tripId: number;
 }
 
 export class DeviceMovement implements IDeviceMovement {
@@ -3229,6 +3233,7 @@ export class PlantExtractionTemplateModel implements IPlantExtractionTemplateMod
     photoBoundingBox!: NpgsqlPoint[];
     irBoundingBoxOffset!: NpgsqlPoint;
     motorPosition!: number;
+    applicablePhotoTripFrom!: Date;
 
     constructor(data?: IPlantExtractionTemplateModel) {
         if (data) {
@@ -3251,6 +3256,7 @@ export class PlantExtractionTemplateModel implements IPlantExtractionTemplateMod
             }
             this.irBoundingBoxOffset = _data["IrBoundingBoxOffset"] ? NpgsqlPoint.fromJS(_data["IrBoundingBoxOffset"]) : <any>undefined;
             this.motorPosition = _data["MotorPosition"];
+            this.applicablePhotoTripFrom = _data["ApplicablePhotoTripFrom"] ? new Date(_data["ApplicablePhotoTripFrom"].toString()) : <any>undefined;
         }
     }
 
@@ -3273,6 +3279,7 @@ export class PlantExtractionTemplateModel implements IPlantExtractionTemplateMod
         }
         data["IrBoundingBoxOffset"] = this.irBoundingBoxOffset ? this.irBoundingBoxOffset.toJSON() : <any>undefined;
         data["MotorPosition"] = this.motorPosition;
+        data["ApplicablePhotoTripFrom"] = this.applicablePhotoTripFrom ? this.applicablePhotoTripFrom.toISOString() : <any>undefined;
         return data;
     }
 
@@ -3291,11 +3298,12 @@ export interface IPlantExtractionTemplateModel {
     photoBoundingBox: NpgsqlPoint[];
     irBoundingBoxOffset: NpgsqlPoint;
     motorPosition: number;
+    applicablePhotoTripFrom: Date;
 }
 
 export class PlantImageSection implements IPlantImageSection {
     stepCount!: number;
-    photoTours!: number[];
+    photoTripId!: number;
     polygon!: NpgsqlPoint[];
     irPolygonOffset!: NpgsqlPoint;
     plantId!: number;
@@ -3312,11 +3320,7 @@ export class PlantImageSection implements IPlantImageSection {
     init(_data?: any) {
         if (_data) {
             this.stepCount = _data["StepCount"];
-            if (Array.isArray(_data["PhotoTours"])) {
-                this.photoTours = [] as any;
-                for (let item of _data["PhotoTours"])
-                    this.photoTours!.push(item);
-            }
+            this.photoTripId = _data["PhotoTripId"];
             if (Array.isArray(_data["Polygon"])) {
                 this.polygon = [] as any;
                 for (let item of _data["Polygon"])
@@ -3337,11 +3341,7 @@ export class PlantImageSection implements IPlantImageSection {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["StepCount"] = this.stepCount;
-        if (Array.isArray(this.photoTours)) {
-            data["PhotoTours"] = [];
-            for (let item of this.photoTours)
-                data["PhotoTours"].push(item);
-        }
+        data["PhotoTripId"] = this.photoTripId;
         if (Array.isArray(this.polygon)) {
             data["Polygon"] = [];
             for (let item of this.polygon)
@@ -3362,7 +3362,7 @@ export class PlantImageSection implements IPlantImageSection {
 
 export interface IPlantImageSection {
     stepCount: number;
-    photoTours: number[];
+    photoTripId: number;
     polygon: NpgsqlPoint[];
     irPolygonOffset: NpgsqlPoint;
     plantId: number;

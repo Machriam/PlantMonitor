@@ -5,8 +5,13 @@
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
     import {cropImage, drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
     import type {ImageToCut} from "./ImageToCut";
-    import {NpgsqlPoint, PhotoStitchingClient, PhotoTourPlantInfo, PlantImageSection} from "~/services/GatewayAppApi";
-    import TextInput from "../reuseableComponents/TextInput.svelte";
+    import {
+        NpgsqlPoint,
+        PhotoStitchingClient,
+        PhotoTourPlantInfo,
+        PictureTripData,
+        PlantImageSection
+    } from "~/services/GatewayAppApi";
     import type {HubConnection} from "@microsoft/signalr";
     import {selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
@@ -14,7 +19,7 @@
     export let deviceId: string;
     export let irSeries: string;
     export let visSeries: string;
-    export let _selectedPhotoTourId: number;
+    export let _selectedPhotoTrip: PictureTripData;
     let _selectedImage: ImageToCut | undefined;
     let _currentImageIndex: number = -1;
     let _images: ImageToCut[] = [];
@@ -35,7 +40,15 @@
         _unsubscribe = selectedPhotoTourPlantInfo.subscribe(async (x) => {
             _cutPolygon = [];
             await changeImage(_currentImageIndex);
-            const existingTemplate = x?.extractionTemplate.find((et) => et.motorPosition == _selectedImage?.stepCount);
+            debugger;
+            const existingTemplate = x?.extractionTemplate
+                .filter(
+                    (et) =>
+                        et.motorPosition == _selectedImage?.stepCount &&
+                        et.applicablePhotoTripFrom <= _selectedPhotoTrip.timeStamp
+                )
+                .toSorted((a, b) => b.applicablePhotoTripFrom.getTime() - a.applicablePhotoTripFrom.getTime())
+                .at(0);
             _selectedPlant = x;
             if (existingTemplate == undefined) return;
             existingTemplate.photoBoundingBox.forEach((bb) => {
@@ -103,6 +116,7 @@
             currentIndex = currentIndex + 1;
         }
         changeImage(currentIndex);
+        _cutPolygon = [];
         event.preventDefault();
     }
     function addLine(event: MouseEvent) {
@@ -163,7 +177,7 @@
                 plantId: _selectedPlant.id,
                 irPolygonOffset: new NpgsqlPoint({x: 0, y: 0}),
                 stepCount: _selectedImage.stepCount,
-                photoTours: [_selectedPhotoTourId],
+                photoTripId: _selectedPhotoTrip.tripId,
                 polygon: _cutPolygon.map((p) => new NpgsqlPoint({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
             })
         );
