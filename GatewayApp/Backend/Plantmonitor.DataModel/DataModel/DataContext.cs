@@ -228,6 +228,7 @@ public partial class DataContext : DbContext, IDataContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IrBoundingBoxOffset).HasColumnName("ir_bounding_box_offset");
+            entity.Property(e => e.MotorPosition).HasColumnName("motor_position");
             entity.Property(e => e.PhotoBoundingBox).HasColumnName("photo_bounding_box");
             entity.Property(e => e.PhotoTourPlantFk).HasColumnName("photo_tour_plant_fk");
             entity.Property(e => e.PhotoTripFk).HasColumnName("photo_trip_fk");

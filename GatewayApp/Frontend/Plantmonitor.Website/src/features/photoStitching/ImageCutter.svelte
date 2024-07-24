@@ -5,33 +5,51 @@
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
     import {cropImage, drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
     import type {ImageToCut} from "./ImageToCut";
-    import {NpgsqlPoint} from "~/services/GatewayAppApi";
+    import {NpgsqlPoint, PhotoStitchingClient, PhotoTourPlantInfo, PlantImageSection} from "~/services/GatewayAppApi";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import type {HubConnection} from "@microsoft/signalr";
+    import {selectedPhotoTourPlantInfo} from "../store";
+    import type {Unsubscriber} from "svelte/motion";
 
     export let deviceId: string;
     export let irSeries: string;
     export let visSeries: string;
+    export let _selectedPhotoTourId: number;
     let _selectedImage: ImageToCut | undefined;
     let _currentImageIndex: number = -1;
     let _images: ImageToCut[] = [];
     let _lastPointerPosition: MouseEvent | undefined;
     let _tooltip: TooltipCreatorResult | undefined;
-    let _cutPolygon: {point: NpgsqlPoint; rendered: boolean}[] = [];
-    let _addPolygonOn = {activated: false, name: "", imageRatio: 0, qrCode: ""};
+    let _cutPolygon: {point: NpgsqlPoint}[] = [];
     let _visConnection: HubConnection | undefined;
     let _irConnection: HubConnection | undefined;
+    let _selectedPlant: PhotoTourPlantInfo | undefined;
+    let _imageRatio: number = 0;
+    let _polygonValid = false;
     const _selectedThumbnailId = Math.random().toString(36);
     const _selectedImageCanvasId = Math.random().toString(36);
     const _cvInterop = new CvInterop();
+    let _unsubscribe: Unsubscriber;
     onMount(() => {
         startStream();
+        _unsubscribe = selectedPhotoTourPlantInfo.subscribe(async (x) => {
+            _cutPolygon = [];
+            await changeImage(_currentImageIndex);
+            const existingTemplate = x?.extractionTemplate.find((et) => et.motorPosition == _selectedImage?.stepCount);
+            _selectedPlant = x;
+            if (existingTemplate == undefined) return;
+            existingTemplate.photoBoundingBox.forEach((bb) => {
+                _cutPolygon.push({point: new NpgsqlPoint({x: bb.x * _imageRatio, y: bb.y * _imageRatio})});
+                drawLine();
+            });
+        });
     });
     onDestroy(() => {
         _irConnection?.stop();
         _visConnection?.stop();
         _irConnection = undefined;
         _visConnection = undefined;
+        _unsubscribe();
     });
     function startStream() {
         const streamer = new DeviceStreaming();
@@ -88,12 +106,12 @@
         event.preventDefault();
     }
     function addLine(event: MouseEvent) {
-        if (!_addPolygonOn.activated) return;
-        _cutPolygon.push({point: new NpgsqlPoint({x: event.offsetX, y: event.offsetY}), rendered: false});
+        if (_selectedPlant == undefined) return;
+        _cutPolygon.push({point: new NpgsqlPoint({x: event.offsetX, y: event.offsetY})});
         drawLine();
     }
     function drawLine() {
-        if (_cutPolygon.length == 1) return;
+        if (_cutPolygon.length <= 1) return;
         const image = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
         const context = image.getContext("2d");
         if (context == null) return;
@@ -105,28 +123,59 @@
         context.lineWidth = 3;
         context.strokeStyle = "yellow";
         context.stroke();
+        _polygonValid = isPolygonValid();
     }
     async function connectPolygon() {
-        if (!_addPolygonOn.activated || _cutPolygon.length <= 2 || _selectedImage == null) return;
+        if (_cutPolygon.length <= 2 || _selectedImage == null || _selectedPlant == undefined) return;
         _cutPolygon.push(_cutPolygon[0]);
         drawLine();
         const croppedImage = await cropImage(
             _selectedImage.imageUrl,
-            _cutPolygon.map((p) => ({x: p.point.x / _addPolygonOn.imageRatio, y: p.point.y / _addPolygonOn.imageRatio}))
+            _cutPolygon.map((p) => ({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
         );
         const qrCode = _cvInterop.readQRCode(croppedImage);
-        _addPolygonOn.qrCode = qrCode;
+        console.log(qrCode);
         _cutPolygon = _cutPolygon;
+        _polygonValid = true;
     }
     async function changeImage(newIndex: number) {
         _currentImageIndex = newIndex;
         _selectedImage = _images[_currentImageIndex];
         const canvas = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
         const ratio = await drawImageOnCanvas(_selectedImage.imageUrl, canvas);
-        _addPolygonOn.imageRatio = ratio.ratio;
+        _imageRatio = ratio.ratio;
         const activatedTooltip = document.getElementById(_selectedThumbnailId + "_" + _currentImageIndex);
         activatedTooltip?.scrollIntoView({behavior: "instant", block: "nearest", inline: "center"});
         updateTooltip();
+    }
+    function isPolygonValid() {
+        return (
+            _cutPolygon.length > 2 &&
+            _cutPolygon[_cutPolygon.length - 1].point.x == _cutPolygon[0].point.x &&
+            _cutPolygon[_cutPolygon.length - 1].point.y == _cutPolygon[0].point.y
+        );
+    }
+    async function savePolygon() {
+        if (_selectedImage == undefined || _selectedPlant == undefined || !_polygonValid) return;
+        const client = new PhotoStitchingClient();
+        client.associatePlantImageSection(
+            new PlantImageSection({
+                plantId: _selectedPlant.id,
+                irPolygonOffset: new NpgsqlPoint({x: 0, y: 0}),
+                stepCount: _selectedImage.stepCount,
+                photoTours: [_selectedPhotoTourId],
+                polygon: _cutPolygon.map((p) => new NpgsqlPoint({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
+            })
+        );
+    }
+    async function removePolygon() {
+        if (_selectedPlant == undefined || _selectedImage == undefined) return;
+        const client = new PhotoStitchingClient();
+        const template = _selectedPlant.extractionTemplate.find((et) => et.motorPosition == _selectedImage!.stepCount);
+        _cutPolygon = [];
+        changeImage(_currentImageIndex);
+        if (template == undefined) return;
+        await client.removePlantImageSections([template.id]);
     }
     function updateTooltip() {
         if (_selectedImage?.pixelConverter == null || _tooltip == undefined || _lastPointerPosition == null) return;
@@ -179,22 +228,12 @@
         {/if}
     </div>
     <div class="d-flex flex-row">
-        <button
-            on:click={() =>
-                (_addPolygonOn = {
-                    activated: !_addPolygonOn.activated,
-                    qrCode: _addPolygonOn.qrCode,
-                    name: _addPolygonOn.name,
-                    imageRatio: _addPolygonOn.imageRatio
-                })}
-            class="btn btn-primary">{_addPolygonOn.activated ? "Add Plant" : "Cut Plant"}</button>
-        {#if _addPolygonOn.activated}
+        {#if _selectedPlant != undefined}
             {#if _cutPolygon.length > 2}
                 <button on:click={() => connectPolygon()} class="btn btn-primary">Connect Cut</button>
             {/if}
-            <TextInput class="col-md-3" label="Plant Name" bind:value={_addPolygonOn.name}></TextInput>
-            <div>{_addPolygonOn.qrCode}</div>
         {/if}
-        <button class="btn btn-danger">Delete Cut</button>
+        <button on:click={removePolygon} class="btn btn-danger">Delete Polygon</button>
+        <button on:click={savePolygon} disabled={!_polygonValid} class="ms-2 btn btn-success">Save Polygon</button>
     </div>
 </div>

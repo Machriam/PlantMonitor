@@ -719,7 +719,7 @@ export class PowerOutletClient extends GatewayAppApiBase implements IPowerOutlet
 
 export interface IPhotoStitchingClient {
 
-    plantsForTour(tourId?: number | undefined): Promise<PhotoTourPlant[]>;
+    plantsForTour(tourId?: number | undefined): Promise<PhotoTourPlantInfo[]>;
 
     tripsOfTour(tourId?: number | undefined): Promise<PhotoTourTrip[]>;
 
@@ -743,7 +743,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    plantsForTour(tourId?: number | undefined): Promise<PhotoTourPlant[]> {
+    plantsForTour(tourId?: number | undefined): Promise<PhotoTourPlantInfo[]> {
         let url_ = this.baseUrl + "/api/PhotoStitching/plantsfortour?";
         if (tourId === null)
             throw new Error("The parameter 'tourId' cannot be null.");
@@ -765,7 +765,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
         });
     }
 
-    protected processPlantsForTour(response: Response): Promise<PhotoTourPlant[]> {
+    protected processPlantsForTour(response: Response): Promise<PhotoTourPlantInfo[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -775,7 +775,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(PhotoTourPlant.fromJS(item));
+                    result200!.push(PhotoTourPlantInfo.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -787,7 +787,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<PhotoTourPlant[]>(null as any);
+        return Promise.resolve<PhotoTourPlantInfo[]>(null as any);
     }
 
     tripsOfTour(tourId?: number | undefined): Promise<PhotoTourTrip[]> {
@@ -2309,6 +2309,7 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
     photoTourPlantFk!: number;
     photoBoundingBox!: NpgsqlPoint[];
     irBoundingBoxOffset!: NpgsqlPoint;
+    motorPosition!: number;
     photoTourPlantFkNavigation!: PhotoTourPlant;
     photoTripFkNavigation!: PhotoTourTrip;
 
@@ -2332,6 +2333,7 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
                     this.photoBoundingBox!.push(NpgsqlPoint.fromJS(item));
             }
             this.irBoundingBoxOffset = _data["IrBoundingBoxOffset"] ? NpgsqlPoint.fromJS(_data["IrBoundingBoxOffset"]) : <any>undefined;
+            this.motorPosition = _data["MotorPosition"];
             this.photoTourPlantFkNavigation = _data["PhotoTourPlantFkNavigation"] ? PhotoTourPlant.fromJS(_data["PhotoTourPlantFkNavigation"]) : <any>undefined;
             this.photoTripFkNavigation = _data["PhotoTripFkNavigation"] ? PhotoTourTrip.fromJS(_data["PhotoTripFkNavigation"]) : <any>undefined;
         }
@@ -2355,6 +2357,7 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
                 data["PhotoBoundingBox"].push(item.toJSON());
         }
         data["IrBoundingBoxOffset"] = this.irBoundingBoxOffset ? this.irBoundingBoxOffset.toJSON() : <any>undefined;
+        data["MotorPosition"] = this.motorPosition;
         data["PhotoTourPlantFkNavigation"] = this.photoTourPlantFkNavigation ? this.photoTourPlantFkNavigation.toJSON() : <any>undefined;
         data["PhotoTripFkNavigation"] = this.photoTripFkNavigation ? this.photoTripFkNavigation.toJSON() : <any>undefined;
         return data;
@@ -2374,6 +2377,7 @@ export interface IPlantExtractionTemplate {
     photoTourPlantFk: number;
     photoBoundingBox: NpgsqlPoint[];
     irBoundingBoxOffset: NpgsqlPoint;
+    motorPosition: number;
     photoTourPlantFkNavigation: PhotoTourPlant;
     photoTripFkNavigation: PhotoTourTrip;
 }
@@ -3145,6 +3149,148 @@ export interface IOutletModel {
     name: string;
     buttonNumber: number;
     channel: number;
+}
+
+export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
+    id!: number;
+    name!: string;
+    comment!: string;
+    qrCode!: string | undefined;
+    photoTourFk!: number;
+    extractionTemplate!: PlantExtractionTemplateModel[];
+
+    constructor(data?: IPhotoTourPlantInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.name = _data["Name"];
+            this.comment = _data["Comment"];
+            this.qrCode = _data["QrCode"];
+            this.photoTourFk = _data["PhotoTourFk"];
+            if (Array.isArray(_data["ExtractionTemplate"])) {
+                this.extractionTemplate = [] as any;
+                for (let item of _data["ExtractionTemplate"])
+                    this.extractionTemplate!.push(PlantExtractionTemplateModel.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): PhotoTourPlantInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new PhotoTourPlantInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["Name"] = this.name;
+        data["Comment"] = this.comment;
+        data["QrCode"] = this.qrCode;
+        data["PhotoTourFk"] = this.photoTourFk;
+        if (Array.isArray(this.extractionTemplate)) {
+            data["ExtractionTemplate"] = [];
+            for (let item of this.extractionTemplate)
+                data["ExtractionTemplate"].push(item.toJSON());
+        }
+        return data;
+    }
+
+    clone(): PhotoTourPlantInfo {
+        const json = this.toJSON();
+        let result = new PhotoTourPlantInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPhotoTourPlantInfo {
+    id: number;
+    name: string;
+    comment: string;
+    qrCode: string | undefined;
+    photoTourFk: number;
+    extractionTemplate: PlantExtractionTemplateModel[];
+}
+
+export class PlantExtractionTemplateModel implements IPlantExtractionTemplateModel {
+    id!: number;
+    photoTripFk!: number;
+    photoTourPlantFk!: number;
+    photoBoundingBox!: NpgsqlPoint[];
+    irBoundingBoxOffset!: NpgsqlPoint;
+    motorPosition!: number;
+
+    constructor(data?: IPlantExtractionTemplateModel) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.photoTripFk = _data["PhotoTripFk"];
+            this.photoTourPlantFk = _data["PhotoTourPlantFk"];
+            if (Array.isArray(_data["PhotoBoundingBox"])) {
+                this.photoBoundingBox = [] as any;
+                for (let item of _data["PhotoBoundingBox"])
+                    this.photoBoundingBox!.push(NpgsqlPoint.fromJS(item));
+            }
+            this.irBoundingBoxOffset = _data["IrBoundingBoxOffset"] ? NpgsqlPoint.fromJS(_data["IrBoundingBoxOffset"]) : <any>undefined;
+            this.motorPosition = _data["MotorPosition"];
+        }
+    }
+
+    static fromJS(data: any): PlantExtractionTemplateModel {
+        data = typeof data === 'object' ? data : {};
+        let result = new PlantExtractionTemplateModel();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["PhotoTripFk"] = this.photoTripFk;
+        data["PhotoTourPlantFk"] = this.photoTourPlantFk;
+        if (Array.isArray(this.photoBoundingBox)) {
+            data["PhotoBoundingBox"] = [];
+            for (let item of this.photoBoundingBox)
+                data["PhotoBoundingBox"].push(item.toJSON());
+        }
+        data["IrBoundingBoxOffset"] = this.irBoundingBoxOffset ? this.irBoundingBoxOffset.toJSON() : <any>undefined;
+        data["MotorPosition"] = this.motorPosition;
+        return data;
+    }
+
+    clone(): PlantExtractionTemplateModel {
+        const json = this.toJSON();
+        let result = new PlantExtractionTemplateModel();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPlantExtractionTemplateModel {
+    id: number;
+    photoTripFk: number;
+    photoTourPlantFk: number;
+    photoBoundingBox: NpgsqlPoint[];
+    irBoundingBoxOffset: NpgsqlPoint;
+    motorPosition: number;
 }
 
 export class PlantImageSection implements IPlantImageSection {

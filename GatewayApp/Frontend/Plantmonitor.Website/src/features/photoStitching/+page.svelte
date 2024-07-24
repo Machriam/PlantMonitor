@@ -6,6 +6,7 @@
         PhotoStitchingClient,
         PhotoTourInfo,
         PhotoTourPlant,
+        PhotoTourPlantInfo,
         PictureClient,
         PictureSeriesTourData,
         PlantModel
@@ -13,11 +14,12 @@
     import ImageCutter from "./ImageCutter.svelte";
     import {Task} from "~/types/task";
     import TextInput from "../reuseableComponents/TextInput.svelte";
+    import {selectedPhotoTourPlantInfo} from "../store";
     let _availableTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _pictureSeries: PictureSeriesTourData[] = [];
     let _selectedSeries: PictureSeriesTourData | undefined;
-    let _plants: PhotoTourPlant[] = [];
+    let _plants: PhotoTourPlantInfo[] = [];
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
 
     onDestroy(() => {});
@@ -37,6 +39,12 @@
         _selectedSeries = undefined;
         await Task.delay(1);
         _selectedSeries = data;
+    }
+    async function removePlant() {
+        if ($selectedPhotoTourPlantInfo == undefined || _selectedTour == undefined) return;
+        const stitchingClient = new PhotoStitchingClient();
+        await stitchingClient.removePlantsFromTour([$selectedPhotoTourPlantInfo.id]);
+        _plants = await stitchingClient.plantsForTour(_selectedTour.id);
     }
     async function addPlant() {
         if (_selectedTour == undefined) return;
@@ -74,8 +82,9 @@
         {/each}
     </div>
     <div class="col-md-8">
-        {#if _selectedSeries !== undefined}
+        {#if _selectedSeries !== undefined && _selectedTour !== undefined}
             <ImageCutter
+                _selectedPhotoTourId={_selectedTour.id}
                 deviceId={_selectedSeries.deviceId}
                 visSeries={_selectedSeries.visData.folderName.getFileName()}
                 irSeries={_selectedSeries.irData.folderName.getFileName()}></ImageCutter>
@@ -85,12 +94,23 @@
         <TextInput label="QR-Code" bind:value={_newPlant.qrCode}></TextInput>
         <TextInput label="Name" bind:value={_newPlant.name}></TextInput>
         <TextInput label="Comment" bind:value={_newPlant.comment}></TextInput>
-        <button on:click={addPlant} class="btn btn-primary">Add Plant</button>
-        <div>
+        <div class="d-flex flex-row justify-content-between mt-2">
+            <button on:click={addPlant} class="btn btn-primary">Add Plant</button>
+            <button on:click={removePlant} class="btn btn-danger">Remove Plant</button>
+        </div>
+        <div style="overflow-y:auto;height:60vh" class="mt-3">
             {#each _plants as plant}
-                <div>{plant.name}</div>
-                <div>{plant.comment}</div>
-                <div>{plant.qrCode}</div>
+                <button
+                    on:click={() => ($selectedPhotoTourPlantInfo = plant)}
+                    class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25 {plant == $selectedPhotoTourPlantInfo
+                        ? 'bg-info'
+                        : 'bg-white'}">
+                    <div>Pos: {plant.extractionTemplate.map((et) => et.motorPosition)}</div>
+                    <div style="align-self: center;">
+                        {plant.name} - {plant.qrCode?.isEmpty() ? "No QR" : plant.qrCode}
+                    </div>
+                    <div style="align-self: center;">{plant.comment}</div>
+                </button>
             {/each}
         </div>
     </div>

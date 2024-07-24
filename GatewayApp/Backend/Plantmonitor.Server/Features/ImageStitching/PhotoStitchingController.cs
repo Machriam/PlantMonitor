@@ -10,13 +10,18 @@ namespace Plantmonitor.Server.Features.DeviceProgramming;
 public class PhotoStitchingController(IDataContext context)
 {
     public record struct AddPlantModel(IEnumerable<PlantModel> Plants, long TourId);
+    public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? QrCode, long PhotoTourFk, IEnumerable<PlantExtractionTemplateModel> ExtractionTemplate);
+    public record struct PlantExtractionTemplateModel(long Id, long PhotoTripFk, long PhotoTourPlantFk, NpgsqlPolygon PhotoBoundingBox, NpgsqlPoint IrBoundingBoxOffset, int MotorPosition);
     public record struct PlantModel(string Name, string Comment, string QrCode);
     public record struct PlantImageSection(int StepCount, long[] PhotoTours, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
 
     [HttpGet("plantsfortour")]
-    public IEnumerable<PhotoTourPlant> PlantsForTour(long tourId)
+    public IEnumerable<PhotoTourPlantInfo> PlantsForTour(long tourId)
     {
-        return context.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == tourId);
+        return context.PhotoTourPlants.Include(ptp => ptp.PlantExtractionTemplates)
+                .Where(ptp => ptp.PhotoTourFk == tourId)
+                .Select(ptp => new PhotoTourPlantInfo(ptp.Id, ptp.Name, ptp.Comment, ptp.QrCode, ptp.PhotoTourFk, ptp.PlantExtractionTemplates
+                    .Select(pet => new PlantExtractionTemplateModel(pet.Id, pet.PhotoTripFk, pet.PhotoTourPlantFk, pet.PhotoBoundingBox, pet.IrBoundingBoxOffset, pet.MotorPosition))));
     }
 
     [HttpGet("tripsoftour")]
@@ -46,6 +51,7 @@ public class PhotoStitchingController(IDataContext context)
         context.PlantExtractionTemplates.AddRange(section.PhotoTours.Select(pt => new PlantExtractionTemplate()
         {
             PhotoBoundingBox = section.Polygon,
+            MotorPosition = section.StepCount,
             PhotoTripFk = pt,
             PhotoTourPlantFk = section.PlantId,
             IrBoundingBoxOffset = section.IrPolygonOffset
@@ -63,6 +69,15 @@ public class PhotoStitchingController(IDataContext context)
     [HttpPost("addplantstotour")]
     public void AddPlantsToTour(AddPlantModel plants)
     {
+        var newNames = plants.Plants.Select(p => p.Name).ToHashSet();
+        var newQrCodes = plants.Plants.Select(p => p.QrCode).ToHashSet();
+        var existingNames = context.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == plants.TourId && newNames.Contains(ptp.Name));
+        var existingQrCodes = context.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == plants.TourId && ptp.QrCode != null && ptp.QrCode.Length > 0 && newQrCodes.Contains(ptp.QrCode));
+        if (existingNames.Any() || existingQrCodes.Any())
+        {
+            var message = $"The following names exist already: {existingNames.Select(en => en.Name).Concat(", ")}\n The following QR-Codes exist already: {existingQrCodes.Select(qr => qr.QrCode).Concat(", ")}";
+            throw new Exception(message);
+        }
         context.PhotoTourPlants.AddRange(plants.Plants.Select(p => new PhotoTourPlant()
         {
             Comment = p.Comment,
