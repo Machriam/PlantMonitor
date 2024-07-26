@@ -4,6 +4,8 @@ using Plantmonitor.Server.Features.ImageStitching;
 using System;
 using Xunit;
 using NpgsqlTypes;
+using Emgu.CV;
+using FluentAssertions;
 
 namespace Plantmonitor.Server.Tests.Features.ImageStitching;
 
@@ -24,7 +26,7 @@ public class ImageCropperTests
         var sut = CreateImageCropper();
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
         var imageFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/Plants.png";
-        sut.CropImage(imageFile, [new NpgsqlPoint(885.4214876033056, 729.2826446280991),
+        var result = sut.CropImage(imageFile, [new NpgsqlPoint(885.4214876033056, 729.2826446280991),
            new NpgsqlPoint(771.1735537190082, 628.3636363636363),
            new NpgsqlPoint(780.694214876033, 508.4033057851239),
            new NpgsqlPoint(944.4495867768594, 449.3752066115702),
@@ -32,5 +34,9 @@ public class ImageCropperTests
            new NpgsqlPoint(1022.5190082644627, 624.5553719008263),
            new NpgsqlPoint(982.5322314049586, 696.9123966942149),
            new NpgsqlPoint(885.4214876033056, 729.2826446280991)]);
+        CvInvoke.Imshow("Cropped Image", result);
+        CvInvoke.WaitKey(300);
+        result.Cols.Should().Be(253);
+        result.Rows.Should().Be(279);
     }
 }
