@@ -73,8 +73,10 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IPhotoStitche
                     .Select(vi => new { Success = CameraStreamFormatter.FromFileLazy(vi, out var formatter), File = vi, Formatter = formatter })
                     .FirstOrDefault(f => f.Success && f.Formatter.Steps == extractionTemplate.MotorPosition);
 
-                if (visImage != default) virtualImageList[^1].VisImage = cropper.CropImage(visImage.File, [.. extractionTemplate.PhotoBoundingBox], new NpgsqlTypes.NpgsqlPoint());
-                if (irImage != default) virtualImageList[^1].IrImage = cropper.CropImage(irImage.File, [.. extractionTemplate.PhotoBoundingBox], extractionTemplate.IrBoundingBoxOffset);
+                if (visImage == null) continue;
+                var matResults = cropper.CropImages(visImage.File, irImage?.File, [.. extractionTemplate.PhotoBoundingBox], extractionTemplate.IrBoundingBoxOffset);
+                virtualImageList[^1].VisImage = matResults.VisImage;
+                virtualImageList[^1].IrImage = matResults.IrImage;
             }
             var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxBoundingBoxWidth, maxBoundingBoxHeight, 50f);
             CvInvoke.Imwrite(virtualImageFile, virtualImage);

@@ -15,6 +15,7 @@ public interface IPhotoStitcher
 
 public class PhotoStitcher : IPhotoStitcher
 {
+    private const float DesiredRatio = 16 / 9f;
     public record class PhotoStitchData : IDisposable
     {
         public PhotoStitchData() { }
@@ -32,10 +33,21 @@ public class PhotoStitcher : IPhotoStitcher
 
     public Mat CreateVirtualImage(IEnumerable<PhotoStitchData> images, float width, float height, float spacing)
     {
+        var length = images.Count();
+        var imagesPerRow = (int)(DesiredRatio / ((width + spacing) / (height + spacing)) * length);
+        var imagesPerColumn = (int)float.Ceiling(length / (float)imagesPerRow);
         var result = new Mat();
+        var finalHeight = (int)(imagesPerColumn * height);
+        var finalWidth = (int)(imagesPerRow * height);
+        var visImage = new Mat(finalHeight, finalWidth, DepthType.Cv8U, 3);
+        var irImage = new Mat(finalHeight, finalWidth, DepthType.Cv32S, 1);
         foreach (var image in images)
         {
         }
+        result.PushBack(visImage);
+        result.PushBack(irImage);
+        visImage.Dispose();
+        irImage.Dispose();
         return result;
     }
 }
