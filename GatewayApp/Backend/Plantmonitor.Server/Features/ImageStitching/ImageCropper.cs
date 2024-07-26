@@ -2,15 +2,20 @@
 using Emgu.CV;
 using System.Drawing;
 using Emgu.CV.Util;
-using Emgu.CV.CvEnum;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
 
-public class ImageCropper
+public interface IImageCropper
 {
-    public Mat CropImage(string imageFile, NpgsqlPoint[] polygon)
+    Mat CropImage(string imageFile, NpgsqlPoint[] polygon, NpgsqlPoint offset);
+}
+
+public class ImageCropper : IImageCropper
+{
+    public Mat CropImage(string imageFile, NpgsqlPoint[] polygon, NpgsqlPoint offset)
     {
         var image = CvInvoke.Imread(imageFile);
+        polygon = polygon.Select(p => new NpgsqlPoint(p.X + offset.X, p.Y + offset.Y)).ToArray();
         var minX = polygon.Min(p => p.X);
         var minY = polygon.Min(p => p.Y);
         var width = polygon.Max(p => p.X) - minX;

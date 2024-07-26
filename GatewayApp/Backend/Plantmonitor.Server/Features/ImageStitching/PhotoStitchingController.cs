@@ -51,6 +51,8 @@ public class PhotoStitchingController(IDataContext context)
     [HttpPost("associateplantimagesection")]
     public void AssociatePlantImageSection(PlantImageSection section)
     {
+        var maxWidth = section.Polygon.Max(p => p.X) - section.Polygon.Min(p => p.X);
+        var maxHeight = section.Polygon.Max(p => p.Y) - section.Polygon.Min(p => p.Y);
         context.PlantExtractionTemplates.Add(
         new PlantExtractionTemplate()
         {
@@ -58,7 +60,9 @@ public class PhotoStitchingController(IDataContext context)
             MotorPosition = section.StepCount,
             PhotoTripFk = section.PhotoTripId,
             PhotoTourPlantFk = section.PlantId,
-            IrBoundingBoxOffset = section.IrPolygonOffset
+            IrBoundingBoxOffset = section.IrPolygonOffset,
+            BoundingBoxHeight = (float)maxHeight,
+            BoundingBoxWidth = (float)maxWidth
         });
         context.SaveChanges();
     }

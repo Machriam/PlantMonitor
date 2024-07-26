@@ -30,6 +30,26 @@ public class CameraStreamFormatter
     public DateTime Timestamp { get; set; }
     public int TemperatureInK { get; set; }
     public byte[]? PictureData { get; set; }
+    public Func<byte[]?> FetchImageData { get; set; } = () => null;
+
+    public static bool FromFileLazy(string path, out CameraStreamFormatter result)
+    {
+        result = new();
+        var extension = Path.GetExtension(path);
+        if (!s_validFiles.Contains(extension)) return false;
+        var fileName = Path.GetFileNameWithoutExtension(path);
+        if (!DateTime.TryParseExact(fileName[0..PictureDateFormat.Length], PictureDateFormat, CultureInfo.InvariantCulture,
+            DateTimeStyles.None, out var date)) return false;
+        var split = Path.GetFileNameWithoutExtension(path)[PictureDateFormat.Length..].Split('_');
+        if (split.Length < 2) return false;
+        result.Timestamp = date;
+        if (!int.TryParse(split[1], out var steps)) return false;
+        result.Steps = steps;
+        result.FetchImageData = () => File.ReadAllBytes(path);
+        if (split.Length == 2 || !int.TryParse(split[2], out var temperature)) return true;
+        result.TemperatureInK = temperature;
+        return true;
+    }
 
     public static bool FromFile(string path, out CameraStreamFormatter result)
     {

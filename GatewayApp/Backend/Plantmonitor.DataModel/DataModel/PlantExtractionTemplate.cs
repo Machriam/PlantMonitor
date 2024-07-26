@@ -18,6 +18,10 @@ public partial class PlantExtractionTemplate
 
     public int MotorPosition { get; set; }
 
+    public float BoundingBoxHeight { get; set; }
+
+    public float BoundingBoxWidth { get; set; }
+
     public virtual PhotoTourPlant PhotoTourPlantFkNavigation { get; set; } = null!;
 
     public virtual PhotoTourTrip PhotoTripFkNavigation { get; set; } = null!;

@@ -227,6 +227,8 @@ public partial class DataContext : DbContext, IDataContext
             entity.ToTable("plant_extraction_template", "plantmonitor");
 
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.BoundingBoxHeight).HasColumnName("bounding_box_height");
+            entity.Property(e => e.BoundingBoxWidth).HasColumnName("bounding_box_width");
             entity.Property(e => e.IrBoundingBoxOffset).HasColumnName("ir_bounding_box_offset");
             entity.Property(e => e.MotorPosition).HasColumnName("motor_position");
             entity.Property(e => e.PhotoBoundingBox).HasColumnName("photo_bounding_box");

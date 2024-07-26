@@ -2310,6 +2310,8 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
     photoBoundingBox!: NpgsqlPoint[];
     irBoundingBoxOffset!: NpgsqlPoint;
     motorPosition!: number;
+    boundingBoxHeight!: number;
+    boundingBoxWidth!: number;
     photoTourPlantFkNavigation!: PhotoTourPlant;
     photoTripFkNavigation!: PhotoTourTrip;
 
@@ -2334,6 +2336,8 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
             }
             this.irBoundingBoxOffset = _data["IrBoundingBoxOffset"] ? NpgsqlPoint.fromJS(_data["IrBoundingBoxOffset"]) : <any>undefined;
             this.motorPosition = _data["MotorPosition"];
+            this.boundingBoxHeight = _data["BoundingBoxHeight"];
+            this.boundingBoxWidth = _data["BoundingBoxWidth"];
             this.photoTourPlantFkNavigation = _data["PhotoTourPlantFkNavigation"] ? PhotoTourPlant.fromJS(_data["PhotoTourPlantFkNavigation"]) : <any>undefined;
             this.photoTripFkNavigation = _data["PhotoTripFkNavigation"] ? PhotoTourTrip.fromJS(_data["PhotoTripFkNavigation"]) : <any>undefined;
         }
@@ -2358,6 +2362,8 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
         }
         data["IrBoundingBoxOffset"] = this.irBoundingBoxOffset ? this.irBoundingBoxOffset.toJSON() : <any>undefined;
         data["MotorPosition"] = this.motorPosition;
+        data["BoundingBoxHeight"] = this.boundingBoxHeight;
+        data["BoundingBoxWidth"] = this.boundingBoxWidth;
         data["PhotoTourPlantFkNavigation"] = this.photoTourPlantFkNavigation ? this.photoTourPlantFkNavigation.toJSON() : <any>undefined;
         data["PhotoTripFkNavigation"] = this.photoTripFkNavigation ? this.photoTripFkNavigation.toJSON() : <any>undefined;
         return data;
@@ -2378,6 +2384,8 @@ export interface IPlantExtractionTemplate {
     photoBoundingBox: NpgsqlPoint[];
     irBoundingBoxOffset: NpgsqlPoint;
     motorPosition: number;
+    boundingBoxHeight: number;
+    boundingBoxWidth: number;
     photoTourPlantFkNavigation: PhotoTourPlant;
     photoTripFkNavigation: PhotoTourTrip;
 }

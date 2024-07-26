@@ -1,4 +1,6 @@
-﻿namespace Plantmonitor.Server.Features.AppConfiguration
+﻿using System.Text.Encodings.Web;
+
+namespace Plantmonitor.Server.Features.AppConfiguration
 {
     public interface IEnvironmentConfiguration
     {
@@ -23,6 +25,8 @@
         string RepoRootPath();
 
         IEnumerable<string> PictureFolders();
+
+        string VirtualImagePath(string name, long id);
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
@@ -49,6 +53,16 @@
         {
             var imageFolder = Path.Combine(Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
                 throw new Exception("No App configuration path found"), $"Images_{device}");
+            Directory.CreateDirectory(imageFolder);
+            return imageFolder;
+        }
+
+        public string VirtualImagePath(string name, long id)
+        {
+            var invalidChars = Path.GetInvalidFileNameChars();
+            var sanitizedName = name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Concat("");
+            var imageFolder = Path.Combine(Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
+                throw new Exception("No App configuration path found"), $"VirtualImages_{id}_{sanitizedName}");
             Directory.CreateDirectory(imageFolder);
             return imageFolder;
         }

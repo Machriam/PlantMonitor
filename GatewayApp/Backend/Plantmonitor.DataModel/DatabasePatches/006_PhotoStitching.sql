@@ -39,4 +39,7 @@ ALTER TABLE IF EXISTS plantmonitor.photo_tour_trip ADD COLUMN virtual_picture_pa
 
 ALTER TABLE IF EXISTS plantmonitor.plant_extraction_template ADD COLUMN ir_bounding_box_offset point NOT NULL;
 
+ALTER TABLE IF EXISTS plantmonitor.plant_extraction_template ADD COLUMN bounding_box_height real NOT NULL;
+ALTER TABLE IF EXISTS plantmonitor.plant_extraction_template ADD COLUMN bounding_box_width real NOT NULL;
+
 update plantmonitor.configuration_data set value='6' where key='PatchNumber';
