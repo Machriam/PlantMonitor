@@ -9,12 +9,13 @@
         PhotoTourPlantInfo,
         PictureClient,
         PictureTripData,
-        PlantModel
+        PlantModel,
+        type IIrCameraOffset
     } from "~/services/GatewayAppApi";
     import ImageCutter from "./ImageCutter.svelte";
     import {Task} from "~/types/task";
     import TextInput from "../reuseableComponents/TextInput.svelte";
-    import {plantPolygonChanged, selectedPhotoTourPlantInfo} from "../store";
+    import {plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
     let _availableTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
@@ -22,17 +23,26 @@
     let _selectedTrip: PictureTripData | undefined;
     let _plants: PhotoTourPlantInfo[] = [];
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
-    let _unsubscribe: Unsubscriber;
+    let _baseOffset: IIrCameraOffset = {left: 0, top: 0};
+    let _unsubscribe: Unsubscriber[] = [];
 
     onDestroy(() => {
-        _unsubscribe();
+        _unsubscribe.map((x) => x());
     });
     onMount(async () => {
         const photoTourClient = new AutomaticPhotoTourClient();
         _availableTours = await photoTourClient.getPhotoTours();
-        _unsubscribe = plantPolygonChanged.subscribe(async (x) => {
-            await updatePlantInfo();
-        });
+        _unsubscribe.push(
+            plantPolygonChanged.subscribe(async (x) => {
+                await updatePlantInfo();
+            })
+        );
+        _baseOffset = $selectedDevice?.health.cameraOffset ?? {left: 0, top: 0};
+        _unsubscribe.push(
+            selectedDevice.subscribe(async (x) => {
+                _baseOffset = x?.health.cameraOffset ?? {left: 0, top: 0};
+            })
+        );
     });
     async function selectedTourChanged(newTour: PhotoTourInfo) {
         _selectedTour = newTour;

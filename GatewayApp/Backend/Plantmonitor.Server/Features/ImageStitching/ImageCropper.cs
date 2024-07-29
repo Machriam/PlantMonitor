@@ -58,7 +58,7 @@ public class ImageCropper : IImageCropper
         const float DefaultOffsetHeight = 480f;
         var resizeRatio = scalingHeightInPx / (double)visMat.Height;
         visPolygon = visPolygon.Select(vp => new NpgsqlPoint(vp.X * resizeRatio, vp.Y * resizeRatio)).ToArray();
-        irOffset = new NpgsqlPoint(irOffset.X * scalingHeightInPx / DefaultOffsetHeight, irOffset.Y * scalingHeightInPx / DefaultOffsetHeight);
+        irOffset = new NpgsqlPoint(-irOffset.X * scalingHeightInPx / DefaultOffsetHeight, -irOffset.Y * scalingHeightInPx / DefaultOffsetHeight);
         Resize(visMat, scalingHeightInPx);
         var visCrop = CutImage(visPolygon, visMat);
         if (irImage.IsEmpty())

@@ -99,7 +99,7 @@ public class ImageCropperTests
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
         var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
         var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
-        var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(-121, -39), 960);//new(121, 39));
+        var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(121, 39), 960);//new(121, 39));
         sut.ApplyIrColorMap(result.IrImage!);
         CvInvoke.Imshow("Cropped IR", result.IrImage);
         CvInvoke.Imshow("Cropped VIS", result.VisImage);

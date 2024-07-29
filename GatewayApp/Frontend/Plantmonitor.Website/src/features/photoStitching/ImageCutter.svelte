@@ -10,10 +10,11 @@
         PhotoStitchingClient,
         PhotoTourPlantInfo,
         PictureTripData,
-        PlantImageSection
+        PlantImageSection,
+        type IIrCameraOffset
     } from "~/services/GatewayAppApi";
     import type {HubConnection} from "@microsoft/signalr";
-    import {plantPolygonChanged, selectedPhotoTourPlantInfo} from "../store";
+    import {plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
 
     export let deviceId: string;
@@ -31,13 +32,15 @@
     let _selectedPlant: PhotoTourPlantInfo | undefined;
     let _imageRatio: number = 0;
     let _polygonValid = false;
+    let _baseOffset: IIrCameraOffset = {left: 0, top: 0};
     const _selectedThumbnailId = Math.random().toString(36);
     const _selectedImageCanvasId = Math.random().toString(36);
     const _cvInterop = new CvInterop();
-    let _unsubscribe: Unsubscriber;
+    let _unsubscribe: Unsubscriber[] = [];
     onMount(() => {
         startStream();
-        _unsubscribe = selectedPhotoTourPlantInfo.subscribe(async (x) => {
+        _baseOffset = $selectedDevice?.health.cameraOffset ?? {left: 0, top: 0};
+        const unsubscriber = selectedPhotoTourPlantInfo.subscribe(async (x) => {
             _cutPolygon = [];
             await changeImage(_currentImageIndex);
             if (x == undefined) return;
@@ -59,13 +62,14 @@
                 });
             }
         });
+        _unsubscribe.push(unsubscriber);
     });
     onDestroy(() => {
         _irConnection?.stop();
         _visConnection?.stop();
         _irConnection = undefined;
         _visConnection = undefined;
-        _unsubscribe();
+        _unsubscribe.map((x) => x());
     });
     function startStream() {
         const streamer = new DeviceStreaming();
@@ -179,7 +183,7 @@
         await client.associatePlantImageSection(
             new PlantImageSection({
                 plantId: _selectedPlant.id,
-                irPolygonOffset: new NpgsqlPoint({x: 0, y: 0}),
+                irPolygonOffset: new NpgsqlPoint({x: _baseOffset.left ?? 0, y: _baseOffset.top ?? 0}),
                 stepCount: _selectedImage.stepCount,
                 photoTripId: _selectedPhotoTrip.tripId,
                 polygon: _cutPolygon.map((p) => new NpgsqlPoint({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
