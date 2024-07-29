@@ -83,12 +83,11 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IPhotoStitche
                 if (colorMat != null) cropper.ApplyIrColorMap(colorMat);
                 virtualImageList[^1].ColoredIrImage = colorMat;
             }
-            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxBoundingBoxWidth, maxBoundingBoxHeight, 50f);
-            CvInvoke.Imwrite(virtualImageFile, virtualImage);
+            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, (int)maxBoundingBoxWidth, (int)maxBoundingBoxHeight, 50);
+            //CvInvoke.Imwrite(virtualImageFile, virtualImage);
             image.VirtualPicturePath = virtualImageFile;
             dataContext.SaveChanges();
             virtualImageList.DisposeItems();
-            virtualImage?.Dispose();
         }
     }
 
