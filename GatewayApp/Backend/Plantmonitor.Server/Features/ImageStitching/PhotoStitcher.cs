@@ -20,14 +20,16 @@ public class PhotoStitcher : IPhotoStitcher
     {
         public PhotoStitchData() { }
         public Mat? VisImage { get; set; }
-        public Mat? IrImage { get; set; }
+        public Mat? IrImageRawData { get; set; }
+        public Mat? ColoredIrImage { get; set; }
         public string Name { get; init; } = "";
         public string Comment { get; init; } = "";
 
         public void Dispose()
         {
             VisImage?.Dispose();
-            IrImage?.Dispose();
+            ColoredIrImage?.Dispose();
+            IrImageRawData?.Dispose();
         }
     }
 

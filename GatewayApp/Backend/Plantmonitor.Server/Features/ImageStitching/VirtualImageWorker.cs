@@ -8,6 +8,7 @@ namespace Plantmonitor.Server.Features.ImageStitching;
 
 public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IPhotoStitcher stitcher, IImageCropper cropper, IEnvironmentConfiguration configuration) : IHostedService
 {
+    private const int VirtualPlantImageCropHeight = 960;
     private Timer? _timer;
 
     public void RecalculateTour(long photoTourId)
@@ -74,9 +75,13 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IPhotoStitche
                     .FirstOrDefault(f => f.Success && f.Formatter.Steps == extractionTemplate.MotorPosition);
 
                 if (visImage == null) continue;
-                var matResults = cropper.CropImages(visImage.File, irImage?.File, [.. extractionTemplate.PhotoBoundingBox], extractionTemplate.IrBoundingBoxOffset);
+                var matResults = cropper.CropImages(visImage.File, irImage?.File, [.. extractionTemplate.PhotoBoundingBox],
+                    extractionTemplate.IrBoundingBoxOffset, VirtualPlantImageCropHeight);
                 virtualImageList[^1].VisImage = matResults.VisImage;
-                virtualImageList[^1].IrImage = matResults.IrImage;
+                virtualImageList[^1].IrImageRawData = matResults.IrImage;
+                var colorMat = matResults.IrImage?.Clone();
+                if (colorMat != null) cropper.ApplyIrColorMap(colorMat);
+                virtualImageList[^1].ColoredIrImage = colorMat;
             }
             var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxBoundingBoxWidth, maxBoundingBoxHeight, 50f);
             CvInvoke.Imwrite(virtualImageFile, virtualImage);
