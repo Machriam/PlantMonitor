@@ -56,9 +56,9 @@ public class PhotoStitcher : IPhotoStitcher
         var visImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.VisImage);
         var irColorImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.ColoredIrImage);
         var irData = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.IrImageRawData);
-        var metaDataHeader = new string[] { "Image Height", "Image Width", "Spacing after Image", "Images per Row", "Row Count", "Image Count" };
+        var metaDataHeader = new string[] { "Image Height", "Image Width", "Spacing after Image", "Images per Row", "Row Count", "Image Count", "Comment" };
         var metaDataInfo = new object[] { specimenHeight, specimenWidth, spacingBetweenSpecimen, imagesPerRow,
-            (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count }
+            (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count,"Raw IR in °C, first channel full degree, second channel decimal values" }
         .Select(md => md.ToString())
         .ToList();
         var dataHeader = new string[] { "Index", "Name", "Comment" };
@@ -76,7 +76,7 @@ public class PhotoStitcher : IPhotoStitcher
     {
         var length = images.Count;
         var firstMat = selector(images.FirstOrDefault());
-        if (firstMat == null) return new Mat();
+        if (firstMat == null) return new Mat((int)(height * float.Ceiling(images.Count / (float)imagesPerRow)), imagesPerRow * width, DepthType.Cv8U, 3);
         var depth = firstMat.Depth;
         var channels = firstMat.NumberOfChannels;
         var result = new Mat();

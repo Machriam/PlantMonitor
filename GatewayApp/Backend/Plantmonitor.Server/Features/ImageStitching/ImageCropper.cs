@@ -12,14 +12,54 @@ public interface IImageCropper
     (Mat VisImage, Mat? IrImage) CropImages(string visImage, string? irImage, NpgsqlPoint[] visPolygon, NpgsqlPoint irOffset, int scalingHeightInPx);
 
     void ApplyIrColorMap(Mat irImage);
+
+    Mat CreateRawIr(Mat irImage);
 }
 
 public class ImageCropper : IImageCropper
 {
+    private const int ZeroDegreeCelsius = 27315;
+
+    public Mat CreateRawIr(Mat irImage)
+    {
+        var subtractMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
+        var divisor100 = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
+        divisor100.SetTo(new MCvScalar(1 / 100d));
+        var multiply100 = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32S, 1);
+        multiply100.SetTo(new MCvScalar(100d));
+        subtractMat.SetTo(new MCvScalar(ZeroDegreeCelsius));
+        var fullValueMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
+
+        CvInvoke.Subtract(irImage, subtractMat, fullValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32F);
+        var commaValueMat = fullValueMat.Clone();
+
+        subtractMat.SetTo(new MCvScalar(50d));
+        CvInvoke.Subtract(fullValueMat, subtractMat, fullValueMat);
+        CvInvoke.Multiply(fullValueMat, divisor100, fullValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32S);
+        CvInvoke.Multiply(fullValueMat, multiply100, fullValueMat);
+        CvInvoke.Subtract(commaValueMat, fullValueMat, commaValueMat, null, Emgu.CV.CvEnum.DepthType.Cv32F);
+
+        commaValueMat.ConvertTo(commaValueMat, Emgu.CV.CvEnum.DepthType.Cv8U);
+        CvInvoke.Multiply(fullValueMat, divisor100, fullValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32F);
+        fullValueMat.ConvertTo(fullValueMat, Emgu.CV.CvEnum.DepthType.Cv8U);
+        var emptyMat = fullValueMat.Clone();
+        CvInvoke.Subtract(emptyMat, emptyMat, emptyMat);
+
+        var resultMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 3);
+        CvInvoke.Merge(new VectorOfMat(fullValueMat, commaValueMat, emptyMat), resultMat);
+        subtractMat.Dispose();
+        fullValueMat.Dispose();
+        commaValueMat.Dispose();
+        emptyMat.Dispose();
+        divisor100.Dispose();
+        multiply100.Dispose();
+        return resultMat;
+    }
+
     public void ApplyIrColorMap(Mat irImage)
     {
         var baselineMat = new Mat(irImage.Rows, irImage.Cols, irImage.Depth, 1);
-        baselineMat.SetTo(new MCvScalar(28815));
+        baselineMat.SetTo(new MCvScalar(ZeroDegreeCelsius + 1500));
         var scaleMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
         scaleMat.SetTo(new MCvScalar(1 / 10d));
         CvInvoke.Subtract(irImage, baselineMat, irImage);
@@ -79,10 +119,10 @@ public class ImageCropper : IImageCropper
 
     private static Mat CutIrImage(NpgsqlPoint[] polygon, Mat mat)
     {
-        var minX = polygon.Min(p => p.X);
-        var minY = polygon.Min(p => p.Y);
-        var width = polygon.Max(p => p.X) - minX;
-        var height = polygon.Max(p => p.Y) - minY;
+        var minX = Math.Max(0, polygon.Min(p => p.X));
+        var minY = Math.Max(0, polygon.Min(p => p.Y));
+        var width = Math.Min(mat.Cols, polygon.Max(p => p.X)) - minX;
+        var height = Math.Min(mat.Rows, polygon.Max(p => p.Y)) - minY;
         var roi = new Rectangle((int)minX, (int)minY, (int)width, (int)height);
         return new Mat(mat, roi);
     }

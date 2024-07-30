@@ -93,6 +93,21 @@ public class ImageCropperTests
     }
 
     [Fact]
+    public void CreateRawIR_ShouldWork()
+    {
+        var sut = CreateImageCropper();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
+        var irMat = sut.MatFromFile(irFile, out _);
+        var resultMat = sut.CreateRawIr(irMat);
+        sut.Resize(resultMat, 640);
+        CvInvoke.Imshow("Cropped IR", resultMat);
+        CvInvoke.WaitKey(2000);
+        resultMat.Dispose();
+        irMat.Dispose();
+    }
+
+    [Fact]
     public void CropImage_IR_ShouldWork()
     {
         var sut = CreateImageCropper();
