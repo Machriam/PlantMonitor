@@ -1,4 +1,5 @@
 ﻿using Emgu.CV;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.Utilities;
 using NpgsqlTypes;
 using NSubstitute;
 using Plantmonitor.Server.Features.DeviceConfiguration;
@@ -52,19 +53,28 @@ public class PhotoStitcherTests
         var color1 = result1.IrImage!.Clone();
         cropper.ApplyIrColorMap(color1);
         var result2 = cropper.CropImages(visFile2, irFile2, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(121, 39), 960);
-        var color2 = result1.IrImage!.Clone();
+        var color2 = result2.IrImage!.Clone();
         cropper.ApplyIrColorMap(color2);
         var sut = CreatePhotoStitcher();
         var images = Enumerable.Range(0, 10).Select(i => new PhotoStitcher.PhotoStitchData()
         {
-            ColoredIrImage = i % 2 == 0 ? color1 : color2,
+            ColoredIrImage = i % 2 == 0 ? color1.Clone() : color2.Clone(),
             Comment = "Comment",
-            IrImageRawData = i % 2 == 0 ? result1.IrImage : result2.IrImage,
+            IrImageRawData = i % 2 == 0 ? result1.IrImage.Clone() : result2.IrImage.Clone(),
             Name = "Name",
-            VisImage = i % 2 == 0 ? result1.VisImage : result2.VisImage,
+            VisImage = i % 2 == 0 ? result1.VisImage.Clone() : result2.VisImage.Clone(),
         });
         var result = sut.CreateVirtualImage(images, 300, 500, 100);
-        CvInvoke.Imshow("Virtual image", result.VisImage);
+        CvInvoke.Imshow("Virtual VIS", result.VisImage);
+        CvInvoke.Imshow("Virtual IR", result.IrColorImage);
+        cropper.ApplyIrColorMap(result.IrRawData);
+        CvInvoke.Imshow("Virtual Raw", result.IrRawData);
         CvInvoke.WaitKey();
+        result1.IrImage.Dispose();
+        result1.VisImage.Dispose();
+        result2.IrImage.Dispose();
+        result2.VisImage.Dispose();
+        color1.Dispose();
+        color2.Dispose();
     }
 }

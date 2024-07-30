@@ -23,7 +23,6 @@
     let _selectedTrip: PictureTripData | undefined;
     let _plants: PhotoTourPlantInfo[] = [];
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
-    let _baseOffset: IIrCameraOffset = {left: 0, top: 0};
     let _unsubscribe: Unsubscriber[] = [];
 
     onDestroy(() => {
@@ -37,7 +36,6 @@
                 await updatePlantInfo();
             })
         );
-        _baseOffset = $selectedDevice?.health.cameraOffset ?? {left: 0, top: 0};
         _unsubscribe.push(
             selectedDevice.subscribe(async (x) => {
                 _baseOffset = x?.health.cameraOffset ?? {left: 0, top: 0};
