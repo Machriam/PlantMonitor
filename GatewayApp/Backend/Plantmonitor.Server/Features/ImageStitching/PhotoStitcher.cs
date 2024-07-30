@@ -71,7 +71,7 @@ public class PhotoStitcher : IPhotoStitcher
             im.Item.ColoredIrImage == null ? "false" : "true", im.Item.VisImage == null ? "false" : "true",
             im.Item.IrImageTime.ToString("yyyy.MM.dd_HH:mm::ss",CultureInfo.InvariantCulture),
             im.Item.VisImageTime.ToString("yyyy.MM.dd_HH:mm::ss",CultureInfo.InvariantCulture),
-            im.Item.IrTemperatureInK.ToString("0.00 K",CultureInfo.InvariantCulture),
+            (im.Item.IrTemperatureInK/100f).ToString("0.00 K",CultureInfo.InvariantCulture),
         }.Concat("\t"))
         .Concat("\n");
         var metaDataTsv = new List<string>() { metaDataHeader.Concat("\t") }

@@ -16,7 +16,7 @@ public class CameraStreamFormatter
         return new CameraStreamFormatter()
         {
             Steps = bytes.Length >= 4 ? BitConverter.ToInt32(bytes.AsSpan()[0..4]) : default,
-            Timestamp = bytes.Length >= 12 ? new DateTime(BitConverter.ToInt64(bytes.AsSpan()[4..12])) : default,
+            Timestamp = bytes.Length >= 12 ? new DateTime(BitConverter.ToInt64(bytes.AsSpan()[4..12]), DateTimeKind.Utc) : default,
             TemperatureInK = bytes.Length >= 16 ? BitConverter.ToInt32(bytes.AsSpan()[12..16]) : default,
             PictureData = bytes.Length > 16 ? bytes[16..] : null,
             Finished = bytes.Length == s_finishedSignal.Length && bytes.All(b => b == byte.MaxValue)
@@ -39,7 +39,7 @@ public class CameraStreamFormatter
         if (!s_validFiles.Contains(extension)) return false;
         var fileName = Path.GetFileNameWithoutExtension(path);
         if (!DateTime.TryParseExact(fileName[0..PictureDateFormat.Length], PictureDateFormat, CultureInfo.InvariantCulture,
-            DateTimeStyles.None, out var date)) return false;
+            DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out var date)) return false;
         var split = Path.GetFileNameWithoutExtension(path)[PictureDateFormat.Length..].Split('_');
         if (split.Length < 2) return false;
         result.Timestamp = date;
@@ -58,7 +58,7 @@ public class CameraStreamFormatter
         if (!s_validFiles.Contains(extension)) return false;
         var fileName = Path.GetFileNameWithoutExtension(path);
         if (!DateTime.TryParseExact(fileName[0..PictureDateFormat.Length], PictureDateFormat, CultureInfo.InvariantCulture,
-            DateTimeStyles.None, out var date)) return false;
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var date)) return false;
         var split = Path.GetFileNameWithoutExtension(path)[PictureDateFormat.Length..].Split('_');
         if (split.Length < 2) return false;
         result.Timestamp = date;

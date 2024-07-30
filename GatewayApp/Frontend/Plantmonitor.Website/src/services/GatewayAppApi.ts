@@ -729,6 +729,8 @@ export interface IPhotoStitchingClient {
 
     removePlantImageSections(sectionIds: number[]): Promise<void>;
 
+    recalculatePhotoTour(photoTourFk?: number | undefined): Promise<void>;
+
     addPlantsToTour(plants: AddPlantModel): Promise<void>;
 }
 
@@ -931,6 +933,42 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
     }
 
     protected processRemovePlantImageSections(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    recalculatePhotoTour(photoTourFk?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/PhotoStitching/recalculatephototour?";
+        if (photoTourFk === null)
+            throw new Error("The parameter 'photoTourFk' cannot be null.");
+        else if (photoTourFk !== undefined)
+            url_ += "photoTourFk=" + encodeURIComponent("" + photoTourFk) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processRecalculatePhotoTour(_response));
+        });
+    }
+
+    protected processRecalculatePhotoTour(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

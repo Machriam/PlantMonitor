@@ -153,8 +153,8 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             .Select(tot => $"{tot.MeasurementFkNavigation.Comment}_{tot.MeasurementFkNavigation.SensorId}\t" +
             $"{tot.Temperature.ToString("0.00 °C", CultureInfo.InvariantCulture)}\t{tot.Timestamp:yyyy.MM.dd_HH:mm:ss}")
             .Concat("\n");
-        var temperatureTable = $"\nDevice\nTemperature\nTime\n{measurementValues}";
-        return $"{virtualImage.MetaDataTable}\n{temperatureTable}";
+        var temperatureTable = $"\nDevice\tTemperature\tTime\t{measurementValues}";
+        return $"{virtualImage.MetaDataTable}\n{timeTable}\n{temperatureTable}";
     }
 
     private static void AddMat(string path, Mat mat, ZipArchive zip)
