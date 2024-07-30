@@ -100,10 +100,12 @@ public class ImageCropperTests
         var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
         var irMat = sut.MatFromFile(irFile, out _);
         var resultMat = sut.CreateRawIr(irMat);
-        sut.Resize(resultMat, 640);
-        CvInvoke.Imshow("Cropped IR", resultMat);
-        CvInvoke.WaitKey(2000);
+        var resizeMat = resultMat.Clone();
+        sut.Resize(resizeMat, 640);
+        CvInvoke.Imshow("Cropped IR", resizeMat);
+        CvInvoke.WaitKey();
         resultMat.Dispose();
+        resizeMat.Dispose();
         irMat.Dispose();
     }
 

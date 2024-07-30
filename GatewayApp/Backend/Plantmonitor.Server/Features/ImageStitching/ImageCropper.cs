@@ -28,26 +28,27 @@ public class ImageCropper : IImageCropper
         var multiply100 = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32S, 1);
         multiply100.SetTo(new MCvScalar(100d));
         subtractMat.SetTo(new MCvScalar(ZeroDegreeCelsius));
-        var fullValueMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
+        var currentValueMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
 
-        CvInvoke.Subtract(irImage, subtractMat, fullValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32F);
-        var commaValueMat = fullValueMat.Clone();
+        CvInvoke.Subtract(irImage, subtractMat, currentValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32F);
+        var commaValueMat = currentValueMat.Clone();
 
         subtractMat.SetTo(new MCvScalar(50d));
-        CvInvoke.Subtract(fullValueMat, subtractMat, fullValueMat);
-        CvInvoke.Multiply(fullValueMat, divisor100, fullValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32S);
-        CvInvoke.Multiply(fullValueMat, multiply100, fullValueMat);
-        CvInvoke.Subtract(commaValueMat, fullValueMat, commaValueMat, null, Emgu.CV.CvEnum.DepthType.Cv32F);
+        CvInvoke.Subtract(currentValueMat, subtractMat, currentValueMat);
+        CvInvoke.Multiply(currentValueMat, divisor100, currentValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32S);
+        var fullValueMat = currentValueMat.Clone();
+        fullValueMat.ConvertTo(fullValueMat, Emgu.CV.CvEnum.DepthType.Cv8U);
+        CvInvoke.Multiply(currentValueMat, multiply100, currentValueMat);
+        CvInvoke.Subtract(commaValueMat, currentValueMat, commaValueMat, null, Emgu.CV.CvEnum.DepthType.Cv32F);
 
         commaValueMat.ConvertTo(commaValueMat, Emgu.CV.CvEnum.DepthType.Cv8U);
-        CvInvoke.Multiply(fullValueMat, divisor100, fullValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32F);
-        fullValueMat.ConvertTo(fullValueMat, Emgu.CV.CvEnum.DepthType.Cv8U);
         var emptyMat = fullValueMat.Clone();
         CvInvoke.Subtract(emptyMat, emptyMat, emptyMat);
 
         var resultMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 3);
         CvInvoke.Merge(new VectorOfMat(fullValueMat, commaValueMat, emptyMat), resultMat);
         subtractMat.Dispose();
+        currentValueMat.Dispose();
         fullValueMat.Dispose();
         commaValueMat.Dispose();
         emptyMat.Dispose();
