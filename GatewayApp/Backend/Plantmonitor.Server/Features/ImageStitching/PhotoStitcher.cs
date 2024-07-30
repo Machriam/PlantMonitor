@@ -35,30 +35,39 @@ public class PhotoStitcher : IPhotoStitcher
         }
     }
 
+    public int CalculateImagesPerRow(int length, int width, int height)
+    {
+        if (length <= 1) return 1;
+        var imagesPerRow = Enumerable.Range(1, length).Select(columns =>
+        {
+            var rows = float.Ceiling(length / (float)columns);
+            return (Ratio: Math.Abs(DesiredRatio - (columns * width / (height * rows))), Columns: columns);
+        });
+        return imagesPerRow.MinBy(ipr => ipr.Ratio).Columns;
+    }
+
     public (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
         int specimenWidth, int specimenHeight, int spacingBetweenSpecimen)
     {
-        var length = images.Count();
-        var imagesPerRow = (int)float.Round(16 * length / 25f);
         var imageList = images.ToList();
-        var visImage = ConcatImages(specimenWidth, specimenHeight, spacingBetweenSpecimen, imagesPerRow, imageList, psd => psd?.VisImage);
-        var irColorImage = ConcatImages(specimenWidth, specimenHeight, spacingBetweenSpecimen, imagesPerRow, imageList, psd => psd?.ColoredIrImage);
-        var irData = ConcatImages(specimenWidth, specimenHeight, spacingBetweenSpecimen, imagesPerRow, imageList, psd => psd?.IrImageRawData);
+        var height = specimenHeight + spacingBetweenSpecimen;
+        var width = specimenWidth + spacingBetweenSpecimen;
+        var imagesPerRow = CalculateImagesPerRow(imageList.Count, width, height);
+        var visImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.VisImage);
+        var irColorImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.ColoredIrImage);
+        var irData = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.IrImageRawData);
         return (visImage, irColorImage, irData, "");
     }
 
-    private static Mat ConcatImages(int specimenWidth, int specimenHeight, int spacingBetweenSpecimen, int imagesPerRow,
-        IList<PhotoStitchData> images, Func<PhotoStitchData?, Mat?> selector)
+    private static Mat ConcatImages(int width, int height, int imagesPerRow, IList<PhotoStitchData> images, Func<PhotoStitchData?, Mat?> selector)
     {
         var length = images.Count;
         var firstMat = selector(images.FirstOrDefault());
         if (firstMat == null) return new Mat();
         var depth = firstMat.Depth;
         var channels = firstMat.NumberOfChannels;
-        var finalHeight = ((int)(float.Ceiling(length / (float)imagesPerRow)) * (specimenHeight + spacingBetweenSpecimen)) + spacingBetweenSpecimen;
-        var finalWidth = (imagesPerRow * (specimenWidth + spacingBetweenSpecimen)) + spacingBetweenSpecimen;
-        var result = new Mat(finalHeight, finalWidth, depth, channels);
-        var size = new Size(specimenWidth + spacingBetweenSpecimen, specimenHeight + spacingBetweenSpecimen);
+        var result = new Mat();
+        var size = new Size(width, height);
         var emptyMat = new Mat(size, depth, channels);
         emptyMat.SetTo(new MCvScalar(0));
         var horizontalSlices = new List<Mat>();

@@ -1,4 +1,5 @@
 ﻿using Emgu.CV;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Utilities;
 using NpgsqlTypes;
 using NSubstitute;
@@ -40,6 +41,20 @@ public class PhotoStitcherTests
         return new PhotoStitcher();
     }
 
+    [Theory]
+    [InlineData(2, 100, 200, 2)]
+    [InlineData(3, 100, 200, 3)]
+    [InlineData(4, 100, 200, 4)]
+    [InlineData(5, 100, 200, 5)]
+    [InlineData(6, 100, 200, 5)]
+    [InlineData(20, 100, 200, 9)]
+    public void CalculateImagesPerRow_ShouldWork(int length, int width, int height, int expected)
+    {
+        var sut = CreatePhotoStitcher();
+        var result = sut.CalculateImagesPerRow(length, width, height);
+        result.Should().Be(expected);
+    }
+
     [Fact]
     public void CreateVirtualImage_ShouldWork()
     {
@@ -56,7 +71,7 @@ public class PhotoStitcherTests
         var color2 = result2.IrImage!.Clone();
         cropper.ApplyIrColorMap(color2);
         var sut = CreatePhotoStitcher();
-        var images = Enumerable.Range(0, 10).Select(i => new PhotoStitcher.PhotoStitchData()
+        var images = Enumerable.Range(0, 20).Select(i => new PhotoStitcher.PhotoStitchData()
         {
             ColoredIrImage = i % 2 == 0 ? color1.Clone() : color2.Clone(),
             Comment = "Comment",
@@ -64,7 +79,7 @@ public class PhotoStitcherTests
             Name = "Name",
             VisImage = i % 2 == 0 ? result1.VisImage.Clone() : result2.VisImage.Clone(),
         });
-        var result = sut.CreateVirtualImage(images, 300, 500, 100);
+        var result = sut.CreateVirtualImage(images, 300, 300, 20);
         CvInvoke.Imshow("Virtual VIS", result.VisImage);
         CvInvoke.Imshow("Virtual IR", result.IrColorImage);
         cropper.ApplyIrColorMap(result.IrRawData);
