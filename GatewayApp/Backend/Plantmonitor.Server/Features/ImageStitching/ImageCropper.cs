@@ -4,6 +4,7 @@ using System.Drawing;
 using Emgu.CV.Util;
 using Emgu.CV.Structure;
 using Plantmonitor.Shared.Features.ImageStreaming;
+using Serilog;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
 
@@ -16,7 +17,7 @@ public interface IImageCropper
     Mat CreateRawIr(Mat irImage);
 }
 
-public class ImageCropper : IImageCropper
+public class ImageCropper() : IImageCropper
 {
     private const int ZeroDegreeCelsius = 27315;
 
@@ -29,9 +30,12 @@ public class ImageCropper : IImageCropper
         multiply100.SetTo(new MCvScalar(100d));
         subtractMat.SetTo(new MCvScalar(ZeroDegreeCelsius));
         var currentValueMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
+        var commaValueMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
+        var emptyMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 1);
+        emptyMat.SetTo(new MCvScalar(0));
 
         CvInvoke.Subtract(irImage, subtractMat, currentValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32F);
-        var commaValueMat = currentValueMat.Clone();
+        currentValueMat.CopyTo(commaValueMat);
 
         subtractMat.SetTo(new MCvScalar(50d));
         CvInvoke.Subtract(currentValueMat, subtractMat, currentValueMat);
@@ -42,10 +46,11 @@ public class ImageCropper : IImageCropper
         CvInvoke.Subtract(commaValueMat, currentValueMat, commaValueMat, null, Emgu.CV.CvEnum.DepthType.Cv32F);
 
         commaValueMat.ConvertTo(commaValueMat, Emgu.CV.CvEnum.DepthType.Cv8U);
-        var emptyMat = fullValueMat.Clone();
-        CvInvoke.Subtract(emptyMat, emptyMat, emptyMat);
 
         var resultMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 3);
+        var decimalRange = commaValueMat.GetValueRange();
+        var fullRange = fullValueMat.GetValueRange();
+        var emptyRange = emptyMat.GetValueRange();
         CvInvoke.Merge(new VectorOfMat(fullValueMat, commaValueMat, emptyMat), resultMat);
         subtractMat.Dispose();
         currentValueMat.Dispose();
@@ -54,6 +59,21 @@ public class ImageCropper : IImageCropper
         emptyMat.Dispose();
         divisor100.Dispose();
         multiply100.Dispose();
+        if (decimalRange.Max > 100)
+        {
+            Log.Logger.Warning("decimal channel was over 100: {from}-{to}", decimalRange.Min, decimalRange.Max);
+            return CreateRawIr(irImage);
+        }
+        if (fullRange.Min < 5 || fullRange.Max > 100)
+        {
+            Log.Logger.Warning("integer channel was not in bounds: {from}-{to}", fullRange.Min, fullRange.Max);
+            return CreateRawIr(irImage);
+        }
+        if (emptyRange.Min > 0 || emptyRange.Max > 0)
+        {
+            Log.Logger.Warning("empty channel was not zero: {from}-{to}", emptyRange.Min, emptyRange.Max);
+            return CreateRawIr(irImage);
+        }
         return resultMat;
     }
 
