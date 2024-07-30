@@ -2,12 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using Plantmonitor.DataModel.DataModel;
+using Plantmonitor.Server.Features.ImageStitching;
 
 namespace Plantmonitor.Server.Features.DeviceProgramming;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PhotoStitchingController(IDataContext context)
+public class PhotoStitchingController(IDataContext context, IVirtualImageWorker virtualImageWorker)
 {
     public record struct AddPlantModel(IEnumerable<PlantModel> Plants, long TourId);
     public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? QrCode, long PhotoTourFk, IEnumerable<PlantExtractionTemplateModel> ExtractionTemplate);
@@ -72,6 +73,12 @@ public class PhotoStitchingController(IDataContext context)
     {
         context.PlantExtractionTemplates.RemoveRange(context.PlantExtractionTemplates.Where(pet => sectionIds.Contains(pet.Id)));
         context.SaveChanges();
+    }
+
+    [HttpPost("recalculatephototour")]
+    public void RecalculatePhotoTour(long photoTourFk)
+    {
+        virtualImageWorker.RecalculateTour(photoTourFk);
     }
 
     [HttpPost("addplantstotour")]

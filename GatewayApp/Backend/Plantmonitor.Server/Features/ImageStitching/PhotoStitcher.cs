@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
@@ -25,6 +26,9 @@ public class PhotoStitcher : IPhotoStitcher
         public Mat? IrImageRawData { get; set; }
         public Mat? ColoredIrImage { get; set; }
         public string Name { get; init; } = "";
+        public DateTime IrImageTime { get; set; }
+        public DateTime VisImageTime { get; set; }
+        public float IrTemperatureInK { get; set; }
         public string Comment { get; init; } = "";
 
         public void Dispose()
@@ -61,9 +65,14 @@ public class PhotoStitcher : IPhotoStitcher
             (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count,"Raw IR in °C, first channel full degree, second channel decimal values" }
         .Select(md => md.ToString())
         .ToList();
-        var dataHeader = new string[] { "Index", "Name", "Comment" };
+        var dataHeader = new string[] { "Index", "Name", "Comment", "Has IR", "Has VIS", "IR Time", "Vis Time", "IR Temp" };
         var data = imageList.WithIndex()
-        .Select(im => new string[] { im.Index.ToString(), im.Item.Name, im.Item.Comment }.Concat("\t"))
+        .Select(im => new string[] { im.Index.ToString(), im.Item.Name, im.Item.Comment,
+            im.Item.ColoredIrImage == null ? "false" : "true", im.Item.VisImage == null ? "false" : "true",
+            im.Item.IrImageTime.ToString("yyyy.MM.dd_HH:mm::ss",CultureInfo.InvariantCulture),
+            im.Item.VisImageTime.ToString("yyyy.MM.dd_HH:mm::ss",CultureInfo.InvariantCulture),
+            im.Item.IrTemperatureInK.ToString("0.00 K",CultureInfo.InvariantCulture),
+        }.Concat("\t"))
         .Concat("\n");
         var metaDataTsv = new List<string>() { metaDataHeader.Concat("\t") }
             .Append(metaDataInfo.Concat("\t"))
