@@ -32,14 +32,12 @@
     let _selectedPlant: PhotoTourPlantInfo | undefined;
     let _imageRatio: number = 0;
     let _polygonValid = false;
-    let _baseOffset: IIrCameraOffset = {left: 0, top: 0};
     const _selectedThumbnailId = Math.random().toString(36);
     const _selectedImageCanvasId = Math.random().toString(36);
     const _cvInterop = new CvInterop();
     let _unsubscribe: Unsubscriber[] = [];
     onMount(() => {
         startStream();
-        _baseOffset = $selectedDevice?.health.cameraOffset ?? {left: 0, top: 0};
         const unsubscriber = selectedPhotoTourPlantInfo.subscribe(async (x) => {
             _cutPolygon = [];
             await changeImage(_currentImageIndex);
@@ -183,7 +181,10 @@
         await client.associatePlantImageSection(
             new PlantImageSection({
                 plantId: _selectedPlant.id,
-                irPolygonOffset: new NpgsqlPoint({x: _baseOffset.left ?? 0, y: _baseOffset.top ?? 0}),
+                irPolygonOffset: new NpgsqlPoint({
+                    x: $selectedDevice?.health.cameraOffset?.left ?? 0,
+                    y: $selectedDevice?.health.cameraOffset?.top ?? 0
+                }),
                 stepCount: _selectedImage.stepCount,
                 photoTripId: _selectedPhotoTrip.tripId,
                 polygon: _cutPolygon.map((p) => new NpgsqlPoint({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))

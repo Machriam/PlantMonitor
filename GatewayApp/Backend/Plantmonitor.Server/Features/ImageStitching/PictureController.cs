@@ -61,6 +61,7 @@ public class PictureController(IEnvironmentConfiguration configuration, IDeviceA
             .Select(t => (Trip: t, IrCount: Path.Exists(t.IrDataFolder) ? Directory.GetFiles(t.IrDataFolder).Length : 0,
                           VisCount: Path.Exists(t.VisDataFolder) ? Directory.GetFiles(t.VisDataFolder).Length : 0));
         return directories.Select(d => new PictureTripData(new(d.IrCount, d.Trip.IrDataFolder, CameraType.IR),
-            new(d.VisCount, d.Trip.VisDataFolder, CameraType.Vis), d.Trip.Timestamp, deviceId, d.Trip.Id));
+            new(d.VisCount, d.Trip.VisDataFolder, CameraType.Vis), d.Trip.Timestamp, deviceId, d.Trip.Id))
+            .OrderBy(d => d.TimeStamp);
     }
 }

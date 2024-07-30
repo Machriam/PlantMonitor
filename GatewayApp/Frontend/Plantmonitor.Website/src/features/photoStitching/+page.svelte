@@ -24,6 +24,7 @@
     let _plants: PhotoTourPlantInfo[] = [];
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
     let _unsubscribe: Unsubscriber[] = [];
+    let _baseOffset: IIrCameraOffset = {left: 0, top: 0};
 
     onDestroy(() => {
         _unsubscribe.map((x) => x());
@@ -65,6 +66,11 @@
         const stitchingClient = new PhotoStitchingClient();
         await stitchingClient.removePlantsFromTour($selectedPhotoTourPlantInfo.map((p) => p.id));
         _plants = await stitchingClient.plantsForTour(_selectedTour.id);
+    }
+    async function recalculateVirtualPictures() {
+        if (_selectedTour == undefined) return;
+        const stitchingClient = new PhotoStitchingClient();
+        await stitchingClient.recalculatePhotoTour(_selectedTour.id);
     }
     async function addPlant() {
         if (_selectedTour == undefined) return;
@@ -112,6 +118,9 @@
         {/if}
     </div>
     <div class="col-md-2">
+        <div class="d-flex flex-row justify-content-center mb-2">
+            <button on:click={recalculateVirtualPictures} class="btn btn-primary">Recalculate Virtual Pictures</button>
+        </div>
         <TextInput label="QR-Code" bind:value={_newPlant.qrCode}></TextInput>
         <TextInput label="Name" bind:value={_newPlant.name}></TextInput>
         <TextInput label="Comment" bind:value={_newPlant.comment}></TextInput>
