@@ -2,6 +2,11 @@
 
 public static class EnumerableExtensions
 {
+    public static void DisposeItems<T>(this IEnumerable<T> list) where T : IDisposable
+    {
+        foreach (var item in list) item.Dispose();
+    }
+
     public static IEnumerable<T> PushIf<T>(this IEnumerable<T> list, T item, Func<T, bool> condition)
     {
         if (condition(item)) return list.Append(item);

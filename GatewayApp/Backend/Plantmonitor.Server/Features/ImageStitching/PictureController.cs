@@ -1,15 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Shared.Features.ImageStreaming;
 
-namespace Plantmonitor.Server.Features.DeviceControl;
+namespace Plantmonitor.Server.Features.ImageStitching;
 
 public record struct PictureSeriesData(int Count, string FolderName, CameraType? Type);
+public record struct PictureTripData(PictureSeriesData IrData, PictureSeriesData VisData, DateTime TimeStamp, string DeviceId, long TripId);
 public record struct SeriesByDevice(string DeviceId, string FolderName);
 
 [ApiController]
 [Route("api/[controller]")]
-public class PictureController(IEnvironmentConfiguration configuration, IDeviceApiFactory deviceApi)
+public class PictureController(IEnvironmentConfiguration configuration, IDeviceApiFactory deviceApi, IDataContext context)
 {
     private static readonly Dictionary<string, CameraType> s_cameraTypesByEnding = Enum.GetValues<CameraType>().Cast<CameraType>()
         .Select(c => (c.Attribute<CameraTypeInfo>().FileEnding, CameraType: c))
@@ -46,5 +49,19 @@ public class PictureController(IEnvironmentConfiguration configuration, IDeviceA
             var ending = $".{firstFile!.Split(".").Last()}";
             return new PictureSeriesData(files.Count(), d, s_cameraTypesByEnding.TryGetValue(ending, out var type) ? type : null);
         });
+    }
+
+    [HttpGet("pictureseriesoftour")]
+    public IEnumerable<PictureTripData> PictureSeriesOfTour(long photoTour)
+    {
+        var trips = context.PhotoTourTrips
+            .Where(ptt => ptt.PhotoTourFk == photoTour && ptt.VisDataFolder.Length > 3).ToList();
+        var deviceId = context.AutomaticPhotoTours.First(pt => pt.Id == photoTour).DeviceId.ToString();
+        var directories = trips
+            .Select(t => (Trip: t, IrCount: Path.Exists(t.IrDataFolder) ? Directory.GetFiles(t.IrDataFolder).Length : 0,
+                          VisCount: Path.Exists(t.VisDataFolder) ? Directory.GetFiles(t.VisDataFolder).Length : 0));
+        return directories.Select(d => new PictureTripData(new(d.IrCount, d.Trip.IrDataFolder, CameraType.IR),
+            new(d.VisCount, d.Trip.VisDataFolder, CameraType.Vis), d.Trip.Timestamp, deviceId, d.Trip.Id))
+            .OrderBy(d => d.TimeStamp);
     }
 }

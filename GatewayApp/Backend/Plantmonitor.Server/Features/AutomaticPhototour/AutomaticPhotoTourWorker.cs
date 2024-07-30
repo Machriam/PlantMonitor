@@ -7,7 +7,7 @@ using Microsoft.OpenApi.Extensions;
 
 namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
-public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IHostedService
+public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHostedService
 {
     private static bool s_photoTripRunning;
     private readonly int _ffcTimeout = (int)TimeSpan.FromSeconds(5).TotalMilliseconds;
@@ -40,7 +40,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
 
     private async Task SchedulePhotoTrips()
     {
-        using var scope = serviceProvider.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
         foreach (var photoTour in dataContext.AutomaticPhotoTours.Where(pt => !pt.Finished))
         {
@@ -65,7 +65,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             if (s_photoTripRunning) return;
             s_photoTripRunning = true;
         }
-        using var scope = serviceProvider.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
         await using var irStreamer = scope.ServiceProvider.GetRequiredService<IPictureDiskStreamer>();
         await using var visStreamer = scope.ServiceProvider.GetRequiredService<IPictureDiskStreamer>();
@@ -158,7 +158,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             .RunInBackground(ex =>
              {
                  ex.LogError();
-                 using var scope = serviceProvider.CreateScope();
+                 using var scope = scopeFactory.CreateScope();
                  using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
                  dataContext.CreatePhotoTourEventLogger(photoTourId)("Ir streaming error: " + ex.Message, PhotoTourEventType.Error);
              });
@@ -169,7 +169,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory serviceProvider) : IH
             .RunInBackground(ex =>
              {
                  ex.LogError();
-                 using var scope = serviceProvider.CreateScope();
+                 using var scope = scopeFactory.CreateScope();
                  using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
                  dataContext.CreatePhotoTourEventLogger(photoTourId)("Vis streaming error: " + ex.Message, PhotoTourEventType.Error);
              });

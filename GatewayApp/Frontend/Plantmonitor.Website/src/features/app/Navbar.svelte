@@ -88,6 +88,16 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Automatic Photo Tour
             </a>
         </div>
+        <div class="nav-item px-3">
+            <a
+                on:click={(x) => {
+                    if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
+                }}
+                class="nav-link {selectedItem == 'photoStitching' ? 'nav-selected' : ''}"
+                href="photoStitching">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Photo Stitching
+            </a>
+        </div>
     </nav>
 </div>
 

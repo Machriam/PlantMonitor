@@ -1,129 +1,121 @@
 ﻿using System.Drawing;
+using System.Globalization;
+using System.Runtime.InteropServices;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Features2D;
 using Emgu.CV.Stitching;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using static Plantmonitor.Server.Features.ImageStitching.PhotoStitcher;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
 
-public class PhotoStitcher
+public interface IPhotoStitcher
 {
-    /// <summary>
-    /// Comparison of Feature algorithms: https://ieeexplore.ieee.org/document/8346440
-    /// </summary>
-    /// <param name="folderName"></param>
-    public void StitchPhotos(string folderName)
+    (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) CreateVirtualImage(IEnumerable<PhotoStitchData> images, int specimenWidth, int specimenHeight, int spacingBetweenSpecimen);
+}
+
+public class PhotoStitcher : IPhotoStitcher
+{
+    private const float DesiredRatio = 16 / 9f;
+    public record class PhotoStitchData : IDisposable
     {
-        var files = Directory.GetFiles(folderName);
-        var imagesToStitch = files.OrderBy(f => f).Select(f => new Mat(f)).Take(2).ToList();
-        var stitcher = new Stitcher(Stitcher.Mode.Scans);
-        var result = imagesToStitch[0];
-        for (var i = 1; i < imagesToStitch.Count; i++)
+        public PhotoStitchData() { }
+        public Mat? VisImage { get; set; }
+        public Mat? IrImageRawData { get; set; }
+        public Mat? ColoredIrImage { get; set; }
+        public string Name { get; init; } = "";
+        public DateTime IrImageTime { get; set; }
+        public DateTime VisImageTime { get; set; }
+        public float IrTemperatureInK { get; set; }
+        public string Comment { get; init; } = "";
+
+        public void Dispose()
         {
-            var input = new VectorOfMat(result, imagesToStitch[i]);
-            var status = stitcher.Stitch(input, result);
+            VisImage?.Dispose();
+            ColoredIrImage?.Dispose();
+            IrImageRawData?.Dispose();
         }
-
-        result.Save(folderName + "/../result.png");
-        foreach (var image in imagesToStitch) image.Dispose();
-        result.Dispose();
-        stitcher.Dispose();
     }
 
-    private static void CalculateHomography(Mat modelImage, Mat observedImage, out VectorOfKeyPoint modelKeyPoints,
-        out VectorOfKeyPoint observedKeyPoints, VectorOfVectorOfDMatch matches, out Mat mask, out Mat? homography)
+    public int CalculateImagesPerRow(int length, int width, int height)
     {
-        const int K = 2;
-        const double UniquenessThreshold = 0.80d;
-        homography = null;
-        modelKeyPoints = new VectorOfKeyPoint();
-        observedKeyPoints = new VectorOfKeyPoint();
-        using var uModelImage = modelImage.GetUMat(AccessType.Read);
-        using var uObservedImage = observedImage.GetUMat(AccessType.Read);
-        using var featureDetector = new ORB(9000);
-        using var modelDescriptors = new Mat();
-        featureDetector.DetectAndCompute(uModelImage, null, modelKeyPoints, modelDescriptors, false);
-        using var observedDescriptors = new Mat();
-        featureDetector.DetectAndCompute(uObservedImage, null, observedKeyPoints, observedDescriptors, false);
-        using var matcher = new BFMatcher(DistanceType.Hamming, false);
-        matcher.Add(modelDescriptors);
-
-        matcher.KnnMatch(observedDescriptors, matches, K, null);
-        mask = new Mat(matches.Size, 1, DepthType.Cv8U, 1);
-        mask.SetTo(new MCvScalar(255));
-        Features2DToolbox.VoteForUniqueness(matches, UniquenessThreshold, mask);
-
-        var nonZeroCount = CvInvoke.CountNonZero(mask);
-        if (nonZeroCount < 4) return;
-        nonZeroCount = Features2DToolbox.VoteForSizeAndOrientation(modelKeyPoints, observedKeyPoints, matches, mask, 1.5, 20);
-        if (nonZeroCount < 4) return;
-        homography = Features2DToolbox.GetHomographyMatrixFromMatchedFeatures(modelKeyPoints, observedKeyPoints, matches, mask, 2);
-    }
-
-    public static Mat Draw(Mat modelImage, Mat observedImage)
-    {
-        using var matches = new VectorOfVectorOfDMatch();
-        CalculateHomography(modelImage, observedImage, out var modelKeyPoints, out var observedKeyPoints, matches, out var mask, out var homography);
-        var result = new Mat();
-        Features2DToolbox.DrawMatches(modelImage, modelKeyPoints, observedImage, observedKeyPoints,
-            matches, result, new MCvScalar(255, 0, 0), new MCvScalar(0, 0, 255), mask);
-
-        if (homography == null) return result;
-        var imgWarped = new Mat();
-        CvInvoke.WarpPerspective(observedImage, imgWarped, homography, modelImage.Size, Inter.Linear, Warp.InverseMap);
-        var rect = new Rectangle(Point.Empty, modelImage.Size);
-        var pts = new PointF[]
+        if (length <= 1) return 1;
+        var imagesPerRow = Enumerable.Range(1, length).Select(columns =>
         {
-                  new(rect.Left, rect.Bottom),
-                  new(rect.Right, rect.Bottom),
-                  new(rect.Right, rect.Top),
-                  new(rect.Left, rect.Top)
-        };
+            var rows = float.Ceiling(length / (float)columns);
+            return (Ratio: Math.Abs(DesiredRatio - (columns * width / (height * rows))), Columns: columns);
+        });
+        return imagesPerRow.MinBy(ipr => ipr.Ratio).Columns;
+    }
 
-        pts = CvInvoke.PerspectiveTransform(pts, homography);
-        var points = new Point[pts.Length];
-        for (var i = 0; i < points.Length; i++) points[i] = Point.Round(pts[i]);
+    public (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
+        int specimenWidth, int specimenHeight, int spacingBetweenSpecimen)
+    {
+        var imageList = images.ToList();
+        var height = specimenHeight + spacingBetweenSpecimen;
+        var width = specimenWidth + spacingBetweenSpecimen;
+        var imagesPerRow = CalculateImagesPerRow(imageList.Count, width, height);
+        var visImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.VisImage);
+        var irColorImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.ColoredIrImage);
+        var irData = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.IrImageRawData);
+        var metaDataHeader = new string[] { "Image Height", "Image Width", "Spacing after Image", "Images per Row", "Row Count", "Image Count", "Comment" };
+        var metaDataInfo = new object[] { specimenHeight, specimenWidth, spacingBetweenSpecimen, imagesPerRow,
+            (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count,"Raw IR in °C, first channel full degree, second channel decimal values" }
+        .Select(md => md.ToString())
+        .ToList();
+        var dataHeader = new string[] { "Index", "Name", "Comment", "Has IR", "Has VIS", "IR Time", "Vis Time", "IR Temp" };
+        var data = imageList.WithIndex()
+        .Select(im => new string[] { im.Index.ToString(), im.Item.Name, im.Item.Comment,
+            im.Item.ColoredIrImage == null ? "false" : "true", im.Item.VisImage == null ? "false" : "true",
+            im.Item.IrImageTime.ToString("yyyy.MM.dd_HH:mm:ss",CultureInfo.InvariantCulture),
+            im.Item.VisImageTime.ToString("yyyy.MM.dd_HH:mm:ss",CultureInfo.InvariantCulture),
+            (im.Item.IrTemperatureInK/100f).ToString("0.00 K",CultureInfo.InvariantCulture),
+        }.Concat("\t"))
+        .Concat("\n");
+        var metaDataTsv = new List<string>() { metaDataHeader.Concat("\t") }
+            .Append(metaDataInfo.Concat("\t"))
+            .Append($"\n{dataHeader.Concat("\t")}")
+            .Append(data);
+        return (visImage, irColorImage, irData, metaDataTsv.Concat("\n"));
+    }
 
-        using var vp = new VectorOfPoint(points);
-        CvInvoke.Polylines(result, vp, true, new MCvScalar(255, 0, 0, 255), 5);
-        CvInvoke.Resize(result, result, default, 0.5, 0.5);
+    private static Mat ConcatImages(int width, int height, int imagesPerRow, IList<PhotoStitchData> images, Func<PhotoStitchData?, Mat?> selector)
+    {
+        var length = images.Count;
+        var firstMat = selector(images.FirstOrDefault());
+        if (firstMat == null) return new Mat((int)(height * float.Ceiling(images.Count / (float)imagesPerRow)), imagesPerRow * width, DepthType.Cv8U, 3);
+        var depth = firstMat.Depth;
+        var channels = firstMat.NumberOfChannels;
+        var result = new Mat();
+        var size = new Size(width, height);
+        var emptyMat = new Mat(size, depth, channels);
+        emptyMat.SetTo(new MCvScalar(0));
+        var horizontalSlices = new List<Mat>();
+        for (var row = 0; row < (length / (float)imagesPerRow); row++)
+        {
+            var concatImages = new List<Mat>();
+            for (var column = 0; column < imagesPerRow; column++)
+            {
+                var index = (row * imagesPerRow) + column;
+                Mat mat;
+                var outOfBounds = index >= images.Count || selector(images[index]) == null;
+                if (outOfBounds) mat = emptyMat.Clone();
+                else mat = selector(images[index])!;
+                CvInvoke.CopyMakeBorder(mat, mat, 0, size.Height - mat.Rows, 0,
+                    size.Width - mat.Cols, BorderType.Constant, new MCvScalar(0d, 0d, 0d));
+                concatImages.Add(mat);
+            }
+            var hConcatMat = new Mat();
+            CvInvoke.HConcat([.. concatImages], hConcatMat);
+            horizontalSlices.Add(hConcatMat);
+            foreach (var image in concatImages) image.Dispose();
+        }
+        CvInvoke.VConcat([.. horizontalSlices], result);
+        foreach (var slice in horizontalSlices) slice.Dispose();
+        firstMat.Dispose();
+        emptyMat.Dispose();
         return result;
-    }
-
-    public void StitchPhotosManual(string folderName)
-    {
-        var files = Directory.GetFiles(folderName).Take(2);
-        var imagesToStitch = files.OrderBy(f => f).Select(f => new Mat(f)).ToList();
-        var matches = new VectorOfVectorOfDMatch();
-        CalculateHomography(imagesToStitch[0], imagesToStitch[1], out var keyPoints, out var keyPoints2, matches, out var mask, out var homography);
-        var translationHomography = new Matrix<double>(new double[,] { { 1, 0, -100 }, { 0, 1, -100 }, { 0, 0, 1 } });
-        var translatedSource = new Mat();
-        var warpedImage = new Mat();
-        CvInvoke.Gemm(homography, translationHomography, 1, null, 1, homography);
-        var result = new Mat(imagesToStitch[1].Size + new Size(200, 200), imagesToStitch[1].Depth, imagesToStitch[1].NumberOfChannels);
-        CvInvoke.WarpPerspective(imagesToStitch[1], warpedImage, homography, imagesToStitch[1].Size + new Size(200, 200), Inter.Linear, Warp.InverseMap);
-        CvInvoke.CopyMakeBorder(imagesToStitch[0], translatedSource, 100, 100, 100, 100, BorderType.Constant, default);
-        warpedImage.CopyTo(result);
-        ShowImage(warpedImage, "result1");
-        ShowImage(translatedSource, "result2");
-        translatedSource.CopyTo(result, translatedSource);
-        ShowImage(result, "result3");
-        CvInvoke.WaitKey();
-        keyPoints.Dispose();
-        keyPoints2.Dispose();
-        matches.Dispose();
-        mask.Dispose();
-        homography?.Dispose();
-        result.Dispose();
-    }
-
-    private static void ShowImage(Mat image, string name, float scale = 0.8f)
-    {
-        var displayImage = new Mat();
-        CvInvoke.Resize(image, displayImage, default, scale, scale);
-        CvInvoke.Imshow(name, displayImage);
-        displayImage.Dispose();
     }
 }

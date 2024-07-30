@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using Plantmonitor.Shared.Extensions;
 
 namespace Plantmonitor.Shared.Features.ImageStreaming;
 
@@ -17,6 +18,11 @@ public enum CameraType
 
     [CameraTypeInfo(SignalRMethod = "StreamIrData", FileEnding = ".rawir", MetaDataFile = ".metair")]
     IR
+}
+
+public static class CameraTypeExtensions
+{
+    public static CameraTypeInfo GetInfo(this CameraType type) => type.Attribute<CameraTypeInfo>();
 }
 
 [KnownType(typeof(StreamingMetaData))]

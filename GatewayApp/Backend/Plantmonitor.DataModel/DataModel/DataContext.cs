@@ -23,7 +23,11 @@ public interface IDataContext : IAsyncDisposable, IDisposable
 
     IQueryable<PhotoTourEvent> PhotoTourEvents { get; }
 
+    IQueryable<PhotoTourPlant> PhotoTourPlants { get; }
+
     IQueryable<PhotoTourTrip> PhotoTourTrips { get; }
+
+    IQueryable<PlantExtractionTemplate> PlantExtractionTemplates { get; }
 
     IQueryable<SwitchableOutletCode> SwitchableOutletCodes { get; }
 
@@ -60,9 +64,17 @@ public partial class DataContext : DbContext, IDataContext
 
     IQueryable<PhotoTourEvent> IDataContext.PhotoTourEvents => PhotoTourEvents;
 
+    public virtual DbSet<PhotoTourPlant> PhotoTourPlants { get; set; }
+
+    IQueryable<PhotoTourPlant> IDataContext.PhotoTourPlants => PhotoTourPlants;
+
     public virtual DbSet<PhotoTourTrip> PhotoTourTrips { get; set; }
 
     IQueryable<PhotoTourTrip> IDataContext.PhotoTourTrips => PhotoTourTrips;
+
+    public virtual DbSet<PlantExtractionTemplate> PlantExtractionTemplates { get; set; }
+
+    IQueryable<PlantExtractionTemplate> IDataContext.PlantExtractionTemplates => PlantExtractionTemplates;
 
     public virtual DbSet<SwitchableOutletCode> SwitchableOutletCodes { get; set; }
 
@@ -169,9 +181,27 @@ public partial class DataContext : DbContext, IDataContext
                 .HasConstraintName("photo_tour_event_references_event_fkey");
         });
 
+        modelBuilder.Entity<PhotoTourPlant>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("photo_tour_plant_pkey");
+
+            entity.ToTable("photo_tour_plant", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Comment).HasColumnName("comment");
+            entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
+            entity.Property(e => e.QrCode).HasColumnName("qr_code");
+
+            entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourPlants)
+                .HasForeignKey(d => d.PhotoTourFk)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("photo_tour_plant_photo_tour_fk_fkey");
+        });
+
         modelBuilder.Entity<PhotoTourTrip>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("photo_tour_trip_pkey");
+            entity.HasKey(e => e.Id).HasName("photo_tour_journey_pkey");
 
             entity.ToTable("photo_tour_trip", "plantmonitor");
 
@@ -181,12 +211,39 @@ public partial class DataContext : DbContext, IDataContext
             entity.Property(e => e.Timestamp)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("timestamp");
+            entity.Property(e => e.VirtualPicturePath).HasColumnName("virtual_picture_path");
             entity.Property(e => e.VisDataFolder).HasColumnName("vis_data_folder");
 
             entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourTrips)
                 .HasForeignKey(d => d.PhotoTourFk)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("photo_tour_trip_photo_tour_fk_fkey");
+                .HasConstraintName("photo_tour_journey_photo_tour_fk_fkey");
+        });
+
+        modelBuilder.Entity<PlantExtractionTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("plant_extraction_template_pkey");
+
+            entity.ToTable("plant_extraction_template", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.BoundingBoxHeight).HasColumnName("bounding_box_height");
+            entity.Property(e => e.BoundingBoxWidth).HasColumnName("bounding_box_width");
+            entity.Property(e => e.IrBoundingBoxOffset).HasColumnName("ir_bounding_box_offset");
+            entity.Property(e => e.MotorPosition).HasColumnName("motor_position");
+            entity.Property(e => e.PhotoBoundingBox).HasColumnName("photo_bounding_box");
+            entity.Property(e => e.PhotoTourPlantFk).HasColumnName("photo_tour_plant_fk");
+            entity.Property(e => e.PhotoTripFk).HasColumnName("photo_trip_fk");
+
+            entity.HasOne(d => d.PhotoTourPlantFkNavigation).WithMany(p => p.PlantExtractionTemplates)
+                .HasForeignKey(d => d.PhotoTourPlantFk)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("plant_extraction_template_photo_tour_plant_fk_fkey");
+
+            entity.HasOne(d => d.PhotoTripFkNavigation).WithMany(p => p.PlantExtractionTemplates)
+                .HasForeignKey(d => d.PhotoTripFk)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("plant_extraction_template_photo_trip_fk_fkey");
         });
 
         modelBuilder.Entity<SwitchableOutletCode>(entity =>

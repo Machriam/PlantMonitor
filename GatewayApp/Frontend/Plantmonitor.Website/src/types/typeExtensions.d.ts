@@ -5,6 +5,7 @@ interface String {
     fromBase64(): string;
     urlEncoded(): string;
     base64ToByteArray(): Uint8Array;
+    getFileName(): string;
 }
 interface Array<T> {
     mean(selector: (x: T) => number): number;
@@ -87,6 +88,9 @@ Number.prototype.isSuccessStatusCode = function (this: number): boolean {
 }
 String.prototype.isEmpty = function (this: string): boolean {
     return this === undefined || this === null || this.length == 0;
+}
+String.prototype.getFileName = function (this: string): string {
+    return this.split(/(\\|\/)/g).pop()
 }
 String.prototype.asBase64 = function (this: string): string {
     return btoa(this);

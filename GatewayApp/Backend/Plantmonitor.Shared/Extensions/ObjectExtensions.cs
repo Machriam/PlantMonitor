@@ -2,20 +2,6 @@
 
 public static class ObjectExtensions
 {
-    public static T? Try<T, V>(this V obj, Func<V, T> function, out string? error)
-    {
-        error = null;
-        try
-        {
-            return function(obj);
-        }
-        catch (Exception ex)
-        {
-            error = ex.Message;
-            return default;
-        }
-    }
-
     public static async void RunInBackground(this Task task, Action<Exception> exceptionHandler)
     {
         try
@@ -38,6 +24,20 @@ public static class ObjectExtensions
         catch (Exception ex)
         {
             return ex.Message;
+        }
+    }
+
+    public static bool Try(this Action action, Action<Exception> errorHandler)
+    {
+        try
+        {
+            action();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            errorHandler(ex);
+            return false;
         }
     }
 
