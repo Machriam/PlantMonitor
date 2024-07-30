@@ -30,33 +30,33 @@ public class ImageCropper() : IImageCropper
         multiply100.SetTo(new MCvScalar(100d));
         subtractMat.SetTo(new MCvScalar(ZeroDegreeCelsius));
         var currentValueMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
-        var commaValueMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
-        var emptyMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 1);
-        emptyMat.SetTo(new MCvScalar(0));
+        var decimalMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
+        var zeroMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 1);
+        zeroMat.SetTo(new MCvScalar(0));
 
         CvInvoke.Subtract(irImage, subtractMat, currentValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32F);
-        currentValueMat.CopyTo(commaValueMat);
+        currentValueMat.CopyTo(decimalMat);
 
         subtractMat.SetTo(new MCvScalar(50d));
         CvInvoke.Subtract(currentValueMat, subtractMat, currentValueMat);
         CvInvoke.Multiply(currentValueMat, divisor100, currentValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32S);
-        var fullValueMat = currentValueMat.Clone();
-        fullValueMat.ConvertTo(fullValueMat, Emgu.CV.CvEnum.DepthType.Cv8U);
+        var integerMat = currentValueMat.Clone();
+        integerMat.ConvertTo(integerMat, Emgu.CV.CvEnum.DepthType.Cv8U);
         CvInvoke.Multiply(currentValueMat, multiply100, currentValueMat);
-        CvInvoke.Subtract(commaValueMat, currentValueMat, commaValueMat, null, Emgu.CV.CvEnum.DepthType.Cv32F);
+        CvInvoke.Subtract(decimalMat, currentValueMat, decimalMat, null, Emgu.CV.CvEnum.DepthType.Cv32F);
 
-        commaValueMat.ConvertTo(commaValueMat, Emgu.CV.CvEnum.DepthType.Cv8U);
+        decimalMat.ConvertTo(decimalMat, Emgu.CV.CvEnum.DepthType.Cv8U);
 
         var resultMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 3);
-        var decimalRange = commaValueMat.GetValueRange();
-        var fullRange = fullValueMat.GetValueRange();
-        var emptyRange = emptyMat.GetValueRange();
-        CvInvoke.Merge(new VectorOfMat(fullValueMat, commaValueMat, emptyMat), resultMat);
+        var decimalRange = decimalMat.GetValueRange();
+        var fullRange = integerMat.GetValueRange();
+        var emptyRange = zeroMat.GetValueRange();
+        CvInvoke.Merge(new VectorOfMat(integerMat, decimalMat, zeroMat), resultMat);
         subtractMat.Dispose();
         currentValueMat.Dispose();
-        fullValueMat.Dispose();
-        commaValueMat.Dispose();
-        emptyMat.Dispose();
+        integerMat.Dispose();
+        decimalMat.Dispose();
+        zeroMat.Dispose();
         divisor100.Dispose();
         multiply100.Dispose();
         if (decimalRange.Max > 100)
