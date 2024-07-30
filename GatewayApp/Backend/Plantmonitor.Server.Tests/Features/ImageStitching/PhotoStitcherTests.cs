@@ -1,17 +1,15 @@
 ﻿using Emgu.CV;
 using FluentAssertions;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel.Utilities;
 using NpgsqlTypes;
-using NSubstitute;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.ImageStitching;
-using System;
-using Xunit;
 
 namespace Plantmonitor.Server.Tests.Features.ImageStitching;
 
 public class PhotoStitcherTests
 {
+    private const string ExpectedMetaData = "Image Height\tImage Width\tSpacing after Image\tImages per Row\tRow Count\tImage Count\n300\t300\t20\t6\t4\t20\nIndex\tName\tComment\n0\tName\tComment\n1\tName\tComment\n2\tName\tComment\n3\tName\tComment\n4\tName\tComment\n5\tName\tComment\n6\tName\tComment\n7\tName\tComment\n8\tName\tComment\n9\tName\tComment\n10\tName\tComment\n11\tName\tComment\n12\tName\tComment\n13\tName\tComment\n14\tName\tComment\n15\tName\tComment\n16\tName\tComment\n17\tName\tComment\n18\tName\tComment\n19\tName\tComment";
+
     private static readonly NpgsqlPoint[] s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved = [
     new NpgsqlPoint(1261.6227045075125,928.9081803005008),
         new NpgsqlPoint(967.372287145242,913.5225375626043),
@@ -80,6 +78,7 @@ public class PhotoStitcherTests
             VisImage = i % 2 == 0 ? result1.VisImage.Clone() : result2.VisImage.Clone(),
         });
         var result = sut.CreateVirtualImage(images, 300, 300, 20);
+        result.MetaDataTable.Should().Be(ExpectedMetaData);
         CvInvoke.Imshow("Virtual VIS", result.VisImage);
         CvInvoke.Imshow("Virtual IR", result.IrColorImage);
         cropper.ApplyIrColorMap(result.IrRawData);

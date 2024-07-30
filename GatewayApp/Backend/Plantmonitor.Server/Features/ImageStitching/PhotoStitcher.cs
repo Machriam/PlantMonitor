@@ -56,7 +56,20 @@ public class PhotoStitcher : IPhotoStitcher
         var visImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.VisImage);
         var irColorImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.ColoredIrImage);
         var irData = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.IrImageRawData);
-        return (visImage, irColorImage, irData, "");
+        var metaDataHeader = new string[] { "Image Height", "Image Width", "Spacing after Image", "Images per Row", "Row Count", "Image Count" };
+        var metaDataInfo = new object[] { specimenHeight, specimenWidth, spacingBetweenSpecimen, imagesPerRow,
+            (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count }
+        .Select(md => md.ToString())
+        .ToList();
+        var dataHeader = new string[] { "Index", "Name", "Comment" };
+        var data = imageList.WithIndex()
+        .Select(im => new string[] { im.Index.ToString(), im.Item.Name, im.Item.Comment }.Concat("\t"))
+        .Concat("\n");
+        var metaDataTsv = new List<string>() { metaDataHeader.Concat("\t") }
+            .Append(metaDataInfo.Concat("\t"))
+            .Append(dataHeader.Concat("\t"))
+            .Append(data);
+        return (visImage, irColorImage, irData, metaDataTsv.Concat("\n"));
     }
 
     private static Mat ConcatImages(int width, int height, int imagesPerRow, IList<PhotoStitchData> images, Func<PhotoStitchData?, Mat?> selector)
