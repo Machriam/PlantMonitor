@@ -32,8 +32,8 @@ CREATE TABLE plantmonitor.plant_extraction_template
         ON DELETE NO ACTION
         NOT VALID
 );
-ALTER TABLE IF EXISTS plantmonitor.photo_stitching_template ADD COLUMN motor_position integer NOT NULL;
-ALTER TABLE IF EXISTS plantmonitor.photo_stitching_template OWNER to postgres;
+ALTER TABLE IF EXISTS plantmonitor.plant_extraction_template ADD COLUMN motor_position integer NOT NULL;
+ALTER TABLE IF EXISTS plantmonitor.plant_extraction_template OWNER to postgres;
 
 ALTER TABLE IF EXISTS plantmonitor.photo_tour_trip ADD COLUMN virtual_picture_path text;
 
