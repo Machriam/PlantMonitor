@@ -9,6 +9,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Emgu.CV" Version="4.9.0.5494" />
+		<PackageReference Include="Emgu.CV.runtime.ubuntu-x64" Version="4.9.0.5494" />
 		<PackageReference Include="Emgu.CV.runtime.windows" Version="4.9.0.5494" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.4" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="8.0.4" />
