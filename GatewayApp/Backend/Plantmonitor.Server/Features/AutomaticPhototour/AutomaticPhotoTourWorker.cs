@@ -20,7 +20,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         s_scheduleTimer = new Timer(_ => SchedulePhotoTrips().RunInBackground(ex => ex.LogError()), default, 0, s_scheduleTimeOut);
-        using var scope = serviceProvider.CreateScope();
+        using var scope = scopeFactory.CreateScope();
         await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
         foreach (var tour in dataContext.AutomaticPhotoTours.Where(apt => !apt.Finished))
         {
