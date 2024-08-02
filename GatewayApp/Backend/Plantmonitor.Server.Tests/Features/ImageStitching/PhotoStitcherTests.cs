@@ -3,6 +3,7 @@ using FluentAssertions;
 using NpgsqlTypes;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.ImageStitching;
+using Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests;
 
 namespace Plantmonitor.Server.Tests.Features.ImageStitching;
 
@@ -76,10 +77,9 @@ public class PhotoStitcherTests
             VisImage = i % 2 == 0 ? result1.VisImage.Clone() : result2.VisImage.Clone(),
         });
         var result = sut.CreateVirtualImage(images, 300, 300, 20);
-        CvInvoke.Imshow("Virtual VIS", result.VisImage);
-        CvInvoke.Imshow("Virtual IR", result.IrColorImage);
-        CvInvoke.Imshow("Virtual Raw", result.IrRawData);
-        CvInvoke.WaitKey();
+        result.VisImage.ShowImage("VirtualVis", 0);
+        result.IrColorImage.ShowImage("VirtualIr", 0);
+        result.IrRawData.ShowImage("VirtualRaw");
         result1.IrImage.Dispose();
         result1.VisImage.Dispose();
         result2.IrImage.Dispose();
