@@ -37,7 +37,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         dataContext.SaveChanges();
     }
 
-    public void CreateVirtualImage()
+    private void CreateVirtualImage()
     {
         lock (s_lock)
         {
@@ -53,7 +53,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         lock (s_lock) s_isRunning = false;
     }
 
-    private void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IEnvironmentConfiguration configuration)
+    public void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IEnvironmentConfiguration configuration)
     {
         logger.LogInformation("Running virtual image creation");
         var tripToProcess = dataContext.PhotoTourTrips
