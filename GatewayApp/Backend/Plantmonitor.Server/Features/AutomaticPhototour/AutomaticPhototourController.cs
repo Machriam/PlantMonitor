@@ -41,11 +41,13 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     }
 
     [HttpGet("events")]
-    public IEnumerable<PhotoTourEvent> GetEvents(long photoTourId)
+    public IEnumerable<PhotoTourEvent> GetEvents(long photoTourId, bool allLogs)
     {
-        return context.PhotoTourEvents
+        var result = context.PhotoTourEvents
             .OrderByDescending(pte => pte.Timestamp)
             .Where(pte => pte.PhotoTourFk == photoTourId);
+        if (allLogs) return result;
+        return result.Take(2000);
     }
 
     [HttpGet("phototours")]

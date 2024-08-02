@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Iot.Device.GrovePiDevice;
+using Microsoft.AspNetCore.SignalR;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using PlantMonitorControl.Features.MotorMovement;
 using System.Threading.Channels;
@@ -102,8 +103,13 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                 else if (data.GetCameraType() == CameraType.Vis)
                 {
                     logger.LogInformation("Possible Vis-images: {count}", group.Count());
+                    if (!group.Any())
+                    {
+                        logger.LogError("Skipping because of no Vis-images");
+                        continue;
+                    }
                     logger.LogInformation("Vis-images from {from} to {to}", group.First().File, group.Last().File);
-                    var bestImage = group.OrderBy(pi => pi.CreationTime).Last();
+                    var bestImage = group.OrderBy(pi => pi.CreationTime).TakeLast(2).FirstOrDefault();
                     var bytesToSend = await bestImage.BytesToSend();
                     logger.LogInformation("Sending file: {file}", bestImage.File);
                     await channel.Writer.WaitToWriteAsync(token);

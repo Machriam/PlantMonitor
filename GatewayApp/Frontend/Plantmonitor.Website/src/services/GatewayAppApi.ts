@@ -1651,7 +1651,7 @@ export interface IAutomaticPhotoTourClient {
 
     pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined): Promise<void>;
 
-    getEvents(photoTourId?: number | undefined): Promise<PhotoTourEvent[]>;
+    getEvents(photoTourId?: number | undefined, allLogs?: boolean | undefined): Promise<PhotoTourEvent[]>;
 
     getPhotoTours(): Promise<PhotoTourInfo[]>;
 
@@ -1709,12 +1709,16 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
         return Promise.resolve<void>(null as any);
     }
 
-    getEvents(photoTourId?: number | undefined): Promise<PhotoTourEvent[]> {
+    getEvents(photoTourId?: number | undefined, allLogs?: boolean | undefined): Promise<PhotoTourEvent[]> {
         let url_ = this.baseUrl + "/api/AutomaticPhotoTour/events?";
         if (photoTourId === null)
             throw new Error("The parameter 'photoTourId' cannot be null.");
         else if (photoTourId !== undefined)
             url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        if (allLogs === null)
+            throw new Error("The parameter 'allLogs' cannot be null.");
+        else if (allLogs !== undefined)
+            url_ += "allLogs=" + encodeURIComponent("" + allLogs) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
