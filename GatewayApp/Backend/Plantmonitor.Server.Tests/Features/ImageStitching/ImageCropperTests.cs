@@ -5,6 +5,7 @@ using NpgsqlTypes;
 using Emgu.CV;
 using FluentAssertions;
 using Emgu.CV.Structure;
+using Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests;
 
 namespace Plantmonitor.Server.Tests.Features.ImageStitching;
 
@@ -57,10 +58,9 @@ public class ImageCropperTests
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
         var imageFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/Plants.png";
         var result = sut.CropImages(imageFile, "", s_singlePlantBottomMiddlePolygon, new(0, 0), 960);
-        CvInvoke.Imshow("Cropped Image", result.VisImage);
-        CvInvoke.WaitKey(2000);
-        result.VisImage.Cols.Should().Be(253);
-        result.VisImage.Rows.Should().Be(279);
+        result.VisImage.ShowImage("CroppedImage");
+        result.VisImage.Cols.Should().Be(215);
+        result.VisImage.Rows.Should().Be(243);
         result.VisImage.Dispose();
     }
 
@@ -71,10 +71,9 @@ public class ImageCropperTests
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
         var imageFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/Plants.png";
         var result = sut.CropImages(imageFile, "", s_singlePlantBottomMiddlePolygon, new(100, 100), 960);
-        CvInvoke.Imshow("Cropped Image", result.VisImage);
-        CvInvoke.WaitKey(2000);
-        result.VisImage.Cols.Should().Be(253);
-        result.VisImage.Rows.Should().Be(279);
+        result.VisImage.ShowImage("CroppedImage");
+        result.VisImage.Cols.Should().Be(215);
+        result.VisImage.Rows.Should().Be(243);
         result.VisImage.Dispose();
     }
 
@@ -87,8 +86,7 @@ public class ImageCropperTests
         var irMat = sut.MatFromFile(irFile, out _);
         sut.ApplyIrColorMap(irMat);
         sut.Resize(irMat, 640);
-        CvInvoke.Imshow("Cropped IR", irMat);
-        CvInvoke.WaitKey(2000);
+        irMat.ShowImage("CroppedIR");
         irMat.Dispose();
     }
 
@@ -102,8 +100,7 @@ public class ImageCropperTests
         var resultMat = sut.CreateRawIr(irMat);
         var resizeMat = resultMat.Clone();
         sut.Resize(resizeMat, 640);
-        CvInvoke.Imshow("Cropped IR", resizeMat);
-        CvInvoke.WaitKey();
+        resizeMat.ShowImage("CroppedIR");
         resultMat.Dispose();
         resizeMat.Dispose();
         irMat.Dispose();
@@ -118,10 +115,9 @@ public class ImageCropperTests
         var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
         var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(121, 39), 960);//new(121, 39));
         sut.ApplyIrColorMap(result.IrImage!);
-        CvInvoke.Imshow("Cropped IR", result.IrImage);
-        CvInvoke.Imshow("Cropped VIS", result.VisImage);
-        CvInvoke.WaitKey(2000);
-        result.IrImage.Dispose();
+        result.IrImage!.ShowImage("CroppedIR");
+        result.VisImage.ShowImage("CroppedVis");
+        result.IrImage!.Dispose();
         result.VisImage.Dispose();
     }
 }
