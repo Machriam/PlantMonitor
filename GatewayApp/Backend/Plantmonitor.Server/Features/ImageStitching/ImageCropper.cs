@@ -140,23 +140,31 @@ public class ImageCropper() : IImageCropper
 
     private static Mat CutIrImage(NpgsqlPoint[] polygon, Mat mat)
     {
-        var minX = Math.Max(0, polygon.Min(p => p.X));
-        var minY = Math.Max(0, polygon.Min(p => p.Y));
+        var roi = CalculateSafeRoi(polygon, mat);
+        return new Mat(mat, roi);
+    }
+
+    private static Rectangle CalculateSafeRoi(NpgsqlPoint[] polygon, Mat mat)
+    {
+        var minX = Math.Min(mat.Cols, Math.Max(0, polygon.Min(p => p.X)));
+        var minY = Math.Min(mat.Rows, Math.Max(0, polygon.Min(p => p.Y)));
         var width = Math.Min(mat.Cols, polygon.Max(p => p.X)) - minX;
         var height = Math.Min(mat.Rows, polygon.Max(p => p.Y)) - minY;
-        var roi = new Rectangle((int)minX, (int)minY, (int)width, (int)height);
-        return new Mat(mat, roi);
+        return new Rectangle((int)minX, (int)minY, (int)width, (int)height);
+    }
+
+    private static Point CalculateSafePoint(NpgsqlPoint point, Mat mat)
+    {
+        var x = (int)point.X;
+        var y = (int)point.Y;
+        return new Point(x < 0 ? 0 : x > mat.Cols ? mat.Cols : x, y < 0 ? 0 : y > mat.Rows ? mat.Rows : y);
     }
 
     private static Mat CutImage(NpgsqlPoint[] polygon, Mat mat)
     {
-        var minX = polygon.Min(p => p.X);
-        var minY = polygon.Min(p => p.Y);
-        var width = polygon.Max(p => p.X) - minX;
-        var height = polygon.Max(p => p.Y) - minY;
-        var roi = new Rectangle((int)minX, (int)minY, (int)width, (int)height);
+        var roi = CalculateSafeRoi(polygon, mat);
         var polygonCrop = new Mat(mat.Rows, mat.Cols, mat.Depth, mat.NumberOfChannels);
-        var cvPolygon = new VectorOfVectorOfPoint(new VectorOfPoint(polygon.Select(p => new Point((int)p.X, (int)p.Y)).ToArray()));
+        var cvPolygon = new VectorOfVectorOfPoint(new VectorOfPoint(polygon.Select(p => CalculateSafePoint(p, polygonCrop)).ToArray()));
         CvInvoke.FillPoly(polygonCrop, cvPolygon, new MCvScalar(255, 255, 255));
         mat.CopyTo(polygonCrop, polygonCrop);
         var result = new Mat(polygonCrop, roi);
