@@ -7,7 +7,10 @@
         MovementProgrammingClient,
         TemperatureClient,
         TemperatureMeasurementInfo,
-        type AutomaticPhotoTour, PhotoTourInfo, PhotoTourEvent, PhotoTourEventType
+        type AutomaticPhotoTour,
+        PhotoTourInfo,
+        PhotoTourEvent,
+        PhotoTourEventType
     } from "~/services/GatewayAppApi";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
@@ -15,8 +18,7 @@
     import {isValid} from "./AutomaticTourStartInfoExtensions";
     import {calculateMoveTo} from "~/services/movementPointExtensions";
 
-    onDestroy(() => {
-    });
+    onDestroy(() => {});
     let movementPlan: DeviceMovement | undefined;
     let startInfo: AutomaticTourStartInfo = new AutomaticTourStartInfo();
     let existingPhototours: PhotoTourInfo[] = [];
@@ -61,8 +63,8 @@
 
     async function GetEvents(photoTourId: number) {
         const photoTourClient = new AutomaticPhotoTourClient();
-        selectedEvents = await photoTourClient.getEvents(photoTourId);
-        selectedPhotoTour = existingPhototours.find(ep => ep.id == photoTourId);
+        selectedEvents = await photoTourClient.getEvents(photoTourId, false);
+        selectedPhotoTour = existingPhototours.find((ep) => ep.id == photoTourId);
     }
 
     async function PausePhotoTour() {
@@ -83,10 +85,9 @@
     <div class="col-md-12 row">
         <TextInput class="col-md-2" bind:value={startInfo.name} label="Name"></TextInput>
         <TextInput class="col-md-2" bind:value={startInfo.comment} label="Comment"></TextInput>
-        <NumberInput class="col-md-2" bind:value={startInfo.intervallInMinutes} step={0.1}
-                     label="Interval in min"></NumberInput>
+        <NumberInput class="col-md-2" bind:value={startInfo.intervallInMinutes} step={0.1} label="Interval in min"></NumberInput>
         <button on:click={AddPhotoTour} disabled={!startInfo[isValid]($selectedDevice)} class="btn btn-primary col-md-2"
-        >Add new Tour
+            >Add new Tour
         </button>
         <hr class="col-md-12 mt-2" />
         <h4 class="col-md-12">Available Sensors</h4>
@@ -95,7 +96,8 @@
                 <div class="col-md-2 me-1">
                     <button
                         on:click={() => AddSensors(sensor.guid, sensor.name)}
-                        class="card-body card {startInfo.temperatureMeasureDevice?.filter((x) => x.guid === sensor.guid).length > 0
+                        class="card-body card {startInfo.temperatureMeasureDevice?.filter((x) => x.guid === sensor.guid).length >
+                        0
                             ? 'bg-opacity-25 bg-info'
                             : ''}"
                         style="text-align: center">
@@ -118,8 +120,7 @@
                 {#each movementPlan.movementPlan.stepPoints as point, index}
                     <div class="row col-md-12">
                         <span class="col-md-3"> Step {index + 1}: </span>
-                        <span
-                            class="col-md-3"> Pos {point[calculateMoveTo](movementPlan.movementPlan.stepPoints, 0)} </span>
+                        <span class="col-md-3"> Pos {point[calculateMoveTo](movementPlan.movementPlan.stepPoints, 0)} </span>
                         <span class="col-md-6">{point.comment}</span>
                     </div>
                 {/each}
@@ -129,19 +130,22 @@
             <h4>Previous Phototours</h4>
             {#each existingPhototours as tour}
                 <div class="col-md-2">
-                    <button on:click={async ()=>await GetEvents(tour.id)}
-                            class="alert {(tour===selectedPhotoTour?'alert-info':'')}">
-                        <div> {tour.name} </div>
-                        <div> Finished: {tour.finished} </div>
-                        <div> {tour.firstEvent.toLocaleTimeString()} {tour.firstEvent.toDateString()} </div>
-                        <div> {tour.firstEvent.toLocaleTimeString()} {tour.lastEvent.toDateString()} </div>
+                    <button
+                        on:click={async () => await GetEvents(tour.id)}
+                        class="alert {tour === selectedPhotoTour ? 'alert-info' : ''}">
+                        <div>{tour.name}</div>
+                        <div>Finished: {tour.finished}</div>
+                        <div>{tour.firstEvent.toLocaleTimeString()} {tour.firstEvent.toDateString()}</div>
+                        <div>{tour.firstEvent.toLocaleTimeString()} {tour.lastEvent.toDateString()}</div>
                     </button>
                     {#if selectedPhotoTour !== undefined && tour === selectedPhotoTour}
                         <div class="col-md-12 form-check form-switch">
                             <label class="form-check-label">Stopped?</label>
-                            <input on:click={async ()=>await PausePhotoTour()} type="checkbox"
-                                   bind:checked={selectedPhotoTour.finished}
-                                   class="form-check-input" />
+                            <input
+                                on:click={async () => await PausePhotoTour()}
+                                type="checkbox"
+                                bind:checked={selectedPhotoTour.finished}
+                                class="form-check-input" />
                         </div>
                     {/if}
                 </div>
@@ -150,20 +154,20 @@
         <div class="col-md-12">
             <table class="table">
                 <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Time</th>
-                    <th>Message</th>
-                </tr>
+                    <tr>
+                        <th>Type</th>
+                        <th>Time</th>
+                        <th>Message</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {#each selectedEvents as event}
-                    <tr>
-                        <td>{PhotoTourEventType[event.type] }</td>
-                        <td>{event.timestamp.toLocaleTimeString()}</td>
-                        <td>{event.message}</td>
-                    </tr>
-                {/each}
+                    {#each selectedEvents as event}
+                        <tr>
+                            <td>{PhotoTourEventType[event.type]}</td>
+                            <td>{event.timestamp.toLocaleTimeString()}</td>
+                            <td>{event.message}</td>
+                        </tr>
+                    {/each}
                 </tbody>
             </table>
         </div>
