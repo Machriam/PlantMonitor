@@ -110,6 +110,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         var visFolder = "";
         var movementClient = deviceApi.MovementClient(device.Ip);
         var irClient = deviceApi.IrImageTakingClient(device.Ip);
+        var visClient = deviceApi.VisImageTakingClient(device.Ip);
         var movementPlan = dataContext.DeviceMovements.FirstOrDefault(dm => dm.DeviceId == deviceGuid);
         if (movementPlan == null)
         {
@@ -174,6 +175,9 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
                  dataContext.CreatePhotoTourEventLogger(photoTourId)("Vis streaming error: " + ex.Message, PhotoTourEventType.Error);
              });
         await Task.Delay(_ffcTimeout);
+        var irImageCount = await irClient.CountoftakenimagesAsync();
+        var visImageCount = await visClient.CountoftakenimagesAsync();
+        logger($"Collected Vis-images: {visImageCount}, collected Ir-images {irImageCount}", PhotoTourEventType.Debug);
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
             logger($"Moving to position: {currentStep + step.StepOffset}", PhotoTourEventType.Debug);
