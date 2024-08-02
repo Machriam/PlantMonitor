@@ -27,6 +27,8 @@ public interface ICameraInterop
     Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM);
 
     Task CalibrateCamera();
+
+    int CountOfTakenImages();
 }
 
 public class RaspberryCameraInterop(IExposureSettingsEditor exposureSettings) : ICameraInterop
@@ -67,6 +69,11 @@ public class RaspberryCameraInterop(IExposureSettingsEditor exposureSettings) : 
         await new Process().RunProcess("pkill", $"-9 -f {_videoProcessSettings.Filename}");
         await new Process().RunProcess("pkill", $"-9 -f {_imageProcessSettings.Filename}");
         s_cameraIsRunning = false;
+    }
+
+    public int CountOfTakenImages()
+    {
+        return Directory.EnumerateFiles(s_tempImagePath).Count();
     }
 
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)

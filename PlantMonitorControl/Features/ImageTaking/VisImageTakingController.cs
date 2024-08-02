@@ -18,6 +18,12 @@ public class VisImageTakingController([FromKeyedServices(ICameraInterop.VisCamer
         return await cameraInterop.CameraInfo();
     }
 
+    [HttpGet("countoftakenimages")]
+    public int CountOfTakenImages()
+    {
+        return cameraInterop.CountOfTakenImages();
+    }
+
     [HttpPost("detectandstoreexposure")]
     public void DetectAndStoreExposure()
     {

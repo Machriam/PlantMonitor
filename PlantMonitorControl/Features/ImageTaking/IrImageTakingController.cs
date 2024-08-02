@@ -24,6 +24,12 @@ public class IrImageTakingController([FromKeyedServices(ICameraInterop.IrCamera)
         cameraInterop.CalibrateCamera();
     }
 
+    [HttpGet("countoftakenimages")]
+    public int CountOfTakenImages()
+    {
+        return cameraInterop.CountOfTakenImages();
+    }
+
     [HttpPost("killcamera")]
     public async Task KillCamera()
     {
