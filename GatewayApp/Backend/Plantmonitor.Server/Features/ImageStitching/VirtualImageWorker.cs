@@ -125,6 +125,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                 if (irImage == null) continue;
                 virtualImageList[^1].IrImageTime = irImage.Formatter.Timestamp;
                 virtualImageList[^1].IrTemperatureInK = irImage.Formatter.TemperatureInK;
+                if (matResults.IrImage?.Cols == 0 || matResults.IrImage?.Rows == 0) continue;
                 var colorMat = matResults.IrImage?.Clone();
                 if (matResults.IrImage != null) virtualImageList[^1].IrImageRawData = cropper.CreateRawIr(matResults.IrImage);
                 if (colorMat != null) cropper.ApplyIrColorMap(colorMat);
@@ -135,7 +136,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             var fullMetaDataTable = AddAditionalMetaData(dataContext, tripToProcess, virtualImageList, virtualImage);
 
             var fileBaseName = Path.GetFileNameWithoutExtension(virtualImageFile);
-            logger.LogInformation("Storing virtual image {image}", virtualImage);
+            logger.LogInformation("Storing virtual image {image}", virtualImageFile);
             using (var zipStream = new MemoryStream())
             {
                 using (var zip = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
