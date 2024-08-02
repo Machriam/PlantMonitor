@@ -62,16 +62,19 @@ public class ImageCropper() : IImageCropper
         if (decimalRange.Max > 100)
         {
             Log.Logger.Warning("decimal channel was over 100: {from}-{to}", decimalRange.Min, decimalRange.Max);
+            Thread.Sleep(50);
             return CreateRawIr(irImage);
         }
         if (fullRange.Min < 5 || fullRange.Max > 100)
         {
             Log.Logger.Warning("integer channel was not in bounds: {from}-{to}", fullRange.Min, fullRange.Max);
+            Thread.Sleep(50);
             return CreateRawIr(irImage);
         }
         if (emptyRange.Min > 0 || emptyRange.Max > 0)
         {
             Log.Logger.Warning("empty channel was not zero: {from}-{to}", emptyRange.Min, emptyRange.Max);
+            Thread.Sleep(50);
             return CreateRawIr(irImage);
         }
         return resultMat;
@@ -168,7 +171,25 @@ public class ImageCropper() : IImageCropper
         CvInvoke.FillPoly(polygonCrop, cvPolygon, new MCvScalar(255, 255, 255));
         mat.CopyTo(polygonCrop, polygonCrop);
         var result = new Mat(polygonCrop, roi);
+        var data = result.GetData(true);
         polygonCrop.Dispose();
+        var cornerValues = GetCornerValues(result);
+        if (!cornerValues.Any(cv => cv[0] == 0 && cv[1] == 0 && cv[2] == 0))
+        {
+            Log.Logger.Warning("Cropping of Vis-image did not work");
+            Thread.Sleep(50);
+            return CutImage(polygon, mat);
+        }
         return result;
+    }
+
+    private static List<byte[]> GetCornerValues(Mat mat)
+    {
+        var data = mat.GetData(true);
+        var upperLeft = Enumerable.Repeat(0, mat.NumberOfChannels).Select(c => (byte)data.GetValue(0, 0, c)!).ToArray();
+        var bottomLeft = Enumerable.Repeat(0, mat.NumberOfChannels).Select(c => (byte)data.GetValue(mat.Rows - 1, 0, c)!).ToArray();
+        var bottomRight = Enumerable.Repeat(0, mat.NumberOfChannels).Select(c => (byte)data.GetValue(mat.Rows - 1, mat.Cols - 1, c)!).ToArray();
+        var upperRight = Enumerable.Repeat(0, mat.NumberOfChannels).Select(c => (byte)data.GetValue(mat.Rows - 1, 0, c)!).ToArray();
+        return [upperLeft, bottomLeft, bottomRight, upperRight];
     }
 }
