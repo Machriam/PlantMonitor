@@ -5,11 +5,12 @@ WORKDIR "/PlantMonitor/GatewayApp/Frontend/Plantmonitor.Website"
 RUN npm i
 RUN npm run build
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0
+FROM opencv-emgu-net8
 COPY --from=frontend /PlantMonitor /PlantMonitor
 RUN chmod -R +x /PlantMonitor/Confluence
 WORKDIR "/PlantMonitor/GatewayApp/Backend/Plantmonitor.Server"
 RUN dotnet build -c Release -o ./dist -r linux-x64 --no-self-contained ./Plantmonitor.Server.csproj
 COPY --from=frontend /PlantMonitor/GatewayApp/Frontend/Plantmonitor.Website/build /PlantMonitor/GatewayApp/Backend/Plantmonitor.Server/wwwroot
+COPY "/mnt/emgu_repo/emgucv/libs/runtimes/ubuntu-x64/native/libcvextern.so" "/PlantMonitor/GatewayApp/Backend/Plantmonitor.Server/dist/libcvextern.so"
 
 ENTRYPOINT [ "/PlantMonitor/Confluence/Dockerfiles/run.sh" ]
