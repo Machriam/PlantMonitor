@@ -47,6 +47,11 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration, IL
         return Results.File(bytes.Bytes, "image/raw");
     }
 
+    public int CountOfTakenImages()
+    {
+        return Directory.EnumerateFiles(s_tempImagePath).Count();
+    }
+
     private static void InitializeFolder()
     {
         if (Path.Exists(s_tempImagePath)) Directory.Delete(s_tempImagePath, true);

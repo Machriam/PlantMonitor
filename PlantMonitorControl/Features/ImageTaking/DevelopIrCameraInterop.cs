@@ -3,6 +3,7 @@
 public class DevelopIrCameraInterop() : ICameraInterop
 {
     private const string DataFolder = "../PlantMonitorControl.Tests/TestData/IRData";
+    private const string CopyToFolder = "./" + nameof(DevelopIrCameraInterop);
     private static bool s_isRunning;
 
     public Task<bool> CameraFound()
@@ -44,11 +45,15 @@ public class DevelopIrCameraInterop() : ICameraInterop
         return Task.CompletedTask;
     }
 
+    public int CountOfTakenImages()
+    {
+        return Directory.EnumerateFiles(CopyToFolder).Count();
+    }
+
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
     {
         s_isRunning = true;
         var files = Directory.GetFiles(DataFolder);
-        const string CopyToFolder = "./" + nameof(DevelopIrCameraInterop);
         if (Path.Exists(CopyToFolder)) Directory.Delete(CopyToFolder, true);
         var copyToDir = Directory.CreateDirectory(CopyToFolder).FullName;
         var counter = 0;

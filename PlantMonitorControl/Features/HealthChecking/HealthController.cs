@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.ImageTaking;
 using PlantMonitorControl.Features.MeasureTemperature;
@@ -40,6 +41,13 @@ public class HealthController(IHealthSettingsEditor healthSettings) : Controller
     public void UpdateIrOffset([FromBody] IrCameraOffset newOffset)
     {
         healthSettings.UpdateIrOffset(newOffset);
+    }
+
+    [HttpPost("rebootdevice")]
+    public void RebootDevice()
+    {
+        var process = new ProcessStartInfo("reboot", "now");
+        new Process() { StartInfo = process }.Start();
     }
 
     [HttpGet("logs")]

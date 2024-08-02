@@ -3,6 +3,7 @@
 public class DevelopVisCameraInterop() : ICameraInterop
 {
     private const string DataFolder = "../PlantMonitorControl.Tests/TestData/VisData";
+    private const string CopyToFolder = "./" + nameof(DevelopVisCameraInterop);
     private static bool s_isRunning;
 
     public Task<bool> CameraFound()
@@ -23,6 +24,11 @@ public class DevelopVisCameraInterop() : ICameraInterop
     public bool CameraIsRunning()
     {
         return s_isRunning;
+    }
+
+    public int CountOfTakenImages()
+    {
+        return Directory.EnumerateFiles(CopyToFolder).Count();
     }
 
     public async Task<IResult> CaptureTestImage()
@@ -48,7 +54,6 @@ public class DevelopVisCameraInterop() : ICameraInterop
     {
         s_isRunning = true;
         var files = Directory.GetFiles(DataFolder);
-        const string CopyToFolder = "./" + nameof(DevelopVisCameraInterop);
         if (Path.Exists(CopyToFolder)) Directory.Delete(CopyToFolder, true);
         var copyToDir = Directory.CreateDirectory(CopyToFolder).FullName;
         var counter = 0;
