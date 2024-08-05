@@ -124,8 +124,12 @@
         _cutPolygon = [];
         event.preventDefault();
     }
-    function addLine(event: MouseEvent) {
+    async function addLine(event: MouseEvent) {
         if (_selectedPlant == undefined) return;
+        if (isPolygonValid()) {
+            _cutPolygon = [];
+            await changeImage(_currentImageIndex);
+        }
         _cutPolygon.push({point: new NpgsqlPoint({x: event.offsetX, y: event.offsetY})});
         drawLine();
     }
