@@ -148,12 +148,6 @@
         if (_cutPolygon.length <= 2 || _selectedImage == null || _selectedPlant == undefined) return;
         _cutPolygon.push(_cutPolygon[0]);
         drawLine();
-        const croppedImage = await cropImage(
-            _selectedImage.imageUrl,
-            _cutPolygon.map((p) => ({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
-        );
-        const qrCode = _cvInterop.readQRCode(croppedImage);
-        console.log(qrCode);
         _cutPolygon = _cutPolygon;
         _polygonValid = true;
     }
@@ -199,6 +193,10 @@
         _cutPolygon = [];
         await changeImage(_currentImageIndex);
         if (template == undefined) return;
+        if (template.id != _selectedPhotoTrip.tripId) {
+            alert("Polygon must be deleted from trip: " + template.applicablePhotoTripFrom.toLocaleString());
+            return;
+        }
         await client.removePlantImageSections([template.id]);
         $plantPolygonChanged = _selectedPlant;
     }

@@ -132,7 +132,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                 virtualImageList[^1].ColoredIrImage = colorMat;
             }
             logger.LogInformation("Stitching virtual image together");
-            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, (int)maxBoundingBoxWidth, (int)maxBoundingBoxHeight, 50);
+            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, (int)maxBoundingBoxWidth, (int)maxBoundingBoxHeight, 10);
             var fullMetaDataTable = AddAditionalMetaData(dataContext, tripToProcess, virtualImageList, virtualImage);
 
             var fileBaseName = Path.GetFileNameWithoutExtension(virtualImageFile);
