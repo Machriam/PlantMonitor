@@ -65,6 +65,19 @@ public class ImageCropperTests
     }
 
     [Fact]
+    public void CropImage_ShouldNotRunForever_ShouldWork()
+    {
+        var sut = CreateImageCropper();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var imageFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/Plants.png";
+        var result = sut.CropImages(imageFile, "", s_singlePlantBottomMiddlePolygon, new(0, 0), 960);
+        result.VisImage.ShowImage("CroppedImage");
+        result.VisImage.Cols.Should().Be(215);
+        result.VisImage.Rows.Should().Be(243);
+        result.VisImage.Dispose();
+    }
+
+    [Fact]
     public void CropImage_WithOffset_ShouldWork()
     {
         var sut = CreateImageCropper();

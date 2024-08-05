@@ -5,6 +5,7 @@ using Emgu.CV.Util;
 using Emgu.CV.Structure;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using Serilog;
+using Emgu.CV.CvEnum;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
 
@@ -167,29 +168,15 @@ public class ImageCropper() : IImageCropper
     {
         var roi = CalculateSafeRoi(polygon, mat);
         var polygonCrop = new Mat(mat.Rows, mat.Cols, mat.Depth, mat.NumberOfChannels);
+        var mask = new Mat(mat.Rows, mat.Cols, DepthType.Cv8U, 1);
+        polygonCrop.SetTo(new MCvScalar(0, 0, 0));
+        mask.SetTo(new MCvScalar(0));
         var cvPolygon = new VectorOfVectorOfPoint(new VectorOfPoint(polygon.Select(p => CalculateSafePoint(p, polygonCrop)).ToArray()));
-        CvInvoke.FillPoly(polygonCrop, cvPolygon, new MCvScalar(255, 255, 255));
-        mat.CopyTo(polygonCrop, polygonCrop);
+        CvInvoke.FillPoly(mask, cvPolygon, new MCvScalar(255));
+        mat.CopyTo(polygonCrop, mask);
         var result = new Mat(polygonCrop, roi);
-        var data = result.GetData(true);
         polygonCrop.Dispose();
-        var cornerValues = GetCornerValues(result);
-        if (!cornerValues.Any(cv => cv[0] == 0 && cv[1] == 0 && cv[2] == 0))
-        {
-            Log.Logger.Warning("Cropping of Vis-image did not work");
-            Thread.Sleep(50);
-            return CutImage(polygon, mat);
-        }
+        mask.Dispose();
         return result;
-    }
-
-    private static List<byte[]> GetCornerValues(Mat mat)
-    {
-        var data = mat.GetData(true);
-        var upperLeft = Enumerable.Repeat(0, mat.NumberOfChannels).Select(c => (byte)data.GetValue(0, 0, c)!).ToArray();
-        var bottomLeft = Enumerable.Repeat(0, mat.NumberOfChannels).Select(c => (byte)data.GetValue(mat.Rows - 1, 0, c)!).ToArray();
-        var bottomRight = Enumerable.Repeat(0, mat.NumberOfChannels).Select(c => (byte)data.GetValue(mat.Rows - 1, mat.Cols - 1, c)!).ToArray();
-        var upperRight = Enumerable.Repeat(0, mat.NumberOfChannels).Select(c => (byte)data.GetValue(mat.Rows - 1, 0, c)!).ToArray();
-        return [upperLeft, bottomLeft, bottomRight, upperRight];
     }
 }
