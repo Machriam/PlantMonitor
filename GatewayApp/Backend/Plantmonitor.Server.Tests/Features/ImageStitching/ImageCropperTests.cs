@@ -113,7 +113,7 @@ public class ImageCropperTests
         var resultMat = sut.CreateRawIr(irMat);
         var resizeMat = resultMat.Clone();
         sut.Resize(resizeMat, 640);
-        resizeMat.ShowImage("CroppedIR");
+        resizeMat.ShowImage("CroppedIR", 100);
         resultMat.Dispose();
         resizeMat.Dispose();
         irMat.Dispose();

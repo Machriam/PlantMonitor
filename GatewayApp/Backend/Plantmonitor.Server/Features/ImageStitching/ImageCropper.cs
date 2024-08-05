@@ -24,59 +24,58 @@ public class ImageCropper() : IImageCropper
 
     public Mat CreateRawIr(Mat irImage)
     {
-        var subtractMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
-        var divisor100 = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
-        divisor100.SetTo(new MCvScalar(1 / 100d));
-        var multiply100 = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32S, 1);
-        multiply100.SetTo(new MCvScalar(100d));
-        subtractMat.SetTo(new MCvScalar(ZeroDegreeCelsius));
-        var currentValueMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
-        var decimalMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
-        var zeroMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 1);
+        var data = irImage.GetData(true);
+        var integerMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 1);
+        integerMat.SetTo(new MCvScalar(0));
+        var zeroMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 1);
         zeroMat.SetTo(new MCvScalar(0));
+        var decimalMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 1);
+        decimalMat.SetTo(new MCvScalar(0d));
+        var integerData = new byte[irImage.Rows * irImage.Cols];
+        var decimalData = new byte[irImage.Rows * irImage.Cols];
+        var index = 0;
+        for (var row = 0; row < irImage.Rows; row++)
+        {
+            for (var col = 0; col < irImage.Cols; col++)
+            {
+                var rawValue = data.GetValue(row, col);
+                var value = ZeroDegreeCelsius;
+                if (rawValue is float) value = (int)(float)rawValue;
+                else if (rawValue is int) value = (int)rawValue;
+                value -= ZeroDegreeCelsius;
+                var intValue = (value / 100);
+                var decimalValue = (int)(((value / 100f) - intValue) * 100);
+                integerData[index] = (byte)intValue;
+                decimalData[index] = (byte)(decimalValue);
+                index++;
+            }
+        }
+        integerMat.SetTo(integerData);
+        decimalMat.SetTo(decimalData);
 
-        CvInvoke.Subtract(irImage, subtractMat, currentValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32F);
-        currentValueMat.CopyTo(decimalMat);
-
-        subtractMat.SetTo(new MCvScalar(50d));
-        CvInvoke.Subtract(currentValueMat, subtractMat, currentValueMat);
-        CvInvoke.Multiply(currentValueMat, divisor100, currentValueMat, dtype: Emgu.CV.CvEnum.DepthType.Cv32S);
-        var integerMat = currentValueMat.Clone();
-        integerMat.ConvertTo(integerMat, Emgu.CV.CvEnum.DepthType.Cv8U);
-        CvInvoke.Multiply(currentValueMat, multiply100, currentValueMat);
-        CvInvoke.Subtract(decimalMat, currentValueMat, decimalMat, null, Emgu.CV.CvEnum.DepthType.Cv32F);
-
-        decimalMat.ConvertTo(decimalMat, Emgu.CV.CvEnum.DepthType.Cv8U);
-
-        var resultMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 3);
+        var resultMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 3);
+        resultMat.SetTo(new MCvScalar(0d, 0d, 0d));
         var decimalRange = decimalMat.GetValueRange();
         var fullRange = integerMat.GetValueRange();
         var emptyRange = zeroMat.GetValueRange();
         CvInvoke.Merge(new VectorOfMat(integerMat, decimalMat, zeroMat), resultMat);
-        subtractMat.Dispose();
-        currentValueMat.Dispose();
         integerMat.Dispose();
         decimalMat.Dispose();
         zeroMat.Dispose();
-        divisor100.Dispose();
-        multiply100.Dispose();
         if (decimalRange.Max > 100)
         {
-            Log.Logger.Warning("decimal channel was over 100: {from}-{to}", decimalRange.Min, decimalRange.Max);
-            Thread.Sleep(50);
-            return CreateRawIr(irImage);
+            Log.Logger.Error("decimal channel was over 100: {from}-{to}", decimalRange.Min, decimalRange.Max);
+            throw new Exception("decimal channel was over 100");
         }
         if (fullRange.Min < 5 || fullRange.Max > 100)
         {
-            Log.Logger.Warning("integer channel was not in bounds: {from}-{to}", fullRange.Min, fullRange.Max);
-            Thread.Sleep(50);
-            return CreateRawIr(irImage);
+            Log.Logger.Error("integer channel was not in bounds: {from}-{to}", fullRange.Min, fullRange.Max);
+            throw new Exception("integer channel was not in bounds: {from}-{to}");
         }
         if (emptyRange.Min > 0 || emptyRange.Max > 0)
         {
-            Log.Logger.Warning("empty channel was not zero: {from}-{to}", emptyRange.Min, emptyRange.Max);
-            Thread.Sleep(50);
-            return CreateRawIr(irImage);
+            Log.Logger.Error("empty channel was not zero: {from}-{to}", emptyRange.Min, emptyRange.Max);
+            throw new Exception("empty channel was not zero: {from}-{to}");
         }
         return resultMat;
     }
@@ -85,16 +84,16 @@ public class ImageCropper() : IImageCropper
     {
         var baselineMat = new Mat(irImage.Rows, irImage.Cols, irImage.Depth, 1);
         baselineMat.SetTo(new MCvScalar(ZeroDegreeCelsius + 1500));
-        var scaleMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv32F, 1);
+        var scaleMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv32F, 1);
         scaleMat.SetTo(new MCvScalar(1 / 10d));
         CvInvoke.Subtract(irImage, baselineMat, irImage);
-        irImage.ConvertTo(irImage, Emgu.CV.CvEnum.DepthType.Cv32F);
-        CvInvoke.Multiply(irImage, scaleMat, irImage, 1, Emgu.CV.CvEnum.DepthType.Cv32F);
-        irImage.ConvertTo(irImage, Emgu.CV.CvEnum.DepthType.Cv8U);
-        var inverseMat = new Mat(irImage.Rows, irImage.Cols, Emgu.CV.CvEnum.DepthType.Cv8U, 1);
+        irImage.ConvertTo(irImage, DepthType.Cv32F);
+        CvInvoke.Multiply(irImage, scaleMat, irImage, 1, DepthType.Cv32F);
+        irImage.ConvertTo(irImage, DepthType.Cv8U);
+        var inverseMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 1);
         inverseMat.SetTo(new MCvScalar(255));
         CvInvoke.Subtract(inverseMat, irImage, irImage);
-        CvInvoke.ApplyColorMap(irImage, irImage, Emgu.CV.CvEnum.ColorMapType.Rainbow);
+        CvInvoke.ApplyColorMap(irImage, irImage, ColorMapType.Rainbow);
         baselineMat.Dispose();
         scaleMat.Dispose();
         inverseMat.Dispose();
@@ -104,7 +103,7 @@ public class ImageCropper() : IImageCropper
     {
         isIr = false;
         if (!filename.EndsWith(CameraType.IR.GetInfo().FileEnding)) return CvInvoke.Imread(filename);
-        var irMat = new Mat(120, 160, Emgu.CV.CvEnum.DepthType.Cv32S, 1);
+        var irMat = new Mat(120, 160, DepthType.Cv32S, 1);
         var tempArray = File.ReadAllBytes(filename).Chunk(4).Select(b => (int)BitConverter.ToUInt32(b)).ToArray();
         irMat.SetTo(tempArray);
         isIr = true;
@@ -113,7 +112,7 @@ public class ImageCropper() : IImageCropper
 
     public void Resize(Mat mat, int height)
     {
-        if (mat.Depth != Emgu.CV.CvEnum.DepthType.Cv8U) mat.ConvertTo(mat, Emgu.CV.CvEnum.DepthType.Cv32F);
+        if (mat.Depth != DepthType.Cv8U) mat.ConvertTo(mat, DepthType.Cv32F);
         CvInvoke.Resize(mat, mat, new Size((int)(mat.Width * height / (float)mat.Height), height));
     }
 
