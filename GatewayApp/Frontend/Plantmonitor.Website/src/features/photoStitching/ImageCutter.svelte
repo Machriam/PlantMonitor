@@ -26,7 +26,7 @@
     let _images: ImageToCut[] = [];
     let _lastPointerPosition: MouseEvent | undefined;
     let _tooltip: TooltipCreatorResult | undefined;
-    let _cutPolygon: {point: NpgsqlPoint}[] = [];
+    let _cutPolygon: {points: NpgsqlPoint[]; name: string} = {points: [], name: ""};
     let _visConnection: HubConnection | undefined;
     let _irConnection: HubConnection | undefined;
     let _selectedPlant: PhotoTourPlantInfo | undefined;
@@ -39,7 +39,7 @@
     onMount(() => {
         startStream();
         const unsubscriber = selectedPhotoTourPlantInfo.subscribe(async (x) => {
-            _cutPolygon = [];
+            _cutPolygon = {points: [], name: ""};
             await changeImage(_currentImageIndex);
             if (x == undefined) return;
             if (x.length == 1) _selectedPlant = x[0];
@@ -53,9 +53,9 @@
                     .toSorted((a, b) => b.applicablePhotoTripFrom.getTime() - a.applicablePhotoTripFrom.getTime())
                     .at(0);
                 if (existingTemplate == undefined) continue;
-                _cutPolygon = [];
+                _cutPolygon = {points: [], name: plant.name};
                 existingTemplate.photoBoundingBox.forEach((bb) => {
-                    _cutPolygon.push({point: new NpgsqlPoint({x: bb.x * _imageRatio, y: bb.y * _imageRatio})});
+                    _cutPolygon.points.push(new NpgsqlPoint({x: bb.x * _imageRatio, y: bb.y * _imageRatio}));
                     drawLine();
                 });
             }
@@ -121,36 +121,46 @@
             currentIndex = currentIndex + 1;
         }
         changeImage(currentIndex);
-        _cutPolygon = [];
+        _cutPolygon = {points: [], name: ""};
         event.preventDefault();
     }
     async function addLine(event: MouseEvent) {
         if (_selectedPlant == undefined) return;
         if (isPolygonValid()) {
-            _cutPolygon = [];
+            _cutPolygon = {points: [], name: _selectedPlant.name};
             await changeImage(_currentImageIndex);
         }
-        _cutPolygon.push({point: new NpgsqlPoint({x: event.offsetX, y: event.offsetY})});
+        _cutPolygon.points.push(new NpgsqlPoint({x: event.offsetX, y: event.offsetY}));
         drawLine();
     }
     function drawLine() {
-        if (_cutPolygon.length <= 1) return;
+        if (_cutPolygon.points.length <= 1) return;
         const image = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
         const context = image.getContext("2d");
         if (context == null) return;
         context.beginPath();
-        const startPoint = _cutPolygon[_cutPolygon.length - 2];
-        const endPoint = _cutPolygon[_cutPolygon.length - 1];
-        context.moveTo(startPoint.point.x, startPoint.point.y);
-        context.lineTo(endPoint.point.x, endPoint.point.y);
+        const startPoint = _cutPolygon.points[_cutPolygon.points.length - 2];
+        const endPoint = _cutPolygon.points[_cutPolygon.points.length - 1];
+        context.moveTo(startPoint.x, startPoint.y);
+        context.lineTo(endPoint.x, endPoint.y);
         context.lineWidth = 3;
         context.strokeStyle = "yellow";
         context.stroke();
         _polygonValid = isPolygonValid();
+        if (_polygonValid) {
+            const sortedXValues = _cutPolygon.points.map((p) => p.x).toSorted();
+            const sortedYValues = _cutPolygon.points.map((p) => p.y).toSorted();
+            var midY = sortedYValues[0] + (sortedYValues[sortedYValues.length - 1] - sortedYValues[0]) / 2;
+            var midX = sortedXValues[0] + (sortedXValues[sortedXValues.length - 1] - sortedXValues[0]) / 2;
+            context.font = "20px Arial";
+            context.lineWidth = 1;
+            context.textAlign = "center";
+            context.strokeText(_cutPolygon.name, midX, midY);
+        }
     }
     async function connectPolygon() {
-        if (_cutPolygon.length <= 2 || _selectedImage == null || _selectedPlant == undefined) return;
-        _cutPolygon.push(_cutPolygon[0]);
+        if (_cutPolygon.points.length <= 2 || _selectedImage == null || _selectedPlant == undefined) return;
+        _cutPolygon.points.push(_cutPolygon.points[0]);
         drawLine();
         _cutPolygon = _cutPolygon;
         _polygonValid = true;
@@ -168,9 +178,9 @@
     }
     function isPolygonValid() {
         return (
-            _cutPolygon.length > 2 &&
-            _cutPolygon[_cutPolygon.length - 1].point.x == _cutPolygon[0].point.x &&
-            _cutPolygon[_cutPolygon.length - 1].point.y == _cutPolygon[0].point.y
+            _cutPolygon.points.length > 2 &&
+            _cutPolygon.points[_cutPolygon.points.length - 1].x == _cutPolygon.points[0].x &&
+            _cutPolygon.points[_cutPolygon.points.length - 1].y == _cutPolygon.points[0].y
         );
     }
     async function savePolygon() {
@@ -185,7 +195,7 @@
                 }),
                 stepCount: _selectedImage.stepCount,
                 photoTripId: _selectedPhotoTrip.tripId,
-                polygon: _cutPolygon.map((p) => new NpgsqlPoint({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
+                polygon: _cutPolygon.points.map((p) => new NpgsqlPoint({x: p.x / _imageRatio, y: p.y / _imageRatio}))
             })
         );
         $plantPolygonChanged = _selectedPlant;
@@ -194,7 +204,7 @@
         if (_selectedPlant == undefined || _selectedImage == undefined) return;
         const client = new PhotoStitchingClient();
         const template = _selectedPlant.extractionTemplate.find((et) => et.motorPosition == _selectedImage!.stepCount);
-        _cutPolygon = [];
+        _cutPolygon = {points: [], name: ""};
         await changeImage(_currentImageIndex);
         if (template == undefined) return;
         if (template.id != _selectedPhotoTrip.tripId) {
@@ -256,7 +266,7 @@
     </div>
     <div class="d-flex flex-row">
         {#if _selectedPlant != undefined}
-            {#if _cutPolygon.length > 2}
+            {#if _cutPolygon.points.length > 2}
                 <button on:click={() => connectPolygon()} class="btn btn-primary">Connect Cut</button>
             {/if}
         {/if}
