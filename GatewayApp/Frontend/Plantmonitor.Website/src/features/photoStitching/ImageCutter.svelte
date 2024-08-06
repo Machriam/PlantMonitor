@@ -3,18 +3,17 @@
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import {CvInterop} from "../deviceConfiguration/CvInterop";
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
-    import {cropImage, drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
+    import {drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
     import type {ImageToCut} from "./ImageToCut";
     import {
         NpgsqlPoint,
         PhotoStitchingClient,
         PhotoTourPlantInfo,
         PictureTripData,
-        PlantImageSection,
-        type IIrCameraOffset
+        PlantImageSection
     } from "~/services/GatewayAppApi";
     import type {HubConnection} from "@microsoft/signalr";
-    import {plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
+    import {imageToCutChanged, plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
 
     export let deviceId: string;
@@ -40,7 +39,7 @@
         startStream();
         const unsubscriber = selectedPhotoTourPlantInfo.subscribe(async (x) => {
             _cutPolygon = {points: [], name: ""};
-            await changeImage(_currentImageIndex);
+            await refreshImage();
             if (x == undefined) return;
             if (x.length == 1) _selectedPlant = x[0];
             else _selectedPlant = undefined;
@@ -128,7 +127,7 @@
         if (_selectedPlant == undefined) return;
         if (isPolygonValid()) {
             _cutPolygon = {points: [], name: _selectedPlant.name};
-            await changeImage(_currentImageIndex);
+            await refreshImage();
         }
         _cutPolygon.points.push(new NpgsqlPoint({x: event.offsetX, y: event.offsetY}));
         drawLine();
@@ -165,16 +164,20 @@
         _cutPolygon = _cutPolygon;
         _polygonValid = true;
     }
-    async function changeImage(newIndex: number) {
-        _currentImageIndex = newIndex;
-        _selectedImage = _images[_currentImageIndex];
-        if (_selectedImage.imageUrl == undefined) return;
+    async function refreshImage() {
+        if (_selectedImage?.imageUrl == undefined) return;
         const canvas = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
         const ratio = await drawImageOnCanvas(_selectedImage.imageUrl, canvas);
         _imageRatio = ratio.ratio;
         const activatedTooltip = document.getElementById(_selectedThumbnailId + "_" + _currentImageIndex);
         activatedTooltip?.scrollIntoView({behavior: "instant", block: "nearest", inline: "center"});
         updateTooltip();
+    }
+    async function changeImage(newIndex: number) {
+        _currentImageIndex = newIndex;
+        _selectedImage = _images[_currentImageIndex];
+        $imageToCutChanged = _selectedImage;
+        await refreshImage();
     }
     function isPolygonValid() {
         return (
@@ -205,7 +208,7 @@
         const client = new PhotoStitchingClient();
         const template = _selectedPlant.extractionTemplate.find((et) => et.motorPosition == _selectedImage!.stepCount);
         _cutPolygon = {points: [], name: ""};
-        await changeImage(_currentImageIndex);
+        await refreshImage();
         if (template == undefined) return;
         if (template.id != _selectedPhotoTrip.tripId) {
             alert("Polygon must be deleted from trip: " + template.applicablePhotoTripFrom.toLocaleString());

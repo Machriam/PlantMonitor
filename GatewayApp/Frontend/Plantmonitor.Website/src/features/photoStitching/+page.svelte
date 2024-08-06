@@ -15,8 +15,9 @@
     import ImageCutter from "./ImageCutter.svelte";
     import {Task} from "~/types/task";
     import TextInput from "../reuseableComponents/TextInput.svelte";
-    import {plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
+    import {imageToCutChanged, plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
+    import type {ImageToCut} from "./ImageToCut";
     let _availableTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _pictureTrips: PictureTripData[] = [];
@@ -24,6 +25,7 @@
     let _plants: PhotoTourPlantInfo[] = [];
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
     let _unsubscribe: Unsubscriber[] = [];
+    let _selectedImage: ImageToCut | undefined;
     let _baseOffset: IIrCameraOffset = {left: 0, top: 0};
 
     onDestroy(() => {
@@ -32,6 +34,14 @@
     onMount(async () => {
         const photoTourClient = new AutomaticPhotoTourClient();
         _availableTours = await photoTourClient.getPhotoTours();
+        _unsubscribe.push(
+            imageToCutChanged.subscribe(async (x) => {
+                _selectedImage = x;
+                _plants = _plants;
+                if ($selectedPhotoTourPlantInfo != undefined && $selectedPhotoTourPlantInfo.length > 0)
+                    $selectedPhotoTourPlantInfo = [];
+            })
+        );
         _unsubscribe.push(
             plantPolygonChanged.subscribe(async (x) => {
                 await updatePlantInfo();
@@ -139,7 +149,11 @@
                     class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25
                         {$selectedPhotoTourPlantInfo?.find((p) => p.id == plant.id) != undefined ? 'bg-info' : 'bg-white'}">
                     <div>Pos: {plant.extractionTemplate.map((et) => et.motorPosition)}</div>
-                    <div style="align-self: center;">
+                    <div
+                        style="align-self: center;"
+                        class={plant.extractionTemplate.filter((et) => et.motorPosition == _selectedImage?.stepCount).length > 0
+                            ? "fw-bold"
+                            : ""}>
                         {plant.name} - {plant.qrCode?.isEmpty() ? "No QR" : plant.qrCode}
                     </div>
                     <div style="align-self: center;">{plant.comment}</div>
