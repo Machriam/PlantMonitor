@@ -106,18 +106,26 @@
     {#each _availableTours as tour}
         <button
             on:click={async () => await selectedTourChanged(tour)}
-            class="col-md-1 me-2 p-2 mt-2 alert {_selectedTour === tour ? 'bg-info bg-opacity-50' : ''}  border-dark">
+            class="col-md-1 me-2 p-2 mt-2 alert {_selectedTour?.id == tour.id ? 'bg-info bg-opacity-50' : ''}  border-dark">
             {tour.name}
         </button>
     {/each}
 </div>
 <div class="row">
     <div style="overflow-y: auto;height:80vh" class="d-flex flex-column col-md-2">
-        {#each _pictureTrips as series}
-            <button on:click={async () => await selectedTripChanged(series)} class="row border-secondary border mt-2">
-                <div class="col-md-6">{series.timeStamp.toLocaleString()}</div>
-                <div class="col-md-3">IR: {series.irData.count}</div>
-                <div class="col-md-3">VIS: {series.visData.count}</div>
+        {#each _pictureTrips as { tripId, timeStamp, irData, visData }, i}
+            {@const polyLength = _plants
+                .flatMap((p) => p.extractionMetaData.map((et) => et.tripWithExtraction))
+                .filter((p) => p == tripId).length}
+            <button
+                on:click={async () => await selectedTripChanged(_pictureTrips[i])}
+                class="row border-secondary border mt-2 {tripId == _selectedTrip?.tripId ? 'bg-info bg-opacity-50' : ''}">
+                <div class="col-md-6 p-1">{timeStamp.toLocaleString()}</div>
+                <div class="col-md-2 p-1">IR<br /> {irData.count}</div>
+                <div class="col-md-2 p-1">VIS {visData.count}</div>
+                <div class="col-md-2 p-1">
+                    {polyLength > 0 ? "Polys " + polyLength : ""}
+                </div>
             </button>
         {/each}
     </div>
@@ -150,11 +158,17 @@
         <div style="overflow-y:auto;height:60vh" class="mt-3">
             {#if _selectedTrip != undefined}
                 {#each _plants as plant}
+                    {@const template = _extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)}
                     <button
                         on:click={() => ($selectedPhotoTourPlantInfo = [plant])}
                         class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25
                         {$selectedPhotoTourPlantInfo?.find((p) => p.id == plant.id) != undefined ? 'bg-info' : 'bg-white'}">
-                        <div>Pos: {_extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)?.motorPosition}</div>
+                        <div class="d-flex flex-row justify-content-between col-md-12">
+                            <div>
+                                Pos: {template?.motorPosition}
+                            </div>
+                            <div>{template?.photoTripFk == _selectedTrip.tripId ? "Poly" : ""}</div>
+                        </div>
                         <div
                             style="align-self: center;"
                             class={_extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)?.motorPosition ==
