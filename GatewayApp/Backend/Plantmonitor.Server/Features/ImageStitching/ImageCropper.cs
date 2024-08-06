@@ -143,16 +143,20 @@ public class ImageCropper() : IImageCropper
 
     private static Mat CutIrImage(NpgsqlPoint[] polygon, Mat mat)
     {
-        var roi = CalculateSafeRoi(polygon, mat);
+        var roi = CalculateInboundRoi(polygon, mat);
         return new Mat(mat, roi);
     }
 
-    private static Rectangle CalculateSafeRoi(NpgsqlPoint[] polygon, Mat mat)
+    private static Rectangle CalculateInboundRoi(NpgsqlPoint[] polygon, Mat mat)
     {
-        var minX = Math.Min(mat.Cols, Math.Max(0, polygon.Min(p => p.X)));
-        var minY = Math.Min(mat.Rows, Math.Max(0, polygon.Min(p => p.Y)));
-        var width = Math.Min(mat.Cols, polygon.Max(p => p.X)) - minX;
-        var height = Math.Min(mat.Rows, polygon.Max(p => p.Y)) - minY;
+        var minPolygonX = Math.Max(0, polygon.Min(p => p.X));
+        var minPolygonY = Math.Max(0, polygon.Min(p => p.Y));
+        var maxPolygonX = Math.Max(0, polygon.Max(p => p.X));
+        var maxPolygonY = Math.Max(0, polygon.Max(p => p.Y));
+        var minX = Math.Min(mat.Cols, minPolygonX);
+        var minY = Math.Min(mat.Rows, minPolygonY);
+        var width = Math.Min(mat.Cols, maxPolygonX) - minX;
+        var height = Math.Min(mat.Rows, maxPolygonY) - minY;
         return new Rectangle((int)minX, (int)minY, (int)width, (int)height);
     }
 
@@ -165,7 +169,7 @@ public class ImageCropper() : IImageCropper
 
     private static Mat CutImage(NpgsqlPoint[] polygon, Mat mat)
     {
-        var roi = CalculateSafeRoi(polygon, mat);
+        var roi = CalculateInboundRoi(polygon, mat);
         var polygonCrop = new Mat(mat.Rows, mat.Cols, mat.Depth, mat.NumberOfChannels);
         var mask = new Mat(mat.Rows, mat.Cols, DepthType.Cv8U, 1);
         polygonCrop.SetTo(new MCvScalar(0, 0, 0));
