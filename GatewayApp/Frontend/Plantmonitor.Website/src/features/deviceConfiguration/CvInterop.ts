@@ -1,6 +1,10 @@
 import type { Mat } from "mirada/dist/src/types/opencv/Mat";
 import { printError } from "./CvUtils";
 import { ColormapTypes, optionalCvFunctions } from "~/types/mirada";
+export const IrScalingHeight = 480;
+export const IrScalingWidth = 640;
+export const IrHeight = 120;
+export const IrWidth = 160;
 export class ThermalImage {
     dataUrl?: string;
     pixelConverter?: (x: number, y: number) => number;
@@ -70,19 +74,16 @@ export class CvInterop {
     medianBlur(src: Mat, dest: Mat, ksize: number) {
         cv.medianBlur(src, dest, ksize);
     }
-    readQRCode(src: string): string {
-        return "QR Code reading not implemented";
-    }
     thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
             const optCv = new optionalCvFunctions();
             const temp15Celsius = 28815;
             const canvas = document.createElement("canvas");
-            const mat = cv.matFromArray(120, 160, cv.CV_32FC1, source);
-            const baselineMat = new cv.Mat(120, 160, cv.CV_32FC1, new cv.Scalar(temp15Celsius));
-            const resizeMat = new cv.Mat(480, 640, cv.CV_8UC1);
+            const mat = cv.matFromArray(IrHeight, IrWidth, cv.CV_32FC1, source);
+            const baselineMat = new cv.Mat(IrHeight, IrWidth, cv.CV_32FC1, new cv.Scalar(temp15Celsius));
+            const resizeMat = new cv.Mat(IrScalingHeight, IrScalingWidth, cv.CV_8UC1);
             cv.subtract(mat, baselineMat, mat);
-            const scale = new cv.Mat(120, 160, cv.CV_32F, new cv.Scalar(1 / 10));
+            const scale = new cv.Mat(IrHeight, IrWidth, cv.CV_32F, new cv.Scalar(1 / 10));
             cv.multiply(mat, scale, mat);
             mat.convertTo(mat, cv.CV_8UC1);
             optCv.applyColorMap(mat, mat, ColormapTypes.COLORMAP_RAINBOW);
@@ -98,9 +99,9 @@ export class CvInterop {
                 dataUrl: canvas.toDataURL(), pixelConverter: (x, y) => {
                     if (x < 0) x = 0;
                     if (y < 0) y = 0;
-                    if (y > 480) y = 480;
-                    if (x > 640) x = 640;
-                    if (source.length < 120 * 160) return -9999;
+                    if (y > IrScalingHeight) y = IrScalingHeight;
+                    if (x > IrScalingWidth) x = IrScalingWidth;
+                    if (source.length < IrWidth * IrHeight) return -9999;
                     const result = source[Math.floor(x / 4) + Math.floor(y / 4) * 160].kelvinToCelsius();
                     return result;
                 }
@@ -113,9 +114,7 @@ export class CvInterop {
     }
     extractImages(source: string, dest: HTMLCanvasElement) {
         const video = new cv.VideoCapture(source);
-        const height = 480;
-        const width = 640;
-        const src = new cv.Mat(height, width, cv.CV_8UC4);
+        const src = new cv.Mat(IrScalingHeight, IrScalingWidth, cv.CV_8UC4);
         const fps = 30;
         function processVideo() {
             const begin = Date.now();

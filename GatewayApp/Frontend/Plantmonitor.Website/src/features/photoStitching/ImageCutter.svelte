@@ -1,7 +1,7 @@
 <script lang="ts">
     import {onDestroy, onMount} from "svelte";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
-    import {CvInterop} from "../deviceConfiguration/CvInterop";
+    import {CvInterop, IrScalingHeight, IrScalingWidth} from "../deviceConfiguration/CvInterop";
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
     import {drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
     import type {ImageToCut} from "./ImageToCut";
@@ -163,6 +163,34 @@
         _cutPolygon = _cutPolygon;
         _polygonValid = true;
     }
+    async function drawIrBorder() {
+        const offset = $selectedDevice?.health.cameraOffset ?? {left: 0, top: 0};
+        const image = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
+        const context = image.getContext("2d");
+        if (context == null) return;
+        const ratio = context.canvas.height / IrScalingHeight;
+        const irLeft = (offset.left ?? 0) * ratio;
+        const irTop = (offset.top ?? 0) * ratio;
+        const irRight = Math.min(((offset.left ?? 0) + IrScalingWidth) * ratio, context.canvas.width);
+        const irBottom = Math.min(((offset.top ?? 0) + IrScalingHeight) * ratio, context.canvas.height);
+        context.beginPath();
+        const points = [
+            new NpgsqlPoint({x: irLeft, y: irTop}),
+            new NpgsqlPoint({x: irRight, y: irTop}),
+            new NpgsqlPoint({x: irRight, y: irBottom}),
+            new NpgsqlPoint({x: irLeft, y: irBottom}),
+            new NpgsqlPoint({x: irLeft, y: irTop})
+        ];
+        for (let i = 0; i < points.length - 1; i++) {
+            const startPoint = points[i];
+            const endPoint = points[i + 1];
+            context.moveTo(startPoint.x, startPoint.y);
+            context.lineTo(endPoint.x, endPoint.y);
+            context.lineWidth = 1;
+            context.strokeStyle = "blue";
+            context.stroke();
+        }
+    }
     async function refreshImage() {
         if (_selectedImage?.imageUrl == undefined) return;
         const canvas = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
@@ -170,6 +198,7 @@
         _imageRatio = ratio.ratio;
         const activatedTooltip = document.getElementById(_selectedThumbnailId + "_" + _currentImageIndex);
         activatedTooltip?.scrollIntoView({behavior: "instant", block: "nearest", inline: "center"});
+        await drawIrBorder();
         updateTooltip();
     }
     async function changeImage(newIndex: number) {

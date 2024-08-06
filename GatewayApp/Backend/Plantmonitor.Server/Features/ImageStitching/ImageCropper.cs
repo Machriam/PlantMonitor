@@ -6,6 +6,7 @@ using Emgu.CV.Structure;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using Serilog;
 using Emgu.CV.CvEnum;
+using Plantmonitor.Server.Features.AppConfiguration;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
 
@@ -119,10 +120,9 @@ public class ImageCropper() : IImageCropper
     public (Mat VisImage, Mat? IrImage) CropImages(string visImage, string? irImage, NpgsqlPoint[] visPolygon, NpgsqlPoint irOffset, int scalingHeightInPx)
     {
         var visMat = MatFromFile(visImage, out _);
-        const float DefaultOffsetHeight = 480f;
         var resizeRatio = scalingHeightInPx / (double)visMat.Height;
         visPolygon = visPolygon.Select(vp => new NpgsqlPoint(vp.X * resizeRatio, vp.Y * resizeRatio)).ToArray();
-        irOffset = new NpgsqlPoint(-irOffset.X * scalingHeightInPx / DefaultOffsetHeight, -irOffset.Y * scalingHeightInPx / DefaultOffsetHeight);
+        irOffset = new NpgsqlPoint(-irOffset.X * scalingHeightInPx / Const.IrScalingHeight, -irOffset.Y * scalingHeightInPx / Const.IrScalingHeight);
         Resize(visMat, scalingHeightInPx);
         var visCrop = CutImage(visPolygon, visMat);
         if (irImage.IsEmpty())
