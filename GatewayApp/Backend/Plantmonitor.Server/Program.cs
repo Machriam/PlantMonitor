@@ -85,6 +85,7 @@ builder.Services.AddOpenApiDocument(options =>
 builder.Services.AddMvc(options =>
 {
     options.Filters.Add<ModelAttributeErrorFilter>();
+    options.Filters.Add<ApiExceptionFilter>();
 });
 
 var app = builder.Build();
