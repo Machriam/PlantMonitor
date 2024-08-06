@@ -71,7 +71,8 @@
         if (selectedPhotoTour == undefined) return;
         const photoTourClient = new AutomaticPhotoTourClient();
         selectedPhotoTour.finished = !selectedPhotoTour.finished;
-        await photoTourClient.pausePhotoTour(selectedPhotoTour.id, selectedPhotoTour.finished);
+        const result = await photoTourClient.pausePhotoTour(selectedPhotoTour.id, selectedPhotoTour.finished).try();
+        if (result.hasError) selectedPhotoTour.finished = !selectedPhotoTour.finished;
         existingPhototours = existingPhototours;
     }
 
