@@ -32,7 +32,7 @@ public class VirtualImageWorkerTests
     }
 
     [Fact]
-    public void RunImageCreation_NegativeIrHeight_ShouldWork()
+    public void RunImageCreation_NegativeBounds_ShouldWork()
     {
         var sut = CreateVirtualImageWorker();
         var dataContext = Substitute.For<IDataContext>();
@@ -40,10 +40,10 @@ public class VirtualImageWorkerTests
         var cropper = new ImageCropper();
         var configuration = Substitute.For<IEnvironmentConfiguration>();
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
-        var irFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest2/IrData";
-        var visFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest2/VisData";
-        var testData = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest2/TestData";
-        var result = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest2/Result";
+        var irFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/IrData";
+        var visFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/VisData";
+        var testData = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/TestData";
+        var result = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/Result";
         dataContext.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>() { new PhotoTourTrip() {
             Id=1,
             PhotoTourFk=1,
