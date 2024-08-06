@@ -1,10 +1,25 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Xml.XPath;
 
 namespace Plantmonitor.Shared.Extensions;
 
 public static class StringExtensions
 {
+    public static decimal? ExtractNumbersFromString(this string text, out string notNumericText)
+    {
+        var numberText = new StringBuilder();
+        var stringText = new StringBuilder();
+        foreach (var c in text)
+        {
+            if (char.IsNumber(c)) numberText.Append(c);
+            else stringText.Append(c);
+        }
+        notNumericText = stringText.ToString();
+        return decimal.TryParse(numberText.ToString(), out var result) ? result : null;
+    }
+
     public static FileData GetBytesFromIrFilePath(this string irFilePath, out int temperatureInK)
     {
         temperatureInK = int.TryParse(Path.GetFileNameWithoutExtension(irFilePath).Split('_').Last(), out var temperature) ? temperature : default;

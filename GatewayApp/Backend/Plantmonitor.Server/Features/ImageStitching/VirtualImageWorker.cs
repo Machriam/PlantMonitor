@@ -91,7 +91,11 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             var virtualImageFile = $"{virtualImageFolder}/trip_{image.Timestamp:yyyyMMdd_HHmmss_fff}.zip";
             logger.LogInformation("Processing virtual image {image} of tour {tour}", virtualImageFile, tripToProcess.PhotoTourFkNavigation.Name);
             var virtualImageList = new List<PhotoStitcher.PhotoStitchData>();
-            foreach (var plant in plantsOfTour.OrderBy(pot => pot.Name).ThenBy(pot => pot.Id))
+            foreach (var plant in plantsOfTour
+                .Select(pot => (Number: pot.Name.ExtractNumbersFromString(out var cleanText), CleanText: cleanText, Plant: pot))
+                .OrderBy(pot => pot.CleanText)
+                .ThenBy(pot => pot.Number)
+                .Select(pot => pot.Plant))
             {
                 logger.LogInformation("Adding plant {plant} to virtual image {image}", $"{plant.Name} {plant.Comment}", virtualImageFile);
                 var extractionTemplate = extractionTemplates
