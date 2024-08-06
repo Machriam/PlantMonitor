@@ -9,6 +9,7 @@
         PhotoTourPlantInfo,
         PictureClient,
         PictureTripData,
+        PlantExtractionTemplateModel,
         PlantModel,
         type IIrCameraOffset
     } from "~/services/GatewayAppApi";
@@ -22,6 +23,7 @@
     let _selectedTour: PhotoTourInfo | undefined;
     let _pictureTrips: PictureTripData[] = [];
     let _selectedTrip: PictureTripData | undefined;
+    let _extractionTemplatesOfTrip: PlantExtractionTemplateModel[] = [];
     let _plants: PhotoTourPlantInfo[] = [];
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
     let _unsubscribe: Unsubscriber[] = [];
@@ -67,6 +69,8 @@
         _plants = await stitchingClient.plantsForTour(_selectedTour.id);
     }
     async function selectedTripChanged(data: PictureTripData) {
+        const stitchingClient = new PhotoStitchingClient();
+        _extractionTemplatesOfTrip = await stitchingClient.extractionsOfTrip(data.tripId);
         _selectedTrip = undefined;
         await Task.delay(1);
         _selectedTrip = data;
@@ -121,6 +125,7 @@
         {#if _selectedTrip !== undefined && _selectedTrip !== undefined}
             <ImageCutter
                 polygonChanged={updatePlantInfo}
+                _extractionTemplates={_extractionTemplatesOfTrip}
                 _selectedPhotoTrip={_selectedTrip}
                 deviceId={_selectedTrip.deviceId}
                 visSeries={_selectedTrip.visData.folderName.getFileName()}
@@ -143,22 +148,25 @@
                 >Show polygons on image</button>
         </div>
         <div style="overflow-y:auto;height:60vh" class="mt-3">
-            {#each _plants as plant}
-                <button
-                    on:click={() => ($selectedPhotoTourPlantInfo = [plant])}
-                    class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25
+            {#if _selectedTrip != undefined}
+                {#each _plants as plant}
+                    <button
+                        on:click={() => ($selectedPhotoTourPlantInfo = [plant])}
+                        class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25
                         {$selectedPhotoTourPlantInfo?.find((p) => p.id == plant.id) != undefined ? 'bg-info' : 'bg-white'}">
-                    <div>Pos: {plant.extractionTemplate.map((et) => et.motorPosition)}</div>
-                    <div
-                        style="align-self: center;"
-                        class={plant.extractionTemplate.filter((et) => et.motorPosition == _selectedImage?.stepCount).length > 0
-                            ? "fw-bold"
-                            : ""}>
-                        {plant.name} - {plant.qrCode?.isEmpty() ? "No QR" : plant.qrCode}
-                    </div>
-                    <div style="align-self: center;">{plant.comment}</div>
-                </button>
-            {/each}
+                        <div>Pos: {_extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)?.motorPosition}</div>
+                        <div
+                            style="align-self: center;"
+                            class={_extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)?.motorPosition ==
+                            _selectedImage?.stepCount
+                                ? "fw-bold"
+                                : ""}>
+                            {plant.name} - {plant.qrCode?.isEmpty() ? "No QR" : plant.qrCode}
+                        </div>
+                        <div style="align-self: center;">{plant.comment}</div>
+                    </button>
+                {/each}
+            {/if}
         </div>
     </div>
 </div>

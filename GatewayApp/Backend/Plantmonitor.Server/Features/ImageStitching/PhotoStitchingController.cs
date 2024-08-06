@@ -11,7 +11,8 @@ namespace Plantmonitor.Server.Features.DeviceProgramming;
 public class PhotoStitchingController(IDataContext context, IVirtualImageWorker virtualImageWorker)
 {
     public record struct AddPlantModel(IEnumerable<PlantModel> Plants, long TourId);
-    public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? QrCode, long PhotoTourFk, IEnumerable<PlantExtractionTemplateModel> ExtractionTemplate);
+    public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? QrCode, long PhotoTourFk, IEnumerable<ExtractionMetaData> ExtractionMetaData);
+    public record struct ExtractionMetaData(long TripWithExtraction, int MotorPosition, DateTime ExtractionTime);
     public record struct PlantExtractionTemplateModel(long Id, long PhotoTripFk, long PhotoTourPlantFk, NpgsqlPolygon PhotoBoundingBox, NpgsqlPoint IrBoundingBoxOffset, int MotorPosition, DateTime ApplicablePhotoTripFrom);
     public record struct PlantModel(string Name, string Comment, string QrCode);
     public record struct PlantImageSection(int StepCount, long PhotoTripId, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
@@ -24,8 +25,24 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
             .ThenInclude(pet => pet.PhotoTripFkNavigation)
             .Where(ptp => ptp.PhotoTourFk == tourId)
             .Select(ptp => new PhotoTourPlantInfo(ptp.Id, ptp.Name, ptp.Comment, ptp.QrCode, ptp.PhotoTourFk, ptp.PlantExtractionTemplates
-                .Select(pet => new PlantExtractionTemplateModel(pet.Id, pet.PhotoTripFk, pet.PhotoTourPlantFk,
-                               pet.PhotoBoundingBox, pet.IrBoundingBoxOffset, pet.MotorPosition, pet.PhotoTripFkNavigation.Timestamp))));
+                .Select(pet => new ExtractionMetaData(pet.PhotoTripFk, pet.MotorPosition, pet.PhotoTripFkNavigation.Timestamp))));
+    }
+
+    [HttpGet("extractionsoftrip")]
+    public IEnumerable<PlantExtractionTemplateModel> ExtractionsOfTrip(long tripId)
+    {
+        var trip = context.PhotoTourTrips
+            .First(ptt => ptt.Id == tripId);
+        var extractionTemplates = context.PlantExtractionTemplates
+            .Include(pet => pet.PhotoTripFkNavigation)
+            .Where(pet => pet.PhotoTripFkNavigation.Timestamp <= trip.Timestamp && pet.PhotoTripFkNavigation.PhotoTourFk == trip.PhotoTourFk)
+            .GroupBy(pet => pet.PhotoTourPlantFk)
+            .Select(g => g.OrderByDescending(pet => pet.PhotoTripFkNavigation.Timestamp).FirstOrDefault())
+            .ToList();
+        return extractionTemplates
+            .Where(t => t != null)
+            .Select(t => new PlantExtractionTemplateModel(t!.Id, t.PhotoTripFk, t.PhotoTourPlantFk, t.PhotoBoundingBox, t.IrBoundingBoxOffset,
+            t.MotorPosition, t.PhotoTripFkNavigation.Timestamp));
     }
 
     [HttpGet("tripsoftour")]

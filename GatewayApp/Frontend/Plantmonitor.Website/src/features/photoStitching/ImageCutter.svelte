@@ -10,6 +10,7 @@
         PhotoStitchingClient,
         PhotoTourPlantInfo,
         PictureTripData,
+        PlantExtractionTemplateModel,
         PlantImageSection
     } from "~/services/GatewayAppApi";
     import type {HubConnection} from "@microsoft/signalr";
@@ -20,6 +21,7 @@
     export let irSeries: string;
     export let visSeries: string;
     export let _selectedPhotoTrip: PictureTripData;
+    export let _extractionTemplates: PlantExtractionTemplateModel[];
     let _selectedImage: ImageToCut | undefined;
     let _currentImageIndex: number = -1;
     let _images: ImageToCut[] = [];
@@ -43,14 +45,11 @@
             if (x == undefined) return;
             if (x.length == 1) _selectedPlant = x[0];
             else _selectedPlant = undefined;
-            const stepCount = _selectedImage?.stepCount;
-            const tripTime = _selectedPhotoTrip.timeStamp;
             for (let i = 0; i < x.length; i++) {
                 const plant = x[i];
-                const existingTemplate = plant.extractionTemplate
-                    .filter((et) => et.motorPosition == stepCount && et.applicablePhotoTripFrom <= tripTime)
-                    .toSorted((a, b) => b.applicablePhotoTripFrom.getTime() - a.applicablePhotoTripFrom.getTime())
-                    .at(0);
+                const existingTemplate = _extractionTemplates.find(
+                    (et) => et.photoTourPlantFk == plant.id && et.motorPosition == _selectedImage?.stepCount
+                );
                 if (existingTemplate == undefined) continue;
                 _cutPolygon = {points: [], name: plant.name};
                 existingTemplate.photoBoundingBox.forEach((bb) => {
@@ -147,8 +146,8 @@
         context.stroke();
         _polygonValid = isPolygonValid();
         if (_polygonValid) {
-            const sortedXValues = _cutPolygon.points.map((p) => p.x).toSorted();
-            const sortedYValues = _cutPolygon.points.map((p) => p.y).toSorted();
+            const sortedXValues = _cutPolygon.points.map((p) => p.x).toSorted((a, b) => a - b);
+            const sortedYValues = _cutPolygon.points.map((p) => p.y).toSorted((a, b) => a - b);
             var midY = sortedYValues[0] + (sortedYValues[sortedYValues.length - 1] - sortedYValues[0]) / 2;
             var midX = sortedXValues[0] + (sortedXValues[sortedXValues.length - 1] - sortedXValues[0]) / 2;
             context.font = "20px Arial";
@@ -206,7 +205,7 @@
     async function removePolygon() {
         if (_selectedPlant == undefined || _selectedImage == undefined) return;
         const client = new PhotoStitchingClient();
-        const template = _selectedPlant.extractionTemplate.find((et) => et.motorPosition == _selectedImage!.stepCount);
+        const template = _extractionTemplates.find((et) => et.photoTourPlantFk == _selectedPlant?.id);
         _cutPolygon = {points: [], name: ""};
         await refreshImage();
         if (template == undefined) return;
