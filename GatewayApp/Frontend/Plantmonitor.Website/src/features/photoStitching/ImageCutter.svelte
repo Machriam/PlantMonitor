@@ -238,7 +238,7 @@
         _cutPolygon = {points: [], name: ""};
         await refreshImage();
         if (template == undefined) return;
-        if (template.id != _selectedPhotoTrip.tripId) {
+        if (template.photoTripFk != _selectedPhotoTrip.tripId) {
             alert("Polygon must be deleted from trip: " + template.applicablePhotoTripFrom.toLocaleString());
             return;
         }

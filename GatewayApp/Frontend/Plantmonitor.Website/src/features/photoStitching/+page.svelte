@@ -64,8 +64,9 @@
         _selectedTrip = undefined;
     }
     async function updatePlantInfo() {
-        if (_selectedTour == undefined) return;
+        if (_selectedTour == undefined || _selectedTrip == undefined) return;
         const stitchingClient = new PhotoStitchingClient();
+        _extractionTemplatesOfTrip = await stitchingClient.extractionsOfTrip(_selectedTrip.tripId);
         _plants = await stitchingClient.plantsForTour(_selectedTour.id);
     }
     async function selectedTripChanged(data: PictureTripData) {
