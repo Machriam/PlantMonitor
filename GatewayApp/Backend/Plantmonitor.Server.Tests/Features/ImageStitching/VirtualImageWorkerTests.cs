@@ -32,6 +32,38 @@ public class VirtualImageWorkerTests
     }
 
     [Fact]
+    public void RunImageCreation_NegativeBounds_ShouldWork()
+    {
+        var sut = CreateVirtualImageWorker();
+        var dataContext = Substitute.For<IDataContext>();
+        var stitcher = new PhotoStitcher();
+        var cropper = new ImageCropper();
+        var configuration = Substitute.For<IEnvironmentConfiguration>();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var irFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/IrData";
+        var visFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/VisData";
+        var testData = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/TestData";
+        var result = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/Result";
+        dataContext.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>() { new PhotoTourTrip() {
+            Id=1,
+            PhotoTourFk=1,
+            IrDataFolder=irFolder,
+            VisDataFolder=visFolder,
+            Timestamp=DateTime.Now,
+            PhotoTourFkNavigation=new AutomaticPhotoTour(){Name="Test"}
+        } });
+        var extractionTemplates = File.ReadAllText($"{testData}/ExtractionTemplate.json")
+            .FromJson<QueryableList<PlantExtractionTemplate>>() ?? [];
+        var plants = File.ReadAllText($"{testData}/Plants.json").FromJson<QueryableList<PhotoTourPlant>>() ?? [];
+        foreach (var template in extractionTemplates) template.PhotoTripFkNavigation = new PhotoTourTrip() { PhotoTourFk = 1, Timestamp = DateTime.Now.AddYears(-1) };
+        foreach (var plant in plants) plant.PhotoTourFk = 1;
+        dataContext.PlantExtractionTemplates.ReturnsForAnyArgs(extractionTemplates);
+        dataContext.PhotoTourPlants.ReturnsForAnyArgs(plants);
+        configuration.VirtualImagePath("", 0).ReturnsForAnyArgs(result);
+        sut.RunImageCreation(dataContext, stitcher, cropper, configuration);
+    }
+
+    [Fact]
     public void RunImageCreation_ShouldWork()
     {
         var sut = CreateVirtualImageWorker();

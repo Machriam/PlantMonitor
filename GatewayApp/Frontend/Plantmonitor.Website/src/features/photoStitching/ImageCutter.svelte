@@ -1,32 +1,33 @@
 <script lang="ts">
     import {onDestroy, onMount} from "svelte";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
-    import {CvInterop} from "../deviceConfiguration/CvInterop";
+    import {CvInterop, IrScalingHeight, IrScalingWidth} from "../deviceConfiguration/CvInterop";
     import {TooltipCreator, type TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
-    import {cropImage, drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
+    import {drawImageOnCanvas, resizeBase64Img} from "../replayPictures/ImageResizer";
     import type {ImageToCut} from "./ImageToCut";
     import {
         NpgsqlPoint,
         PhotoStitchingClient,
         PhotoTourPlantInfo,
         PictureTripData,
-        PlantImageSection,
-        type IIrCameraOffset
+        PlantExtractionTemplateModel,
+        PlantImageSection
     } from "~/services/GatewayAppApi";
     import type {HubConnection} from "@microsoft/signalr";
-    import {plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
+    import {imageToCutChanged, plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
 
     export let deviceId: string;
     export let irSeries: string;
     export let visSeries: string;
     export let _selectedPhotoTrip: PictureTripData;
+    export let _extractionTemplates: PlantExtractionTemplateModel[];
     let _selectedImage: ImageToCut | undefined;
     let _currentImageIndex: number = -1;
     let _images: ImageToCut[] = [];
     let _lastPointerPosition: MouseEvent | undefined;
     let _tooltip: TooltipCreatorResult | undefined;
-    let _cutPolygon: {point: NpgsqlPoint}[] = [];
+    let _cutPolygon: {points: NpgsqlPoint[]; name: string} = {points: [], name: ""};
     let _visConnection: HubConnection | undefined;
     let _irConnection: HubConnection | undefined;
     let _selectedPlant: PhotoTourPlantInfo | undefined;
@@ -39,23 +40,20 @@
     onMount(() => {
         startStream();
         const unsubscriber = selectedPhotoTourPlantInfo.subscribe(async (x) => {
-            _cutPolygon = [];
-            await changeImage(_currentImageIndex);
+            _cutPolygon = {points: [], name: ""};
+            await refreshImage();
             if (x == undefined) return;
             if (x.length == 1) _selectedPlant = x[0];
             else _selectedPlant = undefined;
-            const stepCount = _selectedImage?.stepCount;
-            const tripTime = _selectedPhotoTrip.timeStamp;
             for (let i = 0; i < x.length; i++) {
                 const plant = x[i];
-                const existingTemplate = plant.extractionTemplate
-                    .filter((et) => et.motorPosition == stepCount && et.applicablePhotoTripFrom <= tripTime)
-                    .toSorted((a, b) => b.applicablePhotoTripFrom.getTime() - a.applicablePhotoTripFrom.getTime())
-                    .at(0);
+                const existingTemplate = _extractionTemplates.find(
+                    (et) => et.photoTourPlantFk == plant.id && et.motorPosition == _selectedImage?.stepCount
+                );
                 if (existingTemplate == undefined) continue;
-                _cutPolygon = [];
+                _cutPolygon = {points: [], name: plant.name};
                 existingTemplate.photoBoundingBox.forEach((bb) => {
-                    _cutPolygon.push({point: new NpgsqlPoint({x: bb.x * _imageRatio, y: bb.y * _imageRatio})});
+                    _cutPolygon.points.push(new NpgsqlPoint({x: bb.x * _imageRatio, y: bb.y * _imageRatio}));
                     drawLine();
                 });
             }
@@ -121,58 +119,99 @@
             currentIndex = currentIndex + 1;
         }
         changeImage(currentIndex);
-        _cutPolygon = [];
+        _cutPolygon = {points: [], name: ""};
         event.preventDefault();
     }
-    function addLine(event: MouseEvent) {
+    async function addLine(event: MouseEvent) {
         if (_selectedPlant == undefined) return;
-        _cutPolygon.push({point: new NpgsqlPoint({x: event.offsetX, y: event.offsetY})});
+        if (isPolygonValid()) {
+            _cutPolygon = {points: [], name: _selectedPlant.name};
+            await refreshImage();
+        }
+        _cutPolygon.points.push(new NpgsqlPoint({x: event.offsetX, y: event.offsetY}));
         drawLine();
     }
     function drawLine() {
-        if (_cutPolygon.length <= 1) return;
+        if (_cutPolygon.points.length <= 1) return;
         const image = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
         const context = image.getContext("2d");
         if (context == null) return;
         context.beginPath();
-        const startPoint = _cutPolygon[_cutPolygon.length - 2];
-        const endPoint = _cutPolygon[_cutPolygon.length - 1];
-        context.moveTo(startPoint.point.x, startPoint.point.y);
-        context.lineTo(endPoint.point.x, endPoint.point.y);
+        const startPoint = _cutPolygon.points[_cutPolygon.points.length - 2];
+        const endPoint = _cutPolygon.points[_cutPolygon.points.length - 1];
+        context.moveTo(startPoint.x, startPoint.y);
+        context.lineTo(endPoint.x, endPoint.y);
         context.lineWidth = 3;
         context.strokeStyle = "yellow";
         context.stroke();
         _polygonValid = isPolygonValid();
+        if (_polygonValid) {
+            const sortedXValues = _cutPolygon.points.map((p) => p.x).toSorted((a, b) => a - b);
+            const sortedYValues = _cutPolygon.points.map((p) => p.y).toSorted((a, b) => a - b);
+            var midY = sortedYValues[0] + (sortedYValues[sortedYValues.length - 1] - sortedYValues[0]) / 2;
+            var midX = sortedXValues[0] + (sortedXValues[sortedXValues.length - 1] - sortedXValues[0]) / 2;
+            context.font = "20px Arial";
+            context.lineWidth = 1;
+            context.textAlign = "center";
+            context.strokeText(_cutPolygon.name, midX, midY);
+        }
     }
     async function connectPolygon() {
-        if (_cutPolygon.length <= 2 || _selectedImage == null || _selectedPlant == undefined) return;
-        _cutPolygon.push(_cutPolygon[0]);
+        if (_cutPolygon.points.length <= 2 || _selectedImage == null || _selectedPlant == undefined) return;
+        _cutPolygon.points.push(_cutPolygon.points[0]);
         drawLine();
-        const croppedImage = await cropImage(
-            _selectedImage.imageUrl,
-            _cutPolygon.map((p) => ({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
-        );
-        const qrCode = _cvInterop.readQRCode(croppedImage);
-        console.log(qrCode);
         _cutPolygon = _cutPolygon;
         _polygonValid = true;
     }
-    async function changeImage(newIndex: number) {
-        _currentImageIndex = newIndex;
-        _selectedImage = _images[_currentImageIndex];
-        if (_selectedImage.imageUrl == undefined) return;
+    async function drawIrBorder() {
+        const offset = $selectedDevice?.health.cameraOffset ?? {left: 0, top: 0};
+        const image = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
+        const context = image.getContext("2d");
+        if (context == null) return;
+        const ratio = context.canvas.height / IrScalingHeight;
+        const irLeft = (offset.left ?? 0) * ratio;
+        const irTop = (offset.top ?? 0) * ratio;
+        const irRight = Math.min(((offset.left ?? 0) + IrScalingWidth) * ratio, context.canvas.width);
+        const irBottom = Math.min(((offset.top ?? 0) + IrScalingHeight) * ratio, context.canvas.height);
+        context.beginPath();
+        const points = [
+            new NpgsqlPoint({x: irLeft, y: irTop}),
+            new NpgsqlPoint({x: irRight, y: irTop}),
+            new NpgsqlPoint({x: irRight, y: irBottom}),
+            new NpgsqlPoint({x: irLeft, y: irBottom}),
+            new NpgsqlPoint({x: irLeft, y: irTop})
+        ];
+        for (let i = 0; i < points.length - 1; i++) {
+            const startPoint = points[i];
+            const endPoint = points[i + 1];
+            context.moveTo(startPoint.x, startPoint.y);
+            context.lineTo(endPoint.x, endPoint.y);
+            context.lineWidth = 1;
+            context.strokeStyle = "blue";
+            context.stroke();
+        }
+    }
+    async function refreshImage() {
+        if (_selectedImage?.imageUrl == undefined) return;
         const canvas = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
         const ratio = await drawImageOnCanvas(_selectedImage.imageUrl, canvas);
         _imageRatio = ratio.ratio;
         const activatedTooltip = document.getElementById(_selectedThumbnailId + "_" + _currentImageIndex);
         activatedTooltip?.scrollIntoView({behavior: "instant", block: "nearest", inline: "center"});
+        await drawIrBorder();
         updateTooltip();
+    }
+    async function changeImage(newIndex: number) {
+        _currentImageIndex = newIndex;
+        _selectedImage = _images[_currentImageIndex];
+        $imageToCutChanged = _selectedImage;
+        await refreshImage();
     }
     function isPolygonValid() {
         return (
-            _cutPolygon.length > 2 &&
-            _cutPolygon[_cutPolygon.length - 1].point.x == _cutPolygon[0].point.x &&
-            _cutPolygon[_cutPolygon.length - 1].point.y == _cutPolygon[0].point.y
+            _cutPolygon.points.length > 2 &&
+            _cutPolygon.points[_cutPolygon.points.length - 1].x == _cutPolygon.points[0].x &&
+            _cutPolygon.points[_cutPolygon.points.length - 1].y == _cutPolygon.points[0].y
         );
     }
     async function savePolygon() {
@@ -187,7 +226,7 @@
                 }),
                 stepCount: _selectedImage.stepCount,
                 photoTripId: _selectedPhotoTrip.tripId,
-                polygon: _cutPolygon.map((p) => new NpgsqlPoint({x: p.point.x / _imageRatio, y: p.point.y / _imageRatio}))
+                polygon: _cutPolygon.points.map((p) => new NpgsqlPoint({x: p.x / _imageRatio, y: p.y / _imageRatio}))
             })
         );
         $plantPolygonChanged = _selectedPlant;
@@ -195,10 +234,14 @@
     async function removePolygon() {
         if (_selectedPlant == undefined || _selectedImage == undefined) return;
         const client = new PhotoStitchingClient();
-        const template = _selectedPlant.extractionTemplate.find((et) => et.motorPosition == _selectedImage!.stepCount);
-        _cutPolygon = [];
-        await changeImage(_currentImageIndex);
+        const template = _extractionTemplates.find((et) => et.photoTourPlantFk == _selectedPlant?.id);
+        _cutPolygon = {points: [], name: ""};
+        await refreshImage();
         if (template == undefined) return;
+        if (template.id != _selectedPhotoTrip.tripId) {
+            alert("Polygon must be deleted from trip: " + template.applicablePhotoTripFrom.toLocaleString());
+            return;
+        }
         await client.removePlantImageSections([template.id]);
         $plantPolygonChanged = _selectedPlant;
     }
@@ -254,7 +297,7 @@
     </div>
     <div class="d-flex flex-row">
         {#if _selectedPlant != undefined}
-            {#if _cutPolygon.length > 2}
+            {#if _cutPolygon.points.length > 2}
                 <button on:click={() => connectPolygon()} class="btn btn-primary">Connect Cut</button>
             {/if}
         {/if}

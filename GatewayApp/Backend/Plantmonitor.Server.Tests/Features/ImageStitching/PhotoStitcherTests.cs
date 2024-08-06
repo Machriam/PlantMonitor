@@ -76,7 +76,7 @@ public class PhotoStitcherTests
             Name = "Name",
             VisImage = i % 2 == 0 ? result1.VisImage.Clone() : result2.VisImage.Clone(),
         });
-        var result = sut.CreateVirtualImage(images, 300, 300, 20);
+        var result = sut.CreateVirtualImage(images, 300, 300);
         result.VisImage.ShowImage("VirtualVis", 0);
         result.IrColorImage.ShowImage("VirtualIr", 0);
         result.IrRawData.ShowImage("VirtualRaw");

@@ -721,6 +721,8 @@ export interface IPhotoStitchingClient {
 
     plantsForTour(tourId?: number | undefined): Promise<PhotoTourPlantInfo[]>;
 
+    extractionsOfTrip(tripId?: number | undefined): Promise<PlantExtractionTemplateModel[]>;
+
     tripsOfTour(tourId?: number | undefined): Promise<PhotoTourTrip[]>;
 
     removePlantsFromTour(plantIds: number[]): Promise<void>;
@@ -790,6 +792,53 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
             });
         }
         return Promise.resolve<PhotoTourPlantInfo[]>(null as any);
+    }
+
+    extractionsOfTrip(tripId?: number | undefined): Promise<PlantExtractionTemplateModel[]> {
+        let url_ = this.baseUrl + "/api/PhotoStitching/extractionsoftrip?";
+        if (tripId === null)
+            throw new Error("The parameter 'tripId' cannot be null.");
+        else if (tripId !== undefined)
+            url_ += "tripId=" + encodeURIComponent("" + tripId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processExtractionsOfTrip(_response));
+        });
+    }
+
+    protected processExtractionsOfTrip(response: Response): Promise<PlantExtractionTemplateModel[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(PlantExtractionTemplateModel.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PlantExtractionTemplateModel[]>(null as any);
     }
 
     tripsOfTour(tourId?: number | undefined): Promise<PhotoTourTrip[]> {
@@ -3211,7 +3260,7 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
     comment!: string;
     qrCode!: string | undefined;
     photoTourFk!: number;
-    extractionTemplate!: PlantExtractionTemplateModel[];
+    extractionMetaData!: ExtractionMetaData[];
 
     constructor(data?: IPhotoTourPlantInfo) {
         if (data) {
@@ -3229,10 +3278,10 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
             this.comment = _data["Comment"];
             this.qrCode = _data["QrCode"];
             this.photoTourFk = _data["PhotoTourFk"];
-            if (Array.isArray(_data["ExtractionTemplate"])) {
-                this.extractionTemplate = [] as any;
-                for (let item of _data["ExtractionTemplate"])
-                    this.extractionTemplate!.push(PlantExtractionTemplateModel.fromJS(item));
+            if (Array.isArray(_data["ExtractionMetaData"])) {
+                this.extractionMetaData = [] as any;
+                for (let item of _data["ExtractionMetaData"])
+                    this.extractionMetaData!.push(ExtractionMetaData.fromJS(item));
             }
         }
     }
@@ -3251,10 +3300,10 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
         data["Comment"] = this.comment;
         data["QrCode"] = this.qrCode;
         data["PhotoTourFk"] = this.photoTourFk;
-        if (Array.isArray(this.extractionTemplate)) {
-            data["ExtractionTemplate"] = [];
-            for (let item of this.extractionTemplate)
-                data["ExtractionTemplate"].push(item.toJSON());
+        if (Array.isArray(this.extractionMetaData)) {
+            data["ExtractionMetaData"] = [];
+            for (let item of this.extractionMetaData)
+                data["ExtractionMetaData"].push(item.toJSON());
         }
         return data;
     }
@@ -3273,7 +3322,58 @@ export interface IPhotoTourPlantInfo {
     comment: string;
     qrCode: string | undefined;
     photoTourFk: number;
-    extractionTemplate: PlantExtractionTemplateModel[];
+    extractionMetaData: ExtractionMetaData[];
+}
+
+export class ExtractionMetaData implements IExtractionMetaData {
+    tripWithExtraction!: number;
+    motorPosition!: number;
+    extractionTime!: Date;
+
+    constructor(data?: IExtractionMetaData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.tripWithExtraction = _data["TripWithExtraction"];
+            this.motorPosition = _data["MotorPosition"];
+            this.extractionTime = _data["ExtractionTime"] ? new Date(_data["ExtractionTime"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): ExtractionMetaData {
+        data = typeof data === 'object' ? data : {};
+        let result = new ExtractionMetaData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["TripWithExtraction"] = this.tripWithExtraction;
+        data["MotorPosition"] = this.motorPosition;
+        data["ExtractionTime"] = this.extractionTime ? this.extractionTime.toISOString() : <any>undefined;
+        return data;
+    }
+
+    clone(): ExtractionMetaData {
+        const json = this.toJSON();
+        let result = new ExtractionMetaData();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IExtractionMetaData {
+    tripWithExtraction: number;
+    motorPosition: number;
+    extractionTime: Date;
 }
 
 export class PlantExtractionTemplateModel implements IPlantExtractionTemplateModel {

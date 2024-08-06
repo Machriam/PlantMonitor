@@ -2,7 +2,7 @@
     import type {HubConnection} from "@microsoft/signalr";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import {CameraType} from "~/services/GatewayAppApi";
-    import {CvInterop, ThermalImage} from "../deviceConfiguration/CvInterop";
+    import {CvInterop, IrHeight, IrWidth, ThermalImage} from "../deviceConfiguration/CvInterop";
     import {dev} from "$app/environment";
     import {TooltipCreator, TooltipCreatorResult} from "../reuseableComponents/TooltipCreator";
 
@@ -13,7 +13,7 @@
     let currentTime: Date | undefined;
     let lastPointerPosition: MouseEvent | undefined;
     let tooltip: TooltipCreatorResult | undefined;
-    const irImageBytes = 120 * 160 * 4;
+    const irImageBytes = IrHeight * IrWidth * 4;
     let pixelConverter: ((x: number, y: number) => number) | undefined;
     export let firstImageReceived = false;
     export let firstDataReceived = false;

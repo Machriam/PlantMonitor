@@ -6,6 +6,7 @@
     import type {ReplayedImage} from "./ReplayedImage";
     import {selectedDevice} from "../store";
     import {type IIrCameraOffset, PictureClient, IrCameraOffset} from "~/services/GatewayAppApi";
+    import {onDestroy} from "svelte";
     let getLeftSelectedImage: () => ReplayedImage | undefined;
     let getRightSelectedImage: () => ReplayedImage | undefined;
     let imageOffsetCalculator: ImageOffsetCalculator | undefined;
@@ -27,6 +28,9 @@
         const newOffset: IIrCameraOffset = {left: leftOffset, top: topOffset};
         pictureClient.updateIrOffset(new IrCameraOffset(newOffset), $selectedDevice?.ip);
     }
+    onDestroy(() => {
+        imageOffsetCalculator?.delete();
+    });
     async function AlignImages() {
         let leftImage = getLeftSelectedImage();
         let rightImage = getRightSelectedImage();
