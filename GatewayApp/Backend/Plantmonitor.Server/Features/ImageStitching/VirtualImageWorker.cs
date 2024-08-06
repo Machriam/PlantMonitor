@@ -78,8 +78,8 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             logger.LogWarning("No extraction templates defined for tour {tour}. Exiting", tripToProcess.PhotoTourFkNavigation.Name);
             return;
         }
-        var maxBoundingBoxHeight = extractionTemplates.Max(bb => bb.BoundingBoxHeight);
-        var maxBoundingBoxWidth = extractionTemplates.Max(bb => bb.BoundingBoxWidth);
+        var maxBoundingBoxHeight = (int)float.Ceiling(extractionTemplates.Max(bb => bb.BoundingBoxHeight));
+        var maxBoundingBoxWidth = (int)float.Ceiling(extractionTemplates.Max(bb => bb.BoundingBoxWidth));
         var imagesToCreate = dataContext.PhotoTourTrips
             .Where(ptt => ptt.VirtualPicturePath == null && ptt.PhotoTourFk == tripToProcess.PhotoTourFk)
             .ToList();
@@ -132,7 +132,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                 virtualImageList[^1].ColoredIrImage = colorMat;
             }
             logger.LogInformation("Stitching virtual image together");
-            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, (int)maxBoundingBoxWidth, (int)maxBoundingBoxHeight, 10);
+            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxBoundingBoxWidth, maxBoundingBoxHeight);
             var fullMetaDataTable = AddAditionalMetaData(dataContext, tripToProcess, virtualImageList, virtualImage);
 
             var fileBaseName = Path.GetFileNameWithoutExtension(virtualImageFile);
