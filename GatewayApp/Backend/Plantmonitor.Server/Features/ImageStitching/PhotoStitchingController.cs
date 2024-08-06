@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Principal;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using Plantmonitor.DataModel.DataModel;
@@ -71,6 +72,11 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     {
         var maxWidth = section.Polygon.Max(p => p.X) - section.Polygon.Min(p => p.X);
         var maxHeight = section.Polygon.Max(p => p.Y) - section.Polygon.Min(p => p.Y);
+        var trip = context.PhotoTourTrips
+            .Include(ptt => ptt.PlantExtractionTemplates)
+            .First(ptt => ptt.Id == section.PhotoTripId);
+        if (trip.PlantExtractionTemplates.Any(pet => pet.PhotoTourPlantFk == section.PlantId))
+            throw new Exception("Each plant may only have one Polygon per Phototrip");
         context.PlantExtractionTemplates.Add(
         new PlantExtractionTemplate()
         {
