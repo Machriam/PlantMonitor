@@ -36,7 +36,7 @@ public class VirtualImageWorkerTests
     {
         var sut = CreateVirtualImageWorker();
         var dataContext = Substitute.For<IDataContext>();
-        var stitcher = new PhotoStitcher();
+        var stitcher = new PhotoStitcher(Substitute.For<ILogger<IPhotoStitcher>>());
         var cropper = new ImageCropper();
         var configuration = Substitute.For<IEnvironmentConfiguration>();
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
@@ -68,7 +68,7 @@ public class VirtualImageWorkerTests
     {
         var sut = CreateVirtualImageWorker();
         var dataContext = Substitute.For<IDataContext>();
-        var stitcher = new PhotoStitcher();
+        var stitcher = new PhotoStitcher(Substitute.For<ILogger<IPhotoStitcher>>());
         var cropper = new ImageCropper();
         var configuration = Substitute.For<IEnvironmentConfiguration>();
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();

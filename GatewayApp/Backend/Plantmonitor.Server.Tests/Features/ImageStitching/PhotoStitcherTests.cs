@@ -1,6 +1,7 @@
-﻿using Emgu.CV;
-using FluentAssertions;
+﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NpgsqlTypes;
+using NSubstitute;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.ImageStitching;
 using Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests;
@@ -35,7 +36,7 @@ public class PhotoStitcherTests
 
     private PhotoStitcher CreatePhotoStitcher()
     {
-        return new PhotoStitcher();
+        return new PhotoStitcher(Substitute.For<ILogger<IPhotoStitcher>>());
     }
 
     [Theory]
