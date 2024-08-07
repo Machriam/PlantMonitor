@@ -169,22 +169,17 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
 
     private string AddAditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, List<PhotoStitcher.PhotoStitchData> virtualImageList, (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) virtualImage)
     {
-        var startTime = virtualImageList
-            .Where(vil => vil.IrImageTime > new DateTime(2024, 1, 1).ToUniversalTime())
-            .Min(vil => vil.IrImageTime);
-        var endTime = virtualImageList
-            .Where(vil => vil.IrImageTime > new DateTime(2024, 1, 1).ToUniversalTime())
-            .Max(vil => vil.IrImageTime);
-        logger.LogInformation("Fetching Temperatures from {from} to {to}", startTime, endTime);
+        var from = tripToProcess.Timestamp;
+        var to = from.Add(TimeSpan.FromMinutes(tripToProcess.PhotoTourFkNavigation.IntervallInMinutes));
+        logger.LogInformation("Fetching Temperatures from {from} to {to}", from, to);
         var temperaturesOfTrip = dataContext.TemperatureMeasurementValues
             .Include(tmv => tmv.MeasurementFkNavigation)
-            .Where(tm => tm.MeasurementFkNavigation.PhotoTourFk == tripToProcess.PhotoTourFk && tm.Timestamp >= startTime && tm.Timestamp <= endTime)
-            .OrderByDescending(tm => tm.Timestamp)
-            .Take(3000)
+            .Where(tm => tm.MeasurementFkNavigation.PhotoTourFk == tripToProcess.PhotoTourFk && tm.Timestamp >= from && tm.Timestamp <= to)
             .OrderBy(tm => tm.Timestamp)
+            .Take(10000)
             .ToList();
         logger.LogInformation("Creating temperature table");
-        var timeTable = $"\nStart Time\tEnd Time\n{startTime:yyyy.MM.dd_HH:mm:ss}\t{endTime:yyyy.MM.dd_HH:mm:ss}";
+        var timeTable = $"\nStart Time\tEnd Time\n{from:yyyy.MM.dd_HH:mm:ss}\t{to:yyyy.MM.dd_HH:mm:ss}";
         var measurementValues = temperaturesOfTrip
             .Where(tot => !tot.MeasurementFkNavigation.IsThermalCamera())
             .OrderBy(tot => tot.MeasurementFk)
