@@ -169,13 +169,19 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
 
     private string AddAditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, List<PhotoStitcher.PhotoStitchData> virtualImageList, (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) virtualImage)
     {
-        var startTime = virtualImageList.Min(vil => vil.IrImageTime);
-        var endTime = virtualImageList.Max(vil => vil.IrImageTime);
+        var startTime = virtualImageList
+            .Where(vil => vil.IrImageTime > new DateTime(2024, 1, 1).ToUniversalTime())
+            .Min(vil => vil.IrImageTime);
+        var endTime = virtualImageList
+            .Where(vil => vil.IrImageTime > new DateTime(2024, 1, 1).ToUniversalTime())
+            .Max(vil => vil.IrImageTime);
         logger.LogInformation("Fetching Temperatures from {from} to {to}", startTime, endTime);
         var temperaturesOfTrip = dataContext.TemperatureMeasurementValues
             .Include(tmv => tmv.MeasurementFkNavigation)
             .Where(tm => tm.MeasurementFkNavigation.PhotoTourFk == tripToProcess.PhotoTourFk && tm.Timestamp >= startTime && tm.Timestamp <= endTime)
-            .Take(1000)
+            .OrderByDescending(tm => tm.Timestamp)
+            .Take(3000)
+            .OrderBy(tm => tm.Timestamp)
             .ToList();
         logger.LogInformation("Creating temperature table");
         var timeTable = $"\nStart Time\tEnd Time\n{startTime:yyyy.MM.dd_HH:mm:ss}\t{endTime:yyyy.MM.dd_HH:mm:ss}";
