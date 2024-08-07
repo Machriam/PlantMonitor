@@ -54,6 +54,10 @@
     onDestroy(() => {
         _pictureStreamer?.stopStreaming();
     });
+    async function removeOfflineDevice(ip: string) {
+        await _configurationClient.deleteSeenDevice(ip);
+        _allSeenDevices = await _configurationClient.allSeenDevices();
+    }
     async function openConsole(ip: string | undefined): Promise<void> {
         if (ip == undefined) return;
         _webSshLink = "";
@@ -154,9 +158,13 @@
     async function getDeviceStatus() {
         const client = new DeviceConfigurationClient();
         const outletClient = new PowerOutletClient();
+        _allSeenDevices = await client.allSeenDevices();
         try {
             _devices = await client.getDevices();
             const outletDevices = _devices.filter((d) => d.health?.deviceId != undefined);
+            outletDevices.push(
+                ..._allSeenDevices.filter((d) => outletDevices.findIndex((x) => x.health.deviceId == d.health?.deviceId) == -1)
+            );
             for (let i = 0; i < outletDevices.length; i++) {
                 const deviceId = outletDevices[i].health.deviceId!;
                 const {result, error, hasError} = await outletClient.powerOutletForDevice(deviceId).try();
@@ -204,10 +212,10 @@
         {/if}
     </h3>
     <div class="col-md-6">
-        {#each _devices as device}
-            <table class="table">
-                <thead> <tr> <th>IP</th> <th>Action</th> </tr> </thead>
-                <tbody>
+        <table class="table">
+            <thead> <tr> <th>IP</th> <th>Action</th> </tr> </thead>
+            <tbody>
+                {#each _devices as device}
                     <tr>
                         <td class="col-md-3">
                             {#if device.health !== undefined}
@@ -259,14 +267,46 @@
                             <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
                         </td>
                     </tr>
-                </tbody>
-            </table>
-        {/each}
-        {#each _allSeenDevices as seenDevice}
-            {#if _devices.filter((d) => d.ip == seenDevice.ip).length == 0}
-                <div></div>
-            {/if}
-        {/each}
+                {/each}
+                {#each _allSeenDevices as seenDevice}
+                    {#if _devices.filter((d) => d.ip == seenDevice.ip).length == 0}
+                        <tr>
+                            <td class="col-md-3">
+                                <span style="background-color:lightgrey" class="badge">{seenDevice.ip}</span><br />
+                                <span>{seenDevice.health?.deviceName}</span><br />
+                                <span>{seenDevice.health?.deviceId}</span><br />
+                                <span>
+                                    {#each formatHealthState(seenDevice.health?.state ?? HealthState.NA) as state}
+                                        <span>{state}<br /></span>
+                                    {/each}
+                                </span>
+                            </td>
+                            <td>
+                                {#if seenDevice.health.deviceId !== undefined && _allOutletsFetched}
+                                    <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
+                                        Associated Outlet:
+                                        <Select
+                                            class="col-md-8"
+                                            initialSelectedItem={_outletByDevice[
+                                                seenDevice.health.deviceId
+                                            ]?.switchOnId?.toString()}
+                                            selectedItemChanged={(x) => switchOutlet(x, seenDevice.health.deviceId ?? "")}
+                                            textSelector={(x) => `${x.name} Channel ${x.channel} Button ${x.buttonNumber}`}
+                                            idSelector={(x) => x.switchOnId.toString()}
+                                            items={_existingOutlets}></Select>
+                                    </div>
+                                {/if}
+                                <button
+                                    on:click={() => removeOfflineDevice(seenDevice.ip)}
+                                    style="background-color:lightgrey"
+                                    class="btn">
+                                    Remove Offline Device</button>
+                            </td>
+                        </tr>
+                    {/if}
+                {/each}
+            </tbody>
+        </table>
         <button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
         <Select
             selectedItemChanged={(x) => (_selectedOutlet = x)}

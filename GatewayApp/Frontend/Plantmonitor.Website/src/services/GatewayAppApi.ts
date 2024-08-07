@@ -1486,6 +1486,10 @@ export interface IDeviceConfigurationClient {
     recheckDevice(ip?: string | undefined): Promise<DeviceHealth>;
 
     getDevices(): Promise<DeviceHealthState[]>;
+
+    allSeenDevices(): Promise<DeviceHealthState[]>;
+
+    deleteSeenDevice(ip?: string | undefined): Promise<void>;
 }
 
 export class DeviceConfigurationClient extends GatewayAppApiBase implements IDeviceConfigurationClient {
@@ -1693,6 +1697,85 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
             });
         }
         return Promise.resolve<DeviceHealthState[]>(null as any);
+    }
+
+    allSeenDevices(): Promise<DeviceHealthState[]> {
+        let url_ = this.baseUrl + "/api/DeviceConfiguration/allseendevices";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processAllSeenDevices(_response));
+        });
+    }
+
+    protected processAllSeenDevices(response: Response): Promise<DeviceHealthState[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(DeviceHealthState.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DeviceHealthState[]>(null as any);
+    }
+
+    deleteSeenDevice(ip?: string | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/DeviceConfiguration/deleteseendevice?";
+        if (ip === null)
+            throw new Error("The parameter 'ip' cannot be null.");
+        else if (ip !== undefined)
+            url_ += "ip=" + encodeURIComponent("" + ip) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processDeleteSeenDevice(_response));
+        });
+    }
+
+    protected processDeleteSeenDevice(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 }
 
