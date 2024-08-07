@@ -104,7 +104,7 @@ public class DeviceRestarterTests
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
         _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
         {
-            new(){Id=1, DeviceId=Guid.Parse(deviceGuid)}
+            new(){Id=1, DeviceId=Guid.Parse(deviceGuid),TemperatureMeasurements=[new TemperatureMeasurement() { SensorId = TemperatureMeasurement.FlirLeptonSensorId }]}
         });
         var devices = new List<DeviceHealthState>() {
             new(new(default, deviceGuid, "device", HealthState.NA), 0, ""),

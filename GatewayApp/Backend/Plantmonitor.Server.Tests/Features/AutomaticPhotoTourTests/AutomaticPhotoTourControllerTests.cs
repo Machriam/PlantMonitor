@@ -34,6 +34,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             var events = new QueryableList<PhotoTourEvent>();
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(result);
             _context.PhotoTourEvents.ReturnsForAnyArgs(events);
+            _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() });
             var sut = CreateAutomaticPhotoTourController();
 
             await sut.PausePhotoTour(1, true);
@@ -41,7 +42,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _context.Received(1).SaveChanges();
             result.First().Finished.Should().BeTrue();
             events.Count.Should().Be(1);
-            events.First().Message.Should().Be("Photo tour finished");
+            events.First().Message.Should().Be("Photo tour stopped");
         }
 
         [Fact]

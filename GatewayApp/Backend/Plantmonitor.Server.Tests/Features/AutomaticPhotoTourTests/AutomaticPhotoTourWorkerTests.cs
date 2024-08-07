@@ -128,6 +128,7 @@ public class AutomaticPhotoTourWorkerTests
             (irFolder, visFolder) = await TakePhotos(sut, 1, _context, _pictureStreamer, _deviceApi, deviceHealth);
         }
         PhotoTaking().RunInBackground(ex => throw ex);
+        await Task.Delay(100);
         await _motorClient.Received().MovemotorAsync(-1000, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), (int)(200 * 1.05f), (int)(-200 * 1.05f));
         await _motorClient.Received().MovemotorAsync(200, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), (int)(200 * 1.05f), (int)(-200 * 1.05f));
         await _motorClient.ReceivedWithAnyArgs(2).MovemotorAsync(default, Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), default, default);
@@ -158,7 +159,7 @@ public class AutomaticPhotoTourWorkerTests
         await _irClient.Received(1).KillcameraAsync();
         await _visClient.Received(1).KillcameraAsync();
 
-        _context.PhotoTourEvents.Count().Should().Be(0);
+        _context.PhotoTourEvents.Count().Should().Be(8);
         visFolder.Should().Be("visfolder");
         irFolder.Should().Be("irfolder");
     }

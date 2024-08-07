@@ -40,7 +40,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             RestartDevice(photoTourData.DeviceId.ToString(), photoTourId).RunInBackground(ex => ex.LogError());
             return (null, deviceHealth);
         }
-        logEvent($"Checking Camera {photoTourData.DeviceId}", PhotoTourEventType.Information);
+        logEvent($"Checking Camera {photoTourData.DeviceId}, has IR: {hasIrCamera}", PhotoTourEventType.Information);
         var irTest = hasIrCamera ? await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync() : default;
         var irImage = irTest?.Stream.ConvertToArray() ?? [];
         var visTest = await deviceApi.VisImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
