@@ -28,42 +28,43 @@
         userName: "",
         userPassword: ""
     };
-    let configurationClient: DeviceConfigurationClient;
-    let devices: DeviceHealthState[] = [];
-    let outletByDevice: {[key: string]: AssociatePowerOutletModel | null} = {};
-    let previewImage = new ThermalImage();
-    let pictureStreamer: PictureStreamer;
-    let existingOutlets: OutletModel[] = [];
-    let selectedOutlet: OutletModel | undefined;
-    let logData = "";
-    let allOutletsFetched = false;
+    let _configurationClient: DeviceConfigurationClient;
+    let _devices: DeviceHealthState[] = [];
+    let _outletByDevice: {[key: string]: AssociatePowerOutletModel | null} = {};
+    let _previewImage = new ThermalImage();
+    let _pictureStreamer: PictureStreamer;
+    let _existingOutlets: OutletModel[] = [];
+    let _selectedOutlet: OutletModel | undefined;
+    let _logData = "";
+    let _allSeenDevices: DeviceHealthState[] = [];
+    let _allOutletsFetched = false;
 
-    let searchingForDevices = true;
-    let webSshLink = ""; // @hmr:keep
-    let webSshCredentials: WebSshCredentials;
+    let _searchingForDevices = true;
+    let _webSshLink = ""; // @hmr:keep
+    let _webSshCredentials: WebSshCredentials;
     onMount(async () => {
-        configurationClient = new DeviceConfigurationClient();
+        _configurationClient = new DeviceConfigurationClient();
         const outletClient = new PowerOutletClient();
-        existingOutlets = await outletClient.getOutlets();
-        existingOutlets.sort((a, b) => (a.name + a.channel + a.buttonNumber).localeCompare(b.name + b.channel + b.buttonNumber));
-        webSshCredentials = await configurationClient.getWebSshCredentials();
+        _existingOutlets = await outletClient.getOutlets();
+        _existingOutlets.sort((a, b) => (a.name + a.channel + a.buttonNumber).localeCompare(b.name + b.channel + b.buttonNumber));
+        _webSshCredentials = await _configurationClient.getWebSshCredentials();
         await getDeviceStatus();
-        searchingForDevices = false;
+        _searchingForDevices = false;
     });
     onDestroy(() => {
-        pictureStreamer?.stopStreaming();
+        _pictureStreamer?.stopStreaming();
     });
     async function openConsole(ip: string | undefined): Promise<void> {
         if (ip == undefined) return;
-        webSshLink = "";
+        _webSshLink = "";
         await Task.delay(100);
-        webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
+        _webSshLink = `${_webSshCredentials.protocol}://${location.hostname}:${_webSshCredentials.port}/?hostname=${ip}&username=${_webSshCredentials.user}&password=${_webSshCredentials.password?.asBase64()}`;
     }
     async function configureDevice(ip: string | undefined): Promise<void> {
         if (ip == undefined) return;
-        webSshLink = "";
+        _webSshLink = "";
         await Task.delay(100);
-        const certificate = await configurationClient.getCertificateData();
+        const certificate = await _configurationClient.getCertificateData();
         const command =
             `sudo mkdir /srv/certs/;echo '${certificate.certificate}' | sudo tee /srv/certs/plantmonitor.crt;echo '${certificate.key}' | sudo tee /srv/certs/plantmonitor.key;` +
             `sudo echo -e "set -g mouse on\\n set -g history-limit 4096" > ~/.tmux.conf;` +
@@ -71,13 +72,13 @@
             `sudo apt-get install -y git;` +
             `git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor;git reset --hard;git pull; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;` +
             `exec bash;'`;
-        webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
+        _webSshLink = `${_webSshCredentials.protocol}://${location.hostname}:${_webSshCredentials.port}/?hostname=${ip}&username=${_webSshCredentials.user}&password=${_webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
     }
     async function showPreviewImage(ip: string | undefined) {
         if (ip == undefined) return;
         const deviceClient = new DeviceClient();
         await deviceClient.killCamera(ip, CameraType.Vis);
-        previewImage = {dataUrl: await (await deviceClient.previewImage(ip, CameraType.Vis)).data.asBase64Url()};
+        _previewImage = {dataUrl: await (await deviceClient.previewImage(ip, CameraType.Vis)).data.asBase64Url()};
     }
     async function calibrateExposure(ip: string | undefined) {
         if (ip == undefined) return;
@@ -92,7 +93,7 @@
     async function getLogData(ip: string | undefined) {
         if (ip == undefined) return;
         const configurationClient = new DeviceConfigurationClient();
-        logData = await configurationClient.getDeviceLog(ip);
+        _logData = await configurationClient.getDeviceLog(ip);
     }
     async function showThermalImage(ip: string | undefined) {
         if (ip == undefined) return;
@@ -100,7 +101,7 @@
         await deviceClient.killCamera(ip, CameraType.IR);
         const cvInterop = new CvInterop();
         const data = (await deviceClient.previewImage(ip, CameraType.IR)).data;
-        previewImage = cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer()));
+        _previewImage = cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer()));
     }
     async function testMovement(ip: string | undefined) {
         if (ip == undefined) return;
@@ -109,21 +110,21 @@
     }
     async function showThermalVideo(ip: string | undefined) {
         if (ip == undefined) return;
-        pictureStreamer.stopStreaming();
-        pictureStreamer.showPreview(ip, CameraType.IR, 1);
+        _pictureStreamer.stopStreaming();
+        _pictureStreamer.showPreview(ip, CameraType.IR, 1);
     }
     async function showTestVideo(ip: string | undefined) {
         if (ip == undefined) return;
-        pictureStreamer.stopStreaming();
-        pictureStreamer.showPreview(ip, CameraType.Vis, 1);
+        _pictureStreamer.stopStreaming();
+        _pictureStreamer.showPreview(ip, CameraType.Vis, 1);
     }
     async function checkStatus(ip: string) {
         const deviceClient = new DeviceConfigurationClient();
         const newHealth = await deviceClient.recheckDevice(ip);
-        const checkedDevice = devices.find((d) => d.ip == ip);
+        const checkedDevice = _devices.find((d) => d.ip == ip);
         if (checkedDevice == undefined) return;
         checkedDevice.health = newHealth;
-        devices = devices;
+        _devices = _devices;
     }
     async function updateIpRange() {
         const client = new AppConfigurationClient();
@@ -134,14 +135,14 @@
     async function updateDeviceSettings() {
         const client = new AppConfigurationClient();
         await client.updateDeviceSettings(configurationData.userPassword, configurationData.userName);
-        configurationClient = new DeviceConfigurationClient();
-        webSshCredentials = await configurationClient.getWebSshCredentials();
+        _configurationClient = new DeviceConfigurationClient();
+        _webSshCredentials = await _configurationClient.getWebSshCredentials();
         configurationData.userName = "";
         configurationData.userPassword = "";
     }
     async function switchPowerOutlet(code: number | undefined) {
         if (code == undefined) return;
-        const switchDevices = devices.filter(
+        const switchDevices = _devices.filter(
             (d) => d.health != undefined && d.health.state != undefined && d.health.state & HealthState.CanSwitchOutlets
         );
         const outletClient = new PowerOutletClient();
@@ -154,22 +155,22 @@
         const client = new DeviceConfigurationClient();
         const outletClient = new PowerOutletClient();
         try {
-            devices = await client.getDevices();
-            const outletDevices = devices.filter((d) => d.health?.deviceId != undefined);
+            _devices = await client.getDevices();
+            const outletDevices = _devices.filter((d) => d.health?.deviceId != undefined);
             for (let i = 0; i < outletDevices.length; i++) {
                 const deviceId = outletDevices[i].health.deviceId!;
                 const {result, error, hasError} = await outletClient.powerOutletForDevice(deviceId).try();
                 if (hasError) {
                     console.log(error);
-                    outletByDevice[deviceId] = null;
+                    _outletByDevice[deviceId] = null;
                     continue;
                 }
-                outletByDevice[deviceId] = result;
+                _outletByDevice[deviceId] = result;
             }
-            allOutletsFetched = true;
+            _allOutletsFetched = true;
         } catch (ex) {
             console.log(ex);
-            devices = [];
+            _devices = [];
         }
     }
     async function switchOutlet(model: OutletModel | undefined, deviceId: string) {
@@ -196,14 +197,14 @@
         <button on:click={updateDeviceSettings} class="btn btn-primary col-md-2">Update Password</button>
     </div>
     <h3>
-        {#if searchingForDevices}
+        {#if _searchingForDevices}
             Searching for devices
         {:else}
             Found devices:
         {/if}
     </h3>
     <div class="col-md-6">
-        {#each devices as device}
+        {#each _devices as device}
             <table class="table">
                 <thead> <tr> <th>IP</th> <th>Action</th> </tr> </thead>
                 <tbody>
@@ -240,16 +241,16 @@
                                 <button on:click={() => runFFC(device.ip)} class="btn btn-primary"> FFC</button>
                                 <button on:click={() => calibrateExposure(device.ip)} class="btn btn-primary">
                                     Update Exposure</button>
-                                {#if device.health.deviceId !== undefined && allOutletsFetched}
+                                {#if device.health.deviceId !== undefined && _allOutletsFetched}
                                     <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
                                         Associated Outlet:
                                         <Select
                                             class="col-md-8"
-                                            initialSelectedItem={outletByDevice[device.health.deviceId]?.switchOnId?.toString()}
+                                            initialSelectedItem={_outletByDevice[device.health.deviceId]?.switchOnId?.toString()}
                                             selectedItemChanged={(x) => switchOutlet(x, device.health.deviceId ?? "")}
                                             textSelector={(x) => `${x.name} Channel ${x.channel} Button ${x.buttonNumber}`}
                                             idSelector={(x) => x.switchOnId.toString()}
-                                            items={existingOutlets}></Select>
+                                            items={_existingOutlets}></Select>
                                     </div>
                                 {/if}
                                 <button class="btn btn-primary" on:click={async () => await checkStatus(device.ip)}
@@ -261,30 +262,35 @@
                 </tbody>
             </table>
         {/each}
+        {#each _allSeenDevices as seenDevice}
+            {#if _devices.filter((d) => d.ip == seenDevice.ip).length == 0}
+                <div></div>
+            {/if}
+        {/each}
         <button on:click={async () => await getDeviceStatus()} class="btn btn-primary">Update</button>
         <Select
-            selectedItemChanged={(x) => (selectedOutlet = x)}
+            selectedItemChanged={(x) => (_selectedOutlet = x)}
             textSelector={(x) => `${x.name} Channel: ${x.channel} Button: ${x.buttonNumber}`}
-            items={existingOutlets}
+            items={_existingOutlets}
             class="col-md-6"></Select>
-        {#if selectedOutlet !== undefined}
-            <button on:click={async () => await switchPowerOutlet(selectedOutlet?.switchOnId)} class="btn btn-success"
+        {#if _selectedOutlet !== undefined}
+            <button on:click={async () => await switchPowerOutlet(_selectedOutlet?.switchOnId)} class="btn btn-success"
                 >Power On</button>
-            <button on:click={async () => await switchPowerOutlet(selectedOutlet?.switchOffId)} class="btn btn-danger"
+            <button on:click={async () => await switchPowerOutlet(_selectedOutlet?.switchOffId)} class="btn btn-danger"
                 >Power Off</button>
         {/if}
     </div>
     <div class="col-md-6">
-        {#if !previewImage.dataUrl?.isEmpty()}
-            <img alt="preview" src={previewImage.dataUrl} />
+        {#if !_previewImage.dataUrl?.isEmpty()}
+            <img alt="preview" src={_previewImage.dataUrl} />
         {/if}
-        <PictureStreamer bind:this={pictureStreamer}></PictureStreamer>
+        <PictureStreamer bind:this={_pictureStreamer}></PictureStreamer>
         <div class="col-md-12" style="height:80vh;">
-            {#if !webSshLink.isEmpty()}
-                <iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>
+            {#if !_webSshLink.isEmpty()}
+                <iframe style="height: 100%;width:100%" title="Web SSH" src={_webSshLink}></iframe>
             {/if}
-            {#if !logData.isEmpty()}
-                <textarea style="height: 100%; width:100%">{logData.split("\n").toReversed().join("\n")}</textarea>
+            {#if !_logData.isEmpty()}
+                <textarea style="height: 100%; width:100%">{_logData.split("\n").toReversed().join("\n")}</textarea>
             {/if}
         </div>
         <div style="height: 20vh;"></div>
