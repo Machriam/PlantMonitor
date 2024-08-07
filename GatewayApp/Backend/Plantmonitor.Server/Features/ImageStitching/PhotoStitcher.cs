@@ -1,12 +1,8 @@
 ﻿using System.Drawing;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
-using Emgu.CV.Features2D;
-using Emgu.CV.Stitching;
 using Emgu.CV.Structure;
-using Emgu.CV.Util;
 using static Plantmonitor.Server.Features.ImageStitching.PhotoStitcher;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
@@ -16,7 +12,7 @@ public interface IPhotoStitcher
     (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) CreateVirtualImage(IEnumerable<PhotoStitchData> images, int width, int height);
 }
 
-public class PhotoStitcher : IPhotoStitcher
+public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
 {
     private const float DesiredRatio = 16 / 9f;
     public record class PhotoStitchData : IDisposable
@@ -55,9 +51,13 @@ public class PhotoStitcher : IPhotoStitcher
     {
         var imageList = images.ToList();
         var imagesPerRow = CalculateImagesPerRow(imageList.Count, width, height);
+        logger.LogInformation("Concatenating vis images");
         var visImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.VisImage, out var finalMatSize);
+        logger.LogInformation("Concatenating ir color images");
         var irColorImage = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.ColoredIrImage, out _);
+        logger.LogInformation("Concatenating ir images");
         var irData = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.IrImageRawData, out _);
+        logger.LogInformation("Creating metadata");
         var metaDataHeader = new string[] { "Image Height", "Image Width", "Spacing after Image", "Images per Row", "Row Count", "Image Count", "Comment" };
         var metaDataInfo = new object[] { finalMatSize.Height, finalMatSize.Width, imagesPerRow,
             (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count,"Raw IR in °C, first channel full degree, second channel decimal values" }

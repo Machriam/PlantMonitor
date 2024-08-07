@@ -137,6 +137,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             }
             logger.LogInformation("Stitching virtual image together");
             var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxBoundingBoxWidth, maxBoundingBoxHeight);
+            logger.LogInformation("Fetching additional metadata");
             var fullMetaDataTable = AddAditionalMetaData(dataContext, tripToProcess, virtualImageList, virtualImage);
 
             var fileBaseName = Path.GetFileNameWithoutExtension(virtualImageFile);
