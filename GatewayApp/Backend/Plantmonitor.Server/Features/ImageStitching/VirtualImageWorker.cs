@@ -167,14 +167,17 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         logger.LogInformation("All trips of tour {tour} processed", tripToProcess.PhotoTourFkNavigation.Name);
     }
 
-    private static string AddAditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, List<PhotoStitcher.PhotoStitchData> virtualImageList, (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) virtualImage)
+    private string AddAditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, List<PhotoStitcher.PhotoStitchData> virtualImageList, (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) virtualImage)
     {
         var startTime = virtualImageList.Min(vil => vil.IrImageTime);
         var endTime = virtualImageList.Max(vil => vil.IrImageTime);
+        logger.LogInformation("Fetching Temperatures from {from} to {to}", startTime, endTime);
         var temperaturesOfTrip = dataContext.TemperatureMeasurementValues
             .Include(tmv => tmv.MeasurementFkNavigation)
             .Where(tm => tm.MeasurementFkNavigation.PhotoTourFk == tripToProcess.PhotoTourFk && tm.Timestamp >= startTime && tm.Timestamp <= endTime)
+            .Take(1000)
             .ToList();
+        logger.LogInformation("Creating temperature table");
         var timeTable = $"\nStart Time\tEnd Time\n{startTime:yyyy.MM.dd_HH:mm:ss}\t{endTime:yyyy.MM.dd_HH:mm:ss}";
         var measurementValues = temperaturesOfTrip
             .Where(tot => !tot.MeasurementFkNavigation.IsThermalCamera())
