@@ -141,7 +141,9 @@
     }
     async function switchPowerOutlet(code: number | undefined) {
         if (code == undefined) return;
-        const switchDevices = devices.filter((d) => d.health.state != undefined && (d.health.state & HealthState.CanSwitchOutlets));
+        const switchDevices = devices.filter(
+            (d) => d.health != undefined && d.health.state != undefined && d.health.state & HealthState.CanSwitchOutlets
+        );
         const outletClient = new PowerOutletClient();
         for (let i = 0; i < switchDevices.length; i++) {
             await outletClient.disablePrompts().switchOutlet(switchDevices[i].ip, code).try();
