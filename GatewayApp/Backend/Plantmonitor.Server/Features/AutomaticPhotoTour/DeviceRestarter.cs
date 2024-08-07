@@ -20,7 +20,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
 
     public async Task<(bool? DeviceHealthy, DeviceHealthState ImagingDevice)> CheckDeviceHealth(long photoTourId, IServiceScope scope, IDataContext dataContext)
     {
-        var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
+        var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionStorage>();
         var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
         var photoTourData = dataContext.AutomaticPhotoTours
             .Include(apt => apt.TemperatureMeasurements)
@@ -32,7 +32,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         }
         var hasIrCamera = photoTourData.TemperatureMeasurements.Any(tm => tm.IsThermalCamera());
         var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
-        var deviceHealth = eventBus.GetDeviceHealthInformation()
+        var deviceHealth = eventBus.GetCurrentDeviceHealths()
             .FirstOrDefault(h => h.Health.DeviceId == photoTourData.DeviceId.ToString());
         if (deviceHealth == default)
         {
@@ -63,7 +63,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
     public async Task RestartDevice(string restartDeviceId, long? photoTourId)
     {
         using var scope = scopeFactory.CreateScope();
-        var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
+        var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionStorage>();
         var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
         var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
         var logEvent = photoTourId == null ? Log.Logger.Log : dataContext.CreatePhotoTourEventLogger(photoTourId.Value);
@@ -87,7 +87,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             logEvent($"Automatic switching for {restartDeviceId} not possible. Camera device has no switch assigned!", PhotoTourEventType.Warning);
             return;
         }
-        var switchingDevices = eventBus.GetDeviceHealthInformation()
+        var switchingDevices = eventBus.GetCurrentDeviceHealths()
             .Where(h => h.Health.State?.HasFlag(HealthState.CanSwitchOutlets) == true && h.Health.DeviceId != restartDeviceId);
         if (!switchingDevices.Any())
         {
@@ -100,7 +100,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOffFkNavigation.Code);
             await Task.Delay(200);
         }
-        eventBus.UpdateDeviceHealths(eventBus.GetDeviceHealthInformation().Where(d => d.Health.DeviceId != restartDeviceId));
+        eventBus.UpdateDeviceHealths(eventBus.GetCurrentDeviceHealths().Where(d => d.Health.DeviceId != restartDeviceId));
         s_lastRestarts.AddOrUpdate(deviceGuid, DateTime.UtcNow, (_1, _2) => DateTime.UtcNow);
         foreach (var switchDevice in switchingDevices)
         {

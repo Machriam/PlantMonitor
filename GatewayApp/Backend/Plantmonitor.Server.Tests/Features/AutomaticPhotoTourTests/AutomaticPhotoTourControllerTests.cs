@@ -12,13 +12,13 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
     public class AutomaticPhotoTourControllerTests
     {
         private readonly IDataContext _context;
-        private readonly IDeviceConnectionEventBus _eventBus;
+        private readonly IDeviceConnectionStorage _eventBus;
         private readonly IDeviceApiFactory _deviceApi;
 
         public AutomaticPhotoTourControllerTests()
         {
             _context = Substitute.For<IDataContext>();
-            _eventBus = Substitute.For<IDeviceConnectionEventBus>();
+            _eventBus = Substitute.For<IDeviceConnectionStorage>();
             _deviceApi = Substitute.For<IDeviceApiFactory>();
         }
 
@@ -52,7 +52,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             var devices = new List<DeviceHealthState>() { new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional), 0, "") };
             var photoTours = new QueryableList<AutomaticPhotoTour>();
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
-            _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+            _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
 
             await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [], "comment", "name", DeviceId));
@@ -75,7 +75,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             var devices = new List<DeviceHealthState>() { new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional), 0, "") };
             var photoTours = new QueryableList<AutomaticPhotoTour>();
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
-            _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+            _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
 
             Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));
@@ -96,7 +96,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             };
             var photoTours = new QueryableList<AutomaticPhotoTour>();
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
-            _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+            _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
 
             Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));
@@ -120,7 +120,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             temperatureClient.DevicesAsync().ReturnsForAnyArgs(["0x4a"]);
             _deviceApi.TemperatureClient("").ReturnsForAnyArgs(temperatureClient);
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
-            _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+            _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
 
             await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));

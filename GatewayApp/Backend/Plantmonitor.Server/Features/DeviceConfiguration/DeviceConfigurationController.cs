@@ -7,7 +7,7 @@ public record struct DeviceConnection(string Ip, bool SshIsOpen);
 
 [ApiController]
 [Route("api/[controller]")]
-public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, IEnvironmentConfiguration configuration, IDeviceApiFactory deviceApiFactory)
+public class DeviceConfigurationController(IDeviceConnectionStorage eventBus, IEnvironmentConfiguration configuration, IDeviceApiFactory deviceApiFactory)
 {
     public record struct WebSshCredentials(string Protocol, string Port, string Password, string User);
     public record struct CertificateData(string Certificate, string Key);
@@ -40,6 +40,6 @@ public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, I
     [HttpGet("devices")]
     public IEnumerable<DeviceHealthState> GetDevices()
     {
-        return eventBus.GetDeviceHealthInformation();
+        return eventBus.GetCurrentDeviceHealths();
     }
 }

@@ -16,7 +16,7 @@ public class DeviceRestarterTests
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IServiceScope _serviceScope = Substitute.For<IServiceScope>();
     private readonly IServiceProvider _provider = Substitute.For<IServiceProvider>();
-    private readonly IDeviceConnectionEventBus _eventBus = Substitute.For<IDeviceConnectionEventBus>();
+    private readonly IDeviceConnectionStorage _eventBus = Substitute.For<IDeviceConnectionStorage>();
     private readonly IDataContext _context = Substitute.For<IDataContext>();
     private readonly IIrImageTakingClient _irClient = Substitute.For<IIrImageTakingClient>();
     private readonly IVisImageTakingClient _visClient = Substitute.For<IVisImageTakingClient>();
@@ -27,7 +27,7 @@ public class DeviceRestarterTests
         _serviceScopeFactory = Substitute.For<IServiceScopeFactory>();
         _serviceScopeFactory.CreateScope().ReturnsForAnyArgs(_serviceScope);
         _serviceScope.ServiceProvider.ReturnsForAnyArgs(_provider);
-        _provider.GetService(typeof(IDeviceConnectionEventBus)).Returns(_eventBus);
+        _provider.GetService(typeof(IDeviceConnectionStorage)).Returns(_eventBus);
         _provider.GetService(typeof(IDataContext)).Returns(_context);
         _provider.GetService(typeof(IDeviceApiFactory)).Returns(_deviceApi);
         _deviceApi.IrImageTakingClient("").ReturnsForAnyArgs(_irClient);
@@ -55,7 +55,7 @@ public class DeviceRestarterTests
             new(new(default, switchDevice, "testSwitcher", HealthState.NA), 0, ""),
             new(new(default, deviceGuid, "faultyDevice", HealthState.ThermalCameraFunctional), 5, "")
         };
-        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
         _context.DeviceSwitchAssociations.ReturnsForAnyArgs(new QueryableList<DeviceSwitchAssociation>()
@@ -80,7 +80,7 @@ public class DeviceRestarterTests
         var devices = new List<DeviceHealthState>() {
             new(new(default, deviceGuid, "device", HealthState.NA), 0, ""),
         };
-        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
         await using var visStream = new MemoryStream(new byte[1000]);
@@ -109,7 +109,7 @@ public class DeviceRestarterTests
         var devices = new List<DeviceHealthState>() {
             new(new(default, deviceGuid, "device", HealthState.NA), 0, ""),
         };
-        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
         await using var failStream = new MemoryStream();
@@ -140,7 +140,7 @@ public class DeviceRestarterTests
         var devices = new List<DeviceHealthState>() {
             new(new(default, switchDevice, "testSwitcher", HealthState.NA), 0, ""),
         };
-        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
 
@@ -162,7 +162,7 @@ public class DeviceRestarterTests
             new(new(default, switchDevice, "testSwitcher", HealthState.NA), 0, ""),
             new(new(default, deviceGuid, "faultyDevice", HealthState.ThermalCameraFunctional), 5, "")
         };
-        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
         _context.DeviceSwitchAssociations.ReturnsForAnyArgs(new QueryableList<DeviceSwitchAssociation>()
@@ -189,7 +189,7 @@ public class DeviceRestarterTests
             new(new(default, switchDevice, "testSwitcher", HealthState.CanSwitchOutlets), 0, ""),
             new(new(default, deviceGuid, "faultyDevice", HealthState.ThermalCameraFunctional), 5, "")
         };
-        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
         _context.DeviceSwitchAssociations.ReturnsForAnyArgs(new QueryableList<DeviceSwitchAssociation>()
@@ -223,7 +223,7 @@ public class DeviceRestarterTests
             new(new(default, switchDevice2, "testSwitcher2", HealthState.CanSwitchOutlets), 0, ""),
             new(new(default, deviceGuid, "faultyDevice", HealthState.ThermalCameraFunctional), 5, "")
         };
-        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
+        _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs(devices);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
         _context.DeviceSwitchAssociations.ReturnsForAnyArgs(new QueryableList<DeviceSwitchAssociation>()
@@ -253,7 +253,7 @@ public class DeviceRestarterTests
         var switchDevice = Guid.NewGuid().ToString();
         var sut = CreateDeviceRestarter();
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
-        _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs([new DeviceHealthState(new(default, switchDevice, "testSwitcher", HealthState.CanSwitchOutlets), 0, "")]);
+        _eventBus.GetCurrentDeviceHealths().ReturnsForAnyArgs([new DeviceHealthState(new(default, switchDevice, "testSwitcher", HealthState.CanSwitchOutlets), 0, "")]);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
         _context.DeviceSwitchAssociations.ReturnsForAnyArgs(new QueryableList<DeviceSwitchAssociation>()

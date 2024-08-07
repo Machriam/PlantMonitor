@@ -5,7 +5,7 @@ namespace Plantmonitor.Server.Features.DeviceConfiguration;
 
 public record struct DeviceHealthState(DeviceHealth Health, int RetryTimes, string Ip);
 
-public class DeviceConnectionWorker(IDeviceConnectionTester tester, IDeviceConnectionEventBus eventBus, ILogger<DeviceConnectionWorker> logger) : IHostedService
+public class DeviceConnectionWorker(IDeviceConnectionTester tester, IDeviceConnectionStorage eventBus, ILogger<DeviceConnectionWorker> logger) : IHostedService
 {
     private Timer? _sshPingTimer;
     private Timer? _healthPingTimer;

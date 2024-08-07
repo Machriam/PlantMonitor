@@ -1,21 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Plantmonitor.DataModel.DataModel;
-using Plantmonitor.Server.Features.DeviceControl;
+﻿using Plantmonitor.DataModel.DataModel;
 
 namespace Plantmonitor.Server.Features.DeviceConfiguration;
 
-public interface IDeviceConnectionEventBus
+public interface IDeviceConnectionStorage
 {
     IEnumerable<DeviceHealthState> GetAllSeenHealths();
 
-    IEnumerable<DeviceHealthState> GetDeviceHealthInformation();
+    IEnumerable<DeviceHealthState> GetCurrentDeviceHealths();
 
     void RemoveSeenDevice(string ip);
 
     void UpdateDeviceHealths(IEnumerable<DeviceHealthState> healths);
 }
 
-public class DeviceConnectionEventBus(IServiceScopeFactory scopeFactory) : IDeviceConnectionEventBus
+public class DeviceConnectionStorage(IServiceScopeFactory scopeFactory) : IDeviceConnectionStorage
 {
     private const string AllSeenDeviceHealthsKey = nameof(AllSeenDeviceHealthsKey);
     private static List<DeviceHealthState> s_currentDeviceHealths = [];
@@ -75,10 +73,10 @@ public class DeviceConnectionEventBus(IServiceScopeFactory scopeFactory) : IDevi
         s_allSeenDeviceHealths.Remove(s_allSeenDeviceHealths.Find(dh => dh.Ip == ip));
     }
 
-    public IEnumerable<DeviceHealthState> GetDeviceHealthInformation()
+    public IEnumerable<DeviceHealthState> GetCurrentDeviceHealths()
     {
 #if DEBUG
-        return s_deviceHealths.Append(new DeviceHealthState(new DeviceHealth(new(129, 39), "13be815a-cf95-4b58-b9f7-fd5d9f5431e9", "test", HealthState.NA), 0, "localhost:7006"));
+        return s_currentDeviceHealths.Append(new DeviceHealthState(new DeviceHealth(new(129, 39), "13be815a-cf95-4b58-b9f7-fd5d9f5431e9", "test", HealthState.NA), 0, "localhost:7006"));
 #endif
         return s_currentDeviceHealths;
     }

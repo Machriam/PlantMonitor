@@ -8,7 +8,7 @@ namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectionEventBus eventBus, IDeviceApiFactory deviceFactory)
+public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectionStorage eventBus, IDeviceApiFactory deviceFactory)
 {
     public record struct TemperatureMeasurementInfo(string Guid, string Comment);
     public record struct AutomaticTourStartInfo(float IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice, string Comment, string Name, string DeviceGuid);
@@ -92,9 +92,9 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
 
     private static async Task<(DeviceHealthState ImagingDevice, List<(DeviceHealthState DeviceHealth, TemperatureMeasurementInfo MeasurementInfo, List<string> Sensors)> TemperatureDevices)> CheckStartConditions(
         IDataContext context, IDeviceApiFactory deviceFactory, IEnumerable<TemperatureMeasurementInfo> measurementDevices, string deviceGuid, long movementPlanId,
-        IDeviceConnectionEventBus eventBus)
+        IDeviceConnectionStorage eventBus)
     {
-        var deviceById = eventBus.GetDeviceHealthInformation()
+        var deviceById = eventBus.GetCurrentDeviceHealths()
             .Where(d => !d.Health.DeviceId.IsEmpty())
             .ToDictionary(d => d.Health.DeviceId ?? throw new Exception("DeviceId must not be empty"));
         if (!deviceById.TryGetValue(deviceGuid, out var imagingDevice)) throw new Exception($"Device {deviceGuid} could not be found");

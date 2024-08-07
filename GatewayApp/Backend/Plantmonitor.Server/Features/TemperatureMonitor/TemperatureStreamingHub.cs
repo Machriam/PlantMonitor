@@ -11,7 +11,7 @@ using System.Threading.Channels;
 namespace Plantmonitor.Server.Features.TemperatureMonitor
 {
     public class TemperatureStreamingHub(IEnvironmentConfiguration configuration, IDeviceApiFactory factory,
-        IDeviceConnectionEventBus deviceConnections) : Hub
+        IDeviceConnectionStorage deviceConnections) : Hub
     {
         private static readonly ConcurrentDictionary<string, string> s_ipByConnectionId = new();
 
@@ -26,7 +26,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
 
         public async Task<ChannelReader<TemperatureStreamData>> StreamTemperature(string[] devices, string ip, CancellationToken token)
         {
-            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
+            var deviceId = deviceConnections.GetCurrentDeviceHealths().First(h => h.Ip == ip).Health.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, ip);
             var channel = Channel.CreateBounded<TemperatureStreamData>(new BoundedChannelOptions(100)
             {

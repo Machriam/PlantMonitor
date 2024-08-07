@@ -10,7 +10,7 @@ using System.Threading.Channels;
 namespace Plantmonitor.Server.Features.DeviceControl
 {
     public class PictureStreamingHub(IEnvironmentConfiguration configuration, ILogger<PictureStreamingHub> logger, IDeviceApiFactory factory,
-        IDeviceConnectionEventBus deviceConnections) : Hub
+        IDeviceConnectionStorage deviceConnections) : Hub
     {
         private static readonly ConcurrentDictionary<string, (string Ip, StreamingMetaData Device)> s_ipByConnectionId = new();
 
@@ -26,7 +26,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
 
         public async Task<ChannelReader<CameraStreamData>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
         {
-            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
+            var deviceId = deviceConnections.GetCurrentDeviceHealths().First(h => h.Ip == ip).Health.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, (ip, data));
             var picturePath = data.StoreData && deviceId != null ? configuration.PicturePath(deviceId) : "";
             var channel = Channel.CreateBounded<CameraStreamData>(new BoundedChannelOptions(1)

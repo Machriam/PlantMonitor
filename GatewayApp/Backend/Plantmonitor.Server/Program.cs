@@ -25,7 +25,7 @@ var configurationStorage = new ConfigurationStorage(builder.Configuration);
 var environmentConfiguration = new EnvironmentConfiguration(builder.Configuration, new ConfigurationStorage(builder.Configuration));
 builder.Services.AddSingleton<IEnvironmentConfiguration>(environmentConfiguration);
 builder.Services.AddSingleton<IConfigurationStorage>(configurationStorage);
-builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
+builder.Services.AddSingleton<IDeviceConnectionStorage, DeviceConnectionStorage>();
 
 builder.Services.AddTransient<IDeviceConnectionTester, DeviceConnectionTester>();
 builder.Services.AddTransient<IDatabaseUpgrader, DatabaseUpgrader>();

@@ -49,9 +49,9 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
             using var scope = scopeFactory.CreateScope();
             await using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
             var deviceRestarter = scope.ServiceProvider.GetRequiredService<IDeviceRestarter>();
-            var connectedDevices = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
+            var connectedDevices = scope.ServiceProvider.GetRequiredService<IDeviceConnectionStorage>();
             var deviceId = measurements.FirstOrDefault()?.DeviceId.ToString();
-            var healthInfo = connectedDevices.GetDeviceHealthInformation()
+            var healthInfo = connectedDevices.GetCurrentDeviceHealths()
                 .FirstOrDefault(h => h.Health.DeviceId == deviceId);
             if (healthInfo == default)
             {
@@ -92,8 +92,8 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
         public async Task StartTemperatureMeasurement(MeasurementDevice[] devices, string ip, long? photoTourFk = null)
         {
             using var scope = scopeFactory.CreateScope();
-            var connectedDevices = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
-            var healthInfo = connectedDevices.GetDeviceHealthInformation().FirstOrDefault(h => h.Ip == ip);
+            var connectedDevices = scope.ServiceProvider.GetRequiredService<IDeviceConnectionStorage>();
+            var healthInfo = connectedDevices.GetCurrentDeviceHealths().FirstOrDefault(h => h.Ip == ip);
             var deviceGuid = Guid.Parse(healthInfo.Health.DeviceId ?? throw new Exception($"Device {ip} has no Device Id"));
             var token = new CancellationTokenSource();
             var connection = new HubConnectionBuilder()

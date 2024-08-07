@@ -22,7 +22,7 @@ public class AutomaticPhotoTourWorkerTests
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly IServiceScope _serviceScope = Substitute.For<IServiceScope>();
     private readonly IServiceProvider _provider = Substitute.For<IServiceProvider>();
-    private readonly IDeviceConnectionEventBus _eventBus = Substitute.For<IDeviceConnectionEventBus>();
+    private readonly IDeviceConnectionStorage _eventBus = Substitute.For<IDeviceConnectionStorage>();
     private readonly IDeviceRestarter _restarter = Substitute.For<IDeviceRestarter>();
     private readonly IPictureDiskStreamer _pictureStreamer = Substitute.For<IPictureDiskStreamer>();
     private readonly IMotorMovementClient _motorClient = Substitute.For<IMotorMovementClient>();
@@ -36,7 +36,7 @@ public class AutomaticPhotoTourWorkerTests
         _serviceScopeFactory = Substitute.For<IServiceScopeFactory>();
         _serviceScopeFactory.CreateScope().ReturnsForAnyArgs(_serviceScope);
         _serviceScope.ServiceProvider.ReturnsForAnyArgs(_provider);
-        _provider.GetService(typeof(IDeviceConnectionEventBus)).Returns(_eventBus);
+        _provider.GetService(typeof(IDeviceConnectionStorage)).Returns(_eventBus);
         _provider.GetService(typeof(IDataContext)).Returns(_context);
         _provider.GetService(typeof(IDeviceApiFactory)).Returns(_deviceApi);
         _provider.GetService(typeof(IPictureDiskStreamer)).Returns(_pictureStreamer);
