@@ -39,12 +39,12 @@ public class DeviceTemperatureWatcherWorker(IServiceScopeFactory scopeFactory) :
                 var data = correctRunningMeasurements.First()!;
                 if (lastTemperature != null && (lastTemperature.Timestamp - DateTime.UtcNow).TotalMinutes > 1)
                 {
-                    await restarter.RestartDevice(data.DeviceId.ToString(), data.PhotoTourFk);
+                    await restarter.RestartDevice(data.DeviceId.ToString(), data.PhotoTourFk, data.Comment);
                     break;
                 }
                 if (lastTemperature == null && (data.StartTime - DateTime.UtcNow).TotalMinutes > 1)
                 {
-                    await restarter.RestartDevice(data.DeviceId.ToString(), data.PhotoTourFk);
+                    await restarter.RestartDevice(data.DeviceId.ToString(), data.PhotoTourFk, data.Comment);
                     break;
                 }
             }

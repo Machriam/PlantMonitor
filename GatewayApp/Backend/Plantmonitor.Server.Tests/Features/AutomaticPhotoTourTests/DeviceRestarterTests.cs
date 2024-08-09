@@ -170,7 +170,7 @@ public class DeviceRestarterTests
             new(){DeviceId=Guid.Parse(deviceGuid),OutletOffFkNavigation=new(){Code=1234},OutletOnFkNavigation=new(){ Code=5678} }
         });
 
-        await sut.RestartDevice(deviceGuid, 1);
+        await sut.RestartDevice(deviceGuid, 1, "Test");
 
         _eventBus.DidNotReceiveWithAnyArgs().UpdateDeviceHealths(default!);
         await client.DidNotReceiveWithAnyArgs().SwitchoutletAsync(1234);
@@ -197,7 +197,7 @@ public class DeviceRestarterTests
             new(){DeviceId=Guid.Parse(deviceGuid),OutletOffFkNavigation=new(){Code=1234},OutletOnFkNavigation=new(){ Code=5678} }
         });
 
-        await sut.RestartDevice(deviceGuid, 1);
+        await sut.RestartDevice(deviceGuid, 1, "Test");
 
         var updateDeviceHealthCalls = (IEnumerable<DeviceHealthState>?)_eventBus.ReceivedCalls()
             .First(c => c.GetMethodInfo().Name == nameof(_eventBus.UpdateDeviceHealths)).GetArguments()?.First() ?? [];
@@ -231,7 +231,7 @@ public class DeviceRestarterTests
             new(){DeviceId=Guid.Parse(deviceGuid),OutletOffFkNavigation=new(){Code=1234},OutletOnFkNavigation=new(){ Code=5678} }
         });
 
-        await sut.RestartDevice(deviceGuid, 1);
+        await sut.RestartDevice(deviceGuid, 1, "Test");
 
         var updateDeviceHealthCalls = (IEnumerable<DeviceHealthState>?)_eventBus.ReceivedCalls()
             .First(c => c.GetMethodInfo().Name == nameof(_eventBus.UpdateDeviceHealths)).GetArguments()?.First() ?? [];
@@ -261,9 +261,9 @@ public class DeviceRestarterTests
             new(){DeviceId=Guid.Parse(deviceGuid),OutletOffFkNavigation=new(){Code=1234},OutletOnFkNavigation=new(){ Code=5678} }
         });
 
-        await sut.RestartDevice(deviceGuid, 1);
-        await sut.RestartDevice(deviceGuid, 1);
-        await sut.RestartDevice(deviceGuid, 1);
+        await sut.RestartDevice(deviceGuid, 1, "Test");
+        await sut.RestartDevice(deviceGuid, 1, "Test");
+        await sut.RestartDevice(deviceGuid, 1, "Test");
 
         await client.ReceivedWithAnyArgs(2).SwitchoutletAsync(default);
         Received.InOrder(async () =>
@@ -279,7 +279,7 @@ public class DeviceRestarterTests
         var sut = CreateDeviceRestarter();
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
 
-        await sut.RestartDevice("", 1);
+        await sut.RestartDevice("", 1, "Test");
 
         _context.PhotoTourEvents.Count().Should().Be(1);
         _context.PhotoTourEvents.First().Type.Should().Be(PhotoTourEventType.Error);
