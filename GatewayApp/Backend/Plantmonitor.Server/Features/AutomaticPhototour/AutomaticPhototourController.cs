@@ -23,6 +23,8 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
             .First(pt => pt.Id == id);
         var movementPlan = context.DeviceMovements.First(dm => dm.DeviceId == tour.DeviceId);
         var associatedTemperatureDevices = tour.TemperatureMeasurements
+            .ToList()
+            .Where(tm => !tm.IsThermalCamera())
             .Select(tm => new TemperatureMeasurementInfo(tm.DeviceId.ToString(), tm.Comment))
             .ToList();
         if (!shouldBePaused)
