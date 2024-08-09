@@ -11,7 +11,8 @@ namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectionEventBus eventBus, IDeviceApiFactory deviceFactory)
 {
     public record struct TemperatureMeasurementInfo(string Guid, string Comment);
-    public record struct AutomaticTourStartInfo(float IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice, string Comment, string Name, string DeviceGuid);
+    public record struct AutomaticTourStartInfo(float IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice,
+        string Comment, string Name, string DeviceGuid, bool ShouldUseIR);
     public record struct PhotoTourInfo(string Name, bool Finished, long Id, DateTime FirstEvent, DateTime LastEvent);
 
     [HttpPost("pausephototour")]
@@ -64,6 +65,8 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     {
         var (imagingDevice, temperatureDevices) = await CheckStartConditions(context, deviceFactory, startInfo.TemperatureMeasureDevice, startInfo.DeviceGuid, startInfo.MovementPlan, eventBus);
 
+        if (!imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.ThermalCameraFunctional) && startInfo.ShouldUseIR)
+            throw new Exception("IR camera was requested for photo tour, but not found");
         var photoTour = new DataModel.DataModel.AutomaticPhotoTour()
         {
             Comment = startInfo.Comment,
@@ -83,7 +86,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
                 DeviceId = Guid.Parse(startInfo.DeviceGuid),
                 SensorId = TemperatureMeasurement.FlirLeptonSensorId,
                 StartTime = DateTime.UtcNow
-            }, _ => imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.ThermalCameraFunctional))
+            }, _ => imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.ThermalCameraFunctional) && startInfo.ShouldUseIR)
             .ToList()
         };
         context.AutomaticPhotoTours.Add(photoTour);
@@ -91,16 +94,19 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     }
 
     private static async Task<(DeviceHealthState ImagingDevice, List<(DeviceHealthState DeviceHealth, TemperatureMeasurementInfo MeasurementInfo, List<string> Sensors)> TemperatureDevices)> CheckStartConditions(
-        IDataContext context, IDeviceApiFactory deviceFactory, IEnumerable<TemperatureMeasurementInfo> measurementDevices, string deviceGuid, long movementPlanId,
-        IDeviceConnectionEventBus eventBus)
+           IDataContext context, IDeviceApiFactory deviceFactory, IEnumerable<TemperatureMeasurementInfo> measurementDevices, string deviceGuid, long movementPlanId,
+           IDeviceConnectionEventBus eventBus)
     {
         var deviceById = eventBus.GetDeviceHealthInformation()
             .Where(d => !d.Health.DeviceId.IsEmpty())
             .ToDictionary(d => d.Health.DeviceId ?? throw new Exception("DeviceId must not be empty"));
         if (!deviceById.TryGetValue(deviceGuid, out var imagingDevice)) throw new Exception($"Device {deviceGuid} could not be found");
+        var recheckedDeviceHealth = await deviceFactory.HealthClient(imagingDevice.Ip).CheckdevicehealthAsync();
+        if (recheckedDeviceHealth == default) throw new Exception("Imaging device could not be checked");
+        imagingDevice.Health = recheckedDeviceHealth;
         if (!measurementDevices.All(td => deviceById.ContainsKey(td.Guid))) throw new Exception("Not all requested temperature measurement devices are available");
         var movementPlan = context.DeviceMovements.FirstOrDefault(dm => dm.Id == movementPlanId) ?? throw new Exception("Movementplan not found");
-        if (!imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.NoirCameraFunctional)) throw new Exception($"{imagingDevice.Health.DeviceName} has no functioning vis camera");
+        if (!recheckedDeviceHealth.State.GetValueOrDefault().HasFlag(HealthState.NoirCameraFunctional)) throw new Exception($"{imagingDevice.Health.DeviceName} has no functioning vis camera");
         var temperatureDevices = measurementDevices
             .Select(td => (DeviceHealth: deviceById[td.Guid], MeasurementInfo: td, Sensors: new List<string>()))
             .ToList();
