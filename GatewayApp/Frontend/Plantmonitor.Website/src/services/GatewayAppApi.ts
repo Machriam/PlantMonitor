@@ -3955,6 +3955,7 @@ export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
     comment!: string;
     name!: string;
     deviceGuid!: string;
+    shouldUseIR!: boolean;
 
     constructor(data?: IAutomaticTourStartInfo) {
         if (data) {
@@ -3977,6 +3978,7 @@ export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
             this.comment = _data["Comment"];
             this.name = _data["Name"];
             this.deviceGuid = _data["DeviceGuid"];
+            this.shouldUseIR = _data["ShouldUseIR"];
         }
     }
 
@@ -3999,6 +4001,7 @@ export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
         data["Comment"] = this.comment;
         data["Name"] = this.name;
         data["DeviceGuid"] = this.deviceGuid;
+        data["ShouldUseIR"] = this.shouldUseIR;
         return data;
     }
 
@@ -4017,6 +4020,7 @@ export interface IAutomaticTourStartInfo {
     comment: string;
     name: string;
     deviceGuid: string;
+    shouldUseIR: boolean;
 }
 
 export class TemperatureMeasurementInfo implements ITemperatureMeasurementInfo {

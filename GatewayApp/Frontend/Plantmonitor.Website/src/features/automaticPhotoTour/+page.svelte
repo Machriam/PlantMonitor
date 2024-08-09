@@ -17,6 +17,7 @@
     import {selectedDevice, allDevices} from "../store";
     import {isValid} from "./AutomaticTourStartInfoExtensions";
     import {calculateMoveTo} from "~/services/movementPointExtensions";
+    import Checkbox from "../reuseableComponents/Checkbox.svelte";
 
     onDestroy(() => {});
     let movementPlan: DeviceMovement | undefined;
@@ -87,6 +88,7 @@
         <TextInput class="col-md-2" bind:value={startInfo.name} label="Name"></TextInput>
         <TextInput class="col-md-2" bind:value={startInfo.comment} label="Comment"></TextInput>
         <NumberInput class="col-md-2" bind:value={startInfo.intervallInMinutes} step={0.1} label="Interval in min"></NumberInput>
+        <Checkbox class="col-md-2 align-content-center" label="Use IR?" bind:value={startInfo.shouldUseIR}></Checkbox>
         <button on:click={AddPhotoTour} disabled={!startInfo[isValid]($selectedDevice)} class="btn btn-primary col-md-2"
             >Add new Tour
         </button>

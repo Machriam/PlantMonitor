@@ -55,7 +55,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
 
-            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [], "comment", "name", DeviceId));
+            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [], "comment", "name", DeviceId, true));
 
             photoTours.Count.Should().Be(1);
             photoTours.First().DeviceId.Should().Be(DeviceId);
@@ -78,7 +78,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
 
-            Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));
+            Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true));
             await action.Should().ThrowAsync<Exception>().WithMessage("*Not all requested temperature measurement devices are available*");
         }
 
@@ -99,7 +99,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
 
-            Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));
+            Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true));
             await action.Should().ThrowAsync<Exception>().WithMessage("*tempDev1 has no temperature sensor*tempDev2 has no temperature sensor*");
         }
 
@@ -123,7 +123,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
             _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { new() { Id = 1 } });
 
-            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId));
+            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true));
 
             photoTours.Count.Should().Be(1);
             photoTours.First().DeviceId.Should().Be(DeviceId);
