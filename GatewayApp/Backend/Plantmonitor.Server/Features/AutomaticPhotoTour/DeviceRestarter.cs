@@ -44,15 +44,17 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         }
         var deviceName = deviceHealth.Health.DeviceName ?? photoTourData.DeviceId.ToString();
         logEvent($"Checking Camera {deviceName}", PhotoTourEventType.Information);
-        var irTest = hasIrCamera ? await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync() : default;
-        var irImage = irTest?.Stream.ConvertToArray() ?? [];
-        var visTest = await deviceApi.VisImageTakingClient(deviceHealth.Ip).PreviewimageAsync();
-        var visImage = visTest.Stream.ConvertToArray();
-        if ((hasIrCamera && irImage.Length < 100) || visImage.Length < 100)
+        var irTest = hasIrCamera ? await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync().Try() : default;
+        var irImage = irTest.Result?.Stream.ConvertToArray() ?? [];
+        var visTest = await deviceApi.VisImageTakingClient(deviceHealth.Ip).PreviewimageAsync().Try();
+        var visImage = visTest.Result?.Stream.ConvertToArray() ?? [];
+        if ((hasIrCamera && irImage.Length < 100 && !irTest.Error.IsEmpty()) || visImage.Length < 100 || !visTest.Error.IsEmpty())
         {
             var notWorkingCameras = new List<string>()
                 .PushIf("IR", _ => irImage.Length < 100)
                 .PushIf("VIS", _ => visImage.Length < 100)
+                .PushIf($"IR error {irTest.Error}", _ => !irTest.Error.IsEmpty())
+                .PushIf($"VIS error {visTest.Error}", _ => !visTest.Error.IsEmpty())
                 .Concat(", ");
             logEvent($"Camera {notWorkingCameras} not working. Trying Restart.", PhotoTourEventType.Error);
             RestartDevice(photoTourData.DeviceId.ToString(), photoTourId, deviceName).RunInBackground(ex => ex.LogError());
