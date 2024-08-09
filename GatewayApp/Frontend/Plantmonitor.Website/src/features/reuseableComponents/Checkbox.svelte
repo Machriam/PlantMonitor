@@ -5,7 +5,7 @@
     const guid = crypto.randomUUID();
 </script>
 
-<div class="{$$restProps.class || ''} row ms-1">
-    <input disabled={disabledSelector()} class="form-check col-md-2" type="checkbox" bind:checked={value} id={guid} />
-    <label class="col-md-9" for={guid}>{label}</label>
+<div class="{$$restProps.class || ''} row ms-1 form-switch">
+    <input disabled={disabledSelector()} class="form-check-input col-md-2" type="checkbox" bind:checked={value} id={guid} />
+    <label class="col-md-9 form-check-label" for={guid}>{label}</label>
 </div>
