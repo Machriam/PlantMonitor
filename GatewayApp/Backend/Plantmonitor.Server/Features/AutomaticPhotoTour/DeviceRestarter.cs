@@ -115,7 +115,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         {
             await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOffFkNavigation.Code);
             await Task.Delay(200);
-            logEvent($"{switchDevice.Health.DeviceName ?? switchDevice.Health.DeviceId} switched {deviceGuid} off", PhotoTourEventType.Information);
+            logEvent($"{switchDevice.Health.DeviceName ?? switchDevice.Health.DeviceId} switched {deviceName} off", PhotoTourEventType.Information);
         }
         eventBus.UpdateDeviceHealths(eventBus.GetDeviceHealthInformation().Where(d => d.Health.DeviceId != restartDeviceId));
         s_lastRestarts.AddOrUpdate(deviceGuid, DateTime.UtcNow, (_1, _2) => DateTime.UtcNow);
@@ -124,7 +124,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         {
             await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOnFkNavigation.Code);
             await Task.Delay(200);
-            logEvent($"{switchDevice.Health.DeviceName ?? switchDevice.Health.DeviceId} switched {deviceGuid} on", PhotoTourEventType.Information);
+            logEvent($"{switchDevice.Health.DeviceName ?? switchDevice.Health.DeviceId} switched {deviceName} on", PhotoTourEventType.Information);
         }
         return;
     }
