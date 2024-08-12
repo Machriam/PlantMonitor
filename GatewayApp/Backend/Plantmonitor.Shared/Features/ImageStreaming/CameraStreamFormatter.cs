@@ -32,6 +32,13 @@ public class CameraStreamFormatter
     public byte[]? PictureData { get; set; }
     public Func<byte[]?> FetchImageData { get; set; } = () => null;
 
+    public static (string? FileName, CameraStreamFormatter? Formatter) FindInFolder(string path, int motorPosition)
+    {
+        return Directory.GetFiles(path)
+            .Select(file => FromFileLazy(file, out var formatter) ? (File: file, Formatter: formatter) : (null, null))
+            .FirstOrDefault(file => file.File != null && file.Formatter?.Steps == motorPosition);
+    }
+
     public static bool FromFileLazy(string path, out CameraStreamFormatter result)
     {
         result = new();

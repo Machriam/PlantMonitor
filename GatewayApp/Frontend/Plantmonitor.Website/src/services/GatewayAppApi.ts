@@ -727,6 +727,10 @@ export interface IPhotoStitchingClient {
 
     removePlantsFromTour(plantIds: number[]): Promise<void>;
 
+    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined): Promise<ImageCropPreview>;
+
+    updateIrOFfset(adjustment: IrOffsetFineAdjustement): Promise<void>;
+
     associatePlantImageSection(section: PlantImageSection): Promise<void>;
 
     removePlantImageSections(sectionIds: number[]): Promise<void>;
@@ -910,6 +914,86 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
     }
 
     protected processRemovePlantsFromTour(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined): Promise<ImageCropPreview> {
+        let url_ = this.baseUrl + "/api/PhotoStitching/croppedimagefor?";
+        if (extractionTemplateId === null)
+            throw new Error("The parameter 'extractionTemplateId' cannot be null.");
+        else if (extractionTemplateId !== undefined)
+            url_ += "extractionTemplateId=" + encodeURIComponent("" + extractionTemplateId) + "&";
+        if (photoTripId === null)
+            throw new Error("The parameter 'photoTripId' cannot be null.");
+        else if (photoTripId !== undefined)
+            url_ += "photoTripId=" + encodeURIComponent("" + photoTripId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processCroppedImageFor(_response));
+        });
+    }
+
+    protected processCroppedImageFor(response: Response): Promise<ImageCropPreview> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ImageCropPreview.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ImageCropPreview>(null as any);
+    }
+
+    updateIrOFfset(adjustment: IrOffsetFineAdjustement): Promise<void> {
+        let url_ = this.baseUrl + "/api/PhotoStitching/updateiroffset";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(adjustment);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdateIrOFfset(_response));
+        });
+    }
+
+    protected processUpdateIrOFfset(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3449,6 +3533,100 @@ export interface IPlantExtractionTemplateModel {
     irBoundingBoxOffset: NpgsqlPoint;
     motorPosition: number;
     applicablePhotoTripFrom: Date;
+}
+
+export class ImageCropPreview implements IImageCropPreview {
+    irImage!: string;
+    visImage!: string;
+
+    constructor(data?: IImageCropPreview) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.irImage = _data["IrImage"];
+            this.visImage = _data["VisImage"];
+        }
+    }
+
+    static fromJS(data: any): ImageCropPreview {
+        data = typeof data === 'object' ? data : {};
+        let result = new ImageCropPreview();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["IrImage"] = this.irImage;
+        data["VisImage"] = this.visImage;
+        return data;
+    }
+
+    clone(): ImageCropPreview {
+        const json = this.toJSON();
+        let result = new ImageCropPreview();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IImageCropPreview {
+    irImage: string;
+    visImage: string;
+}
+
+export class IrOffsetFineAdjustement implements IIrOffsetFineAdjustement {
+    extractionTemplateId!: number;
+    newIrOffset!: NpgsqlPoint;
+
+    constructor(data?: IIrOffsetFineAdjustement) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.extractionTemplateId = _data["ExtractionTemplateId"];
+            this.newIrOffset = _data["NewIrOffset"] ? NpgsqlPoint.fromJS(_data["NewIrOffset"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): IrOffsetFineAdjustement {
+        data = typeof data === 'object' ? data : {};
+        let result = new IrOffsetFineAdjustement();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["ExtractionTemplateId"] = this.extractionTemplateId;
+        data["NewIrOffset"] = this.newIrOffset ? this.newIrOffset.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): IrOffsetFineAdjustement {
+        const json = this.toJSON();
+        let result = new IrOffsetFineAdjustement();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IIrOffsetFineAdjustement {
+    extractionTemplateId: number;
+    newIrOffset: NpgsqlPoint;
 }
 
 export class PlantImageSection implements IPlantImageSection {

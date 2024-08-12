@@ -1,22 +1,24 @@
-﻿using System.Security.Principal;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.ImageStitching;
+using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.DeviceProgramming;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PhotoStitchingController(IDataContext context, IVirtualImageWorker virtualImageWorker)
+public class PhotoStitchingController(IDataContext context, IVirtualImageWorker virtualImageWorker, IImageCropper cropper)
 {
     public record struct AddPlantModel(IEnumerable<PlantModel> Plants, long TourId);
     public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? QrCode, long PhotoTourFk, IEnumerable<ExtractionMetaData> ExtractionMetaData);
     public record struct ExtractionMetaData(long TripWithExtraction, int MotorPosition, DateTime ExtractionTime);
     public record struct PlantExtractionTemplateModel(long Id, long PhotoTripFk, long PhotoTourPlantFk, NpgsqlPolygon PhotoBoundingBox, NpgsqlPoint IrBoundingBoxOffset, int MotorPosition, DateTime ApplicablePhotoTripFrom);
     public record struct PlantModel(string Name, string Comment, string QrCode);
+    public record struct IrOffsetFineAdjustement(long ExtractionTemplateId, NpgsqlPoint NewIrOffset);
     public record struct PlantImageSection(int StepCount, long PhotoTripId, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
+    public record struct ImageCropPreview(byte[] IrImage, byte[] VisImage);
 
     [HttpGet("plantsfortour")]
     public IEnumerable<PhotoTourPlantInfo> PlantsForTour(long tourId)
@@ -64,6 +66,40 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
         if (referencedPlants.Count > 0)
             throw new Exception($"The following plants have extraction plans and cannot be removed: {referencedPlants.Select(rp => rp.PhotoTourPlantFkNavigation.Name).Concat(", ")}");
         context.PhotoTourPlants.RemoveRange(context.PhotoTourPlants.Where(ptp => plantIds.Contains(ptp.Id)));
+        context.SaveChanges();
+    }
+
+    [HttpGet("croppedimagefor")]
+    public ImageCropPreview CroppedImageFor(long extractionTemplateId, long photoTripId)
+    {
+        var template = context.PlantExtractionTemplates.First(pet => pet.Id == extractionTemplateId);
+        var photoTrip = context.PhotoTourTrips.First(ptt => ptt.Id == photoTripId);
+        var irFile = CameraStreamFormatter.FindInFolder(photoTrip.IrDataFolder, template.MotorPosition);
+        var visFile = CameraStreamFormatter.FindInFolder(photoTrip.VisDataFolder, template.MotorPosition);
+        if (visFile.FileName == null) throw new Exception($"Vis image for position {template.MotorPosition} could not be found in {photoTrip.VisDataFolder}");
+        if (irFile.FileName == null) throw new Exception($"Ir image for position {template.MotorPosition} could not be found in {photoTrip.IrDataFolder}");
+        var (visImage, irImage) = cropper.CropImages(visFile.FileName, irFile.FileName, [.. template.PhotoBoundingBox],
+            template.IrBoundingBoxOffset, VirtualImageWorker.VirtualPlantImageCropHeight);
+        if (visImage == null || irImage == null)
+        {
+            visImage?.Dispose();
+            irImage?.Dispose();
+            throw new Exception("Cropping was not successfull");
+        }
+        cropper.ApplyIrColorMap(irImage);
+        return new ImageCropPreview()
+        {
+            IrImage = cropper.MatToByteArray(irImage),
+            VisImage = cropper.MatToByteArray(visImage)
+        };
+    }
+
+    [HttpPost("updateiroffset")]
+    public void UpdateIrOFfset(IrOffsetFineAdjustement adjustment)
+    {
+        context.PlantExtractionTemplates
+            .First(pet => pet.Id == adjustment.ExtractionTemplateId)
+            .IrBoundingBoxOffset = adjustment.NewIrOffset;
         context.SaveChanges();
     }
 
