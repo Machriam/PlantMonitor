@@ -16,6 +16,7 @@
     import type {HubConnection} from "@microsoft/signalr";
     import {imageToCutChanged, plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
+    import IrFineAdjustment from "./IrFineAdjustment.svelte";
 
     export let deviceId: string;
     export let irSeries: string;

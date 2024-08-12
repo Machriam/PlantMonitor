@@ -119,7 +119,9 @@ public class ImageCropper() : IImageCropper
         var fullPath = Path.Combine(Path.GetTempPath(), resultFile);
         CvInvoke.Imwrite(fullPath, mat);
         if (disposeMat) mat.Dispose();
-        return File.ReadAllBytes(fullPath);
+        var result = File.ReadAllBytes(fullPath);
+        File.Delete(fullPath);
+        return result;
     }
 
     public void Resize(Mat mat, int height)

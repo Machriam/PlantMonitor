@@ -117,8 +117,8 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                     logger.LogWarning("No vis image found. Moving to next plant.");
                     continue;
                 }
-                logger.LogInformation("Using images vis: {vis} and ir: {ir} for cropping", visImage.FileName, irImage?.File ?? "NA");
-                var matResults = cropper.CropImages(visImage.FileName, irImage?.File, [.. extractionTemplate.PhotoBoundingBox],
+                logger.LogInformation("Using images vis: {vis} and ir: {ir} for cropping", visImage.FileName, irImage.FileName ?? "NA");
+                var matResults = cropper.CropImages(visImage.FileName, irImage.FileName, [.. extractionTemplate.PhotoBoundingBox],
                     extractionTemplate.IrBoundingBoxOffset, VirtualPlantImageCropHeight);
                 virtualImageList[^1].VisImage = matResults.VisImage;
                 virtualImageList[^1].VisImageTime = visImage.Formatter.Timestamp;

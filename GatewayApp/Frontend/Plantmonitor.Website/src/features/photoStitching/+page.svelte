@@ -19,6 +19,7 @@
     import {imageToCutChanged, plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
     import type {ImageToCut} from "./ImageToCut";
+    import IrFineAdjustment from "./IrFineAdjustment.svelte";
     let _availableTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _pictureTrips: PictureTripData[] = [];
@@ -104,7 +105,7 @@
 
 <h3>Available Tours</h3>
 <div class="d-flex flex-row">
-    {#each _availableTours as tour}
+    {#each _availableTours.toSorted((t1, t2) => (t1.lastEvent <= t2.lastEvent ? 1 : -1)) as tour}
         <button
             on:click={async () => await selectedTourChanged(tour)}
             class="col-md-1 me-2 p-2 mt-2 alert {_selectedTour?.id == tour.id ? 'bg-info bg-opacity-50' : ''}  border-dark">
@@ -113,7 +114,7 @@
     {/each}
 </div>
 <div class="row">
-    <div style="overflow-y: auto;height:80vh" class="d-flex flex-column col-md-2">
+    <div style="overflow-y: auto;height:70vh" class="d-flex flex-column col-md-2">
         {#each _pictureTrips as { tripId, timeStamp, irData, visData }, i}
             {@const polyLength = _plants
                 .flatMap((p) => p.extractionMetaData.map((et) => et.tripWithExtraction))
@@ -156,7 +157,7 @@
             <button on:click={() => ($selectedPhotoTourPlantInfo = _plants)} class="btn btn-primary"
                 >Show polygons on image</button>
         </div>
-        <div style="overflow-y:auto;height:60vh" class="mt-3">
+        <div style="overflow-y:auto;height:40vh" class="mt-3">
             {#if _selectedTrip != undefined}
                 {#each _plants as plant}
                     {@const template = _extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)}
@@ -172,10 +173,7 @@
                         </div>
                         <div
                             style="align-self: center;"
-                            class={_extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)?.motorPosition ==
-                            _selectedImage?.stepCount
-                                ? "fw-bold"
-                                : ""}>
+                            class={template?.motorPosition == _selectedImage?.stepCount ? "fw-bold" : ""}>
                             {plant.name} - {plant.qrCode?.isEmpty() ? "No QR" : plant.qrCode}
                         </div>
                         <div style="align-self: center;">{plant.comment}</div>
@@ -185,3 +183,4 @@
         </div>
     </div>
 </div>
+<IrFineAdjustment bind:_extractionTemplates={_extractionTemplatesOfTrip} bind:_selectedTrip></IrFineAdjustment>
