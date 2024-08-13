@@ -3538,6 +3538,8 @@ export interface IPlantExtractionTemplateModel {
 export class ImageCropPreview implements IImageCropPreview {
     irImage!: string;
     visImage!: string;
+    currentOffset!: NpgsqlPoint;
+    irImageSize!: NpgsqlPoint;
 
     constructor(data?: IImageCropPreview) {
         if (data) {
@@ -3552,6 +3554,8 @@ export class ImageCropPreview implements IImageCropPreview {
         if (_data) {
             this.irImage = _data["IrImage"];
             this.visImage = _data["VisImage"];
+            this.currentOffset = _data["CurrentOffset"] ? NpgsqlPoint.fromJS(_data["CurrentOffset"]) : <any>undefined;
+            this.irImageSize = _data["IrImageSize"] ? NpgsqlPoint.fromJS(_data["IrImageSize"]) : <any>undefined;
         }
     }
 
@@ -3566,6 +3570,8 @@ export class ImageCropPreview implements IImageCropPreview {
         data = typeof data === 'object' ? data : {};
         data["IrImage"] = this.irImage;
         data["VisImage"] = this.visImage;
+        data["CurrentOffset"] = this.currentOffset ? this.currentOffset.toJSON() : <any>undefined;
+        data["IrImageSize"] = this.irImageSize ? this.irImageSize.toJSON() : <any>undefined;
         return data;
     }
 
@@ -3580,11 +3586,14 @@ export class ImageCropPreview implements IImageCropPreview {
 export interface IImageCropPreview {
     irImage: string;
     visImage: string;
+    currentOffset: NpgsqlPoint;
+    irImageSize: NpgsqlPoint;
 }
 
 export class IrOffsetFineAdjustement implements IIrOffsetFineAdjustement {
     extractionTemplateId!: number;
     newIrOffset!: NpgsqlPoint;
+    overwriteOffset!: boolean;
 
     constructor(data?: IIrOffsetFineAdjustement) {
         if (data) {
@@ -3599,6 +3608,7 @@ export class IrOffsetFineAdjustement implements IIrOffsetFineAdjustement {
         if (_data) {
             this.extractionTemplateId = _data["ExtractionTemplateId"];
             this.newIrOffset = _data["NewIrOffset"] ? NpgsqlPoint.fromJS(_data["NewIrOffset"]) : <any>undefined;
+            this.overwriteOffset = _data["OverwriteOffset"];
         }
     }
 
@@ -3613,6 +3623,7 @@ export class IrOffsetFineAdjustement implements IIrOffsetFineAdjustement {
         data = typeof data === 'object' ? data : {};
         data["ExtractionTemplateId"] = this.extractionTemplateId;
         data["NewIrOffset"] = this.newIrOffset ? this.newIrOffset.toJSON() : <any>undefined;
+        data["OverwriteOffset"] = this.overwriteOffset;
         return data;
     }
 
@@ -3627,6 +3638,7 @@ export class IrOffsetFineAdjustement implements IIrOffsetFineAdjustement {
 export interface IIrOffsetFineAdjustement {
     extractionTemplateId: number;
     newIrOffset: NpgsqlPoint;
+    overwriteOffset: boolean;
 }
 
 export class PlantImageSection implements IPlantImageSection {

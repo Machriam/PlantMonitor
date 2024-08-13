@@ -16,9 +16,9 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     public record struct ExtractionMetaData(long TripWithExtraction, int MotorPosition, DateTime ExtractionTime);
     public record struct PlantExtractionTemplateModel(long Id, long PhotoTripFk, long PhotoTourPlantFk, NpgsqlPolygon PhotoBoundingBox, NpgsqlPoint IrBoundingBoxOffset, int MotorPosition, DateTime ApplicablePhotoTripFrom);
     public record struct PlantModel(string Name, string Comment, string QrCode);
-    public record struct IrOffsetFineAdjustement(long ExtractionTemplateId, NpgsqlPoint NewIrOffset);
+    public record struct IrOffsetFineAdjustement(long ExtractionTemplateId, NpgsqlPoint NewIrOffset, bool OverwriteOffset);
     public record struct PlantImageSection(int StepCount, long PhotoTripId, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
-    public record struct ImageCropPreview(byte[] IrImage, byte[] VisImage);
+    public record struct ImageCropPreview(byte[] IrImage, byte[] VisImage, NpgsqlPoint CurrentOffset, NpgsqlPoint IrImageSize);
 
     [HttpGet("plantsfortour")]
     public IEnumerable<PhotoTourPlantInfo> PlantsForTour(long tourId)
@@ -87,19 +87,24 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
             throw new Exception("Cropping was not successfull");
         }
         cropper.ApplyIrColorMap(irImage);
+        var irImageSize = new NpgsqlPoint(irImage.Cols, irImage.Rows);
         return new ImageCropPreview()
         {
             IrImage = cropper.MatToByteArray(irImage),
-            VisImage = cropper.MatToByteArray(visImage)
+            VisImage = cropper.MatToByteArray(visImage),
+            CurrentOffset = template.IrBoundingBoxOffset,
+            IrImageSize = irImageSize
         };
     }
 
     [HttpPost("updateiroffset")]
     public void UpdateIrOFfset(IrOffsetFineAdjustement adjustment)
     {
-        context.PlantExtractionTemplates
-            .First(pet => pet.Id == adjustment.ExtractionTemplateId)
-            .IrBoundingBoxOffset = adjustment.NewIrOffset;
+        var template = context.PlantExtractionTemplates
+            .First(pet => pet.Id == adjustment.ExtractionTemplateId);
+        var offset = template.IrBoundingBoxOffset;
+        var adjustedOffset = new NpgsqlPoint(offset.X + adjustment.NewIrOffset.X, offset.Y + adjustment.NewIrOffset.Y);
+        template.IrBoundingBoxOffset = adjustment.OverwriteOffset ? adjustment.NewIrOffset : adjustedOffset;
         context.SaveChanges();
     }
 
