@@ -727,9 +727,9 @@ export interface IPhotoStitchingClient {
 
     removePlantsFromTour(plantIds: number[]): Promise<void>;
 
-    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined): Promise<ImageCropPreview>;
+    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined, xOffset?: number | undefined, yOffset?: number | undefined): Promise<ImageCropPreview>;
 
-    updateIrOFfset(adjustment: IrOffsetFineAdjustement): Promise<void>;
+    updateIrOffset(adjustment: IrOffsetFineAdjustment): Promise<void>;
 
     associatePlantImageSection(section: PlantImageSection): Promise<void>;
 
@@ -928,7 +928,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
         return Promise.resolve<void>(null as any);
     }
 
-    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined): Promise<ImageCropPreview> {
+    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined, xOffset?: number | undefined, yOffset?: number | undefined): Promise<ImageCropPreview> {
         let url_ = this.baseUrl + "/api/PhotoStitching/croppedimagefor?";
         if (extractionTemplateId === null)
             throw new Error("The parameter 'extractionTemplateId' cannot be null.");
@@ -938,6 +938,14 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
             throw new Error("The parameter 'photoTripId' cannot be null.");
         else if (photoTripId !== undefined)
             url_ += "photoTripId=" + encodeURIComponent("" + photoTripId) + "&";
+        if (xOffset === null)
+            throw new Error("The parameter 'xOffset' cannot be null.");
+        else if (xOffset !== undefined)
+            url_ += "xOffset=" + encodeURIComponent("" + xOffset) + "&";
+        if (yOffset === null)
+            throw new Error("The parameter 'yOffset' cannot be null.");
+        else if (yOffset !== undefined)
+            url_ += "yOffset=" + encodeURIComponent("" + yOffset) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -972,7 +980,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
         return Promise.resolve<ImageCropPreview>(null as any);
     }
 
-    updateIrOFfset(adjustment: IrOffsetFineAdjustement): Promise<void> {
+    updateIrOffset(adjustment: IrOffsetFineAdjustment): Promise<void> {
         let url_ = this.baseUrl + "/api/PhotoStitching/updateiroffset";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -989,11 +997,11 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
         return this.transformOptions(options_).then(transformedOptions_ => {
             return this.http.fetch(url_, transformedOptions_);
         }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processUpdateIrOFfset(_response));
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdateIrOffset(_response));
         });
     }
 
-    protected processUpdateIrOFfset(response: Response): Promise<void> {
+    protected processUpdateIrOffset(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -3539,7 +3547,6 @@ export class ImageCropPreview implements IImageCropPreview {
     irImage!: string;
     visImage!: string;
     currentOffset!: NpgsqlPoint;
-    irImageSize!: NpgsqlPoint;
 
     constructor(data?: IImageCropPreview) {
         if (data) {
@@ -3555,7 +3562,6 @@ export class ImageCropPreview implements IImageCropPreview {
             this.irImage = _data["IrImage"];
             this.visImage = _data["VisImage"];
             this.currentOffset = _data["CurrentOffset"] ? NpgsqlPoint.fromJS(_data["CurrentOffset"]) : <any>undefined;
-            this.irImageSize = _data["IrImageSize"] ? NpgsqlPoint.fromJS(_data["IrImageSize"]) : <any>undefined;
         }
     }
 
@@ -3571,7 +3577,6 @@ export class ImageCropPreview implements IImageCropPreview {
         data["IrImage"] = this.irImage;
         data["VisImage"] = this.visImage;
         data["CurrentOffset"] = this.currentOffset ? this.currentOffset.toJSON() : <any>undefined;
-        data["IrImageSize"] = this.irImageSize ? this.irImageSize.toJSON() : <any>undefined;
         return data;
     }
 
@@ -3587,15 +3592,13 @@ export interface IImageCropPreview {
     irImage: string;
     visImage: string;
     currentOffset: NpgsqlPoint;
-    irImageSize: NpgsqlPoint;
 }
 
-export class IrOffsetFineAdjustement implements IIrOffsetFineAdjustement {
+export class IrOffsetFineAdjustment implements IIrOffsetFineAdjustment {
     extractionTemplateId!: number;
     newIrOffset!: NpgsqlPoint;
-    overwriteOffset!: boolean;
 
-    constructor(data?: IIrOffsetFineAdjustement) {
+    constructor(data?: IIrOffsetFineAdjustment) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -3608,13 +3611,12 @@ export class IrOffsetFineAdjustement implements IIrOffsetFineAdjustement {
         if (_data) {
             this.extractionTemplateId = _data["ExtractionTemplateId"];
             this.newIrOffset = _data["NewIrOffset"] ? NpgsqlPoint.fromJS(_data["NewIrOffset"]) : <any>undefined;
-            this.overwriteOffset = _data["OverwriteOffset"];
         }
     }
 
-    static fromJS(data: any): IrOffsetFineAdjustement {
+    static fromJS(data: any): IrOffsetFineAdjustment {
         data = typeof data === 'object' ? data : {};
-        let result = new IrOffsetFineAdjustement();
+        let result = new IrOffsetFineAdjustment();
         result.init(data);
         return result;
     }
@@ -3623,22 +3625,20 @@ export class IrOffsetFineAdjustement implements IIrOffsetFineAdjustement {
         data = typeof data === 'object' ? data : {};
         data["ExtractionTemplateId"] = this.extractionTemplateId;
         data["NewIrOffset"] = this.newIrOffset ? this.newIrOffset.toJSON() : <any>undefined;
-        data["OverwriteOffset"] = this.overwriteOffset;
         return data;
     }
 
-    clone(): IrOffsetFineAdjustement {
+    clone(): IrOffsetFineAdjustment {
         const json = this.toJSON();
-        let result = new IrOffsetFineAdjustement();
+        let result = new IrOffsetFineAdjustment();
         result.init(json);
         return result;
     }
 }
 
-export interface IIrOffsetFineAdjustement {
+export interface IIrOffsetFineAdjustment {
     extractionTemplateId: number;
     newIrOffset: NpgsqlPoint;
-    overwriteOffset: boolean;
 }
 
 export class PlantImageSection implements IPlantImageSection {

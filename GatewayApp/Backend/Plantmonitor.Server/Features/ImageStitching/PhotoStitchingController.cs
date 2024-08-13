@@ -16,9 +16,9 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     public record struct ExtractionMetaData(long TripWithExtraction, int MotorPosition, DateTime ExtractionTime);
     public record struct PlantExtractionTemplateModel(long Id, long PhotoTripFk, long PhotoTourPlantFk, NpgsqlPolygon PhotoBoundingBox, NpgsqlPoint IrBoundingBoxOffset, int MotorPosition, DateTime ApplicablePhotoTripFrom);
     public record struct PlantModel(string Name, string Comment, string QrCode);
-    public record struct IrOffsetFineAdjustement(long ExtractionTemplateId, NpgsqlPoint NewIrOffset, bool OverwriteOffset);
+    public record struct IrOffsetFineAdjustment(long ExtractionTemplateId, NpgsqlPoint NewIrOffset);
     public record struct PlantImageSection(int StepCount, long PhotoTripId, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
-    public record struct ImageCropPreview(byte[] IrImage, byte[] VisImage, NpgsqlPoint CurrentOffset, NpgsqlPoint IrImageSize);
+    public record struct ImageCropPreview(byte[] IrImage, byte[] VisImage, NpgsqlPoint CurrentOffset);
 
     [HttpGet("plantsfortour")]
     public IEnumerable<PhotoTourPlantInfo> PlantsForTour(long tourId)
@@ -70,7 +70,7 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     }
 
     [HttpGet("croppedimagefor")]
-    public ImageCropPreview CroppedImageFor(long extractionTemplateId, long photoTripId)
+    public ImageCropPreview CroppedImageFor(long extractionTemplateId, long photoTripId, double xOffset, double yOffset)
     {
         var template = context.PlantExtractionTemplates.First(pet => pet.Id == extractionTemplateId);
         var photoTrip = context.PhotoTourTrips.First(ptt => ptt.Id == photoTripId);
@@ -78,8 +78,9 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
         var visFile = CameraStreamFormatter.FindInFolder(photoTrip.VisDataFolder, template.MotorPosition);
         if (visFile.FileName == null) throw new Exception($"Vis image for position {template.MotorPosition} could not be found in {photoTrip.VisDataFolder}");
         if (irFile.FileName == null) throw new Exception($"Ir image for position {template.MotorPosition} could not be found in {photoTrip.IrDataFolder}");
+        var irOffset = new NpgsqlPoint(template.IrBoundingBoxOffset.X + xOffset, template.IrBoundingBoxOffset.Y + yOffset);
         var (visImage, irImage) = cropper.CropImages(visFile.FileName, irFile.FileName, [.. template.PhotoBoundingBox],
-            template.IrBoundingBoxOffset, VirtualImageWorker.VirtualPlantImageCropHeight);
+            irOffset, VirtualImageWorker.VirtualPlantImageCropHeight);
         if (visImage == null || irImage == null)
         {
             visImage?.Dispose();
@@ -87,24 +88,20 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
             throw new Exception("Cropping was not successfull");
         }
         cropper.ApplyIrColorMap(irImage);
-        var irImageSize = new NpgsqlPoint(irImage.Cols, irImage.Rows);
         return new ImageCropPreview()
         {
             IrImage = cropper.MatToByteArray(irImage),
             VisImage = cropper.MatToByteArray(visImage),
-            CurrentOffset = template.IrBoundingBoxOffset,
-            IrImageSize = irImageSize
+            CurrentOffset = irOffset,
         };
     }
 
     [HttpPost("updateiroffset")]
-    public void UpdateIrOFfset(IrOffsetFineAdjustement adjustment)
+    public void UpdateIrOffset(IrOffsetFineAdjustment adjustment)
     {
         var template = context.PlantExtractionTemplates
-            .First(pet => pet.Id == adjustment.ExtractionTemplateId);
-        var offset = template.IrBoundingBoxOffset;
-        var adjustedOffset = new NpgsqlPoint(offset.X + adjustment.NewIrOffset.X, offset.Y + adjustment.NewIrOffset.Y);
-        template.IrBoundingBoxOffset = adjustment.OverwriteOffset ? adjustment.NewIrOffset : adjustedOffset;
+            .First(pet => pet.Id == adjustment.ExtractionTemplateId)
+            .IrBoundingBoxOffset = adjustment.NewIrOffset;
         context.SaveChanges();
     }
 
