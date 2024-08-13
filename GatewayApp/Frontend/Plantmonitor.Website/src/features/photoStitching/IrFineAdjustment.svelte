@@ -22,7 +22,6 @@
     let _selectedTemplate: NpgsqlPoint | undefined;
     onMount(() => {
         _polygonUpdater = Task.createDebouncer(displayPolygonIrOffset, 150);
-        _availableExtractionTemplates = uniqueExtractionOffsets();
     });
     function keyPressed(evt: KeyboardEvent) {
         if (evt.key == "ArrowRight") {
@@ -93,8 +92,12 @@
             {$selectedPhotoTourPlantInfo[0].comment} - {$selectedPhotoTourPlantInfo[0].qrCode}
         </div>
         <div class="col-md-12 row">
-            <button on:click={async () => (_imageCropPreview = await loadNewPolygon())} class="btn btn-primary col-md-2"
-                >Show Polygon</button>
+            <button
+                on:click={async () => {
+                    _imageCropPreview = await loadNewPolygon();
+                    _availableExtractionTemplates = uniqueExtractionOffsets();
+                }}
+                class="btn btn-primary col-md-2">Show Polygon</button>
             <button on:click={() => storePolygonIrOffset()} class="btn btn-success col-md-2">Upate Offset</button>
         </div>
     {/if}
