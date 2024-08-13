@@ -20,7 +20,7 @@ public interface IVirtualImageWorker
 public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentConfiguration configuration,
     ILogger<VirtualImageWorker> logger) : IHostedService, IVirtualImageWorker
 {
-    private const int VirtualPlantImageCropHeight = 960;
+    public const int VirtualPlantImageCropHeight = 960;
     private Timer? _timer;
     private static readonly object s_lock = new();
     private static bool s_isRunning;
@@ -78,8 +78,6 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             logger.LogWarning("No extraction templates defined for tour {tour}. Exiting", tripToProcess.PhotoTourFkNavigation.Name);
             return;
         }
-        var maxBoundingBoxHeight = (int)float.Ceiling(extractionTemplates.Max(bb => bb.BoundingBoxHeight));
-        var maxBoundingBoxWidth = (int)float.Ceiling(extractionTemplates.Max(bb => bb.BoundingBoxWidth));
         var imagesToCreate = dataContext.PhotoTourTrips
             .Where(ptt => ptt.VirtualPicturePath == null && ptt.PhotoTourFk == tripToProcess.PhotoTourFk)
             .ToList();
@@ -109,24 +107,20 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                     Name = plant.Name,
                 });
                 if (extractionTemplate == null || !Path.Exists(image.VisDataFolder) || !Path.Exists(image.IrDataFolder)) continue;
-                var visImage = Directory.GetFiles(image.VisDataFolder)
-                    .Select(vi => new { Success = CameraStreamFormatter.FromFileLazy(vi, out var formatter), File = vi, Formatter = formatter })
-                    .FirstOrDefault(f => f.Success && f.Formatter.Steps == extractionTemplate.MotorPosition);
-                var irImage = Directory.GetFiles(image.IrDataFolder)
-                    .Select(vi => new { Success = CameraStreamFormatter.FromFileLazy(vi, out var formatter), File = vi, Formatter = formatter })
-                    .FirstOrDefault(f => f.Success && f.Formatter.Steps == extractionTemplate.MotorPosition);
+                var visImage = CameraStreamFormatter.FindInFolder(image.VisDataFolder, extractionTemplate.MotorPosition);
+                var irImage = CameraStreamFormatter.FindInFolder(image.IrDataFolder, extractionTemplate.MotorPosition);
 
-                if (visImage == null)
+                if (visImage.FileName == null || visImage.Formatter == null)
                 {
                     logger.LogWarning("No vis image found. Moving to next plant.");
                     continue;
                 }
-                logger.LogInformation("Using images vis: {vis} and ir: {ir} for cropping", visImage.File, irImage?.File ?? "NA");
-                var matResults = cropper.CropImages(visImage.File, irImage?.File, [.. extractionTemplate.PhotoBoundingBox],
+                logger.LogInformation("Using images vis: {vis} and ir: {ir} for cropping", visImage.FileName, irImage.FileName ?? "NA");
+                var matResults = cropper.CropImages(visImage.FileName, irImage.FileName, [.. extractionTemplate.PhotoBoundingBox],
                     extractionTemplate.IrBoundingBoxOffset, VirtualPlantImageCropHeight);
                 virtualImageList[^1].VisImage = matResults.VisImage;
                 virtualImageList[^1].VisImageTime = visImage.Formatter.Timestamp;
-                if (irImage == null) continue;
+                if (irImage.Formatter == null || irImage.FileName == null) continue;
                 virtualImageList[^1].IrImageTime = irImage.Formatter.Timestamp;
                 virtualImageList[^1].IrTemperatureInK = irImage.Formatter.TemperatureInK;
                 if (matResults.IrImage?.Cols == 0 || matResults.IrImage?.Rows == 0) continue;
@@ -136,7 +130,9 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                 virtualImageList[^1].ColoredIrImage = colorMat;
             }
             logger.LogInformation("Stitching virtual image together");
-            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxBoundingBoxWidth, maxBoundingBoxHeight);
+            var maxHeight = virtualImageList.Select(v => v.VisImage?.Height ?? 10).OrderByDescending(h => h).FirstOrDefault();
+            var maxWidth = virtualImageList.Select(v => v.VisImage?.Width ?? 10).OrderByDescending(h => h).FirstOrDefault();
+            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight);
             logger.LogInformation("Fetching additional metadata");
             var fullMetaDataTable = AddAditionalMetaData(dataContext, tripToProcess, virtualImageList, virtualImage);
 

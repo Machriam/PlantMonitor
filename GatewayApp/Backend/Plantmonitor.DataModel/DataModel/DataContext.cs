@@ -166,7 +166,6 @@ public partial class DataContext : DbContext, IDataContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Message).HasColumnName("message");
             entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
-            entity.Property(e => e.ReferencesEvent).HasColumnName("references_event");
             entity.Property(e => e.Timestamp)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("timestamp");
@@ -175,10 +174,6 @@ public partial class DataContext : DbContext, IDataContext
                 .HasForeignKey(d => d.PhotoTourFk)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("photo_tour_event_photo_tour_fk_fkey");
-
-            entity.HasOne(d => d.ReferencesEventNavigation).WithMany(p => p.InverseReferencesEventNavigation)
-                .HasForeignKey(d => d.ReferencesEvent)
-                .HasConstraintName("photo_tour_event_references_event_fkey");
         });
 
         modelBuilder.Entity<PhotoTourPlant>(entity =>
@@ -191,7 +186,7 @@ public partial class DataContext : DbContext, IDataContext
             entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.Name).HasColumnName("name");
             entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
-            entity.Property(e => e.QrCode).HasColumnName("qr_code");
+            entity.Property(e => e.Position).HasColumnName("position");
 
             entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourPlants)
                 .HasForeignKey(d => d.PhotoTourFk)
@@ -201,7 +196,7 @@ public partial class DataContext : DbContext, IDataContext
 
         modelBuilder.Entity<PhotoTourTrip>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("photo_tour_journey_pkey");
+            entity.HasKey(e => e.Id).HasName("photo_tour_trip_pkey");
 
             entity.ToTable("photo_tour_trip", "plantmonitor");
 
@@ -217,7 +212,7 @@ public partial class DataContext : DbContext, IDataContext
             entity.HasOne(d => d.PhotoTourFkNavigation).WithMany(p => p.PhotoTourTrips)
                 .HasForeignKey(d => d.PhotoTourFk)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("photo_tour_journey_photo_tour_fk_fkey");
+                .HasConstraintName("photo_tour_trip_photo_tour_fk_fkey");
         });
 
         modelBuilder.Entity<PlantExtractionTemplate>(entity =>

@@ -1,22 +1,24 @@
-﻿using System.Security.Principal;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.ImageStitching;
+using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.DeviceProgramming;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PhotoStitchingController(IDataContext context, IVirtualImageWorker virtualImageWorker)
+public class PhotoStitchingController(IDataContext context, IVirtualImageWorker virtualImageWorker, IImageCropper cropper)
 {
     public record struct AddPlantModel(IEnumerable<PlantModel> Plants, long TourId);
-    public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? QrCode, long PhotoTourFk, IEnumerable<ExtractionMetaData> ExtractionMetaData);
+    public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? Position, long PhotoTourFk, IEnumerable<ExtractionMetaData> ExtractionMetaData);
     public record struct ExtractionMetaData(long TripWithExtraction, int MotorPosition, DateTime ExtractionTime);
     public record struct PlantExtractionTemplateModel(long Id, long PhotoTripFk, long PhotoTourPlantFk, NpgsqlPolygon PhotoBoundingBox, NpgsqlPoint IrBoundingBoxOffset, int MotorPosition, DateTime ApplicablePhotoTripFrom);
-    public record struct PlantModel(string Name, string Comment, string QrCode);
+    public record struct PlantModel(string Name, string Comment, string Position);
+    public record struct IrOffsetFineAdjustment(long ExtractionTemplateId, NpgsqlPoint NewIrOffset);
     public record struct PlantImageSection(int StepCount, long PhotoTripId, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
+    public record struct ImageCropPreview(byte[] IrImage, byte[] VisImage, NpgsqlPoint CurrentOffset);
 
     [HttpGet("plantsfortour")]
     public IEnumerable<PhotoTourPlantInfo> PlantsForTour(long tourId)
@@ -25,7 +27,7 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
             .Include(ptp => ptp.PlantExtractionTemplates)
             .ThenInclude(pet => pet.PhotoTripFkNavigation)
             .Where(ptp => ptp.PhotoTourFk == tourId)
-            .Select(ptp => new PhotoTourPlantInfo(ptp.Id, ptp.Name, ptp.Comment, ptp.QrCode, ptp.PhotoTourFk, ptp.PlantExtractionTemplates
+            .Select(ptp => new PhotoTourPlantInfo(ptp.Id, ptp.Name, ptp.Comment, ptp.Position, ptp.PhotoTourFk, ptp.PlantExtractionTemplates
                 .Select(pet => new ExtractionMetaData(pet.PhotoTripFk, pet.MotorPosition, pet.PhotoTripFkNavigation.Timestamp))));
     }
 
@@ -64,6 +66,42 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
         if (referencedPlants.Count > 0)
             throw new Exception($"The following plants have extraction plans and cannot be removed: {referencedPlants.Select(rp => rp.PhotoTourPlantFkNavigation.Name).Concat(", ")}");
         context.PhotoTourPlants.RemoveRange(context.PhotoTourPlants.Where(ptp => plantIds.Contains(ptp.Id)));
+        context.SaveChanges();
+    }
+
+    [HttpGet("croppedimagefor")]
+    public ImageCropPreview CroppedImageFor(long extractionTemplateId, long photoTripId, double xOffset, double yOffset)
+    {
+        var template = context.PlantExtractionTemplates.First(pet => pet.Id == extractionTemplateId);
+        var photoTrip = context.PhotoTourTrips.First(ptt => ptt.Id == photoTripId);
+        var irFile = CameraStreamFormatter.FindInFolder(photoTrip.IrDataFolder, template.MotorPosition);
+        var visFile = CameraStreamFormatter.FindInFolder(photoTrip.VisDataFolder, template.MotorPosition);
+        if (visFile.FileName == null) throw new Exception($"Vis image for position {template.MotorPosition} could not be found in {photoTrip.VisDataFolder}");
+        if (irFile.FileName == null) throw new Exception($"Ir image for position {template.MotorPosition} could not be found in {photoTrip.IrDataFolder}");
+        var irOffset = new NpgsqlPoint(template.IrBoundingBoxOffset.X + xOffset, template.IrBoundingBoxOffset.Y + yOffset);
+        var (visImage, irImage) = cropper.CropImages(visFile.FileName, irFile.FileName, [.. template.PhotoBoundingBox],
+            irOffset, VirtualImageWorker.VirtualPlantImageCropHeight);
+        if (visImage == null || irImage == null)
+        {
+            visImage?.Dispose();
+            irImage?.Dispose();
+            throw new Exception("Cropping was not successfull");
+        }
+        cropper.ApplyIrColorMap(irImage);
+        return new ImageCropPreview()
+        {
+            IrImage = cropper.MatToByteArray(irImage),
+            VisImage = cropper.MatToByteArray(visImage),
+            CurrentOffset = irOffset,
+        };
+    }
+
+    [HttpPost("updateiroffset")]
+    public void UpdateIrOffset(IrOffsetFineAdjustment adjustment)
+    {
+        var template = context.PlantExtractionTemplates
+            .First(pet => pet.Id == adjustment.ExtractionTemplateId)
+            .IrBoundingBoxOffset = adjustment.NewIrOffset;
         context.SaveChanges();
     }
 
@@ -108,12 +146,12 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     public void AddPlantsToTour(AddPlantModel plants)
     {
         var newNames = plants.Plants.Select(p => p.Name).ToHashSet();
-        var newQrCodes = plants.Plants.Select(p => p.QrCode).ToHashSet();
+        var newQrCodes = plants.Plants.Select(p => p.Position).ToHashSet();
         var existingNames = context.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == plants.TourId && newNames.Contains(ptp.Name));
-        var existingQrCodes = context.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == plants.TourId && ptp.QrCode != null && ptp.QrCode.Length > 0 && newQrCodes.Contains(ptp.QrCode));
+        var existingQrCodes = context.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == plants.TourId && ptp.Position != null && ptp.Position.Length > 0 && newQrCodes.Contains(ptp.Position));
         if (existingNames.Any() || existingQrCodes.Any())
         {
-            var message = $"The following names exist already: {existingNames.Select(en => en.Name).Concat(", ")}\n The following QR-Codes exist already: {existingQrCodes.Select(qr => qr.QrCode).Concat(", ")}";
+            var message = $"The following names exist already: {existingNames.Select(en => en.Name).Concat(", ")}\n The following QR-Codes exist already: {existingQrCodes.Select(qr => qr.Position).Concat(", ")}";
             throw new Exception(message);
         }
         context.PhotoTourPlants.AddRange(plants.Plants.Select(p => new PhotoTourPlant()
@@ -121,7 +159,7 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
             Comment = p.Comment,
             Name = p.Name,
             PhotoTourFk = plants.TourId,
-            QrCode = p.QrCode,
+            Position = p.Position,
         }));
         context.SaveChanges();
     }

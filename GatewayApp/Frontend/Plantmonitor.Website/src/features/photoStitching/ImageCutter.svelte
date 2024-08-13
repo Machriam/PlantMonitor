@@ -16,6 +16,7 @@
     import type {HubConnection} from "@microsoft/signalr";
     import {imageToCutChanged, plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
     import type {Unsubscriber} from "svelte/motion";
+    import IrFineAdjustment from "./IrFineAdjustment.svelte";
 
     export let deviceId: string;
     export let irSeries: string;
@@ -27,7 +28,7 @@
     let _images: ImageToCut[] = [];
     let _lastPointerPosition: MouseEvent | undefined;
     let _tooltip: TooltipCreatorResult | undefined;
-    let _cutPolygon: {points: NpgsqlPoint[]; name: string} = {points: [], name: ""};
+    let _cutPolygon: {points: NpgsqlPoint[]; name: string; position: string} = {points: [], name: "", position: ""};
     let _visConnection: HubConnection | undefined;
     let _irConnection: HubConnection | undefined;
     let _selectedPlant: PhotoTourPlantInfo | undefined;
@@ -40,7 +41,7 @@
     onMount(() => {
         startStream();
         const unsubscriber = selectedPhotoTourPlantInfo.subscribe(async (x) => {
-            _cutPolygon = {points: [], name: ""};
+            _cutPolygon = {points: [], name: "", position: ""};
             await refreshImage();
             if (x == undefined) return;
             if (x.length == 1) _selectedPlant = x[0];
@@ -51,7 +52,7 @@
                     (et) => et.photoTourPlantFk == plant.id && et.motorPosition == _selectedImage?.stepCount
                 );
                 if (existingTemplate == undefined) continue;
-                _cutPolygon = {points: [], name: plant.name};
+                _cutPolygon = {points: [], name: plant.name, position: plant.position ?? ""};
                 existingTemplate.photoBoundingBox.forEach((bb) => {
                     _cutPolygon.points.push(new NpgsqlPoint({x: bb.x * _imageRatio, y: bb.y * _imageRatio}));
                     drawLine();
@@ -119,13 +120,13 @@
             currentIndex = currentIndex + 1;
         }
         changeImage(currentIndex);
-        _cutPolygon = {points: [], name: ""};
+        _cutPolygon = {points: [], name: "", position: ""};
         event.preventDefault();
     }
     async function addLine(event: MouseEvent) {
         if (_selectedPlant == undefined) return;
         if (isPolygonValid()) {
-            _cutPolygon = {points: [], name: _selectedPlant.name};
+            _cutPolygon = {points: [], name: _selectedPlant.name, position: _selectedPlant.position ?? ""};
             await refreshImage();
         }
         _cutPolygon.points.push(new NpgsqlPoint({x: event.offsetX, y: event.offsetY}));
@@ -153,6 +154,9 @@
             context.font = "20px Arial";
             context.lineWidth = 1;
             context.textAlign = "center";
+            const textMeasurement = context.measureText(_cutPolygon.position);
+            const height = textMeasurement.fontBoundingBoxAscent + textMeasurement.fontBoundingBoxDescent;
+            if (!_cutPolygon.position.isEmpty()) context.strokeText(_cutPolygon.position, midX, midY - height);
             context.strokeText(_cutPolygon.name, midX, midY);
         }
     }
@@ -235,7 +239,7 @@
         if (_selectedPlant == undefined || _selectedImage == undefined) return;
         const client = new PhotoStitchingClient();
         const template = _extractionTemplates.find((et) => et.photoTourPlantFk == _selectedPlant?.id);
-        _cutPolygon = {points: [], name: ""};
+        _cutPolygon = {points: [], name: "", position: ""};
         await refreshImage();
         if (template == undefined) return;
         if (template.photoTripFk != _selectedPhotoTrip.tripId) {
@@ -301,7 +305,7 @@
                 <button on:click={() => connectPolygon()} class="btn btn-primary">Connect Cut</button>
             {/if}
         {/if}
-        <button on:click={removePolygon} class="btn btn-danger">Delete Polygon</button>
+        <button on:click={removePolygon} class="btn btn-danger ms-2">Delete Polygon</button>
         <button on:click={savePolygon} disabled={!_polygonValid} class="ms-2 btn btn-success">Save Polygon</button>
     </div>
 </div>

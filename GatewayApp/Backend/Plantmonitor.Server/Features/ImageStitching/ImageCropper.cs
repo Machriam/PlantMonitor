@@ -17,6 +17,8 @@ public interface IImageCropper
     void ApplyIrColorMap(Mat irImage);
 
     Mat CreateRawIr(Mat irImage);
+
+    byte[] MatToByteArray(Mat mat, bool disposeMat = true);
 }
 
 public class ImageCropper() : IImageCropper
@@ -83,6 +85,7 @@ public class ImageCropper() : IImageCropper
 
     public void ApplyIrColorMap(Mat irImage)
     {
+        if (irImage.Height == 0 || irImage.Width == 0) return;
         var baselineMat = new Mat(irImage.Rows, irImage.Cols, irImage.Depth, 1);
         baselineMat.SetTo(new MCvScalar(ZeroDegreeCelsius + 1500));
         var scaleMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv32F, 1);
@@ -109,6 +112,18 @@ public class ImageCropper() : IImageCropper
         irMat.SetTo(tempArray);
         isIr = true;
         return irMat;
+    }
+
+    public byte[] MatToByteArray(Mat mat, bool disposeMat = true)
+    {
+        if (mat.Width == 0 || mat.Height == 0) return [];
+        var resultFile = Guid.NewGuid().ToString() + ".png";
+        var fullPath = Path.Combine(Path.GetTempPath(), resultFile);
+        CvInvoke.Imwrite(fullPath, mat);
+        if (disposeMat) mat.Dispose();
+        var result = File.ReadAllBytes(fullPath);
+        File.Delete(fullPath);
+        return result;
     }
 
     public void Resize(Mat mat, int height)

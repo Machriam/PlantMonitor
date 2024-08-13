@@ -727,6 +727,10 @@ export interface IPhotoStitchingClient {
 
     removePlantsFromTour(plantIds: number[]): Promise<void>;
 
+    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined, xOffset?: number | undefined, yOffset?: number | undefined): Promise<ImageCropPreview>;
+
+    updateIrOffset(adjustment: IrOffsetFineAdjustment): Promise<void>;
+
     associatePlantImageSection(section: PlantImageSection): Promise<void>;
 
     removePlantImageSections(sectionIds: number[]): Promise<void>;
@@ -910,6 +914,94 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
     }
 
     protected processRemovePlantsFromTour(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined, xOffset?: number | undefined, yOffset?: number | undefined): Promise<ImageCropPreview> {
+        let url_ = this.baseUrl + "/api/PhotoStitching/croppedimagefor?";
+        if (extractionTemplateId === null)
+            throw new Error("The parameter 'extractionTemplateId' cannot be null.");
+        else if (extractionTemplateId !== undefined)
+            url_ += "extractionTemplateId=" + encodeURIComponent("" + extractionTemplateId) + "&";
+        if (photoTripId === null)
+            throw new Error("The parameter 'photoTripId' cannot be null.");
+        else if (photoTripId !== undefined)
+            url_ += "photoTripId=" + encodeURIComponent("" + photoTripId) + "&";
+        if (xOffset === null)
+            throw new Error("The parameter 'xOffset' cannot be null.");
+        else if (xOffset !== undefined)
+            url_ += "xOffset=" + encodeURIComponent("" + xOffset) + "&";
+        if (yOffset === null)
+            throw new Error("The parameter 'yOffset' cannot be null.");
+        else if (yOffset !== undefined)
+            url_ += "yOffset=" + encodeURIComponent("" + yOffset) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processCroppedImageFor(_response));
+        });
+    }
+
+    protected processCroppedImageFor(response: Response): Promise<ImageCropPreview> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ImageCropPreview.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ImageCropPreview>(null as any);
+    }
+
+    updateIrOffset(adjustment: IrOffsetFineAdjustment): Promise<void> {
+        let url_ = this.baseUrl + "/api/PhotoStitching/updateiroffset";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(adjustment);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdateIrOffset(_response));
+        });
+    }
+
+    protected processUpdateIrOffset(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2234,10 +2326,7 @@ export class PhotoTourEvent implements IPhotoTourEvent {
     photoTourFk!: number;
     message!: string;
     timestamp!: Date;
-    referencesEvent!: number | undefined;
-    inverseReferencesEventNavigation!: PhotoTourEvent[];
     photoTourFkNavigation!: AutomaticPhotoTour;
-    referencesEventNavigation!: PhotoTourEvent | undefined;
     type!: PhotoTourEventType;
 
     constructor(data?: IPhotoTourEvent) {
@@ -2255,14 +2344,7 @@ export class PhotoTourEvent implements IPhotoTourEvent {
             this.photoTourFk = _data["PhotoTourFk"];
             this.message = _data["Message"];
             this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
-            this.referencesEvent = _data["ReferencesEvent"];
-            if (Array.isArray(_data["InverseReferencesEventNavigation"])) {
-                this.inverseReferencesEventNavigation = [] as any;
-                for (let item of _data["InverseReferencesEventNavigation"])
-                    this.inverseReferencesEventNavigation!.push(PhotoTourEvent.fromJS(item));
-            }
             this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
-            this.referencesEventNavigation = _data["ReferencesEventNavigation"] ? PhotoTourEvent.fromJS(_data["ReferencesEventNavigation"]) : <any>undefined;
             this.type = _data["Type"];
         }
     }
@@ -2280,14 +2362,7 @@ export class PhotoTourEvent implements IPhotoTourEvent {
         data["PhotoTourFk"] = this.photoTourFk;
         data["Message"] = this.message;
         data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
-        data["ReferencesEvent"] = this.referencesEvent;
-        if (Array.isArray(this.inverseReferencesEventNavigation)) {
-            data["InverseReferencesEventNavigation"] = [];
-            for (let item of this.inverseReferencesEventNavigation)
-                data["InverseReferencesEventNavigation"].push(item.toJSON());
-        }
         data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
-        data["ReferencesEventNavigation"] = this.referencesEventNavigation ? this.referencesEventNavigation.toJSON() : <any>undefined;
         data["Type"] = this.type;
         return data;
     }
@@ -2305,10 +2380,7 @@ export interface IPhotoTourEvent {
     photoTourFk: number;
     message: string;
     timestamp: Date;
-    referencesEvent: number | undefined;
-    inverseReferencesEventNavigation: PhotoTourEvent[];
     photoTourFkNavigation: AutomaticPhotoTour;
-    referencesEventNavigation: PhotoTourEvent | undefined;
     type: PhotoTourEventType;
 }
 
@@ -2323,7 +2395,7 @@ export class PhotoTourPlant implements IPhotoTourPlant {
     id!: number;
     name!: string;
     comment!: string;
-    qrCode!: string | undefined;
+    position!: string | undefined;
     photoTourFk!: number;
     photoTourFkNavigation!: AutomaticPhotoTour;
     plantExtractionTemplates!: PlantExtractionTemplate[];
@@ -2342,7 +2414,7 @@ export class PhotoTourPlant implements IPhotoTourPlant {
             this.id = _data["Id"];
             this.name = _data["Name"];
             this.comment = _data["Comment"];
-            this.qrCode = _data["QrCode"];
+            this.position = _data["Position"];
             this.photoTourFk = _data["PhotoTourFk"];
             this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
             if (Array.isArray(_data["PlantExtractionTemplates"])) {
@@ -2365,7 +2437,7 @@ export class PhotoTourPlant implements IPhotoTourPlant {
         data["Id"] = this.id;
         data["Name"] = this.name;
         data["Comment"] = this.comment;
-        data["QrCode"] = this.qrCode;
+        data["Position"] = this.position;
         data["PhotoTourFk"] = this.photoTourFk;
         data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
         if (Array.isArray(this.plantExtractionTemplates)) {
@@ -2388,7 +2460,7 @@ export interface IPhotoTourPlant {
     id: number;
     name: string;
     comment: string;
-    qrCode: string | undefined;
+    position: string | undefined;
     photoTourFk: number;
     photoTourFkNavigation: AutomaticPhotoTour;
     plantExtractionTemplates: PlantExtractionTemplate[];
@@ -2400,9 +2472,9 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
     photoTourPlantFk!: number;
     photoBoundingBox!: NpgsqlPoint[];
     irBoundingBoxOffset!: NpgsqlPoint;
-    motorPosition!: number;
     boundingBoxHeight!: number;
     boundingBoxWidth!: number;
+    motorPosition!: number;
     photoTourPlantFkNavigation!: PhotoTourPlant;
     photoTripFkNavigation!: PhotoTourTrip;
 
@@ -2426,9 +2498,9 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
                     this.photoBoundingBox!.push(NpgsqlPoint.fromJS(item));
             }
             this.irBoundingBoxOffset = _data["IrBoundingBoxOffset"] ? NpgsqlPoint.fromJS(_data["IrBoundingBoxOffset"]) : <any>undefined;
-            this.motorPosition = _data["MotorPosition"];
             this.boundingBoxHeight = _data["BoundingBoxHeight"];
             this.boundingBoxWidth = _data["BoundingBoxWidth"];
+            this.motorPosition = _data["MotorPosition"];
             this.photoTourPlantFkNavigation = _data["PhotoTourPlantFkNavigation"] ? PhotoTourPlant.fromJS(_data["PhotoTourPlantFkNavigation"]) : <any>undefined;
             this.photoTripFkNavigation = _data["PhotoTripFkNavigation"] ? PhotoTourTrip.fromJS(_data["PhotoTripFkNavigation"]) : <any>undefined;
         }
@@ -2452,9 +2524,9 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
                 data["PhotoBoundingBox"].push(item.toJSON());
         }
         data["IrBoundingBoxOffset"] = this.irBoundingBoxOffset ? this.irBoundingBoxOffset.toJSON() : <any>undefined;
-        data["MotorPosition"] = this.motorPosition;
         data["BoundingBoxHeight"] = this.boundingBoxHeight;
         data["BoundingBoxWidth"] = this.boundingBoxWidth;
+        data["MotorPosition"] = this.motorPosition;
         data["PhotoTourPlantFkNavigation"] = this.photoTourPlantFkNavigation ? this.photoTourPlantFkNavigation.toJSON() : <any>undefined;
         data["PhotoTripFkNavigation"] = this.photoTripFkNavigation ? this.photoTripFkNavigation.toJSON() : <any>undefined;
         return data;
@@ -2474,9 +2546,9 @@ export interface IPlantExtractionTemplate {
     photoTourPlantFk: number;
     photoBoundingBox: NpgsqlPoint[];
     irBoundingBoxOffset: NpgsqlPoint;
-    motorPosition: number;
     boundingBoxHeight: number;
     boundingBoxWidth: number;
+    motorPosition: number;
     photoTourPlantFkNavigation: PhotoTourPlant;
     photoTripFkNavigation: PhotoTourTrip;
 }
@@ -3258,7 +3330,7 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
     id!: number;
     name!: string;
     comment!: string;
-    qrCode!: string | undefined;
+    position!: string | undefined;
     photoTourFk!: number;
     extractionMetaData!: ExtractionMetaData[];
 
@@ -3276,7 +3348,7 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
             this.id = _data["Id"];
             this.name = _data["Name"];
             this.comment = _data["Comment"];
-            this.qrCode = _data["QrCode"];
+            this.position = _data["Position"];
             this.photoTourFk = _data["PhotoTourFk"];
             if (Array.isArray(_data["ExtractionMetaData"])) {
                 this.extractionMetaData = [] as any;
@@ -3298,7 +3370,7 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
         data["Id"] = this.id;
         data["Name"] = this.name;
         data["Comment"] = this.comment;
-        data["QrCode"] = this.qrCode;
+        data["Position"] = this.position;
         data["PhotoTourFk"] = this.photoTourFk;
         if (Array.isArray(this.extractionMetaData)) {
             data["ExtractionMetaData"] = [];
@@ -3320,7 +3392,7 @@ export interface IPhotoTourPlantInfo {
     id: number;
     name: string;
     comment: string;
-    qrCode: string | undefined;
+    position: string | undefined;
     photoTourFk: number;
     extractionMetaData: ExtractionMetaData[];
 }
@@ -3451,6 +3523,104 @@ export interface IPlantExtractionTemplateModel {
     applicablePhotoTripFrom: Date;
 }
 
+export class ImageCropPreview implements IImageCropPreview {
+    irImage!: string;
+    visImage!: string;
+    currentOffset!: NpgsqlPoint;
+
+    constructor(data?: IImageCropPreview) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.irImage = _data["IrImage"];
+            this.visImage = _data["VisImage"];
+            this.currentOffset = _data["CurrentOffset"] ? NpgsqlPoint.fromJS(_data["CurrentOffset"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): ImageCropPreview {
+        data = typeof data === 'object' ? data : {};
+        let result = new ImageCropPreview();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["IrImage"] = this.irImage;
+        data["VisImage"] = this.visImage;
+        data["CurrentOffset"] = this.currentOffset ? this.currentOffset.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): ImageCropPreview {
+        const json = this.toJSON();
+        let result = new ImageCropPreview();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IImageCropPreview {
+    irImage: string;
+    visImage: string;
+    currentOffset: NpgsqlPoint;
+}
+
+export class IrOffsetFineAdjustment implements IIrOffsetFineAdjustment {
+    extractionTemplateId!: number;
+    newIrOffset!: NpgsqlPoint;
+
+    constructor(data?: IIrOffsetFineAdjustment) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.extractionTemplateId = _data["ExtractionTemplateId"];
+            this.newIrOffset = _data["NewIrOffset"] ? NpgsqlPoint.fromJS(_data["NewIrOffset"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): IrOffsetFineAdjustment {
+        data = typeof data === 'object' ? data : {};
+        let result = new IrOffsetFineAdjustment();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["ExtractionTemplateId"] = this.extractionTemplateId;
+        data["NewIrOffset"] = this.newIrOffset ? this.newIrOffset.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): IrOffsetFineAdjustment {
+        const json = this.toJSON();
+        let result = new IrOffsetFineAdjustment();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IIrOffsetFineAdjustment {
+    extractionTemplateId: number;
+    newIrOffset: NpgsqlPoint;
+}
+
 export class PlantImageSection implements IPlantImageSection {
     stepCount!: number;
     photoTripId!: number;
@@ -3576,7 +3746,7 @@ export interface IAddPlantModel {
 export class PlantModel implements IPlantModel {
     name!: string;
     comment!: string;
-    qrCode!: string;
+    position!: string;
 
     constructor(data?: IPlantModel) {
         if (data) {
@@ -3591,7 +3761,7 @@ export class PlantModel implements IPlantModel {
         if (_data) {
             this.name = _data["Name"];
             this.comment = _data["Comment"];
-            this.qrCode = _data["QrCode"];
+            this.position = _data["Position"];
         }
     }
 
@@ -3606,7 +3776,7 @@ export class PlantModel implements IPlantModel {
         data = typeof data === 'object' ? data : {};
         data["Name"] = this.name;
         data["Comment"] = this.comment;
-        data["QrCode"] = this.qrCode;
+        data["Position"] = this.position;
         return data;
     }
 
@@ -3621,7 +3791,7 @@ export class PlantModel implements IPlantModel {
 export interface IPlantModel {
     name: string;
     comment: string;
-    qrCode: string;
+    position: string;
 }
 
 export class MotorPosition implements IMotorPosition {

@@ -120,6 +120,21 @@ public class ImageCropperTests
     }
 
     [Fact]
+    public void CropImage_OutOfRange_ShouldNotError()
+    {
+        var sut = CreateImageCropper();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
+        var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
+        var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(-1000, -1000), 960);
+        sut.ApplyIrColorMap(result.IrImage!);
+        result.IrImage!.Height.Should().Be(0);
+        result.IrImage!.Width.Should().Be(0);
+        result.IrImage!.Dispose();
+        result.VisImage.Dispose();
+    }
+
+    [Fact]
     public void CropImage_IR_ShouldWork()
     {
         var sut = CreateImageCropper();
