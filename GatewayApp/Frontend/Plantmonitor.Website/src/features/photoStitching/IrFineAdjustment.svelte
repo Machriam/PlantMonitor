@@ -89,7 +89,7 @@
     {#if $selectedPhotoTourPlantInfo?.length != undefined && $selectedPhotoTourPlantInfo.length > 0}
         <div>
             Fine adjustement for {$selectedPhotoTourPlantInfo[0].name}
-            {$selectedPhotoTourPlantInfo[0].comment} - {$selectedPhotoTourPlantInfo[0].qrCode}
+            {$selectedPhotoTourPlantInfo[0].comment} - {$selectedPhotoTourPlantInfo[0].position}
         </div>
         <div class="col-md-12 row">
             <button

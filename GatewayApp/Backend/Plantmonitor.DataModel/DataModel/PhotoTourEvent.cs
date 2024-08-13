@@ -13,11 +13,5 @@ public partial class PhotoTourEvent
 
     public DateTime Timestamp { get; set; }
 
-    public long? ReferencesEvent { get; set; }
-
-    public virtual ICollection<PhotoTourEvent> InverseReferencesEventNavigation { get; set; } = new List<PhotoTourEvent>();
-
     public virtual AutomaticPhotoTour PhotoTourFkNavigation { get; set; } = null!;
-
-    public virtual PhotoTourEvent? ReferencesEventNavigation { get; set; }
 }

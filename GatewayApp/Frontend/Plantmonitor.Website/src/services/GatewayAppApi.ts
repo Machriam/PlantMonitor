@@ -2326,10 +2326,7 @@ export class PhotoTourEvent implements IPhotoTourEvent {
     photoTourFk!: number;
     message!: string;
     timestamp!: Date;
-    referencesEvent!: number | undefined;
-    inverseReferencesEventNavigation!: PhotoTourEvent[];
     photoTourFkNavigation!: AutomaticPhotoTour;
-    referencesEventNavigation!: PhotoTourEvent | undefined;
     type!: PhotoTourEventType;
 
     constructor(data?: IPhotoTourEvent) {
@@ -2347,14 +2344,7 @@ export class PhotoTourEvent implements IPhotoTourEvent {
             this.photoTourFk = _data["PhotoTourFk"];
             this.message = _data["Message"];
             this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
-            this.referencesEvent = _data["ReferencesEvent"];
-            if (Array.isArray(_data["InverseReferencesEventNavigation"])) {
-                this.inverseReferencesEventNavigation = [] as any;
-                for (let item of _data["InverseReferencesEventNavigation"])
-                    this.inverseReferencesEventNavigation!.push(PhotoTourEvent.fromJS(item));
-            }
             this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
-            this.referencesEventNavigation = _data["ReferencesEventNavigation"] ? PhotoTourEvent.fromJS(_data["ReferencesEventNavigation"]) : <any>undefined;
             this.type = _data["Type"];
         }
     }
@@ -2372,14 +2362,7 @@ export class PhotoTourEvent implements IPhotoTourEvent {
         data["PhotoTourFk"] = this.photoTourFk;
         data["Message"] = this.message;
         data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
-        data["ReferencesEvent"] = this.referencesEvent;
-        if (Array.isArray(this.inverseReferencesEventNavigation)) {
-            data["InverseReferencesEventNavigation"] = [];
-            for (let item of this.inverseReferencesEventNavigation)
-                data["InverseReferencesEventNavigation"].push(item.toJSON());
-        }
         data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
-        data["ReferencesEventNavigation"] = this.referencesEventNavigation ? this.referencesEventNavigation.toJSON() : <any>undefined;
         data["Type"] = this.type;
         return data;
     }
@@ -2397,10 +2380,7 @@ export interface IPhotoTourEvent {
     photoTourFk: number;
     message: string;
     timestamp: Date;
-    referencesEvent: number | undefined;
-    inverseReferencesEventNavigation: PhotoTourEvent[];
     photoTourFkNavigation: AutomaticPhotoTour;
-    referencesEventNavigation: PhotoTourEvent | undefined;
     type: PhotoTourEventType;
 }
 
@@ -2415,7 +2395,7 @@ export class PhotoTourPlant implements IPhotoTourPlant {
     id!: number;
     name!: string;
     comment!: string;
-    qrCode!: string | undefined;
+    position!: string | undefined;
     photoTourFk!: number;
     photoTourFkNavigation!: AutomaticPhotoTour;
     plantExtractionTemplates!: PlantExtractionTemplate[];
@@ -2434,7 +2414,7 @@ export class PhotoTourPlant implements IPhotoTourPlant {
             this.id = _data["Id"];
             this.name = _data["Name"];
             this.comment = _data["Comment"];
-            this.qrCode = _data["QrCode"];
+            this.position = _data["Position"];
             this.photoTourFk = _data["PhotoTourFk"];
             this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
             if (Array.isArray(_data["PlantExtractionTemplates"])) {
@@ -2457,7 +2437,7 @@ export class PhotoTourPlant implements IPhotoTourPlant {
         data["Id"] = this.id;
         data["Name"] = this.name;
         data["Comment"] = this.comment;
-        data["QrCode"] = this.qrCode;
+        data["Position"] = this.position;
         data["PhotoTourFk"] = this.photoTourFk;
         data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
         if (Array.isArray(this.plantExtractionTemplates)) {
@@ -2480,7 +2460,7 @@ export interface IPhotoTourPlant {
     id: number;
     name: string;
     comment: string;
-    qrCode: string | undefined;
+    position: string | undefined;
     photoTourFk: number;
     photoTourFkNavigation: AutomaticPhotoTour;
     plantExtractionTemplates: PlantExtractionTemplate[];
@@ -2492,9 +2472,9 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
     photoTourPlantFk!: number;
     photoBoundingBox!: NpgsqlPoint[];
     irBoundingBoxOffset!: NpgsqlPoint;
-    motorPosition!: number;
     boundingBoxHeight!: number;
     boundingBoxWidth!: number;
+    motorPosition!: number;
     photoTourPlantFkNavigation!: PhotoTourPlant;
     photoTripFkNavigation!: PhotoTourTrip;
 
@@ -2518,9 +2498,9 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
                     this.photoBoundingBox!.push(NpgsqlPoint.fromJS(item));
             }
             this.irBoundingBoxOffset = _data["IrBoundingBoxOffset"] ? NpgsqlPoint.fromJS(_data["IrBoundingBoxOffset"]) : <any>undefined;
-            this.motorPosition = _data["MotorPosition"];
             this.boundingBoxHeight = _data["BoundingBoxHeight"];
             this.boundingBoxWidth = _data["BoundingBoxWidth"];
+            this.motorPosition = _data["MotorPosition"];
             this.photoTourPlantFkNavigation = _data["PhotoTourPlantFkNavigation"] ? PhotoTourPlant.fromJS(_data["PhotoTourPlantFkNavigation"]) : <any>undefined;
             this.photoTripFkNavigation = _data["PhotoTripFkNavigation"] ? PhotoTourTrip.fromJS(_data["PhotoTripFkNavigation"]) : <any>undefined;
         }
@@ -2544,9 +2524,9 @@ export class PlantExtractionTemplate implements IPlantExtractionTemplate {
                 data["PhotoBoundingBox"].push(item.toJSON());
         }
         data["IrBoundingBoxOffset"] = this.irBoundingBoxOffset ? this.irBoundingBoxOffset.toJSON() : <any>undefined;
-        data["MotorPosition"] = this.motorPosition;
         data["BoundingBoxHeight"] = this.boundingBoxHeight;
         data["BoundingBoxWidth"] = this.boundingBoxWidth;
+        data["MotorPosition"] = this.motorPosition;
         data["PhotoTourPlantFkNavigation"] = this.photoTourPlantFkNavigation ? this.photoTourPlantFkNavigation.toJSON() : <any>undefined;
         data["PhotoTripFkNavigation"] = this.photoTripFkNavigation ? this.photoTripFkNavigation.toJSON() : <any>undefined;
         return data;
@@ -2566,9 +2546,9 @@ export interface IPlantExtractionTemplate {
     photoTourPlantFk: number;
     photoBoundingBox: NpgsqlPoint[];
     irBoundingBoxOffset: NpgsqlPoint;
-    motorPosition: number;
     boundingBoxHeight: number;
     boundingBoxWidth: number;
+    motorPosition: number;
     photoTourPlantFkNavigation: PhotoTourPlant;
     photoTripFkNavigation: PhotoTourTrip;
 }
@@ -3350,7 +3330,7 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
     id!: number;
     name!: string;
     comment!: string;
-    qrCode!: string | undefined;
+    position!: string | undefined;
     photoTourFk!: number;
     extractionMetaData!: ExtractionMetaData[];
 
@@ -3368,7 +3348,7 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
             this.id = _data["Id"];
             this.name = _data["Name"];
             this.comment = _data["Comment"];
-            this.qrCode = _data["QrCode"];
+            this.position = _data["Position"];
             this.photoTourFk = _data["PhotoTourFk"];
             if (Array.isArray(_data["ExtractionMetaData"])) {
                 this.extractionMetaData = [] as any;
@@ -3390,7 +3370,7 @@ export class PhotoTourPlantInfo implements IPhotoTourPlantInfo {
         data["Id"] = this.id;
         data["Name"] = this.name;
         data["Comment"] = this.comment;
-        data["QrCode"] = this.qrCode;
+        data["Position"] = this.position;
         data["PhotoTourFk"] = this.photoTourFk;
         if (Array.isArray(this.extractionMetaData)) {
             data["ExtractionMetaData"] = [];
@@ -3412,7 +3392,7 @@ export interface IPhotoTourPlantInfo {
     id: number;
     name: string;
     comment: string;
-    qrCode: string | undefined;
+    position: string | undefined;
     photoTourFk: number;
     extractionMetaData: ExtractionMetaData[];
 }
@@ -3766,7 +3746,7 @@ export interface IAddPlantModel {
 export class PlantModel implements IPlantModel {
     name!: string;
     comment!: string;
-    qrCode!: string;
+    position!: string;
 
     constructor(data?: IPlantModel) {
         if (data) {
@@ -3781,7 +3761,7 @@ export class PlantModel implements IPlantModel {
         if (_data) {
             this.name = _data["Name"];
             this.comment = _data["Comment"];
-            this.qrCode = _data["QrCode"];
+            this.position = _data["Position"];
         }
     }
 
@@ -3796,7 +3776,7 @@ export class PlantModel implements IPlantModel {
         data = typeof data === 'object' ? data : {};
         data["Name"] = this.name;
         data["Comment"] = this.comment;
-        data["QrCode"] = this.qrCode;
+        data["Position"] = this.position;
         return data;
     }
 
@@ -3811,7 +3791,7 @@ export class PlantModel implements IPlantModel {
 export interface IPlantModel {
     name: string;
     comment: string;
-    qrCode: string;
+    position: string;
 }
 
 export class MotorPosition implements IMotorPosition {

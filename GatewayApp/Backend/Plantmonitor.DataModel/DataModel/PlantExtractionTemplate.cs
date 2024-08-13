@@ -16,11 +16,11 @@ public partial class PlantExtractionTemplate
 
     public NpgsqlPoint IrBoundingBoxOffset { get; set; }
 
-    public int MotorPosition { get; set; }
-
     public float BoundingBoxHeight { get; set; }
 
     public float BoundingBoxWidth { get; set; }
+
+    public int MotorPosition { get; set; }
 
     public virtual PhotoTourPlant PhotoTourPlantFkNavigation { get; set; } = null!;
 

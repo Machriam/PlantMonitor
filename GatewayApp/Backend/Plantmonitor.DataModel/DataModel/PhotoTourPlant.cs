@@ -11,7 +11,7 @@ public partial class PhotoTourPlant
 
     public string Comment { get; set; } = null!;
 
-    public string? QrCode { get; set; }
+    public string? Position { get; set; }
 
     public long PhotoTourFk { get; set; }
 

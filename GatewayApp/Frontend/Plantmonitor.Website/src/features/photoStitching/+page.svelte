@@ -95,7 +95,7 @@
             new PlantModel({
                 comment: _newPlant.comment,
                 name: _newPlant.name,
-                qrCode: _newPlant.qrCode ?? ""
+                position: _newPlant.position ?? ""
             })
         ];
         await stitchingClient.addPlantsToTour(new AddPlantModel({plants: plants, tourId: _selectedTour.id}));
@@ -146,7 +146,7 @@
         <div class="d-flex flex-row justify-content-center mb-2">
             <button on:click={recalculateVirtualPictures} class="btn btn-primary">Recalculate Virtual Pictures</button>
         </div>
-        <TextInput label="QR-Code" bind:value={_newPlant.qrCode}></TextInput>
+        <TextInput label="Position" bind:value={_newPlant.position}></TextInput>
         <TextInput label="Name" bind:value={_newPlant.name}></TextInput>
         <TextInput label="Comment" bind:value={_newPlant.comment}></TextInput>
         <div class="d-flex flex-row justify-content-between mt-2">
@@ -174,7 +174,7 @@
                         <div
                             style="align-self: center;"
                             class={template?.motorPosition == _selectedImage?.stepCount ? "fw-bold" : ""}>
-                            {plant.name} - {plant.qrCode?.isEmpty() ? "No QR" : plant.qrCode}
+                            {plant.name} - {plant.position?.isEmpty() ? "No QR" : plant.position}
                         </div>
                         <div style="align-self: center;">{plant.comment}</div>
                     </button>
