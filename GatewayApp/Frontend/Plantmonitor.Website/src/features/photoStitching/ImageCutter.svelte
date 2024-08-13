@@ -305,7 +305,7 @@
                 <button on:click={() => connectPolygon()} class="btn btn-primary">Connect Cut</button>
             {/if}
         {/if}
-        <button on:click={removePolygon} class="btn btn-danger">Delete Polygon</button>
+        <button on:click={removePolygon} class="btn btn-danger ms-2">Delete Polygon</button>
         <button on:click={savePolygon} disabled={!_polygonValid} class="ms-2 btn btn-success">Save Polygon</button>
     </div>
 </div>

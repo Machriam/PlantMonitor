@@ -87,10 +87,10 @@
 
 <div style="height:80vh" class="col-md-12 d-flex flex-column">
     {#if $selectedPhotoTourPlantInfo?.length != undefined && $selectedPhotoTourPlantInfo.length > 0}
-        <div>
-            Fine adjustement for {$selectedPhotoTourPlantInfo[0].name}
-            {$selectedPhotoTourPlantInfo[0].comment} - {$selectedPhotoTourPlantInfo[0].position}
-        </div>
+        {@const position = $selectedPhotoTourPlantInfo[0].position?.isEmpty()
+            ? ""
+            : "- " + $selectedPhotoTourPlantInfo[0].position}
+        <h4>Fine IR adjustment for {$selectedPhotoTourPlantInfo[0].name} {$selectedPhotoTourPlantInfo[0].comment} {position}</h4>
         <div class="col-md-12 row">
             <button
                 on:click={async () => {
@@ -98,7 +98,7 @@
                     _availableExtractionTemplates = uniqueExtractionOffsets();
                 }}
                 class="btn btn-primary col-md-2">Show Polygon</button>
-            <button on:click={() => storePolygonIrOffset()} class="btn btn-success col-md-2">Upate Offset</button>
+            <button on:click={() => storePolygonIrOffset()} class="btn btn-success col-md-2 ms-2">Update Offset</button>
         </div>
     {/if}
     {#if _imageCropPreview != undefined}
@@ -124,7 +124,7 @@
                     alt="Vis Crop" />
             </div>
             <div class="col-md-4" style="z-index: 1;"></div>
-            <div class="col-md-2 d-flex flex-column colm-3" style="height: 40vh;overflow-y:auto;z-index:1">
+            <div class="col-md-2 d-flex flex-column colm-3" style="height: 480px;overflow-y:auto;z-index:1">
                 {#each _availableExtractionTemplates as template}
                     <button
                         on:click={async () => {

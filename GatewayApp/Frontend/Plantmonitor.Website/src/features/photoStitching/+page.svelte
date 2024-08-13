@@ -183,4 +183,7 @@
         </div>
     </div>
 </div>
-<IrFineAdjustment bind:_extractionTemplates={_extractionTemplatesOfTrip} bind:_selectedTrip></IrFineAdjustment>
+<hr  class="m-3"/>
+{#if _selectedTrip != undefined}
+    <IrFineAdjustment bind:_extractionTemplates={_extractionTemplatesOfTrip} bind:_selectedTrip></IrFineAdjustment>
+{/if}
