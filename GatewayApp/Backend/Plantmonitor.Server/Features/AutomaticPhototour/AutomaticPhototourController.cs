@@ -13,10 +13,10 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     public record struct TemperatureMeasurementInfo(string Guid, string Comment);
     public record struct AutomaticTourStartInfo(float IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice,
         string Comment, string Name, string DeviceGuid, bool ShouldUseIR);
-    public record struct PhotoTourInfo(string Name, bool Finished, long Id, DateTime FirstEvent, DateTime LastEvent);
+    public record struct PhotoTourInfo(string Name, bool Finished, long Id, DateTime FirstEvent, DateTime LastEvent, float IntervallInMinutes, string Comment);
 
     [HttpPost("pausephototour")]
-    public async Task PausePhotoTour(long id, bool shouldBePaused)
+    public async Task PausePhotoTour(long id, bool shouldBePaused, float newIntervallInMinutes)
     {
         var tour = context.AutomaticPhotoTours
             .Include(apt => apt.TemperatureMeasurements)
@@ -40,6 +40,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
             Type = PhotoTourEventType.Information,
             Message = $"Photo tour {(shouldBePaused ? "stopped" : "resumed")}",
         });
+        tour.IntervallInMinutes = newIntervallInMinutes;
         context.SaveChanges();
     }
 
@@ -59,7 +60,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
         return context.AutomaticPhotoTours
             .Include(apt => apt.PhotoTourEvents)
             .Select(apt => new PhotoTourInfo(apt.Name, apt.Finished, apt.Id, apt.PhotoTourEvents.Select(pte => pte.Timestamp).OrderBy(t => t).FirstOrDefault(),
-            apt.PhotoTourEvents.Select(pte => pte.Timestamp).OrderByDescending(t => t).FirstOrDefault()));
+            apt.PhotoTourEvents.Select(pte => pte.Timestamp).OrderByDescending(t => t).FirstOrDefault(), apt.IntervallInMinutes, apt.Comment));
     }
 
     [HttpPost("startphototour")]

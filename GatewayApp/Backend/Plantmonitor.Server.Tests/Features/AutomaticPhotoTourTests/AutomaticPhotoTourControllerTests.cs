@@ -36,7 +36,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _context.PhotoTourEvents.ReturnsForAnyArgs(events);
             var sut = CreateAutomaticPhotoTourController();
 
-            await sut.PausePhotoTour(1, true);
+            await sut.PausePhotoTour(1, true, 5);
 
             _context.Received(1).SaveChanges();
             result.First().Finished.Should().BeTrue();

@@ -1790,7 +1790,7 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
 
 export interface IAutomaticPhotoTourClient {
 
-    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined): Promise<void>;
+    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined, newIntervallInMinutes?: number | undefined): Promise<void>;
 
     getEvents(photoTourId?: number | undefined, allLogs?: boolean | undefined): Promise<PhotoTourEvent[]>;
 
@@ -1810,7 +1810,7 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined): Promise<void> {
+    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined, newIntervallInMinutes?: number | undefined): Promise<void> {
         let url_ = this.baseUrl + "/api/AutomaticPhotoTour/pausephototour?";
         if (id === null)
             throw new Error("The parameter 'id' cannot be null.");
@@ -1820,6 +1820,10 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
             throw new Error("The parameter 'shouldBePaused' cannot be null.");
         else if (shouldBePaused !== undefined)
             url_ += "shouldBePaused=" + encodeURIComponent("" + shouldBePaused) + "&";
+        if (newIntervallInMinutes === null)
+            throw new Error("The parameter 'newIntervallInMinutes' cannot be null.");
+        else if (newIntervallInMinutes !== undefined)
+            url_ += "newIntervallInMinutes=" + encodeURIComponent("" + newIntervallInMinutes) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -3797,6 +3801,7 @@ export interface IPlantModel {
 export class MotorPosition implements IMotorPosition {
     engaged!: boolean | undefined;
     position!: number | undefined;
+    dirty!: boolean | undefined;
 
     constructor(data?: IMotorPosition) {
         if (data) {
@@ -3811,6 +3816,7 @@ export class MotorPosition implements IMotorPosition {
         if (_data) {
             this.engaged = _data["engaged"];
             this.position = _data["position"];
+            this.dirty = _data["dirty"];
         }
     }
 
@@ -3825,6 +3831,7 @@ export class MotorPosition implements IMotorPosition {
         data = typeof data === 'object' ? data : {};
         data["engaged"] = this.engaged;
         data["position"] = this.position;
+        data["dirty"] = this.dirty;
         return data;
     }
 
@@ -3839,6 +3846,7 @@ export class MotorPosition implements IMotorPosition {
 export interface IMotorPosition {
     engaged: boolean | undefined;
     position: number | undefined;
+    dirty: boolean | undefined;
 }
 
 export class CertificateData implements ICertificateData {
@@ -4065,6 +4073,8 @@ export class PhotoTourInfo implements IPhotoTourInfo {
     id!: number;
     firstEvent!: Date;
     lastEvent!: Date;
+    intervallInMinutes!: number;
+    comment!: string;
 
     constructor(data?: IPhotoTourInfo) {
         if (data) {
@@ -4082,6 +4092,8 @@ export class PhotoTourInfo implements IPhotoTourInfo {
             this.id = _data["Id"];
             this.firstEvent = _data["FirstEvent"] ? new Date(_data["FirstEvent"].toString()) : <any>undefined;
             this.lastEvent = _data["LastEvent"] ? new Date(_data["LastEvent"].toString()) : <any>undefined;
+            this.intervallInMinutes = _data["IntervallInMinutes"];
+            this.comment = _data["Comment"];
         }
     }
 
@@ -4099,6 +4111,8 @@ export class PhotoTourInfo implements IPhotoTourInfo {
         data["Id"] = this.id;
         data["FirstEvent"] = this.firstEvent ? this.firstEvent.toISOString() : <any>undefined;
         data["LastEvent"] = this.lastEvent ? this.lastEvent.toISOString() : <any>undefined;
+        data["IntervallInMinutes"] = this.intervallInMinutes;
+        data["Comment"] = this.comment;
         return data;
     }
 
@@ -4116,6 +4130,8 @@ export interface IPhotoTourInfo {
     id: number;
     firstEvent: Date;
     lastEvent: Date;
+    intervallInMinutes: number;
+    comment: string;
 }
 
 export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
