@@ -56,7 +56,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         var irImage = irTest.Result?.Stream.ConvertToArray() ?? [];
         var visTest = await deviceApi.VisImageTakingClient(deviceHealth.Ip).PreviewimageAsync().Try();
         var visImage = visTest.Result?.Stream.ConvertToArray() ?? [];
-        if ((hasIrCamera && irImage.Length < 100 && !irTest.Error.IsEmpty()) || visImage.Length < 100 || !visTest.Error.IsEmpty())
+        if ((hasIrCamera && irImage.Length < 100) || (hasIrCamera && !irTest.Error.IsEmpty()) || visImage.Length < 100 || !visTest.Error.IsEmpty())
         {
             var notWorkingCameras = new List<string>()
                 .PushIf("IR", _ => irImage.Length < 100)

@@ -45,7 +45,7 @@ public class ImageCropper() : IImageCropper
                 var value = ZeroDegreeCelsius;
                 if (rawValue is float) value = (int)(float)rawValue;
                 else if (rawValue is int) value = (int)rawValue;
-                value -= ZeroDegreeCelsius;
+                if (value != 0) value -= ZeroDegreeCelsius;
                 var intValue = (value / 100);
                 var decimalValue = (int)(((value / 100f) - intValue) * 100);
                 integerData[index] = (byte)intValue;
@@ -70,7 +70,7 @@ public class ImageCropper() : IImageCropper
             Log.Logger.Error("decimal channel was over 100: {from}-{to}", decimalRange.Min, decimalRange.Max);
             throw new Exception("decimal channel was over 100");
         }
-        if (fullRange.Min < 5 || fullRange.Max > 100)
+        if (fullRange.Min < 0 || fullRange.Max > 100)
         {
             Log.Logger.Error("integer channel was not in bounds: {from}-{to}", fullRange.Min, fullRange.Max);
             throw new Exception("integer channel was not in bounds: {from}-{to}");
@@ -151,9 +151,34 @@ public class ImageCropper() : IImageCropper
             .Select(p => new NpgsqlPoint(p.X + irOffset.X, p.Y + irOffset.Y))
             .ToArray();
         var irCrop = CutIrImage(irPolygon, irMat);
+        irCrop = PadIrToVisSize(irPolygon, visCrop, irCrop);
         visMat.Dispose();
         irMat.Dispose();
         return (visCrop, irCrop);
+    }
+
+    private static Mat PadIrToVisSize(NpgsqlPoint[] irPolygon, Mat visCrop, Mat irCrop)
+    {
+        if (irCrop.Height == visCrop.Height && irCrop.Width == visCrop.Width) return irCrop;
+        var result = new Mat(visCrop.Rows, visCrop.Cols, irCrop.Depth, irCrop.NumberOfChannels);
+        var padLeftSign = irPolygon.Min(p => p.X) < 0 ? -1 : 1;
+        var padTopSign = irPolygon.Min(p => p.Y) < 0 ? -1 : 1;
+        var xPadding = Math.Max(0, padLeftSign * (irCrop.Width - visCrop.Width));
+        var yPadding = Math.Max(0, padTopSign * (irCrop.Height - visCrop.Height));
+        var resultData = new float[result.Height * result.Width];
+        var irCropData = irCrop.GetData(true);
+        for (var row = 0; row < irCrop.Rows; row++)
+        {
+            for (var col = 0; col < irCrop.Cols; col++)
+            {
+                var index = ((row + yPadding) * result.Cols) + col + xPadding;
+                var irCropValue = irCropData.GetValue(row, col) as float?;
+                resultData[index] = irCropValue ?? 0;
+            }
+        }
+        result.SetTo(resultData);
+        irCrop.Dispose();
+        return result;
     }
 
     private static Mat CutIrImage(NpgsqlPoint[] polygon, Mat mat)

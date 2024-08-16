@@ -128,8 +128,9 @@ public class ImageCropperTests
         var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
         var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(-1000, -1000), 960);
         sut.ApplyIrColorMap(result.IrImage!);
-        result.IrImage!.Height.Should().Be(0);
-        result.IrImage!.Width.Should().Be(0);
+        result.IrImage!.Height.Should().Be(232);
+        result.IrImage!.Width.Should().Be(232);
+        result.IrImage!.ShowImage("OutOfRange", 100);
         result.IrImage!.Dispose();
         result.VisImage.Dispose();
     }
@@ -145,6 +146,91 @@ public class ImageCropperTests
         sut.ApplyIrColorMap(result.IrImage!);
         result.IrImage!.ShowImage("CroppedIR");
         result.VisImage.ShowImage("CroppedVis");
+        result.IrImage!.Dispose();
+        result.VisImage.Dispose();
+    }
+
+    [Fact]
+    public void CropImage_IROutOfRange_Left_ShouldHaveSameSize()
+    {
+        var sut = CreateImageCropper();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
+        var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
+        var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(400, 150), 960);//new(121, 39));
+        sut.ApplyIrColorMap(result.IrImage!);
+        result.IrImage!.ShowImage("CroppedIR");
+        result.VisImage.ShowImage("CroppedVis");
+        result.IrImage!.Height.Should().Be(result.VisImage.Height);
+        result.IrImage!.Width.Should().Be(result.VisImage.Width);
+        result.IrImage!.Dispose();
+        result.VisImage.Dispose();
+    }
+
+    [Fact]
+    public void CropImage_IROutOfRange_TopRight_ShouldHaveSameSize()
+    {
+        var sut = CreateImageCropper();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
+        var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
+        var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(-200, 300), 960);//new(121, 39));
+        sut.ApplyIrColorMap(result.IrImage!);
+        result.IrImage!.ShowImage("CroppedIR");
+        result.VisImage.ShowImage("CroppedVis");
+        result.IrImage!.Height.Should().Be(result.VisImage.Height);
+        result.IrImage!.Width.Should().Be(result.VisImage.Width);
+        result.IrImage!.Dispose();
+        result.VisImage.Dispose();
+    }
+
+    [Fact]
+    public void CropImage_IROutOfRange_Right_ShouldHaveSameSize()
+    {
+        var sut = CreateImageCropper();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
+        var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
+        var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(-200, 150), 960);//new(121, 39));
+        sut.ApplyIrColorMap(result.IrImage!);
+        result.IrImage!.ShowImage("CroppedIR");
+        result.VisImage.ShowImage("CroppedVis");
+        result.IrImage!.Height.Should().Be(result.VisImage.Height);
+        result.IrImage!.Width.Should().Be(result.VisImage.Width);
+        result.IrImage!.Dispose();
+        result.VisImage.Dispose();
+    }
+
+    [Fact]
+    public void CropImage_IROutOfRange_Top_ShouldHaveSameSize()
+    {
+        var sut = CreateImageCropper();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
+        var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
+        var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(100, 300), 960);//new(121, 39));
+        sut.ApplyIrColorMap(result.IrImage!);
+        result.IrImage!.ShowImage("CroppedIR");
+        result.VisImage.ShowImage("CroppedVis");
+        result.IrImage!.Height.Should().Be(result.VisImage.Height);
+        result.IrImage!.Width.Should().Be(result.VisImage.Width);
+        result.IrImage!.Dispose();
+        result.VisImage.Dispose();
+    }
+
+    [Fact]
+    public void CropImage_IROutOfRange_Bottom_ShouldHaveSameSize()
+    {
+        var sut = CreateImageCropper();
+        var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
+        var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
+        var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
+        var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(170, -200), 960);//new(121, 39));
+        sut.ApplyIrColorMap(result.IrImage!);
+        result.IrImage!.ShowImage("CroppedIR");
+        result.VisImage.ShowImage("CroppedVis");
+        result.IrImage!.Height.Should().Be(result.VisImage.Height);
+        result.IrImage!.Width.Should().Be(result.VisImage.Width);
         result.IrImage!.Dispose();
         result.VisImage.Dispose();
     }
