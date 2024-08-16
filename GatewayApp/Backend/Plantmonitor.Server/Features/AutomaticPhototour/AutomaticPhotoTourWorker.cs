@@ -71,7 +71,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         await using var visStreamer = scope.ServiceProvider.GetRequiredService<IPictureDiskStreamer>();
         var deviceRestarter = scope.ServiceProvider.GetRequiredService<IDeviceRestarter>();
         var deviceApi = scope.ServiceProvider.GetRequiredService<IDeviceApiFactory>();
-        var (healthy, device) = await deviceRestarter.CheckDeviceHealth(photoTourId, scope, dataContext);
+        var (healthy, device, hasIr) = await deviceRestarter.CheckDeviceHealth(photoTourId, scope, dataContext);
         if (healthy != true)
         {
             CreateEmptyTrip(photoTourId, dataContext);
@@ -93,6 +93,14 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
             Timestamp = DateTime.UtcNow,
         });
         dataContext.SaveChanges();
+        var irImageCount = Directory.EnumerateFiles(irFolder).Count();
+        var visImageCount = Directory.EnumerateFiles(visFolder).Count();
+        if ((irImageCount == 0 && hasIr) || visImageCount == 0)
+        {
+            var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
+            logEvent($"Phototour has not delivered photos for a camera: IR-count {irImageCount} VIS-count {visImageCount}", PhotoTourEventType.Error);
+            await deviceRestarter.RestartDevice(device.Health.DeviceId!, photoTourId, device.Health.DeviceName!);
+        }
         lock (s_lock) s_photoTripRunning = false;
     }
 
