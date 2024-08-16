@@ -66,13 +66,18 @@
         const photoTourClient = new AutomaticPhotoTourClient();
         _selectedEvents = await photoTourClient.getEvents(photoTourId, false);
         _selectedPhotoTour = _existingPhototours.find((ep) => ep.id == photoTourId);
+        _startInfo.intervallInMinutes = _selectedPhotoTour?.intervallInMinutes ?? 0;
+        _startInfo.name = _selectedPhotoTour?.name ?? "";
+        _startInfo.comment = _selectedPhotoTour?.comment ?? "";
     }
 
     async function PausePhotoTour() {
         if (_selectedPhotoTour == undefined) return;
         const photoTourClient = new AutomaticPhotoTourClient();
         _selectedPhotoTour.finished = !_selectedPhotoTour.finished;
-        const result = await photoTourClient.pausePhotoTour(_selectedPhotoTour.id, _selectedPhotoTour.finished).try();
+        const result = await photoTourClient
+            .pausePhotoTour(_selectedPhotoTour.id, _selectedPhotoTour.finished, _startInfo.intervallInMinutes)
+            .try();
         if (result.hasError) _selectedPhotoTour.finished = !_selectedPhotoTour.finished;
         _existingPhototours = _existingPhototours;
     }

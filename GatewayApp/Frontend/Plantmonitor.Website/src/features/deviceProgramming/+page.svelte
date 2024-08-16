@@ -1,14 +1,15 @@
 <script lang="ts">
     import {hasFlag} from "~/services/healthStateExtensions";
 
-    "@hmr:keep-all";
+    ("@hmr:keep-all");
     import {onDestroy, onMount} from "svelte";
     import {calculateMoveTo, stepsToReach} from "~/services/movementPointExtensions";
     import {
         CameraType,
         DeviceClient,
         DeviceHealthState,
-        DeviceMovement, HealthState,
+        DeviceMovement,
+        HealthState,
         MotorPosition,
         MovementPoint,
         MovementProgrammingClient
@@ -150,35 +151,31 @@
     <div class="col-md-4 colm-2 row">
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>
         <div class="col-md-8">
-            <div>Pos: {currentPosition?.position}</div>
+            <div>Pos: {currentPosition?.position}{currentPosition?.dirty ? "?" : ""}</div>
             <div>Engaged: {currentPosition?.engaged}</div>
         </div>
         {#if previewEnabled}
             <button on:click={async () => await stopPreview()} class="btn btn-danger col-md-8">Stop Preview</button>
             <NumberInput bind:value={moveSteps} label="Move Steps"></NumberInput>
-            <button disabled={currentlyMoving} on:click={async () => await move(moveSteps)}
-                    class="btn btn-primary col-md-3"
-            >Move
+            <button disabled={currentlyMoving} on:click={async () => await move(moveSteps)} class="btn btn-primary col-md-3"
+                >Move
             </button>
             <button on:click={async () => await toggleMotorEngage(false)} class="btn btn-primary col-md-3"
-            >Disengage Motor
+                >Disengage Motor
             </button>
-            <button on:click={async () => await toggleMotorEngage(true)} class="btn btn-primary col-md-3">Engage Motor
-            </button>
+            <button on:click={async () => await toggleMotorEngage(true)} class="btn btn-primary col-md-3">Engage Motor </button>
             <button class="btn btn-dark col-md-3" on:click={async () => await zeroPosition()}>Zero Position</button>
         {:else}
             <button on:click={async () => await showPreview()} class="btn btn-primary col-md-4">Start Preview</button>
             <div class="col-md-4"></div>
-            <button on:click={async () => await takePhotoTrip()} class="btn btn-success col-md-4">Store Photo Trip
-            </button>
+            <button on:click={async () => await takePhotoTrip()} class="btn btn-success col-md-4">Store Photo Trip </button>
         {/if}
         <div style="height: 200px; overflow-y:scroll" class="col-md-12 row p-0">
             {#if movementPlan?.movementPlan?.stepPoints != undefined && movementPlan?.movementPlan?.stepPoints.length > 0}
                 <div class="col-md-12 row">
                     <div class="col-md-11"></div>
-                    <button on:click={async () => await moveToAll()} style="padding-left: 10px;"
-                            class="btn btn-primary col-md-1"
-                    >All
+                    <button on:click={async () => await moveToAll()} style="padding-left: 10px;" class="btn btn-primary col-md-1"
+                        >All
                     </button>
                 </div>
                 {#each movementPlan.movementPlan.stepPoints as step, i}
@@ -190,7 +187,8 @@
                                     movementPlan = movementPlan;
                                 }}
                                 class="btn btn-danger col-md-1"
-                                style="align-content: center;font-size:18px">X
+                                style="align-content: center;font-size:18px"
+                                >X
                             </button>
                         {:else}
                             <div style="align-content: center;font-size:18px" class="col-md-1"><b>{i + 1}</b></div>
@@ -206,7 +204,8 @@
                             disabled={currentlyMoving}
                             on:click={async () => await moveTo(step)}
                             style="font-size: 36px;"
-                            class="btn btn-dark col-md-1 p-0 m-0">&#10149;
+                            class="btn btn-dark col-md-1 p-0 m-0"
+                            >&#10149;
                         </button>
                     </div>
                 {/each}
@@ -226,10 +225,11 @@
                     movementPlan.movementPlan.stepPoints.push(newStep.clone());
                     movementPlan = movementPlan;
                 }}
-                class="btn btn-primary">Add Step
+                class="btn btn-primary"
+                >Add Step
             </button>
             <button disabled={currentlyMoving} on:click={() => (removeSteps = !removeSteps)} class="btn btn-danger"
-            >Remove Steps
+                >Remove Steps
             </button>
             <TextInput class="col-md-6" bind:value={movementPlan.name} label="Movement Plan Name"></TextInput>
             <button class="btn btn-success" on:click={async () => await updateSteps()}>Save Steps</button>

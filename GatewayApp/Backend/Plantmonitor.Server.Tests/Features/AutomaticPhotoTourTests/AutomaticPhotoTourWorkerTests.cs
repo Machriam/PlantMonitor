@@ -117,7 +117,7 @@ public class AutomaticPhotoTourWorkerTests
         _deviceApi.MovementClient("").ReturnsForAnyArgs(_motorClient);
         _deviceApi.IrImageTakingClient("").ReturnsForAnyArgs(_irClient);
         _deviceApi.VisImageTakingClient("").ReturnsForAnyArgs(_visClient);
-        _motorClient.CurrentpositionAsync().ReturnsForAnyArgs(new MotorPosition(true, 1000));
+        _motorClient.CurrentpositionAsync().ReturnsForAnyArgs(new MotorPosition(false, true, 1000));
         _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs((false, deviceHealth));
         _pictureStreamer.StreamingFinished().ReturnsForAnyArgs(true);
 
