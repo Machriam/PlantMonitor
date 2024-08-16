@@ -151,9 +151,34 @@ public class ImageCropper() : IImageCropper
             .Select(p => new NpgsqlPoint(p.X + irOffset.X, p.Y + irOffset.Y))
             .ToArray();
         var irCrop = CutIrImage(irPolygon, irMat);
+        irCrop = PadIrToVisSize(irPolygon, visCrop, irCrop);
         visMat.Dispose();
         irMat.Dispose();
         return (visCrop, irCrop);
+    }
+
+    private static Mat PadIrToVisSize(NpgsqlPoint[] irPolygon, Mat visCrop, Mat irCrop)
+    {
+        if (irCrop.Height == visCrop.Height && irCrop.Width == visCrop.Width) return irCrop;
+        var result = new Mat(visCrop.Rows, visCrop.Cols, irCrop.Depth, irCrop.NumberOfChannels);
+        var padLeftSign = irPolygon.Min(p => p.X) < 0 ? -1 : 1;
+        var padTopSign = irPolygon.Min(p => p.Y) < 0 ? -1 : 1;
+        var xPadding = Math.Max(0, padLeftSign * (irCrop.Width - visCrop.Width));
+        var yPadding = Math.Max(0, padTopSign * (irCrop.Height - visCrop.Height));
+        var resultData = new float[result.Width * result.Cols];
+        var irCropData = irCrop.GetData(true);
+        for (var row = 0; row < irCrop.Rows; row++)
+        {
+            for (var col = 0; col < irCrop.Cols; col++)
+            {
+                var index = ((row + yPadding) * result.Cols) + col + xPadding;
+                var irCropValue = irCropData.GetValue(row, col) as float?;
+                resultData[index] = irCropValue ?? 0;
+            }
+        }
+        result.SetTo(resultData);
+        irCrop.Dispose();
+        return result;
     }
 
     private static Mat CutIrImage(NpgsqlPoint[] polygon, Mat mat)
