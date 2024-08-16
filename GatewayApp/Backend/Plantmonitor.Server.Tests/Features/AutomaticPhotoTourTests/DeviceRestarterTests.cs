@@ -83,6 +83,9 @@ public class DeviceRestarterTests
         _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
         var client = Substitute.For<ISwitchOutletsClient>();
         _deviceApi.SwitchOutletsClient("").ReturnsForAnyArgs(client);
+        var movementClient = Substitute.For<IMotorMovementClient>();
+        _deviceApi.MovementClient("").ReturnsForAnyArgs(movementClient);
+        movementClient.CurrentpositionAsync().ReturnsForAnyArgs(new MotorPosition(false, true, 0));
         await using var visStream = new MemoryStream(new byte[1000]);
         await using var irStream = new MemoryStream(new byte[1000]);
         _irClient.PreviewimageAsync().ReturnsForAnyArgs(new FileResponse(200, new Dictionary<string, IEnumerable<string>>(), irStream, default, default));
@@ -90,9 +93,9 @@ public class DeviceRestarterTests
 
         await sut.CheckDeviceHealth(1, _serviceScope, _context);
 
-        _context.PhotoTourEvents.Count().Should().Be(2);
+        _context.PhotoTourEvents.Count().Should().Be(3);
         _context.PhotoTourEvents.Should().AllSatisfy(x => x.Type.Should().Be(PhotoTourEventType.Information));
-        _context.PhotoTourEvents.First().Message.Should().Contain("Checking Camera");
+        _context.PhotoTourEvents.Skip(1).First().Message.Should().Contain("Checking Camera");
         _context.PhotoTourEvents.Last().Message.Should().Contain("Camera working");
     }
 
@@ -104,7 +107,9 @@ public class DeviceRestarterTests
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
         _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
         {
-            new(){Id=1, DeviceId=Guid.Parse(deviceGuid)}
+            new(){Id=1, DeviceId=Guid.Parse(deviceGuid),TemperatureMeasurements=new QueryableList<TemperatureMeasurement>(){
+                new TemperatureMeasurement(){SensorId=TemperatureMeasurement.FlirLeptonSensorId}
+            } }
         });
         var devices = new List<DeviceHealthState>() {
             new(new(default, deviceGuid, "device", HealthState.NA), 0, ""),
@@ -116,14 +121,17 @@ public class DeviceRestarterTests
         await using var successStream = new MemoryStream(new byte[1000]);
         _irClient.PreviewimageAsync().ReturnsForAnyArgs(new FileResponse(200, new Dictionary<string, IEnumerable<string>>(), failStream, default, default));
         _visClient.PreviewimageAsync().ReturnsForAnyArgs(new FileResponse(200, new Dictionary<string, IEnumerable<string>>(), successStream, default, default));
+        var movementClient = Substitute.For<IMotorMovementClient>();
+        _deviceApi.MovementClient("").ReturnsForAnyArgs(movementClient);
+        movementClient.CurrentpositionAsync().ReturnsForAnyArgs(new MotorPosition(false, true, 0));
 
         await sut.CheckDeviceHealth(1, _serviceScope, _context);
 
-        _context.PhotoTourEvents.Count().Should().Be(3);
+        _context.PhotoTourEvents.Count().Should().Be(4);
         _context.PhotoTourEvents.First().Type.Should().Be(PhotoTourEventType.Information);
-        _context.PhotoTourEvents.First().Message.Should().Contain("Checking Camera");
-        _context.PhotoTourEvents.Skip(1).Take(1).First().Type.Should().Be(PhotoTourEventType.Error);
-        _context.PhotoTourEvents.Skip(1).Take(1).First().Message.Should().Contain("Camera IR not working. Trying Restart");
+        _context.PhotoTourEvents.Skip(1).First().Message.Should().Contain("Checking Camera");
+        _context.PhotoTourEvents.Skip(3).Take(1).First().Type.Should().Be(PhotoTourEventType.Information);
+        _context.PhotoTourEvents.Skip(3).Take(1).First().Message.Should().Contain("Restart needs atleast 2 consecutive failures");
     }
 
     [Fact]
@@ -171,11 +179,12 @@ public class DeviceRestarterTests
         });
 
         await sut.RestartDevice(deviceGuid, 1, "Test");
+        await sut.RestartDevice(deviceGuid, 1, "Test");
 
         _eventBus.DidNotReceiveWithAnyArgs().UpdateDeviceHealths(default!);
         await client.DidNotReceiveWithAnyArgs().SwitchoutletAsync(1234);
-        _context.PhotoTourEvents.Count().Should().Be(1);
-        _context.PhotoTourEvents.First().Type.Should().Be(PhotoTourEventType.Warning);
+        _context.PhotoTourEvents.Count().Should().Be(2);
+        _context.PhotoTourEvents.Last().Type.Should().Be(PhotoTourEventType.Warning);
     }
 
     [Fact]
@@ -198,6 +207,7 @@ public class DeviceRestarterTests
         });
 
         await sut.RestartDevice(deviceGuid, 1, "Test");
+        await sut.RestartDevice(deviceGuid, 1, "Test");
 
         var updateDeviceHealthCalls = (IEnumerable<DeviceHealthState>?)_eventBus.ReceivedCalls()
             .First(c => c.GetMethodInfo().Name == nameof(_eventBus.UpdateDeviceHealths)).GetArguments()?.First() ?? [];
@@ -207,7 +217,7 @@ public class DeviceRestarterTests
             await client.Received(1).SwitchoutletAsync(1234);
             await client.Received(1).SwitchoutletAsync(5678);
         });
-        _context.PhotoTourEvents.Count().Should().Be(0);
+        _context.PhotoTourEvents.Count().Should().Be(3);
     }
 
     [Fact]
@@ -232,6 +242,7 @@ public class DeviceRestarterTests
         });
 
         await sut.RestartDevice(deviceGuid, 1, "Test");
+        await sut.RestartDevice(deviceGuid, 1, "Test");
 
         var updateDeviceHealthCalls = (IEnumerable<DeviceHealthState>?)_eventBus.ReceivedCalls()
             .First(c => c.GetMethodInfo().Name == nameof(_eventBus.UpdateDeviceHealths)).GetArguments()?.First() ?? [];
@@ -243,7 +254,7 @@ public class DeviceRestarterTests
             await client.Received(1).SwitchoutletAsync(5678);
             await client.Received(1).SwitchoutletAsync(5678);
         });
-        _context.PhotoTourEvents.Count().Should().Be(0);
+        _context.PhotoTourEvents.Count().Should().Be(5);
     }
 
     [Fact]
