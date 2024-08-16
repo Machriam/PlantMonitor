@@ -2,7 +2,7 @@
 
 namespace PlantMonitorControl.Features.MotorMovement;
 
-public record struct MotorPosition(bool Engaged, int Position);
+public record struct MotorPosition(bool Engaged, int Position, bool Dirty);
 
 [ApiController]
 [Route("api/[controller]")]

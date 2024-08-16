@@ -1,4 +1,5 @@
-﻿using PlantMonitorControl.Features.AppsettingsConfiguration;
+﻿using Plantmonitor.Server.Features.AppConfiguration;
+using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.HealthChecking;
 using PlantMonitorControl.Features.ImageTaking;
 using PlantMonitorControl.Features.MeasureTemperature;
@@ -74,6 +75,10 @@ builder.Services.AddSignalR().AddMessagePackProtocol();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMvc(options =>
+{
+    options.Filters.Add<ApiExceptionFilter>();
+});
 
 var app = builder.Build();
 
