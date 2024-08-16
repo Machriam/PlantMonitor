@@ -2769,7 +2769,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
     {
         [System.Text.Json.Serialization.JsonConstructor]
 
-        public MotorPosition(bool? @engaged, int? @position)
+        public MotorPosition(bool? @dirty, bool? @engaged, int? @position)
 
         {
 
@@ -2777,12 +2777,17 @@ namespace Plantmonitor.Server.Features.DeviceControl
 
             this.Position = @position;
 
+            this.Dirty = @dirty;
+
         }
         [System.Text.Json.Serialization.JsonPropertyName("engaged")]
         public bool? Engaged { get; init; }
 
         [System.Text.Json.Serialization.JsonPropertyName("position")]
         public int? Position { get; init; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("dirty")]
+        public bool? Dirty { get; init; }
 
     }
 

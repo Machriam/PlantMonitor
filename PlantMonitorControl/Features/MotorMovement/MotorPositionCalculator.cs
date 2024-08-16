@@ -30,18 +30,34 @@ public class MotorPositionCalculator : IMotorPositionCalculator
     private const string CurrentPositionFile = "currentPosition.txt";
     private static readonly string s_filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), CurrentPositionFile);
     private static int s_currentPosition;
+    private static bool s_dirtyPosition;
     private static readonly List<MotorPositionInfo> s_motorPositionHistory = [];
     private static readonly Comparer<MotorPositionInfo> s_positionComparer = Comparer<MotorPositionInfo>.Create((a, b) => a.Time.CompareTo(b.Time));
     private static readonly object s_positionLock = new();
     private static readonly object s_engageLock = new();
+    private static readonly object s_dirtyLock = new();
     private static bool s_isEngaged = true;
+    private const string DirtyPositionSymbol = "?";
     private readonly IEnvironmentConfiguration _configuration;
     private readonly IGpioInteropFactory _gpioFactory;
 
     public MotorPositionCalculator(IEnvironmentConfiguration configuration, IGpioInteropFactory gpioFactory)
     {
-        if (File.Exists(s_filePath)) s_currentPosition = int.Parse(File.ReadAllText(s_filePath));
-        else ZeroPosition();
+        if (File.Exists(s_filePath))
+        {
+            var positionText = File.ReadAllText(s_filePath);
+            s_dirtyPosition = false;
+            if (positionText.Contains(DirtyPositionSymbol))
+            {
+                s_dirtyPosition = true;
+                positionText = positionText.Replace(DirtyPositionSymbol, "");
+            }
+            s_currentPosition = int.Parse(positionText);
+        }
+        else
+        {
+            ZeroPosition();
+        }
         _configuration = configuration;
         _gpioFactory = gpioFactory;
     }
@@ -59,6 +75,12 @@ public class MotorPositionCalculator : IMotorPositionCalculator
 
     public void MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition)
     {
+        lock (s_dirtyLock)
+        {
+            if (s_dirtyPosition) throw new Exception("Position is dirty. Zeroing must be done or waited until the current movement completes");
+            s_dirtyPosition = true;
+        }
+        PersistCurrentPosition();
         var sw = new Stopwatch();
         var microSecondsPerTick = 1000d * 1000d / Stopwatch.Frequency;
         using var controller = _gpioFactory.Create();
@@ -83,12 +105,17 @@ public class MotorPositionCalculator : IMotorPositionCalculator
             UpdatePosition(stepUnit, maxAllowedPosition, minAllowedPosition);
             while (sw.ElapsedTicks * microSecondsPerTick < delay) { }
         }
+        lock (s_dirtyLock) s_dirtyPosition = false;
         PersistCurrentPosition();
     }
 
     public void ZeroPosition()
     {
-        lock (s_positionLock) s_currentPosition = 0;
+        lock (s_positionLock) lock (s_dirtyLock)
+            {
+                s_currentPosition = 0;
+                s_dirtyPosition = false;
+            }
         PersistCurrentPosition();
     }
 
@@ -127,11 +154,11 @@ public class MotorPositionCalculator : IMotorPositionCalculator
 
     public void PersistCurrentPosition()
     {
-        lock (s_positionLock) File.WriteAllText(s_filePath, s_currentPosition.ToString());
+        lock (s_positionLock) lock (s_dirtyLock) File.WriteAllText(s_filePath, s_currentPosition.ToString() + (s_dirtyPosition ? DirtyPositionSymbol : ""));
     }
 
     public MotorPosition CurrentPosition()
     {
-        lock (s_positionLock) lock (s_engageLock) return new(s_isEngaged, s_currentPosition);
+        lock (s_positionLock) lock (s_engageLock) lock (s_dirtyLock) return new(s_isEngaged, s_currentPosition, s_dirtyPosition);
     }
 }

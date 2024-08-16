@@ -43,6 +43,14 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             return (null, deviceHealth);
         }
         var deviceName = deviceHealth.Health.DeviceName ?? photoTourData.DeviceId.ToString();
+        logEvent($"Checking Motor Position {deviceName}", PhotoTourEventType.Information);
+        var currentPosition = await deviceApi.MovementClient(deviceHealth.Ip).CurrentpositionAsync();
+        if (currentPosition.Dirty == true)
+        {
+            photoTourData.Finished = true;
+            logEvent($"Motor Position is dirty {deviceName}. Phototour is aborted", PhotoTourEventType.Error);
+            return (false, deviceHealth);
+        }
         logEvent($"Checking Camera {deviceName}", PhotoTourEventType.Information);
         var irTest = hasIrCamera ? await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync().Try() : default;
         var irImage = irTest.Result?.Stream.ConvertToArray() ?? [];
