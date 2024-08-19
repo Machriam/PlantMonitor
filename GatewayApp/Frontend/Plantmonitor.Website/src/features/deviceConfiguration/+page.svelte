@@ -15,7 +15,7 @@
         type IAssociatePowerOutletModel
     } from "~/services/GatewayAppApi";
     import {Task} from "~/types/task";
-    import { Download } from "~/types/Download";
+    import {Download} from "~/types/download";
     import {CvInterop, ThermalImage} from "./CvInterop";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
