@@ -31,6 +31,12 @@ public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, I
         return await deviceApiFactory.HealthClient(ip).LogsAsync();
     }
 
+    [HttpGet("alldevicelogs")]
+    public async Task<string> GetAllDeviceLog(string ip)
+    {
+        return await deviceApiFactory.HealthClient(ip).AlllogsAsync();
+    }
+
     [HttpPost("recheckdevice")]
     public async Task<DeviceHealth> RecheckDevice(string ip)
     {
