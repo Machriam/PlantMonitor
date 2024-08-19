@@ -8,10 +8,8 @@ using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Shared.Extensions;
 using Plantmonitor.Shared.Features.ImageStreaming;
-using System;
 using System.Reflection;
-using System.Threading.Tasks;
-using Xunit;
+using static Plantmonitor.Server.Features.AutomaticPhotoTour.DeviceRestarter;
 
 namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests;
 
@@ -90,10 +88,10 @@ public class AutomaticPhotoTourWorkerTests
         _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
         _context.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>());
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
-        _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs((true, new()
+        _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs(new DeviceHealthResult(true, new()
         {
             Health = new DeviceHealth(null, Guid.NewGuid().ToString(), "device", HealthState.NoirCameraFunctional)
-        }));
+        }, true));
         await Task.WhenAll([RunPhotoTrip(sut, 1), RunPhotoTrip(sut, 1), RunPhotoTrip(sut, 1)]);
 
         _context.PhotoTourTrips.Count().Should().Be(1);
@@ -118,7 +116,7 @@ public class AutomaticPhotoTourWorkerTests
         _deviceApi.IrImageTakingClient("").ReturnsForAnyArgs(_irClient);
         _deviceApi.VisImageTakingClient("").ReturnsForAnyArgs(_visClient);
         _motorClient.CurrentpositionAsync().ReturnsForAnyArgs(new MotorPosition(false, true, 1000));
-        _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs((false, deviceHealth));
+        _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs(new DeviceHealthResult(false, deviceHealth, true));
         _pictureStreamer.StreamingFinished().ReturnsForAnyArgs(true);
 
         var visFolder = "";
@@ -189,10 +187,10 @@ public class AutomaticPhotoTourWorkerTests
         _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
         _context.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>());
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
-        _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs((false, new()
+        _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs(new DeviceHealthResult(false, new()
         {
             Health = new DeviceHealth(null, Guid.NewGuid().ToString(), "device", HealthState.NoirCameraFunctional)
-        }));
+        }, true));
         await Task.WhenAll([RunPhotoTrip(sut, 1), RunPhotoTrip(sut, 1), RunPhotoTrip(sut, 1)]);
 
         _context.PhotoTourTrips.Count().Should().Be(1);

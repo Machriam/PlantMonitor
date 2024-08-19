@@ -80,6 +80,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         }
         var imagesToCreate = dataContext.PhotoTourTrips
             .Where(ptt => ptt.VirtualPicturePath == null && ptt.PhotoTourFk == tripToProcess.PhotoTourFk)
+            .OrderBy(ptt => ptt.Timestamp)
             .ToList();
         var plantsOfTour = dataContext.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == tripToProcess.PhotoTourFk).ToList();
         var virtualImageFolder = configuration.VirtualImagePath(tripToProcess.PhotoTourFkNavigation.Name, tripToProcess.PhotoTourFk);

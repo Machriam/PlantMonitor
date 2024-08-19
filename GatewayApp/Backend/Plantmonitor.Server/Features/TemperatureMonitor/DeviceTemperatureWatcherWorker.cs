@@ -44,13 +44,13 @@ public class DeviceTemperatureWatcherWorker(IServiceScopeFactory scopeFactory, I
                 if (lastTemperature != null && (lastTemperature.Timestamp - DateTime.UtcNow).TotalMinutes > 1)
                 {
                     logger.LogWarning("Restart Temperature device {device}", data.DeviceId);
-                    await restarter.RestartDevice(data.DeviceId.ToString(), data.PhotoTourFk, data.Comment);
+                    await restarter.RequestRestartDevice(data.DeviceId.ToString(), data.PhotoTourFk, data.Comment);
                     break;
                 }
                 if (lastTemperature == null && (data.StartTime - DateTime.UtcNow).TotalMinutes > 1)
                 {
                     logger.LogWarning("Restart Temperature device {device}", data.DeviceId);
-                    await restarter.RestartDevice(data.DeviceId.ToString(), data.PhotoTourFk, data.Comment);
+                    await restarter.RequestRestartDevice(data.DeviceId.ToString(), data.PhotoTourFk, data.Comment);
                     break;
                 }
             }

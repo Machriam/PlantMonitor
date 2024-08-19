@@ -55,7 +55,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
                 .FirstOrDefault(h => h.Health.DeviceId == deviceId);
             if (healthInfo == default)
             {
-                if (!deviceId.IsEmpty()) await deviceRestarter.RestartDevice(deviceId!, measurements.FirstOrDefault()?.PhotoTourFk, deviceId ?? "NA");
+                if (!deviceId.IsEmpty()) await deviceRestarter.RequestRestartDevice(deviceId!, measurements.FirstOrDefault()?.PhotoTourFk, deviceId ?? "NA");
                 return;
             }
             var token = new CancellationTokenSource();
