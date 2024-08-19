@@ -40,26 +40,31 @@ public class MotorPositionCalculator : IMotorPositionCalculator
     private const string DirtyPositionSymbol = "?";
     private readonly IEnvironmentConfiguration _configuration;
     private readonly IGpioInteropFactory _gpioFactory;
+    private readonly ILogger<MotorPositionCalculator> _logger;
 
-    public MotorPositionCalculator(IEnvironmentConfiguration configuration, IGpioInteropFactory gpioFactory)
+    public MotorPositionCalculator(IEnvironmentConfiguration configuration, IGpioInteropFactory gpioFactory, ILogger<MotorPositionCalculator> logger)
     {
         if (File.Exists(s_filePath))
         {
             var positionText = File.ReadAllText(s_filePath);
-            s_dirtyPosition = false;
+            logger.LogInformation("Read position from file: {position}", positionText);
+            lock (s_dirtyLock) s_dirtyPosition = false;
             if (positionText.Contains(DirtyPositionSymbol))
             {
-                s_dirtyPosition = true;
+                lock (s_dirtyLock) s_dirtyPosition = true;
                 positionText = positionText.Replace(DirtyPositionSymbol, "");
             }
-            s_currentPosition = int.Parse(positionText);
+            lock (s_positionLock) s_currentPosition = int.Parse(positionText);
         }
         else
         {
             ZeroPosition();
+            lock (s_dirtyLock) s_dirtyPosition = true;
         }
+        logger.LogInformation("Initialized Motor with: Pos: {position}, Dirty: {dirty}, Engaged: {engaged}", s_currentPosition, s_dirtyPosition, s_isEngaged);
         _configuration = configuration;
         _gpioFactory = gpioFactory;
+        _logger = logger;
     }
 
     public void ToggleMotorEngage(bool shouldEngage)
@@ -111,6 +116,7 @@ public class MotorPositionCalculator : IMotorPositionCalculator
 
     public void ZeroPosition()
     {
+        _logger.LogInformation("Zeroing position");
         lock (s_positionLock) lock (s_dirtyLock)
             {
                 s_currentPosition = 0;
@@ -154,7 +160,12 @@ public class MotorPositionCalculator : IMotorPositionCalculator
 
     public void PersistCurrentPosition()
     {
-        lock (s_positionLock) lock (s_dirtyLock) File.WriteAllText(s_filePath, s_currentPosition.ToString() + (s_dirtyPosition ? DirtyPositionSymbol : ""));
+        lock (s_positionLock) lock (s_dirtyLock)
+            {
+                var positionText = s_currentPosition.ToString() + (s_dirtyPosition ? DirtyPositionSymbol : "");
+                File.WriteAllText(s_filePath, positionText);
+                _logger.LogInformation("Persisting position {position}", positionText);
+            }
     }
 
     public MotorPosition CurrentPosition()
