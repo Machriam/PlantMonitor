@@ -85,23 +85,51 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
             return;
         }
 
-        dataContext.PhotoTourTrips.Add(new PhotoTourTrip()
+        var newTrip = new PhotoTourTrip()
         {
             IrDataFolder = irFolder,
             VisDataFolder = visFolder,
             PhotoTourFk = photoTourId,
             Timestamp = DateTime.UtcNow,
-        });
+        };
+        dataContext.PhotoTourTrips.Add(newTrip);
         dataContext.SaveChanges();
-        var irImageCount = Directory.EnumerateFiles(irFolder).Count();
-        var visImageCount = Directory.EnumerateFiles(visFolder).Count();
-        if ((irImageCount == 0 && hasIr) || visImageCount == 0)
+        var logger = dataContext.CreatePhotoTourEventLogger(photoTourId);
+        if (TripHasNoPictures(hasIr, irFolder, visFolder, logger))
         {
-            var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
-            logEvent($"Phototour has not delivered photos for a camera: IR-count {irImageCount} VIS-count {visImageCount}", PhotoTourEventType.Error);
-            await deviceRestarter.RestartDevice(device.Health.DeviceId!, photoTourId, device.Health.DeviceName!);
+            var previousTrip = dataContext.PhotoTourTrips
+                .Where(ptt => ptt.PhotoTourFk == photoTourId && ptt.Id != newTrip.Id)
+                .OrderByDescending(ptt => ptt.Timestamp)
+                .FirstOrDefault();
+            if (previousTrip == null)
+            {
+                logger("Previous trip not found", PhotoTourEventType.Information);
+                lock (s_lock) s_photoTripRunning = false;
+                return;
+            }
+            logger($"Checking previous trip: {previousTrip.Timestamp}", PhotoTourEventType.Information);
+            if (TripHasNoPictures(hasIr, previousTrip.IrDataFolder, previousTrip.VisDataFolder, logger))
+            {
+                logger("Previous trip was also unsuccessful. Restarting immediately.", PhotoTourEventType.Error);
+                await deviceRestarter.ImmediateRestartDevice(device.Health.DeviceId!, photoTourId, device.Health.DeviceName!);
+            }
         }
         lock (s_lock) s_photoTripRunning = false;
+    }
+
+    private static bool TripHasNoPictures(bool hasIr, string irFolder, string visFolder, DataContext.EventLogger logger)
+    {
+        if (!Path.Exists(irFolder) || !Path.Exists(visFolder))
+        {
+            logger($"Folders {irFolder} or {visFolder} not found. Assuming errors were already handled.", PhotoTourEventType.Information);
+            return true;
+        }
+        var irImageCount = Directory.EnumerateFiles(irFolder).Count();
+        var visImageCount = Directory.EnumerateFiles(visFolder).Count();
+        var hasNoPictures = (irImageCount == 0 && hasIr) || visImageCount == 0;
+        if (hasNoPictures) logger($"Phototour has not delivered photos for a camera: IR-count {irImageCount} VIS-count {visImageCount}", PhotoTourEventType.Warning);
+        else logger($"Image counts are correct. IR-count {irImageCount} VIS-count {visImageCount}", PhotoTourEventType.Information);
+        return hasNoPictures;
     }
 
     private async Task<(string IrFolder, string VisFolder)> TakePhotos(long photoTourId, IDataContext dataContext, IPictureDiskStreamer irStreamer, IPictureDiskStreamer visStreamer,

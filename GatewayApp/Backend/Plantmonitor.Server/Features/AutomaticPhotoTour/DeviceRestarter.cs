@@ -10,7 +10,9 @@ namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 public interface IDeviceRestarter
 {
-    Task RestartDevice(string restartDeviceId, long? photoTourId, string deviceName);
+    Task RequestRestartDevice(string restartDeviceId, long? photoTourId, string deviceName);
+
+    Task ImmediateRestartDevice(string restartDeviceId, long? photoTourId, string deviceName);
 
     Task<DeviceHealthResult> CheckDeviceHealth(long photoTourId, IServiceScope scope, IDataContext dataContext);
 }
@@ -41,7 +43,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         if (deviceHealth == default)
         {
             logEvent($"Camera Device {photoTourData.DeviceId} not found. Trying Restart.", PhotoTourEventType.Error);
-            RestartDevice(photoTourData.DeviceId.ToString(), photoTourId, photoTourData.DeviceId.ToString()).RunInBackground(ex => ex.LogError());
+            RequestRestartDevice(photoTourData.DeviceId.ToString(), photoTourId, photoTourData.DeviceId.ToString()).RunInBackground(ex => ex.LogError());
             return new(null, deviceHealth, hasIrCamera);
         }
         var deviceName = deviceHealth.Health.DeviceName ?? photoTourData.DeviceId.ToString();
@@ -67,7 +69,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
                 .PushIf($"VIS error {visTest.Error}", _ => !visTest.Error.IsEmpty())
                 .Concat(", ");
             logEvent($"Camera {notWorkingCameras} not working. Trying Restart.", PhotoTourEventType.Error);
-            RestartDevice(photoTourData.DeviceId.ToString(), photoTourId, deviceName).RunInBackground(ex => ex.LogError());
+            RequestRestartDevice(photoTourData.DeviceId.ToString(), photoTourId, deviceName).RunInBackground(ex => ex.LogError());
             return new(null, deviceHealth, hasIrCamera);
         }
         logEvent($"Camera working {deviceName}. IR checked: {hasIrCamera}", PhotoTourEventType.Information);
@@ -80,7 +82,21 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         return new(true, deviceHealth, hasIrCamera);
     }
 
-    public async Task RestartDevice(string restartDeviceId, long? photoTourId, string deviceName)
+    public async Task ImmediateRestartDevice(string restartDeviceId, long? photoTourId, string deviceName)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
+        var logEvent = photoTourId == null ? Log.Logger.Log : dataContext.CreatePhotoTourEventLogger(photoTourId.Value);
+        if (!Guid.TryParse(restartDeviceId, out var deviceGuid))
+        {
+            logEvent($"Camera Device has no valid GUID: {deviceName}", PhotoTourEventType.Error);
+            return;
+        }
+        s_restartRequested.AddOrUpdate(deviceGuid, FailureThreshold, (_1, _2) => FailureThreshold);
+        await RequestRestartDevice(restartDeviceId, photoTourId, deviceName);
+    }
+
+    public async Task RequestRestartDevice(string restartDeviceId, long? photoTourId, string deviceName)
     {
         using var scope = scopeFactory.CreateScope();
         var eventBus = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
