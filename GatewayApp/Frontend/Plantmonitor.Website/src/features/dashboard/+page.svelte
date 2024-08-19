@@ -2,6 +2,7 @@
     import {onMount} from "svelte";
     import {AutomaticPhotoTourClient, DashboardClient, PhotoTourInfo} from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
+    import {Download} from "~/types/download";
     let _photoTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _virtualImages: string[] = [];
@@ -38,6 +39,12 @@
         _currentImageIndex = 0;
         await updateVirtualImage(_selectedTour.id);
     }
+    async function downloadTourData() {
+        if (_selectedTour == undefined) return;
+        const dashboardClient = new DashboardClient();
+        const tourData = await dashboardClient.downloadTourData(_selectedTour.id);
+        Download.downloadFromUrl(dashboardClient.getBaseUrl("", "") + tourData);
+    }
 </script>
 
 <svelte:head><title>Home</title></svelte:head>
@@ -58,4 +65,5 @@
             <img style="max-width: 100%;max-height:100%" alt="Stitched Result" src="data:image/png;base64,{_virtualImage}" />
         {/if}
     </div>
+    <button class="btn btn-primary" on:click={downloadTourData}>Download Tour Data</button>
 </div>

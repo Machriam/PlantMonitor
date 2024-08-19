@@ -2,13 +2,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
-using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.DeviceControl;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration)
+public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration, IWebHostEnvironment webHost)
 {
     [HttpGet("virtualimagelist")]
     public IEnumerable<string> VirtualImageList(long photoTourId)
@@ -26,5 +25,25 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         using var zip = ZipFile.Open(Path.Combine(folder, Path.GetFileName(name)), ZipArchiveMode.Read);
         var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
         return visPicture.Open().ConvertToArray();
+    }
+
+    [HttpGet("downloadtourdata")]
+    public string DownloadTourData(long photoTourId)
+    {
+        var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
+        var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
+        using var resultStream = new MemoryStream();
+        ZipFile.CreateFromDirectory(folder, resultStream);
+        var downloadFolder = Path.Combine(webHost.WebRootPath, "download");
+        Directory.CreateDirectory(downloadFolder);
+        var fileName = Path.Combine(downloadFolder, photoTour.Name + ".zip");
+        File.WriteAllBytes(fileName, resultStream.ToArray());
+        async Task DeleteFile()
+        {
+            await Task.Delay(TimeSpan.FromMinutes(5));
+            File.Delete(fileName);
+        };
+        DeleteFile().RunInBackground(ex => ex.LogError());
+        return Path.Combine("/download/" + Path.GetFileName(fileName));
     }
 }
