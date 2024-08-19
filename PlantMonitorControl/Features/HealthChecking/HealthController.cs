@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.ImageTaking;
@@ -61,5 +62,21 @@ public class HealthController(IHealthSettingsEditor healthSettings) : Controller
         await using var file = System.IO.File.Open(lastLog.File, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
         using var reader = new StreamReader(file);
         return reader.ReadToEnd();
+    }
+
+    [HttpGet("alllogs")]
+    public async Task<string> GetAllLogs()
+    {
+        var result = new StringBuilder();
+        var logs = Directory.EnumerateFiles(Path.GetDirectoryName(ConfigurationOptions.LogFileLocation) ?? "", "server*.logs")
+            .Select(f => (WriteTime: System.IO.File.GetLastWriteTimeUtc(f), File: f))
+            .OrderBy(f => f.WriteTime);
+        foreach (var log in logs)
+        {
+            await using var file = System.IO.File.Open(log.File, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var reader = new StreamReader(file);
+            result.AppendLine(reader.ReadToEnd());
+        }
+        return result.ToString();
     }
 }

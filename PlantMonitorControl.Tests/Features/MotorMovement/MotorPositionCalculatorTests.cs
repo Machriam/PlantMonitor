@@ -1,9 +1,9 @@
-﻿using FluentAssertions;
+﻿using Castle.Core.Logging;
+using FluentAssertions;
 using NSubstitute;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.MotorMovement;
 using System;
-using Xunit;
 
 namespace PlantMonitorControl.Tests.Features.MotorMovement
 {
@@ -16,7 +16,7 @@ namespace PlantMonitorControl.Tests.Features.MotorMovement
             var factory = Substitute.For<IGpioInteropFactory>();
             _controller = Substitute.For<IGpioInterop>();
             factory.Create().ReturnsForAnyArgs(_controller);
-            return new MotorPositionCalculator(Substitute.For<IEnvironmentConfiguration>(), factory);
+            return new MotorPositionCalculator(Substitute.For<IEnvironmentConfiguration>(), factory, Substitute.For<Microsoft.Extensions.Logging.ILogger<MotorPositionCalculator>>());
         }
 
         [Fact]
