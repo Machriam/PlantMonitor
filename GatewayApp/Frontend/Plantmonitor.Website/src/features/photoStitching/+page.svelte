@@ -30,6 +30,7 @@
     let _unsubscribe: Unsubscriber[] = [];
     let _selectedImage: ImageToCut | undefined;
     let _baseOffset: IIrCameraOffset = {left: 0, top: 0};
+    let _uniqueId = Math.random().toString(36).substring(7);
 
     onDestroy(() => {
         _unsubscribe.map((x) => x());
@@ -101,6 +102,24 @@
         await stitchingClient.addPlantsToTour(new AddPlantModel({plants: plants, tourId: _selectedTour.id}));
         _plants = await stitchingClient.plantsForTour(_selectedTour.id);
     }
+    async function nextPlant(direction: number) {
+        const plantsToTakeFrom = _plants
+            .map((plant) => ({plant: plant, template: _extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)}))
+            .filter((et) => et?.template?.motorPosition == _selectedImage?.stepCount)
+            .map((et) => et.plant);
+        if ($selectedPhotoTourPlantInfo == undefined || $selectedPhotoTourPlantInfo?.length == 0)
+            $selectedPhotoTourPlantInfo = [plantsToTakeFrom[0]];
+        else {
+            const plantToFind = $selectedPhotoTourPlantInfo[0];
+            const index = plantsToTakeFrom.findIndex((x) => x.id == plantToFind.id);
+            let newIndex = index + direction;
+            if (newIndex < 0) newIndex = plantsToTakeFrom.length - 1;
+            if (newIndex >= plantsToTakeFrom.length) newIndex = 0;
+            $selectedPhotoTourPlantInfo = [plantsToTakeFrom[newIndex]];
+        }
+        const plantButton = document.getElementById(_uniqueId + $selectedPhotoTourPlantInfo[0].id);
+        plantButton?.scrollIntoView({behavior: "instant", inline: "nearest", block: "nearest"});
+    }
 </script>
 
 <svelte:head><title>Photo Stitching</title></svelte:head>
@@ -164,6 +183,7 @@
                 {#each _plants as plant}
                     {@const template = _extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)}
                     <button
+                        id="{_uniqueId}{plant.id}"
                         on:click={() => ($selectedPhotoTourPlantInfo = [plant])}
                         class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25
                         {$selectedPhotoTourPlantInfo?.find((p) => p.id == plant.id) != undefined ? 'bg-info' : 'bg-white'}">
@@ -183,9 +203,23 @@
                 {/each}
             {/if}
         </div>
+        <div class="col-md-12 row justify-content-between mt-2">
+            <button
+                on:click={() => nextPlant(-1)}
+                style="font-size:40px;width:50px;height:30px;line-height:0px"
+                class="btn btn-dark p-0">
+                <div style="position:relative; top:-3px">&leftarrow;</div>
+            </button>
+            <button
+                on:click={() => nextPlant(1)}
+                style="font-size:40px;width:50px;height:30px;line-height:0px"
+                class="btn btn-dark p-0">
+                <div style="position:relative; top:-3px">&rightarrow;</div>
+            </button>
+        </div>
     </div>
 </div>
-<hr  class="m-3"/>
+<hr class="m-3" />
 {#if _selectedTrip != undefined}
     <IrFineAdjustment bind:_extractionTemplates={_extractionTemplatesOfTrip} bind:_selectedTrip></IrFineAdjustment>
 {/if}
