@@ -15,6 +15,7 @@
         type IAssociatePowerOutletModel
     } from "~/services/GatewayAppApi";
     import {Task} from "~/types/task";
+    import { Download } from "~/types/Download";
     import {CvInterop, ThermalImage} from "./CvInterop";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import PasswordInput from "../reuseableComponents/PasswordInput.svelte";
@@ -88,6 +89,12 @@
         if (ip == undefined) return;
         const client = new DeviceClient();
         await client.runFFC(ip);
+    }
+    async function downloadAllLogs(ip: string | undefined) {
+        if (ip == undefined) return;
+        const configurationClient = new DeviceConfigurationClient();
+        logData = await configurationClient.getAllDeviceLog(ip);
+        Download.download(new Blob([logData]), "Logs.txt");
     }
     async function getLogData(ip: string | undefined) {
         if (ip == undefined) return;
@@ -237,6 +244,9 @@
                                     Preview IR Video
                                 </button>
                                 <button on:click={() => getLogData(device.ip)} class="btn btn-primary"> Show Logs </button>
+                                <button on:click={() => downloadAllLogs(device.ip)} class="btn btn-primary">
+                                    Download All Logs
+                                </button>
                                 <button on:click={() => runFFC(device.ip)} class="btn btn-primary"> FFC</button>
                                 <button on:click={() => calibrateExposure(device.ip)} class="btn btn-primary">
                                     Update Exposure</button>
