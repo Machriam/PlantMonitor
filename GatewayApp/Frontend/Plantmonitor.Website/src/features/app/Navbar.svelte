@@ -33,8 +33,8 @@
                 on:click={(x) => {
                     if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'about' || selectedItem == '' ? 'nav-selected' : ''}"
-                href="about">
+                class="nav-link {selectedItem == 'dashboard' || selectedItem == '' ? 'nav-selected' : ''}"
+                href="dashboard">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </a>
         </div>

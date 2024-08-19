@@ -147,6 +147,8 @@
     }
 </script>
 
+<svelte:head><title>Device Programming</title></svelte:head>
+
 <div class="col-md-12 row">
     <div class="col-md-4 colm-2 row">
         <NumberInput class="col-md-4" label="Focus in cm" bind:value={defaultFocus}></NumberInput>

@@ -103,6 +103,8 @@
     }
 </script>
 
+<svelte:head><title>Photo Stitching</title></svelte:head>
+
 <h3>Available Tours</h3>
 <div class="d-flex flex-row">
     {#each _availableTours.toSorted((t1, t2) => (t1.lastEvent <= t2.lastEvent ? 1 : -1)) as tour}
