@@ -2,8 +2,8 @@
     import {onMount} from "svelte";
     import {AutomaticPhotoTourClient, DashboardClient, DownloadInfo, PhotoTourInfo} from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
-    import {Download} from "~/types/download";
-    import {Task} from "~/types/task";
+    import {Download} from "~/types/Download";
+    import {Task} from "~/types/Task";
     let _photoTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _virtualImages: string[] = [];
@@ -76,12 +76,14 @@
     }
 </script>
 
-<div class="col-md-12 row rowm-3 mt-2">
-    {#each _photoTours as tour}
-        <button
-            on:click={async () => await selectedTourChanged(tour)}
-            class="btn btn-dark {tour.name == _selectedTour?.name ? 'opacity-100' : 'opacity-50'} col-md-1">{tour.name}</button>
-    {/each}
+<div class="col-md-12 row mt-2">
+    <div style="width: 80vw;overflow-x:auto " class="d-flex flex-row rowm-3">
+        {#each _photoTours as tour}
+            <button
+                on:click={async () => await selectedTourChanged(tour)}
+                class="btn btn-dark {tour.name == _selectedTour?.name ? 'opacity-100' : 'opacity-50'}">{tour.name}</button>
+        {/each}
+    </div>
     <div on:wheel={nextImage} style="height: 80vh; width:80vw">
         <div style="align-items:center" class="col-md-12 row mt-2">
             <div class="col-md-3">{_virtualImages[_currentImageIndex]}</div>

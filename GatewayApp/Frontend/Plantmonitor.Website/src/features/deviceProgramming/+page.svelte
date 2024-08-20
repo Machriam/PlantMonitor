@@ -16,7 +16,7 @@
     } from "~/services/GatewayAppApi";
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
     import TextInput from "../reuseableComponents/TextInput.svelte";
-    import {Task} from "~/types/task";
+    import {Task} from "~/types/Task";
     import {selectedDevice} from "../store";
     import PictureStreamer from "./PictureStreamer.svelte";
 
