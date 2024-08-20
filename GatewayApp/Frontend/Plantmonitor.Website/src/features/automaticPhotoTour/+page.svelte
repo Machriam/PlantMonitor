@@ -89,6 +89,8 @@
     }
 </script>
 
+<svelte:head><title>Automatic Photo Tour</title></svelte:head>
+
 <div class="col-md-12 row">
     <div class="col-md-12 row">
         <TextInput class="col-md-2" bind:value={_startInfo.name} label="Name"></TextInput>

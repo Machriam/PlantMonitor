@@ -65,6 +65,8 @@
     }
 </script>
 
+<svelte:head><title>Temperature Monitoring</title></svelte:head>
+
 <div class="col-md-12 row">
     <button on:click={getTemperatures} class=" btn btn-primary">Show Temperatures</button>
     <div>{$selectedDevice?.ip}</div>

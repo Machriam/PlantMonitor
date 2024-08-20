@@ -1831,6 +1831,204 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
     }
 }
 
+export interface IDashboardClient {
+
+    virtualImageList(photoTourId?: number | undefined): Promise<string[]>;
+
+    virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string>;
+
+    statusOfDownloadTourData(): Promise<DownloadInfo[]>;
+
+    requestDownloadTourData(photoTourId?: number | undefined): Promise<DownloadInfo>;
+}
+
+export class DashboardClient extends GatewayAppApiBase implements IDashboardClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    virtualImageList(photoTourId?: number | undefined): Promise<string[]> {
+        let url_ = this.baseUrl + "/api/Dashboard/virtualimagelist?";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processVirtualImageList(_response));
+        });
+    }
+
+    protected processVirtualImageList(response: Response): Promise<string[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(item);
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string[]>(null as any);
+    }
+
+    virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string> {
+        let url_ = this.baseUrl + "/api/Dashboard/virtualimage?";
+        if (name === null)
+            throw new Error("The parameter 'name' cannot be null.");
+        else if (name !== undefined)
+            url_ += "name=" + encodeURIComponent("" + name) + "&";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processVirtualImage(_response));
+        });
+    }
+
+    protected processVirtualImage(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    statusOfDownloadTourData(): Promise<DownloadInfo[]> {
+        let url_ = this.baseUrl + "/api/Dashboard/statusofdownloadtourdata";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processStatusOfDownloadTourData(_response));
+        });
+    }
+
+    protected processStatusOfDownloadTourData(response: Response): Promise<DownloadInfo[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(DownloadInfo.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DownloadInfo[]>(null as any);
+    }
+
+    requestDownloadTourData(photoTourId?: number | undefined): Promise<DownloadInfo> {
+        let url_ = this.baseUrl + "/api/Dashboard/requestdownloadtourdata?";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processRequestDownloadTourData(_response));
+        });
+    }
+
+    protected processRequestDownloadTourData(response: Response): Promise<DownloadInfo> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = DownloadInfo.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DownloadInfo>(null as any);
+    }
+}
+
 export interface IAutomaticPhotoTourClient {
 
     pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined, newIntervallInMinutes?: number | undefined): Promise<void>;
@@ -4108,6 +4306,65 @@ export interface IDeviceHealthState {
     health: DeviceHealth;
     retryTimes: number;
     ip: string;
+}
+
+export class DownloadInfo implements IDownloadInfo {
+    photoTourId!: number;
+    path!: string;
+    currentSize!: number;
+    sizeToDownloadInGb!: number;
+    readyToDownload!: boolean;
+
+    constructor(data?: IDownloadInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.photoTourId = _data["PhotoTourId"];
+            this.path = _data["Path"];
+            this.currentSize = _data["CurrentSize"];
+            this.sizeToDownloadInGb = _data["SizeToDownloadInGb"];
+            this.readyToDownload = _data["ReadyToDownload"];
+        }
+    }
+
+    static fromJS(data: any): DownloadInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new DownloadInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["PhotoTourId"] = this.photoTourId;
+        data["Path"] = this.path;
+        data["CurrentSize"] = this.currentSize;
+        data["SizeToDownloadInGb"] = this.sizeToDownloadInGb;
+        data["ReadyToDownload"] = this.readyToDownload;
+        return data;
+    }
+
+    clone(): DownloadInfo {
+        const json = this.toJSON();
+        let result = new DownloadInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDownloadInfo {
+    photoTourId: number;
+    path: string;
+    currentSize: number;
+    sizeToDownloadInGb: number;
+    readyToDownload: boolean;
 }
 
 export class PhotoTourInfo implements IPhotoTourInfo {

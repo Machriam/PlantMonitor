@@ -87,7 +87,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
 
         foreach (var image in imagesToCreate)
         {
-            var virtualImageFile = $"{virtualImageFolder}/trip_{image.Timestamp:yyyyMMdd_HHmmss_fff}.zip";
+            var virtualImageFile = image.VirtualImageFileName(virtualImageFolder);
             logger.LogInformation("Processing virtual image {image} of tour {tour}", virtualImageFile, tripToProcess.PhotoTourFkNavigation.Name);
             var virtualImageList = new List<PhotoStitcher.PhotoStitchData>();
             foreach (var plant in plantsOfTour
@@ -143,9 +143,9 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             {
                 using (var zip = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
                 {
-                    AddMat(virtualImageFolder + $"/ir_{fileBaseName}.png", virtualImage.IrColorImage, zip);
-                    AddMat(virtualImageFolder + $"/vis_{fileBaseName}.png", virtualImage.VisImage, zip);
-                    AddMat(virtualImageFolder + $"/rawIr_{fileBaseName}.png", virtualImage.IrRawData, zip);
+                    AddMat(virtualImageFolder + $"/{PhotoTourTrip.IrPrefix}{fileBaseName}.png", virtualImage.IrColorImage, zip);
+                    AddMat(virtualImageFolder + $"/{PhotoTourTrip.VisPrefix}{fileBaseName}.png", virtualImage.VisImage, zip);
+                    AddMat(virtualImageFolder + $"/{PhotoTourTrip.RawIrPrefix}{fileBaseName}.png", virtualImage.IrRawData, zip);
                     var tsvPath = virtualImageFolder + $"/data_{fileBaseName}.tsv";
                     File.WriteAllText(tsvPath, fullMetaDataTable);
                     var fileName = Path.GetFileName(tsvPath);

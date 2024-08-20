@@ -1,12 +1,26 @@
 <script lang="ts">
-    let collapseNavMenu = false;
-    let ToggleNavMenu = function () {
-        collapseNavMenu = !collapseNavMenu;
-    };
-    let selectedItem: string | undefined = location.href.split("/").pop();
+    import {onDestroy, onMount} from "svelte";
+    import {navigationChanged} from "../store";
+    import type {Unsubscriber} from "svelte/store";
+
+    let _collapseNavMenu = false;
+    let _selectedItem: string | undefined = location.href.split("/").pop();
+    let _unsubscribe: Unsubscriber;
+
     let NavMenuCssClass = function () {
-        return collapseNavMenu ? "collapse" : "";
+        return _collapseNavMenu ? "collapse" : "";
     };
+    let ToggleNavMenu = function () {
+        _collapseNavMenu = !_collapseNavMenu;
+    };
+    onMount(() => {
+        _unsubscribe = navigationChanged.subscribe((x) => {
+            _selectedItem = x;
+        });
+    });
+    onDestroy(() => {
+        _unsubscribe();
+    });
 </script>
 
 <div class="top-row ps-3 navbar navbar-dark">
@@ -31,19 +45,19 @@
         <div class="nav-item px-3">
             <a
                 on:click={(x) => {
-                    if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
+                    if (x.target instanceof HTMLAnchorElement) _selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'about' || selectedItem == '' ? 'nav-selected' : ''}"
-                href="about">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                class="nav-link {_selectedItem == 'dashboard' || _selectedItem == '' ? 'nav-selected' : ''}"
+                href="dashboard">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Dashboard
             </a>
         </div>
         <div class="nav-item px-3">
             <a
                 on:click={(x) => {
-                    if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
+                    if (x.target instanceof HTMLAnchorElement) _selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'deviceConfiguration' ? 'nav-selected' : ''}"
+                class="nav-link {_selectedItem == 'deviceConfiguration' ? 'nav-selected' : ''}"
                 href="deviceConfiguration">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Configuration
             </a>
@@ -51,9 +65,9 @@
         <div class="nav-item px-3">
             <a
                 on:click={(x) => {
-                    if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
+                    if (x.target instanceof HTMLAnchorElement) _selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'deviceProgramming' ? 'nav-selected' : ''}"
+                class="nav-link {_selectedItem == 'deviceProgramming' ? 'nav-selected' : ''}"
                 href="deviceProgramming">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Program Device
             </a>
@@ -61,9 +75,9 @@
         <div class="nav-item px-3">
             <a
                 on:click={(x) => {
-                    if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
+                    if (x.target instanceof HTMLAnchorElement) _selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'replayPictures' ? 'nav-selected' : ''}"
+                class="nav-link {_selectedItem == 'replayPictures' ? 'nav-selected' : ''}"
                 href="replayPictures">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Replay Pictures
             </a>
@@ -71,9 +85,9 @@
         <div class="nav-item px-3">
             <a
                 on:click={(x) => {
-                    if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
+                    if (x.target instanceof HTMLAnchorElement) _selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'temperatureMonitoring' ? 'nav-selected' : ''}"
+                class="nav-link {_selectedItem == 'temperatureMonitoring' ? 'nav-selected' : ''}"
                 href="temperatureMonitoring">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Temperature Monitoring
             </a>
@@ -81,9 +95,9 @@
         <div class="nav-item px-3">
             <a
                 on:click={(x) => {
-                    if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
+                    if (x.target instanceof HTMLAnchorElement) _selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'automaticPhotoTour' ? 'nav-selected' : ''}"
+                class="nav-link {_selectedItem == 'automaticPhotoTour' ? 'nav-selected' : ''}"
                 href="automaticPhotoTour">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Automatic Photo Tour
             </a>
@@ -91,9 +105,9 @@
         <div class="nav-item px-3">
             <a
                 on:click={(x) => {
-                    if (x.target instanceof HTMLAnchorElement) selectedItem = x.target.href.split("/").pop();
+                    if (x.target instanceof HTMLAnchorElement) _selectedItem = x.target.href.split("/").pop();
                 }}
-                class="nav-link {selectedItem == 'photoStitching' ? 'nav-selected' : ''}"
+                class="nav-link {_selectedItem == 'photoStitching' ? 'nav-selected' : ''}"
                 href="photoStitching">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Photo Stitching
             </a>

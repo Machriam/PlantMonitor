@@ -50,6 +50,8 @@
     }
 </script>
 
+<svelte:head><title>Replay Pictures</title></svelte:head>
+
 <div class="col-md-12 row">
     <ImageReplayer bind:getSelectedImage={getLeftSelectedImage} class="col-md-6"></ImageReplayer>
     <ImageReplayer bind:getSelectedImage={getRightSelectedImage} class="col-md-6"></ImageReplayer>

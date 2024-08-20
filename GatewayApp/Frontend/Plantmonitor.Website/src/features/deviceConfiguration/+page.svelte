@@ -191,6 +191,8 @@
     }
 </script>
 
+<svelte:head><title>Configuration</title></svelte:head>
+
 <div class="col-md-12 row">
     <h3>Plantmonitor Configuration</h3>
     <div class="col-md-12 row">

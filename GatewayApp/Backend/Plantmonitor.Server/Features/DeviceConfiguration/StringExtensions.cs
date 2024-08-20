@@ -1,7 +1,15 @@
-﻿namespace Plantmonitor.Server.Features.DeviceConfiguration;
+﻿using System.Xml.Linq;
+
+namespace Plantmonitor.Server.Features.DeviceConfiguration;
 
 public static class StringExtensions
 {
+    public static string SanitizeFileName(this string filename)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        return filename.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Concat("");
+    }
+
     public static string? GetApplicationRootGitPath(this string folderToSearchFrom)
     {
         while (!Directory.EnumerateDirectories(folderToSearchFrom, ".git").Any())

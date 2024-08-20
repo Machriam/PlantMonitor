@@ -7,10 +7,11 @@
         PlantExtractionTemplateModel,
         type PictureTripData
     } from "~/services/GatewayAppApi";
-    import {selectedPhotoTourPlantInfo} from "../store";
+    import {selectedPhotoTourPlantInfo} from "./PhotoStitchingContext";
     import {IrScalingHeight, IrScalingWidth} from "../deviceConfiguration/CvInterop";
     import {Task} from "~/types/task";
     import {onMount} from "svelte";
+    import type {Unsubscriber} from "svelte/motion";
     export let _selectedTrip: PictureTripData | undefined;
     export let _extractionTemplates: PlantExtractionTemplateModel[] = [];
     let _imageCropPreview: ImageCropPreview | undefined;
@@ -20,8 +21,15 @@
     let _availableExtractionTemplates: NpgsqlPoint[] = [];
     let _polygonUpdater: () => void;
     let _selectedTemplate: NpgsqlPoint | undefined;
+    let _unsubscribe: Unsubscriber[] = [];
     onMount(() => {
         _polygonUpdater = Task.createDebouncer(displayPolygonIrOffset, 150);
+        _unsubscribe.push(
+            selectedPhotoTourPlantInfo.subscribe(async (value) => {
+                _imageCropPreview = await loadNewPolygon();
+                _availableExtractionTemplates = uniqueExtractionOffsets();
+            })
+        );
     });
     function keyPressed(evt: KeyboardEvent) {
         if (evt.key == "ArrowRight") {
@@ -97,7 +105,7 @@
                     _imageCropPreview = await loadNewPolygon();
                     _availableExtractionTemplates = uniqueExtractionOffsets();
                 }}
-                class="btn btn-primary col-md-2">Show Polygon</button>
+                class="btn btn-primary col-md-2">Reload Polygon</button>
             <button on:click={() => storePolygonIrOffset()} class="btn btn-success col-md-2 ms-2">Update Offset</button>
         </div>
     {/if}

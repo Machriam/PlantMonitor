@@ -10,4 +10,14 @@ export class Download {
         URL.revokeObjectURL(url);
         document.body.removeChild(a);
     };
+
+    static downloadFromUrl = function (url: string) {
+        const a = document.createElement("a");
+        a.style.display = "none";
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    };
 }
