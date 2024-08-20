@@ -14,9 +14,9 @@
         PlantImageSection
     } from "~/services/GatewayAppApi";
     import type {HubConnection} from "@microsoft/signalr";
-    import {imageToCutChanged, plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
+    import {imageToCutChanged, plantPolygonChanged, selectedPhotoTourPlantInfo} from "./PhotoStitchingContext";
     import type {Unsubscriber} from "svelte/motion";
-    import IrFineAdjustment from "./IrFineAdjustment.svelte";
+    import {selectedDevice} from "../store";
 
     export let deviceId: string;
     export let irSeries: string;

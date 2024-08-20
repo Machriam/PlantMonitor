@@ -16,10 +16,11 @@
     import ImageCutter from "./ImageCutter.svelte";
     import {Task} from "~/types/task";
     import TextInput from "../reuseableComponents/TextInput.svelte";
-    import {imageToCutChanged, plantPolygonChanged, selectedDevice, selectedPhotoTourPlantInfo} from "../store";
+    import {imageToCutChanged, plantPolygonChanged, selectedPhotoTourPlantInfo} from "./PhotoStitchingContext";
     import type {Unsubscriber} from "svelte/motion";
     import type {ImageToCut} from "./ImageToCut";
     import IrFineAdjustment from "./IrFineAdjustment.svelte";
+    import {selectedDevice} from "../store";
     let _availableTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _pictureTrips: PictureTripData[] = [];

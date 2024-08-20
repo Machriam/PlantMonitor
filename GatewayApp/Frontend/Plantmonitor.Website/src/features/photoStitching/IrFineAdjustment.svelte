@@ -7,7 +7,7 @@
         PlantExtractionTemplateModel,
         type PictureTripData
     } from "~/services/GatewayAppApi";
-    import {selectedPhotoTourPlantInfo} from "../store";
+    import {selectedPhotoTourPlantInfo} from "./PhotoStitchingContext";
     import {IrScalingHeight, IrScalingWidth} from "../deviceConfiguration/CvInterop";
     import {Task} from "~/types/task";
     import {onMount} from "svelte";
