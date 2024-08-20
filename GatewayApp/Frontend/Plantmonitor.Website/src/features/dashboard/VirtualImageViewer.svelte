@@ -32,7 +32,7 @@
         _currentImageIndex =
             event.deltaY < 0
                 ? Math.max(0, _currentImageIndex - _scrollSkip)
-                : Math.min(_virtualImages.length, _currentImageIndex + _scrollSkip);
+                : Math.min(_virtualImages.length - 1, _currentImageIndex + _scrollSkip);
         await updateVirtualImage(_selectedTour.id);
     }
     async function selectedTourChanged(newTour: PhotoTourInfo) {
