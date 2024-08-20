@@ -1,9 +1,9 @@
 <script lang="ts">
     import {onMount} from "svelte";
-    import {AutomaticPhotoTourClient, DashboardClient, PhotoTourInfo} from "~/services/GatewayAppApi";
+    import {AutomaticPhotoTourClient, DashboardClient, DownloadInfo, PhotoTourInfo} from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/download";
-    import { Task } from "~/types/task";
+    import {Task} from "~/types/task";
     let _photoTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _virtualImages: string[] = [];
@@ -12,6 +12,7 @@
     let _currentImageIndex = 0;
     let _scrollSkip = 1;
     let _currentDownloadStatus = "";
+    let _downloadInfo: DownloadInfo[] = [];
 
     onMount(async () => {
         const automaticPhototourClient = new AutomaticPhotoTourClient();
@@ -40,15 +41,38 @@
         _virtualImages = (await dashboardClient.virtualImageList(_selectedTour.id)).toSorted().toReversed();
         _currentImageIndex = 0;
         await updateVirtualImage(_selectedTour.id);
+        updateDownloadStatus();
     }
-    async function downloadTourData() {
-        if (_selectedTour == undefined) return;
+    async function updateDownloadStatus() {
         const dashboardClient = new DashboardClient();
-        _currentDownloadStatus = "Compressing...";
-        const tourData = await dashboardClient.downloadTourData(_selectedTour.id);
-        _currentDownloadStatus = "Downloading...";
-        Download.downloadFromUrl(dashboardClient.getBaseUrl("", "") + tourData);
-        _currentDownloadStatus = "";
+        _downloadInfo = await dashboardClient.statusOfDownloadTourData();
+        _currentDownloadStatus = DownloadMessage();
+    }
+
+    async function downloadTourData() {
+        const dashboardClient = new DashboardClient();
+        if (_selectedTour == undefined) return;
+        const info = _downloadInfo.find((di) => di.photoTourId == _selectedTour?.id);
+        if (info?.readyToDownload) {
+            Download.downloadFromUrl(dashboardClient.getBaseUrl("", "") + info.path);
+            return;
+        }
+        if (info == undefined) {
+            const tourData = await dashboardClient.requestDownloadTourData(_selectedTour?.id);
+            _downloadInfo = _downloadInfo.filter((di) => di.photoTourId == _selectedTour?.id);
+            _downloadInfo.push(tourData);
+            _currentDownloadStatus = DownloadMessage();
+            return;
+        }
+        await updateDownloadStatus();
+    }
+
+    function DownloadMessage() {
+        if (_selectedTour == undefined) return "";
+        const info = _downloadInfo.find((di) => di.photoTourId == _selectedTour!.id);
+        if (info == undefined) return "Request Download";
+        if (info?.readyToDownload) return `Download ready (${info.sizeToDownloadInGb.toFixed(2)} GB)`;
+        return `Compressing Status: ${info.currentSize.toFixed(2)}/${info.sizeToDownloadInGb.toFixed(2)} GB`;
     }
 </script>
 
@@ -65,9 +89,7 @@
             <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show every nth image"></NumberInput>
             <div class="col-md-2"></div>
             <div class="col-md-2">
-                <div>{_currentDownloadStatus}</div>
-                <button class="btn btn-primary col-md-12" disabled={!_currentDownloadStatus.isEmpty()} on:click={downloadTourData}
-                    >Download Tour Data</button>
+                <button class="btn btn-primary col-md-12" on:click={downloadTourData}>{_currentDownloadStatus}</button>
             </div>
         </div>
         {#if _virtualImage != undefined}

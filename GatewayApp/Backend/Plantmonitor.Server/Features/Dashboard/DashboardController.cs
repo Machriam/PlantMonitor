@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Collections.Concurrent;
+using System.IO.Compression;
 using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
@@ -10,6 +11,10 @@ namespace Plantmonitor.Server.Features.Dashboard;
 [Route("api/[controller]")]
 public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration, IWebHostEnvironment webHost)
 {
+    private const double InverseGigabyte = 1d / (1024d * 1024d * 1024d);
+    private static readonly ConcurrentDictionary<string, DownloadInfo> s_fileReadyToDownload = new();
+    public record struct DownloadInfo(long PhotoTourId, string Path, double CurrentSize, double SizeToDownloadInGb, bool ReadyToDownload);
+
     [HttpGet("virtualimagelist")]
     public IEnumerable<string> VirtualImageList(long photoTourId)
     {
@@ -28,22 +33,53 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         return visPicture.Open().ConvertToArray();
     }
 
-    [HttpGet("downloadtourdata")]
-    public string DownloadTourData(long photoTourId)
+    [HttpGet("statusofdownloadtourdata")]
+    public IEnumerable<DownloadInfo> StatusOfDownloadTourData()
+    {
+        return s_fileReadyToDownload.Select(f =>
+        {
+            var path = webHost.WebRootPath + f.Value.Path;
+            if (!File.Exists(path)) return default;
+            if (f.Value.ReadyToDownload) return f.Value;
+            var currentSize = new FileInfo(path).Length * InverseGigabyte;
+            return new DownloadInfo(f.Value.PhotoTourId, f.Value.Path, currentSize, f.Value.SizeToDownloadInGb, f.Value.ReadyToDownload);
+        }).Where(f => f != default);
+    }
+
+    private string DownloadFolder()
+    {
+        var folder = Path.Combine(webHost.WebRootPath, "download");
+        Directory.CreateDirectory(folder);
+        return folder;
+    }
+
+    [HttpGet("requestdownloadtourdata")]
+    public DownloadInfo RequestDownloadTourData(long photoTourId)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
-        var downloadFolder = Path.Combine(webHost.WebRootPath, "download");
-        var zipFile = Path.Combine(downloadFolder, photoTour.Name.SanitizeFileName() + ".zip");
-        if (File.Exists(zipFile)) File.Delete(zipFile);
-        ZipFile.CreateFromDirectory(folder, zipFile, CompressionLevel.Fastest, true);
-        Directory.CreateDirectory(downloadFolder);
-        async Task DeleteFile()
+        var zipFile = Path.Combine(DownloadFolder(), photoTour.Name.SanitizeFileName() + ".zip");
+        var sizeToDownload = new DirectoryInfo(folder).GetFiles()
+            .Aggregate((0L), (a, f) => a += f.Length) * InverseGigabyte;
+        var info = new DownloadInfo(photoTourId, Path.Combine(IEnvironmentConfiguration.DownloadFolder, Path.GetFileName(zipFile)), 0d, sizeToDownload, false);
+        async Task CreateAndDeleteZip()
         {
-            await Task.Delay(TimeSpan.FromMinutes(10));
+            await Task.Yield();
+            s_fileReadyToDownload.Remove(zipFile, out _);
+            if (File.Exists(zipFile)) File.Delete(zipFile);
+            s_fileReadyToDownload.AddOrUpdate(zipFile, info, (_1, _2) => info);
+            ZipFile.CreateFromDirectory(folder, zipFile, CompressionLevel.Fastest, true);
+            if (s_fileReadyToDownload.TryGetValue(zipFile, out var currentInfo))
+            {
+                var size = new FileInfo(zipFile).Length * InverseGigabyte;
+                var finalInfo = new DownloadInfo(currentInfo.PhotoTourId, currentInfo.Path, size, currentInfo.SizeToDownloadInGb, true);
+                s_fileReadyToDownload.TryUpdate(zipFile, finalInfo, info);
+            }
+            await Task.Delay(TimeSpan.FromMinutes(30));
             File.Delete(zipFile);
+            s_fileReadyToDownload.Remove(zipFile, out _);
         }
-        DeleteFile().RunInBackground(ex => ex.LogError());
-        return Path.Combine(IEnvironmentConfiguration.DownloadFolder, Path.GetFileName(zipFile));
+        CreateAndDeleteZip().RunInBackground(ex => ex.LogError());
+        return info;
     }
 }

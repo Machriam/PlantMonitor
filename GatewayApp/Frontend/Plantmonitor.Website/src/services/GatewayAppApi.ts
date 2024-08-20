@@ -1837,7 +1837,9 @@ export interface IDashboardClient {
 
     virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string>;
 
-    downloadTourData(photoTourId?: number | undefined): Promise<string>;
+    statusOfDownloadTourData(): Promise<DownloadInfo[]>;
+
+    requestDownloadTourData(photoTourId?: number | undefined): Promise<DownloadInfo>;
 }
 
 export class DashboardClient extends GatewayAppApiBase implements IDashboardClient {
@@ -1943,8 +1945,51 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         return Promise.resolve<string>(null as any);
     }
 
-    downloadTourData(photoTourId?: number | undefined): Promise<string> {
-        let url_ = this.baseUrl + "/api/Dashboard/downloadtourdata?";
+    statusOfDownloadTourData(): Promise<DownloadInfo[]> {
+        let url_ = this.baseUrl + "/api/Dashboard/statusofdownloadtourdata";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processStatusOfDownloadTourData(_response));
+        });
+    }
+
+    protected processStatusOfDownloadTourData(response: Response): Promise<DownloadInfo[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(DownloadInfo.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<DownloadInfo[]>(null as any);
+    }
+
+    requestDownloadTourData(photoTourId?: number | undefined): Promise<DownloadInfo> {
+        let url_ = this.baseUrl + "/api/Dashboard/requestdownloadtourdata?";
         if (photoTourId === null)
             throw new Error("The parameter 'photoTourId' cannot be null.");
         else if (photoTourId !== undefined)
@@ -1961,19 +2006,18 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         return this.transformOptions(options_).then(transformedOptions_ => {
             return this.http.fetch(url_, transformedOptions_);
         }).then((_response: Response) => {
-            return this.transformResult(url_, _response, (_response: Response) => this.processDownloadTourData(_response));
+            return this.transformResult(url_, _response, (_response: Response) => this.processRequestDownloadTourData(_response));
         });
     }
 
-    protected processDownloadTourData(response: Response): Promise<string> {
+    protected processRequestDownloadTourData(response: Response): Promise<DownloadInfo> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
+            result200 = DownloadInfo.fromJS(resultData200);
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -1981,7 +2025,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<string>(null as any);
+        return Promise.resolve<DownloadInfo>(null as any);
     }
 }
 
@@ -4262,6 +4306,65 @@ export interface IDeviceHealthState {
     health: DeviceHealth;
     retryTimes: number;
     ip: string;
+}
+
+export class DownloadInfo implements IDownloadInfo {
+    photoTourId!: number;
+    path!: string;
+    currentSize!: number;
+    sizeToDownloadInGb!: number;
+    readyToDownload!: boolean;
+
+    constructor(data?: IDownloadInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.photoTourId = _data["PhotoTourId"];
+            this.path = _data["Path"];
+            this.currentSize = _data["CurrentSize"];
+            this.sizeToDownloadInGb = _data["SizeToDownloadInGb"];
+            this.readyToDownload = _data["ReadyToDownload"];
+        }
+    }
+
+    static fromJS(data: any): DownloadInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new DownloadInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["PhotoTourId"] = this.photoTourId;
+        data["Path"] = this.path;
+        data["CurrentSize"] = this.currentSize;
+        data["SizeToDownloadInGb"] = this.sizeToDownloadInGb;
+        data["ReadyToDownload"] = this.readyToDownload;
+        return data;
+    }
+
+    clone(): DownloadInfo {
+        const json = this.toJSON();
+        let result = new DownloadInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDownloadInfo {
+    photoTourId: number;
+    path: string;
+    currentSize: number;
+    sizeToDownloadInGb: number;
+    readyToDownload: boolean;
 }
 
 export class PhotoTourInfo implements IPhotoTourInfo {
