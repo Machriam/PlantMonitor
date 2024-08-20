@@ -76,7 +76,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
                 var finalInfo = new DownloadInfo(currentInfo.PhotoTourId, currentInfo.Path, size, currentInfo.SizeToDownloadInGb, true);
                 s_fileReadyToDownload.TryUpdate(zipFile, finalInfo, info);
             }
-            await Task.Delay(TimeSpan.FromMinutes(30));
+            await Task.Delay(TimeSpan.FromHours(1));
             File.Delete(zipFile);
             s_fileReadyToDownload.Remove(zipFile, out _);
         }

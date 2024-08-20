@@ -35,6 +35,8 @@ public interface IDataContext : IAsyncDisposable, IDisposable
 
     IQueryable<TemperatureMeasurementValue> TemperatureMeasurementValues { get; }
 
+    IQueryable<VirtualImageSummary> VirtualImageSummaries { get; }
+
 }
 
 public partial class DataContext : DbContext, IDataContext
@@ -87,6 +89,10 @@ public partial class DataContext : DbContext, IDataContext
     public virtual DbSet<TemperatureMeasurementValue> TemperatureMeasurementValues { get; set; }
 
     IQueryable<TemperatureMeasurementValue> IDataContext.TemperatureMeasurementValues => TemperatureMeasurementValues;
+
+    public virtual DbSet<VirtualImageSummary> VirtualImageSummaries { get; set; }
+
+    IQueryable<VirtualImageSummary> IDataContext.VirtualImageSummaries => VirtualImageSummaries;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -292,6 +298,22 @@ public partial class DataContext : DbContext, IDataContext
                 .HasForeignKey(d => d.MeasurementFk)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("temperature_measurement_value_measurement_fk_fkey");
+        });
+
+        modelBuilder.Entity<VirtualImageSummary>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToTable("virtual_image_summary", "plantmonitor");
+
+            entity.Property(e => e.Data)
+                .HasColumnType("jsonb")
+                .HasColumnName("data");
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd()
+                .HasColumnName("id");
+            entity.Property(e => e.VirtualImageCreationDate).HasColumnName("virtual_image_creation_date");
+            entity.Property(e => e.VirtualImagePath).HasColumnName("virtual_image_path");
         });
 
         OnModelCreatingPartial(modelBuilder);
