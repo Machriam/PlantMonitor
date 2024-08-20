@@ -45,27 +45,16 @@ builder.Services.AddHostedService<VirtualImageWorker>();
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(environmentConfiguration.DatabaseConnection());
 var dataSource = dataSourceBuilder.Configure().Build();
-builder.Services.AddDbContext<IDataContext, DataContext>(options =>
-{
-    options.UseNpgsql(dataSource, npg =>
-    {
-        npg.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
-    });
-});
+builder.Services.AddDbContext<IDataContext, DataContext>(
+    options => options.UseNpgsql(dataSource, npg => npg.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.PropertyNamingPolicy = null;
-});
+builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR().AddMessagePackProtocol();
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddCors(options =>
-    {
-        options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
-    });
+    builder.Services.AddCors(options => options.AddDefaultPolicy(policy => policy.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod()));
 }
 builder.Services.AddOpenApiDocument(options =>
 {
@@ -107,7 +96,8 @@ app.Use(async (context, next) =>
     await next();
     var path = context.Request.Path.Value;
 
-    if (context.Response.StatusCode != StatusCodes.Status304NotModified && path?.StartsWith("/api") == false && path?.StartsWith("/hub") == false)
+    if (context.Response.StatusCode != StatusCodes.Status304NotModified &&
+        path?.StartsWith("/api") == false && path?.StartsWith("/hub") == false && path?.StartsWith(IEnvironmentConfiguration.DownloadFolder) == false)
     {
         context.Request.Path = "/index.html";
         await next();

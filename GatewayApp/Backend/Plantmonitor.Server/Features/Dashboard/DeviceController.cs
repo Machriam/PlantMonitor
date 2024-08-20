@@ -2,8 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Server.Features.DeviceConfiguration;
 
-namespace Plantmonitor.Server.Features.DeviceControl;
+namespace Plantmonitor.Server.Features.Dashboard;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -36,14 +37,14 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         ZipFile.CreateFromDirectory(folder, resultStream);
         var downloadFolder = Path.Combine(webHost.WebRootPath, "download");
         Directory.CreateDirectory(downloadFolder);
-        var fileName = Path.Combine(downloadFolder, photoTour.Name + ".zip");
+        var fileName = Path.Combine(downloadFolder, photoTour.Name.SanitizeFileName() + ".zip");
         File.WriteAllBytes(fileName, resultStream.ToArray());
         async Task DeleteFile()
         {
-            await Task.Delay(TimeSpan.FromMinutes(5));
+            await Task.Delay(TimeSpan.FromMinutes(10));
             File.Delete(fileName);
-        };
+        }
         DeleteFile().RunInBackground(ex => ex.LogError());
-        return Path.Combine("/download/" + Path.GetFileName(fileName));
+        return Path.Combine(IEnvironmentConfiguration.DownloadFolder, Path.GetFileName(fileName));
     }
 }

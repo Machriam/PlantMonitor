@@ -1,9 +1,12 @@
 ﻿using System.Text.Encodings.Web;
+using Plantmonitor.Server.Features.DeviceConfiguration;
 
 namespace Plantmonitor.Server.Features.AppConfiguration
 {
     public interface IEnvironmentConfiguration
     {
+        const string DownloadFolder = "/download/";
+
         string IpScanRange_From();
 
         string IpScanRange_To();
@@ -59,10 +62,8 @@ namespace Plantmonitor.Server.Features.AppConfiguration
 
         public string VirtualImagePath(string name, long id)
         {
-            var invalidChars = Path.GetInvalidFileNameChars();
-            var sanitizedName = name.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Concat("");
-            var imageFolder = Path.Combine(Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
-                throw new Exception("No App configuration path found"), $"VirtualImages_{id}_{sanitizedName}");
+            var directory = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ?? throw new Exception("No App configuration path found");
+            var imageFolder = Path.Combine(directory, $"VirtualImages_{id}_{name.SanitizeFileName()}");
             Directory.CreateDirectory(imageFolder);
             return imageFolder;
         }
