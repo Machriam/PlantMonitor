@@ -80,6 +80,9 @@ builder.Services.AddMvc(options =>
 var app = builder.Build();
 app.Services.GetRequiredService<IConfigurationStorage>().InitializeConfiguration();
 CreateOrUpdateDatabase();
+var webHost = app.Services.GetRequiredService<IWebHostEnvironment>();
+if (Path.Exists(webHost.DownloadFolderPath())) Directory.Delete(webHost.DownloadFolderPath(), true);
+Directory.CreateDirectory(webHost.DownloadFolderPath());
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -97,7 +100,7 @@ app.Use(async (context, next) =>
     var path = context.Request.Path.Value;
 
     if (context.Response.StatusCode != StatusCodes.Status304NotModified &&
-        path?.StartsWith("/api") == false && path?.StartsWith("/hub") == false && path?.StartsWith(IEnvironmentConfiguration.DownloadFolder) == false)
+        path?.StartsWith("/api") == false && path?.StartsWith("/hub") == false && path?.StartsWith(IWebHostEnvironmentExtensions.DownloadFolder) == false)
     {
         context.Request.Path = "/index.html";
         await next();
@@ -113,6 +116,7 @@ app.MapControllers();
 app.MapHub<PictureStreamingHub>("/hub/video");
 app.MapHub<TemperatureStreamingHub>("/hub/temperatures");
 
+app.Services.GetRequiredService<IConfigurationStorage>().InitializeConfiguration();
 app.Run();
 
 void CreateOrUpdateDatabase()

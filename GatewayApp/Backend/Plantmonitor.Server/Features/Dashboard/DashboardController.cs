@@ -38,7 +38,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     {
         return s_fileReadyToDownload.Select(f =>
         {
-            var path = webHost.WebRootPath + f.Value.Path;
+            var path = webHost.DownloadFolderPath() + Path.GetFileName(f.Value.Path);
             if (!File.Exists(path)) return default;
             if (f.Value.ReadyToDownload) return f.Value;
             var currentSize = new FileInfo(path).Length * InverseGigabyte;
@@ -48,7 +48,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
 
     private string DownloadFolder()
     {
-        var folder = Path.Combine(webHost.WebRootPath, "download");
+        var folder = webHost.DownloadFolderPath();
         Directory.CreateDirectory(folder);
         return folder;
     }
@@ -61,7 +61,8 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var zipFile = Path.Combine(DownloadFolder(), photoTour.Name.SanitizeFileName() + ".zip");
         var sizeToDownload = new DirectoryInfo(folder).GetFiles()
             .Aggregate((0L), (a, f) => a += f.Length) * InverseGigabyte;
-        var info = new DownloadInfo(photoTourId, Path.Combine(IEnvironmentConfiguration.DownloadFolder, Path.GetFileName(zipFile)), 0d, sizeToDownload, false);
+        var downloadFile = Path.Combine(IWebHostEnvironmentExtensions.DownloadFolder, Path.GetFileName(zipFile));
+        var info = new DownloadInfo(photoTourId, downloadFile, 0d, sizeToDownload, false);
         async Task CreateAndDeleteZip()
         {
             await Task.Yield();

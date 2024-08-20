@@ -5,8 +5,6 @@ namespace Plantmonitor.Server.Features.AppConfiguration
 {
     public interface IEnvironmentConfiguration
     {
-        const string DownloadFolder = "/download/";
-
         string IpScanRange_From();
 
         string IpScanRange_To();
