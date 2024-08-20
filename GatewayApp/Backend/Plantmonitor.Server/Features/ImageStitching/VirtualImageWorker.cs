@@ -167,7 +167,12 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
     private string AddAditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, List<PhotoStitcher.PhotoStitchData> virtualImageList, (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) virtualImage)
     {
         var from = tripToProcess.Timestamp;
-        var to = from.Add(TimeSpan.FromMinutes(tripToProcess.PhotoTourFkNavigation.IntervallInMinutes));
+        var nextTrip = dataContext.PhotoTourTrips
+            .Where(ptt => ptt.PhotoTourFk == tripToProcess.PhotoTourFk && ptt.Timestamp > from)
+            .OrderBy(ptt => ptt.Timestamp)
+            .FirstOrDefault();
+        var timeToNextTrip = nextTrip?.Timestamp - from;
+        var to = from.Add(timeToNextTrip ?? TimeSpan.FromMinutes(tripToProcess.PhotoTourFkNavigation.IntervallInMinutes));
         logger.LogInformation("Fetching Temperatures from {from} to {to}", from, to);
         var temperaturesOfTrip = dataContext.TemperatureMeasurementValues
             .Include(tmv => tmv.MeasurementFkNavigation)
