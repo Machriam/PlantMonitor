@@ -33,18 +33,17 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
-        using var resultStream = new MemoryStream();
-        ZipFile.CreateFromDirectory(folder, resultStream);
         var downloadFolder = Path.Combine(webHost.WebRootPath, "download");
+        var zipFile = Path.Combine(downloadFolder, photoTour.Name.SanitizeFileName() + ".zip");
+        if (File.Exists(zipFile)) File.Delete(zipFile);
+        ZipFile.CreateFromDirectory(folder, zipFile, CompressionLevel.Fastest, true);
         Directory.CreateDirectory(downloadFolder);
-        var fileName = Path.Combine(downloadFolder, photoTour.Name.SanitizeFileName() + ".zip");
-        File.WriteAllBytes(fileName, resultStream.ToArray());
         async Task DeleteFile()
         {
             await Task.Delay(TimeSpan.FromMinutes(10));
-            File.Delete(fileName);
+            File.Delete(zipFile);
         }
         DeleteFile().RunInBackground(ex => ex.LogError());
-        return Path.Combine(IEnvironmentConfiguration.DownloadFolder, Path.GetFileName(fileName));
+        return Path.Combine(IEnvironmentConfiguration.DownloadFolder, Path.GetFileName(zipFile));
     }
 }

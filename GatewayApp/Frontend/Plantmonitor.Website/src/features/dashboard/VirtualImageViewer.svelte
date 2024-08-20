@@ -3,6 +3,7 @@
     import {AutomaticPhotoTourClient, DashboardClient, PhotoTourInfo} from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/download";
+    import { Task } from "~/types/task";
     let _photoTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _virtualImages: string[] = [];
@@ -10,6 +11,7 @@
     let _virtualImage: string | undefined;
     let _currentImageIndex = 0;
     let _scrollSkip = 1;
+    let _currentDownloadStatus = "";
 
     onMount(async () => {
         const automaticPhototourClient = new AutomaticPhotoTourClient();
@@ -42,8 +44,11 @@
     async function downloadTourData() {
         if (_selectedTour == undefined) return;
         const dashboardClient = new DashboardClient();
+        _currentDownloadStatus = "Compressing...";
         const tourData = await dashboardClient.downloadTourData(_selectedTour.id);
+        _currentDownloadStatus = "Downloading...";
         Download.downloadFromUrl(dashboardClient.getBaseUrl("", "") + tourData);
+        _currentDownloadStatus = "";
     }
 </script>
 
@@ -58,10 +63,15 @@
             <div class="col-md-3">{_virtualImages[_currentImageIndex]}</div>
             <div class="col-md-3">Index: {_currentImageIndex + 1} of {_virtualImages.length}</div>
             <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show every nth image"></NumberInput>
+            <div class="col-md-2"></div>
+            <div class="col-md-2">
+                <div>{_currentDownloadStatus}</div>
+                <button class="btn btn-primary col-md-12" disabled={!_currentDownloadStatus.isEmpty()} on:click={downloadTourData}
+                    >Download Tour Data</button>
+            </div>
         </div>
         {#if _virtualImage != undefined}
             <img style="max-width: 100%;max-height:100%" alt="Stitched Result" src="data:image/png;base64,{_virtualImage}" />
         {/if}
     </div>
-    <button class="btn btn-primary" on:click={downloadTourData}>Download Tour Data</button>
 </div>
