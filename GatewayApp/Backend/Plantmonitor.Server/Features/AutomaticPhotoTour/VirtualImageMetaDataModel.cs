@@ -76,7 +76,7 @@ public record struct VirtualImageMetaDataModel()
     public ImageDimensions Dimensions { get; init; } = new();
     public ImageMetaDatum[] ImageMetaData { get; init; } = [];
     public TimeInfo TimeInfos { get; set; } = new();
-    public ICollection<TemperatureReading> TemperatureReadings { get; init; } = [];
+    public ICollection<TemperatureReading> TemperatureReadings { get; set; } = [];
 
     public static VirtualImageMetaDataModel FromTsvFile(string tsv)
     {
