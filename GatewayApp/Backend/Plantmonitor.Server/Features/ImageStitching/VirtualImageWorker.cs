@@ -148,7 +148,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                     AddMat(virtualImageFolder + $"/{PhotoTourTrip.IrPrefix}{fileBaseName}.png", virtualImage.IrColorImage, zip);
                     AddMat(virtualImageFolder + $"/{PhotoTourTrip.VisPrefix}{fileBaseName}.png", virtualImage.VisImage, zip);
                     AddMat(virtualImageFolder + $"/{PhotoTourTrip.RawIrPrefix}{fileBaseName}.png", virtualImage.IrRawData, zip);
-                    var tsvPath = virtualImageFolder + $"/data_{fileBaseName}.tsv";
+                    var tsvPath = virtualImageFolder + $"/{PhotoTourTrip.MetaDataPrefix}{fileBaseName}.tsv";
                     File.WriteAllText(tsvPath, fullMetaDataTable.ExportAsTsv());
                     var fileName = Path.GetFileName(tsvPath);
                     zip.CreateEntryFromFile(tsvPath, fileName);

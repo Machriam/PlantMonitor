@@ -3,6 +3,7 @@ using System.IO.Compression;
 using Emgu.CV;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 namespace Plantmonitor.Server.Features.Dashboard;
 
@@ -91,5 +92,6 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         zip.Dispose();
         var visMat = CvInvoke.Imread(files.First(f => f.StartsWith(PhotoTourTrip.VisPrefix)));
         var rawIrMat = CvInvoke.Imread(files.First(f => f.StartsWith(PhotoTourTrip.RawIrPrefix)));
+        var metaData = VirtualImageMetaDataModel.FromTsvFile(files.First(f => f.StartsWith(PhotoTourTrip.MetaDataPrefix)));
     }
 }

@@ -1,10 +1,7 @@
 ﻿using FluentAssertions;
-using NSubstitute;
 using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Shared.Extensions;
-using System;
-using Xunit;
 
 namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTour;
 
@@ -22,6 +19,16 @@ public class VirtualImageMetaDataModelTests
         var sut = CreateDefaultTestModel().AsJson();
         var importedModel = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(TestFilePath(DefaultTestFile))).AsJson();
         sut.Should().BeEquivalentTo(importedModel);
+    }
+
+    [Fact]
+    public void FromTsvFile_WithEmptyList_ShouldWork()
+    {
+        var sut = CreateDefaultTestModel();
+        sut.TemperatureReadings = [];
+        var sutJson = sut.AsJson();
+        var importedModel = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(TestFilePath(TestFileWithEmptyList))).AsJson();
+        sutJson.Should().BeEquivalentTo(importedModel);
     }
 
     [Fact]
