@@ -17,15 +17,18 @@
     onMount(async () => {
         const automaticPhototourClient = new AutomaticPhotoTourClient();
         _photoTours = await automaticPhototourClient.getPhotoTours();
+        _photoTours = _photoTours.toSorted((a, b) => (a.lastEvent > b.lastEvent ? -1 : 1));
         _selectedTour = _photoTours.length > 0 ? _photoTours[0] : undefined;
         if (_selectedTour == undefined) return;
         selectedTourChanged(_selectedTour);
     });
     async function updateVirtualImage(tourId: number) {
         const dashboardClient = new DashboardClient();
-        if (_virtualImages.length > _currentImageIndex && _currentImageIndex >= 0)
+        _virtualImage = undefined;
+        if (_virtualImages.length > _currentImageIndex && _currentImageIndex >= 0) {
             _selectedImage = _virtualImages[_currentImageIndex];
-        _virtualImage = await dashboardClient.virtualImage(_selectedImage, tourId);
+            _virtualImage = await dashboardClient.virtualImage(_selectedImage, tourId);
+        }
     }
     async function nextImage(event: WheelEvent) {
         if (_selectedTour == undefined) return;
@@ -70,7 +73,7 @@
     function DownloadMessage() {
         if (_selectedTour == undefined) return "";
         const info = _downloadInfo.find((di) => di.photoTourId == _selectedTour!.id);
-        if (info == undefined) return "Request Download";
+        if (info == undefined) return "Download Raw Data";
         if (info?.readyToDownload) return `Download ready (${info.sizeToDownloadInGb.toFixed(2)} GB)`;
         return `Compressing Status: ${info.currentSize.toFixed(2)}/${info.sizeToDownloadInGb.toFixed(2)} GB`;
     }
@@ -87,11 +90,16 @@
     <div on:wheel={nextImage} style="height: 80vh; width:80vw">
         <div style="align-items:center" class="col-md-12 row mt-2">
             <div class="col-md-3">{_virtualImages[_currentImageIndex]}</div>
-            <div class="col-md-3">Index: {_currentImageIndex + 1} of {_virtualImages.length}</div>
+            <div class="col-md-3">
+                Index: {Math.min(_currentImageIndex + 1, _virtualImages.length)} of {_virtualImages.length}
+            </div>
             <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show every nth image"></NumberInput>
             <div class="col-md-2"></div>
             <div class="col-md-2">
                 <button class="btn btn-primary col-md-12" on:click={downloadTourData}>{_currentDownloadStatus}</button>
+                {#if _currentDownloadStatus.includes("ready")}
+                    <button class="btn btn-danger col-md-12 mt-1" on:click={updateDownloadStatus}>Pack Data again</button>
+                {/if}
             </div>
         </div>
         {#if _virtualImage != undefined}
