@@ -19,7 +19,7 @@ public class VirtualImageMetaDataModelTests
     public void FromTsvFile_ShouldWork()
     {
         var sut = CreateDefaultTestModel();
-        var importedModel = VirtualImageMetaDataModel.FromTsvFile(TestFilePath(DefaultTestFile));
+        var importedModel = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(TestFilePath(DefaultTestFile)));
         sut.Should().Be(importedModel);
     }
 
