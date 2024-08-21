@@ -1,21 +1,17 @@
-﻿using System.ComponentModel;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
-using System.Threading;
 
 namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 public static class ITsvFormattableExtensions
 {
-    public static string GetTsvHeader(this ITsvFormattable model) => model.GetType().GetProperties().Select(p => p.Name).Concat("\t");
-
     public static string GetTsv(this ITsvFormattable model, bool withHeader, string tableName)
     {
         var result = new StringBuilder();
         if (withHeader)
         {
             result.AppendLine(tableName.Where(char.IsLetterOrDigit).Concat(""));
-            result.AppendLine(GetTsvHeader(model));
+            result.AppendLine(model.GetType().GetProperties().Select(p => p.Name).Concat("\t"));
         }
         foreach (var property in model.GetType().GetProperties()) result.Append(model.FormatValue(property.Name, property.GetValue(model)) + "\t");
         return result.ToString();
@@ -26,12 +22,13 @@ public interface ITsvFormattable
 {
     string FormatValue(string name, object? value);
 
-    IEnumerable<object> FromTsvRowData(Dictionary<string, List<string>> table);
+    object ParseFromText(string key, string text);
 }
 
 public record struct VirtualImageMetaDataModel()
 {
-    public class ImageDimensions
+    private const string DateFormat = "yyyy-MM-dd HH:mm:ss";
+    public class ImageDimensions : ITsvFormattable
     {
         public ImageDimensions() { }
         public ImageDimensions(int width, int height, int imageWidth, int imageHeight, int leftPadding, int topPadding, int imagesPerRow, int rowCount, int imageCount, string comment)
@@ -60,84 +57,117 @@ public record struct VirtualImageMetaDataModel()
         public string Comment { get; set; } = "";
 
         public string FormatValue(string name, object? value) => value?.ToString() ?? "";
-        private static object ParseFromText(string key, string text) => key switch
+        public object ParseFromText(string key, string text) => key switch
         {
             nameof(Comment) => text,
             _ => int.Parse(text),
         };
-
-        public IEnumerable<object> FromTsvRowData(Dictionary<string, List<string>> table)
-        {
-            var result = new List<object>();
-            var sortedEntries = table
-                .SelectMany(t => t.Value.WithIndex().Select(v => (t.Key, v.Item, v.Index)))
-                .OrderBy(r => r.Index)
-                .ToLookup(r => r.Index);
-            var propertyNames = typeof(ImageDimensions).GetProperties().ToList();
-            foreach (var entry in sortedEntries)
-            {
-                var newEntry = new ImageDimensions();
-                propertyNames.ForEach(p => p.SetValue(newEntry, ParseFromText(p.Name, entry.First(e => e.Key == p.Name).Item)));
-                result.Add(newEntry);
-            }
-            return result;
-        }
     }
 
-    public record struct ImageMetaDatum(int ImageIndex, string ImageName, string ImageComment, bool HasIr, bool HasVis, DateTime IrTime, DateTime VisTime, float IrTempInC) : ITsvFormattable
+    public class ImageMetaDatum : ITsvFormattable
     {
-        public readonly string FormatValue(string name, object? value)
+        public ImageMetaDatum() { }
+        public ImageMetaDatum(int imageIndex, string imageName, string imageComment, bool hasIr, bool hasVis, DateTime irTime, DateTime visTime, float irTempInK)
+        {
+            ImageIndex = imageIndex;
+            ImageName = imageName;
+            ImageComment = imageComment;
+            HasIr = hasIr;
+            HasVis = hasVis;
+            IrTime = irTime;
+            VisTime = visTime;
+            IrTempInC = irTempInK.KelvinToCelsius();
+        }
+
+        public int ImageIndex { get; set; }
+        public string ImageName { get; set; } = "";
+        public string ImageComment { get; set; } = "";
+        public bool HasIr { get; set; }
+        public bool HasVis { get; set; }
+        public DateTime IrTime { get; set; }
+        public DateTime VisTime { get; set; }
+        public float IrTempInC { get; set; }
+
+        public string FormatValue(string name, object? value)
         {
             if (value == null) return "";
             return name switch
             {
-                nameof(IrTime) or nameof(VisTime) => ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"),
+                nameof(IrTime) or nameof(VisTime) => ((DateTime)value).ToString(DateFormat),
                 nameof(IrTempInC) => ((float)value).ToString("0.00 °C", CultureInfo.InvariantCulture),
                 _ => value?.ToString() ?? "",
             };
         }
 
-        public IEnumerable<object> FromTsvRowData(Dictionary<string, List<string>> table)
+        public object ParseFromText(string key, string text) => key switch
         {
-            return [];
-        }
+            nameof(ImageName) or nameof(ImageComment) => text,
+            nameof(HasIr) or nameof(HasVis) => bool.Parse(text),
+            nameof(IrTempInC) => float.Parse(text.Replace("°C", ""), CultureInfo.InvariantCulture),
+            nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture),
+            nameof(ImageIndex) => int.Parse(text),
+            _ => text,
+        };
     }
 
-    public record struct TimeInfo(DateTime StartTime, DateTime EndTime) : ITsvFormattable
+    public class TimeInfo : ITsvFormattable
     {
-        public readonly string FormatValue(string name, object? value)
+        public TimeInfo() { }
+        public TimeInfo(DateTime startTime, DateTime endTime)
+        {
+            StartTime = startTime;
+            EndTime = endTime;
+        }
+
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+
+        public string FormatValue(string name, object? value)
         {
             if (value == null) return "";
             return name switch
             {
-                nameof(StartTime) or nameof(EndTime) => ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"),
+                nameof(StartTime) or nameof(EndTime) => ((DateTime)value).ToString(DateFormat),
                 _ => value?.ToString() ?? "",
             };
         }
 
-        public IEnumerable<object> FromTsvRowData(Dictionary<string, List<string>> table)
-        {
-            return [];
-        }
+        public object ParseFromText(string key, string text) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture);
     }
 
-    public record struct TemperatureReading(string SensorId, string Comment, float TemperatureInC, DateTime Time) : ITsvFormattable
+    public class TemperatureReading : ITsvFormattable
     {
-        public readonly string FormatValue(string name, object? value)
+        public TemperatureReading() { }
+        public TemperatureReading(string sensorId, string comment, float temperatureInC, DateTime time)
+        {
+            SensorId = sensorId;
+            Comment = comment;
+            TemperatureInC = temperatureInC;
+            Time = time;
+        }
+
+        public string SensorId { get; set; } = "";
+        public string Comment { get; set; } = "";
+        public float TemperatureInC { get; set; }
+        public DateTime Time { get; set; }
+
+        public string FormatValue(string name, object? value)
         {
             if (value == null) return "";
             return name switch
             {
                 nameof(TemperatureInC) => TemperatureInC.ToString("0.00 °C", CultureInfo.InvariantCulture),
-                nameof(Time) => ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss"),
+                nameof(Time) => ((DateTime)value).ToString(DateFormat),
                 _ => value?.ToString() ?? "",
             };
         }
 
-        public IEnumerable<object> FromTsvRowData(Dictionary<string, List<string>> table)
+        public object ParseFromText(string key, string text) => key switch
         {
-            return [];
-        }
+            nameof(TemperatureInC) => float.Parse(text.Replace("°C", ""), CultureInfo.InvariantCulture),
+            nameof(Time) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture),
+            _ => text,
+        };
     }
 
     public ImageDimensions Dimensions { get; set; } = new();
@@ -185,11 +215,28 @@ public record struct VirtualImageMetaDataModel()
         }
         return new VirtualImageMetaDataModel()
         {
-            Dimensions = new ImageDimensions().FromTsvRowData(tableDataByTableName[nameof(ImageDimensions)]).Cast<ImageDimensions>().FirstOrDefault(),
-            ImageMetaData = new ImageMetaDatum().FromTsvRowData(tableDataByTableName[nameof(ImageMetaDatum)]).Cast<ImageMetaDatum>().ToList(),
-            TemperatureReadings = new TemperatureReading().FromTsvRowData(tableDataByTableName[nameof(TemperatureReading)]).Cast<TemperatureReading>().ToList(),
-            TimeInfos = new TimeInfo().FromTsvRowData(tableDataByTableName[nameof(TimeInfo)]).Cast<TimeInfo>().FirstOrDefault(),
+            Dimensions = FromTsvRowData<ImageDimensions>(tableDataByTableName[nameof(ImageDimensions)]).FirstOrDefault() ?? new(),
+            ImageMetaData = [.. FromTsvRowData<ImageMetaDatum>(tableDataByTableName[nameof(ImageMetaDatum)])],
+            TemperatureReadings = [.. FromTsvRowData<TemperatureReading>(tableDataByTableName[nameof(TemperatureReading)])],
+            TimeInfos = FromTsvRowData<TimeInfo>(tableDataByTableName[nameof(TimeInfo)]).FirstOrDefault() ?? new(),
         };
+    }
+
+    private static List<T> FromTsvRowData<T>(Dictionary<string, List<string>> table) where T : ITsvFormattable, new()
+    {
+        var result = new List<T>();
+        var sortedEntries = table
+            .SelectMany(t => t.Value.WithIndex().Select(v => (t.Key, v.Item, v.Index)))
+            .OrderBy(r => r.Index)
+            .ToLookup(r => r.Index);
+        var propertyNames = typeof(T).GetProperties().ToList();
+        foreach (var entry in sortedEntries)
+        {
+            var newEntry = new T();
+            propertyNames.ForEach(p => p.SetValue(newEntry, newEntry.ParseFromText(p.Name, entry.First(e => e.Key == p.Name).Item)));
+            result.Add(newEntry);
+        }
+        return result;
     }
 
     public readonly string ExportAsTsv()

@@ -2,6 +2,7 @@
 using NSubstitute;
 using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Shared.Extensions;
 using System;
 using Xunit;
 
@@ -18,9 +19,9 @@ public class VirtualImageMetaDataModelTests
     [Fact]
     public void FromTsvFile_ShouldWork()
     {
-        var sut = CreateDefaultTestModel();
-        var importedModel = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(TestFilePath(DefaultTestFile)));
-        sut.Should().Be(importedModel);
+        var sut = CreateDefaultTestModel().AsJson();
+        var importedModel = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(TestFilePath(DefaultTestFile))).AsJson();
+        sut.Should().BeEquivalentTo(importedModel);
     }
 
     [Fact]
