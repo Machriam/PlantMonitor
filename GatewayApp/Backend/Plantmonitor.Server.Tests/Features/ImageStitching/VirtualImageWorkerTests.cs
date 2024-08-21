@@ -15,20 +15,20 @@ namespace Plantmonitor.Server.Tests.Features.ImageStitching;
 
 public class VirtualImageWorkerTests
 {
-    private readonly IServiceScopeFactory _ServiceScopeFactory;
-    private readonly IEnvironmentConfiguration _EnvironmentConfiguration;
-    private readonly ILogger<VirtualImageWorker> _Logger;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
+    private readonly IEnvironmentConfiguration _environmentConfiguration;
+    private readonly ILogger<VirtualImageWorker> _logger;
 
     public VirtualImageWorkerTests()
     {
-        _ServiceScopeFactory = Substitute.For<IServiceScopeFactory>();
-        _EnvironmentConfiguration = Substitute.For<IEnvironmentConfiguration>();
-        _Logger = Substitute.For<ILogger<VirtualImageWorker>>();
+        _serviceScopeFactory = Substitute.For<IServiceScopeFactory>();
+        _environmentConfiguration = Substitute.For<IEnvironmentConfiguration>();
+        _logger = Substitute.For<ILogger<VirtualImageWorker>>();
     }
 
     private VirtualImageWorker CreateVirtualImageWorker()
     {
-        return new VirtualImageWorker(_ServiceScopeFactory, _EnvironmentConfiguration, _Logger);
+        return new VirtualImageWorker(_serviceScopeFactory, _environmentConfiguration, _logger);
     }
 
     [Fact]
@@ -44,13 +44,13 @@ public class VirtualImageWorkerTests
         var visFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/VisData";
         var testData = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/TestData";
         var result = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest_NegativeBounds/Result";
-        dataContext.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>() { new PhotoTourTrip() {
+        dataContext.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>() { new() {
             Id=1,
             PhotoTourFk=1,
             IrDataFolder=irFolder,
             VisDataFolder=visFolder,
             Timestamp=DateTime.Now,
-            PhotoTourFkNavigation=new AutomaticPhotoTour(){Name="Test"}
+            PhotoTourFkNavigation=new DataModel.DataModel.AutomaticPhotoTour(){Name="Test"}
         } });
         var extractionTemplates = File.ReadAllText($"{testData}/ExtractionTemplate.json")
             .FromJson<QueryableList<PlantExtractionTemplate>>() ?? [];
@@ -76,13 +76,13 @@ public class VirtualImageWorkerTests
         var visFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest/VisData";
         var testData = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest/TestData";
         var result = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest/Result";
-        dataContext.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>() { new PhotoTourTrip() {
+        dataContext.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>() { new() {
             Id=1,
             PhotoTourFk=1,
             IrDataFolder=irFolder,
             VisDataFolder=visFolder,
             Timestamp=DateTime.Now,
-            PhotoTourFkNavigation=new AutomaticPhotoTour(){Name="Test"}
+            PhotoTourFkNavigation=new DataModel.DataModel.AutomaticPhotoTour(){Name="Test"}
         } });
         var extractionTemplates = File.ReadAllText($"{testData}/ExtractionTemplate.json")
             .FromJson<QueryableList<PlantExtractionTemplate>>() ?? [];

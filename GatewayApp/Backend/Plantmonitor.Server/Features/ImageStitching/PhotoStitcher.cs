@@ -65,7 +65,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
             Dimensions = new(finalMatSize.Height, finalMatSize.Width, width, height, WhiteBorderSize, WhiteBorderSize, imagesPerRow,
                             (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count, "Raw IR in °C, first channel full degree, second channel decimal values"),
             ImageMetaData = imageList.WithIndex().Select(im => new VirtualImageMetaDataModel.ImageMetaDatum(im.Index, im.Item.Name, im.Item.Comment,
-                            im.Item.ColoredIrImage == null, im.Item.VisImage == null, im.Item.IrImageTime, im.Item.VisImageTime, im.Item.IrTemperatureInK / 100f)).ToArray()
+                            im.Item.ColoredIrImage == null, im.Item.VisImage == null, im.Item.IrImageTime, im.Item.VisImageTime, im.Item.IrTemperatureInK.KelvinToCelsius())).ToArray()
         };
         return (visImage, irColorImage, irData, metaData);
     }

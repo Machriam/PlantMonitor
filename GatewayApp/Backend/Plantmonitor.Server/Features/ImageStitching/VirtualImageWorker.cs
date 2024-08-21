@@ -137,7 +137,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             var maxWidth = virtualImageList.Select(v => v.VisImage?.Width ?? 10).OrderByDescending(h => h).FirstOrDefault();
             var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight);
             logger.LogInformation("Fetching additional metadata");
-            var fullMetaDataTable = AddAditionalMetaData(dataContext, tripToProcess, virtualImageList, virtualImage.MetaData);
+            var fullMetaDataTable = AddAdditionalMetaData(dataContext, tripToProcess, virtualImage.MetaData);
 
             var fileBaseName = Path.GetFileNameWithoutExtension(virtualImageFile);
             logger.LogInformation("Storing virtual image {image}", virtualImageFile);
@@ -166,7 +166,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         logger.LogInformation("All trips of tour {tour} processed", tripToProcess.PhotoTourFkNavigation.Name);
     }
 
-    private VirtualImageMetaDataModel AddAditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, List<PhotoStitcher.PhotoStitchData> virtualImageList, VirtualImageMetaDataModel metaData)
+    private VirtualImageMetaDataModel AddAdditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, VirtualImageMetaDataModel metaData)
     {
         var from = tripToProcess.Timestamp;
         var nextTrip = dataContext.PhotoTourTrips
@@ -182,6 +182,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             .OrderBy(tm => tm.Timestamp)
             .Take(10000)
             .ToList();
+        metaData.TimeInfos = new(from, to);
         logger.LogInformation("Creating temperature table");
         var measurementValues = temperaturesOfTrip
             .Where(tot => !tot.MeasurementFkNavigation.IsThermalCamera())
