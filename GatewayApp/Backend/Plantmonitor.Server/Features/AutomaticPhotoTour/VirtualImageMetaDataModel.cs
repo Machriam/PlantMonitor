@@ -243,16 +243,23 @@ public record struct VirtualImageMetaDataModel()
     {
         var imageList = ImageMetaData.OrderBy(imd => imd.ImageIndex).ToList();
         var index = 0;
-        var result = new List<(int Left, int Top, ImageMetaDatum Image)>();
-        for (var ri = 0; ri < float.Ceiling(Dimensions.ImageCount / Dimensions.ImagesPerRow); ri++)
+        var result = new Dictionary<(int Row, int Col), ImageMetaDatum>();
+        for (var ri = 0; ri < float.Ceiling(Dimensions.ImageCount / (float)Dimensions.ImagesPerRow); ri++)
         {
             for (var ci = 0; ci < Dimensions.ImagesPerRow; ci++)
             {
-                result.Add((Dimensions.Width * ci, ri * Dimensions.Height, imageList[index]));
+                if (index >= imageList.Count) break;
+                result.Add((ri, ci), imageList[index]);
                 index++;
             }
         }
-        return (pixel) => result.First(r => r.Left <= pixel.Left && r.Top <= pixel.Top).Image;
+        var @this = this;
+        return (pixel) =>
+        {
+            var column = pixel.Left / @this.Dimensions.Width;
+            var row = pixel.Top / @this.Dimensions.Height;
+            return result[(row, column)];
+        };
     }
 
     public readonly string ExportAsTsv()

@@ -107,6 +107,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         var maskData = mask.GetData(true);
         var irData = rawIrMat.GetData(true);
         var getImage = metaData.BuildCoordinateToImageFunction();
+        var visData = visMat.GetData(true);
         var resultData = new PhotoSummaryResult(pixelSizeInMm);
         for (var row = 0; row < mask.Rows; row++)
         {
@@ -115,11 +116,21 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 var value = (byte)maskData.GetValue(row, col)!;
                 if (value == 0) continue;
                 var imageData = getImage((col, row));
-                var temperatureInteger = (int)irData.GetValue(row, col, 0)!;
-                var temperatureFraction = (int)irData.GetValue(row, col, 1)!;
-                resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f));
+                var temperatureInteger = (byte)irData.GetValue(row, col, 0)!;
+                var temperatureFraction = (byte)irData.GetValue(row, col, 1)!;
+                var bValue = (byte)visData.GetValue(row, col, 0)!;
+                var gValue = (byte)visData.GetValue(row, col, 1)!;
+                var rValue = (byte)visData.GetValue(row, col, 2)!;
+                resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f), [rValue, gValue, bValue]);
             }
         }
+        mask.Dispose();
+        visMat.Dispose();
+        rawIrMat.Dispose();
+        element.Dispose();
+        hsvMat.Dispose();
+        lowGreen.Dispose();
+        highGreen.Dispose();
         return resultData;
     }
 }

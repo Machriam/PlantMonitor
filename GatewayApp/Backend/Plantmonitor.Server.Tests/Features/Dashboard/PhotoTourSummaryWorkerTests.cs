@@ -33,7 +33,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/SmallPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        sut.ProcessImage(testZip);
+        var result = sut.ProcessImage(testZip, 0.2f);
     }
 
     [Fact]
@@ -41,6 +41,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        sut.ProcessImage(testZip);
+        var result = sut.ProcessImage(testZip, 0.2f);
+        result.GetResults();
     }
 }
