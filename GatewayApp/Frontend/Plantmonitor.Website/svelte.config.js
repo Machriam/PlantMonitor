@@ -9,7 +9,7 @@ const config = {
     kit: {
         alias: {
             "~": "./src",
-            typeExtensions: "./src/types/typeExtensions.d.ts"
+            typeExtensions: "./src/types/TypeExtensions.d.ts"
         },
         files: {
             routes: "src/features"

@@ -12,7 +12,7 @@ export default defineConfig({
     },
     test: {
         environment: "jsdom",
-        setupFiles: ["src/types/typeExtensions.d.ts"],
+        setupFiles: ["src/types/TypeExtensions.d.ts"],
         globals: true
     }
 });
