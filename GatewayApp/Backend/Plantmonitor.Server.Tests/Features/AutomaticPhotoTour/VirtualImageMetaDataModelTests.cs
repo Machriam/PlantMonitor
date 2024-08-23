@@ -57,7 +57,7 @@ public class VirtualImageMetaDataModelTests
         {
             Dimensions = new VirtualImageMetaDataModel.ImageDimensions(1, 2, 3, 4, 5, 6, 7, 8, 9, "Comment"),
             ImageMetaData = Enumerable.Range(1, 10).Select(i => new VirtualImageMetaDataModel
-                .ImageMetaDatum(i, $"Plant {i}", $"Comment {i}", true, false, date.AddDays(-i), date.AddDays(i), 273f + i)).ToArray(),
+                .ImageMetaDatum(i, $"Plant {i}", $"Comment {i}", true, false, date.AddDays(-i), date.AddDays(i), (273 + i) * 100)).ToArray(),
             TemperatureReadings = Enumerable.Range(1, 10).Select(i => new VirtualImageMetaDataModel
                 .TemperatureReading($"Sensor {i}", $"Comment {i}", i, date.AddSeconds(i))).ToArray(),
             TimeInfos = new(date.AddMinutes(-10), date.AddMinutes(10))
