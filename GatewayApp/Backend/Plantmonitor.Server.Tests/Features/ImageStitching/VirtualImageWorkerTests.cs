@@ -76,12 +76,32 @@ public class VirtualImageWorkerTests
         var visFolder = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest/VisData";
         var testData = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest/TestData";
         var result = $"{applicationPath}/PlantMonitorControl.Tests/TestData/VirtualImageTest/Result";
+        var measurement = new TemperatureMeasurement()
+        {
+            PhotoTourFk = 1,
+            Comment = "Comment",
+            SensorId = "9x99",
+            StartTime = DateTime.Now.AddMinutes(1),
+        };
+        dataContext.TemperatureMeasurementValues.ReturnsForAnyArgs(new QueryableList<TemperatureMeasurementValue>()
+        {
+            new(){MeasurementFkNavigation=measurement,Temperature=123,Timestamp=DateTime.Now.AddMinutes(1)},
+            new(){MeasurementFkNavigation=measurement,Temperature=23,Timestamp=DateTime.Now.AddMinutes(2)},
+            new(){MeasurementFkNavigation=measurement,Temperature=3,Timestamp=DateTime.Now.AddMinutes(3)},
+        });
         dataContext.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>() { new() {
             Id=1,
             PhotoTourFk=1,
             IrDataFolder=irFolder,
             VisDataFolder=visFolder,
             Timestamp=DateTime.Now,
+            PhotoTourFkNavigation=new DataModel.DataModel.AutomaticPhotoTour(){Name="Test"}
+        },new() {
+            Id=2,
+            PhotoTourFk=1,
+            IrDataFolder=irFolder,
+            VisDataFolder=visFolder,
+            Timestamp=DateTime.Now.AddHours(1),
             PhotoTourFkNavigation=new DataModel.DataModel.AutomaticPhotoTour(){Name="Test"}
         } });
         var extractionTemplates = File.ReadAllText($"{testData}/ExtractionTemplate.json")

@@ -26,7 +26,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         public string Name { get; init; } = "";
         public DateTime IrImageTime { get; set; }
         public DateTime VisImageTime { get; set; }
-        public float IrTemperatureInK { get; set; }
+        public int IrTemperatureInK { get; set; }
         public string Comment { get; init; } = "";
 
         public void Dispose()

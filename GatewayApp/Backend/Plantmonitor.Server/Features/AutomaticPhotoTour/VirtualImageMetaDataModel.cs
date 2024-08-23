@@ -67,7 +67,7 @@ public record struct VirtualImageMetaDataModel()
     public class ImageMetaDatum : ITsvFormattable
     {
         public ImageMetaDatum() { }
-        public ImageMetaDatum(int imageIndex, string imageName, string imageComment, bool hasIr, bool hasVis, DateTime irTime, DateTime visTime, float irTempInK)
+        public ImageMetaDatum(int imageIndex, string imageName, string imageComment, bool hasIr, bool hasVis, DateTime irTime, DateTime visTime, int irTempInK)
         {
             ImageIndex = imageIndex;
             ImageName = imageName;
@@ -180,10 +180,10 @@ public record struct VirtualImageMetaDataModel()
         var nextTable = true;
         var tableDataByTableName = new Dictionary<string, Dictionary<string, List<string>>>()
         {
-            { nameof(ImageDimensions),new() },
-            { nameof(ImageMetaDatum),new() },
-            { nameof(TimeInfo),new() },
-            { nameof(TemperatureReading),new()},
+            { nameof(Dimensions),new() },
+            { nameof(ImageMetaData),new() },
+            { nameof(TimeInfos),new() },
+            { nameof(TemperatureReadings),new()},
         };
         var currentTable = tableDataByTableName.First().Value;
         var headers = new List<string>();
@@ -215,10 +215,10 @@ public record struct VirtualImageMetaDataModel()
         }
         return new VirtualImageMetaDataModel()
         {
-            Dimensions = FromTsvRowData<ImageDimensions>(tableDataByTableName[nameof(ImageDimensions)]).FirstOrDefault() ?? new(),
-            ImageMetaData = [.. FromTsvRowData<ImageMetaDatum>(tableDataByTableName[nameof(ImageMetaDatum)])],
-            TemperatureReadings = [.. FromTsvRowData<TemperatureReading>(tableDataByTableName[nameof(TemperatureReading)])],
-            TimeInfos = FromTsvRowData<TimeInfo>(tableDataByTableName[nameof(TimeInfo)]).FirstOrDefault() ?? new(),
+            Dimensions = FromTsvRowData<ImageDimensions>(tableDataByTableName[nameof(Dimensions)]).FirstOrDefault() ?? new(),
+            ImageMetaData = [.. FromTsvRowData<ImageMetaDatum>(tableDataByTableName[nameof(ImageMetaData)])],
+            TemperatureReadings = [.. FromTsvRowData<TemperatureReading>(tableDataByTableName[nameof(TemperatureReadings)])],
+            TimeInfos = FromTsvRowData<TimeInfo>(tableDataByTableName[nameof(TimeInfos)]).FirstOrDefault() ?? new(),
         };
     }
 
@@ -245,23 +245,23 @@ public record struct VirtualImageMetaDataModel()
         var data = typeof(VirtualImageMetaDataModel).GetProperties()
             .Where(p => p.GetMethod != null)
             .OrderBy(p => p.Name)
-            .Select(p => p.GetMethod!.Invoke(thisObject, null)!).ToList();
+            .Select(p => (p.Name, Data: p.GetMethod!.Invoke(thisObject, null)!)).ToList();
         var result = new StringBuilder();
         foreach (var item in data)
         {
-            var typeInfo = item.GetType();
+            var typeInfo = item.Data.GetType();
             if (typeInfo.IsAssignableTo(typeof(System.Collections.IEnumerable)))
             {
                 var exportHeader = true;
-                foreach (var listModel in (System.Collections.IEnumerable)item)
+                foreach (var listModel in (System.Collections.IEnumerable)item.Data)
                 {
-                    result.AppendLine((listModel as ITsvFormattable)!.GetTsv(exportHeader, typeInfo.Name));
+                    result.AppendLine((listModel as ITsvFormattable)!.GetTsv(exportHeader, item.Name));
                     exportHeader = false;
                 }
             }
             if (typeInfo.IsAssignableTo(typeof(ITsvFormattable)))
             {
-                result.AppendLine((item as ITsvFormattable)!.GetTsv(true, typeInfo.Name));
+                result.AppendLine((item.Data as ITsvFormattable)!.GetTsv(true, item.Name));
             }
             result.AppendLine();
         }
