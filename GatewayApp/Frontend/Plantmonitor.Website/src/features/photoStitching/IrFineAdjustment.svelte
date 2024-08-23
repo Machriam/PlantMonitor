@@ -9,7 +9,7 @@
     } from "~/services/GatewayAppApi";
     import {selectedPhotoTourPlantInfo} from "./PhotoStitchingContext";
     import {IrScalingHeight, IrScalingWidth} from "../deviceConfiguration/CvInterop";
-    import {Task} from "~/types/task";
+    import {Task} from "~/types/Task";
     import {onMount} from "svelte";
     import type {Unsubscriber} from "svelte/motion";
     export let _selectedTrip: PictureTripData | undefined;

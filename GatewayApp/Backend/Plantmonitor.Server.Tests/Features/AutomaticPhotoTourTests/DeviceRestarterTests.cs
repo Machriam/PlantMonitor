@@ -47,7 +47,7 @@ public class DeviceRestarterTests
         var switchDevice = Guid.NewGuid().ToString();
         var sut = CreateDeviceRestarter();
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>()
         {
             new(){ DeviceId=Guid.Parse(deviceGuid)}
         });
@@ -73,7 +73,7 @@ public class DeviceRestarterTests
         var deviceGuid = Guid.NewGuid().ToString();
         var sut = CreateDeviceRestarter();
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>()
         {
             new(){Id=1, DeviceId=Guid.Parse(deviceGuid)}
         });
@@ -105,11 +105,9 @@ public class DeviceRestarterTests
         var deviceGuid = Guid.NewGuid().ToString();
         var sut = CreateDeviceRestarter();
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>()
         {
-            new(){Id=1, DeviceId=Guid.Parse(deviceGuid),TemperatureMeasurements=new QueryableList<TemperatureMeasurement>(){
-                new TemperatureMeasurement(){SensorId=TemperatureMeasurement.FlirLeptonSensorId}
-            } }
+            new(){Id=1, DeviceId=Guid.Parse(deviceGuid),TemperatureMeasurements=[ new(){SensorId=TemperatureMeasurement.FlirLeptonSensorId} ] }
         });
         var devices = new List<DeviceHealthState>() {
             new(new(default, deviceGuid, "device", HealthState.NA), 0, ""),
@@ -141,7 +139,7 @@ public class DeviceRestarterTests
         var switchDevice = Guid.NewGuid().ToString();
         var sut = CreateDeviceRestarter();
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>()
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>()
         {
             new(){Id=1, DeviceId=Guid.Parse(deviceGuid)}
         });

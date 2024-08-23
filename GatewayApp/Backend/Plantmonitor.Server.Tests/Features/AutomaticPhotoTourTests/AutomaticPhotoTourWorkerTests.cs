@@ -74,7 +74,7 @@ public class AutomaticPhotoTourWorkerTests
     {
         var sut = CreateAutomaticPhotoTourWorker();
 
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>() { new() { Finished = true } });
         SchedulePhotoTrips(sut);
 
         _provider.ReceivedWithAnyArgs(1).GetService(default!);
@@ -85,7 +85,7 @@ public class AutomaticPhotoTourWorkerTests
     {
         var sut = CreateAutomaticPhotoTourWorker();
 
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>() { new() { Finished = true } });
         _context.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>());
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
         _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs(new DeviceHealthResult(true, new()
@@ -104,7 +104,7 @@ public class AutomaticPhotoTourWorkerTests
         sut.GetType().GetField(nameof(_ffcTimeout), BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(sut, _ffcTimeout);
         sut.GetType().GetField(nameof(_positionCheckTimeout), BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(sut, _positionCheckTimeout);
 
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>() { new() { Finished = true } });
         _context.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>());
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
         var deviceHealth = new DeviceHealthState() { Health = new DeviceHealth(null, Guid.NewGuid().ToString(), "device", HealthState.NoirCameraFunctional) };
@@ -167,11 +167,11 @@ public class AutomaticPhotoTourWorkerTests
     {
         var sut = CreateAutomaticPhotoTourWorker();
 
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>() { new() { Finished = true } });
         _context.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>());
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
         var deviceHealth = new DeviceHealthState() { Health = new DeviceHealth(null, Guid.NewGuid().ToString(), "device", HealthState.NoirCameraFunctional) };
-        _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>() { });
+        _context.DeviceMovements.ReturnsForAnyArgs(new QueryableList<DeviceMovement>());
 
         await TakePhotos(sut, 1, _context, _pictureStreamer, _deviceApi, deviceHealth);
         _context.PhotoTourEvents.Count().Should().Be(1);
@@ -184,7 +184,7 @@ public class AutomaticPhotoTourWorkerTests
     {
         var sut = CreateAutomaticPhotoTourWorker();
 
-        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<AutomaticPhotoTour>() { new() { Finished = true } });
+        _context.AutomaticPhotoTours.ReturnsForAnyArgs(new QueryableList<DataModel.DataModel.AutomaticPhotoTour>() { new() { Finished = true } });
         _context.PhotoTourTrips.ReturnsForAnyArgs(new QueryableList<PhotoTourTrip>());
         _context.PhotoTourEvents.ReturnsForAnyArgs(new QueryableList<PhotoTourEvent>());
         _restarter.CheckDeviceHealth(default, default!, default!).ReturnsForAnyArgs(new DeviceHealthResult(false, new()

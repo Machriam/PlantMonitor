@@ -1,9 +1,11 @@
 ﻿using System.Globalization;
 using System.IO.Compression;
+using System.Runtime.InteropServices.Marshalling;
 using Emgu.CV;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
@@ -135,7 +137,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             var maxWidth = virtualImageList.Select(v => v.VisImage?.Width ?? 10).OrderByDescending(h => h).FirstOrDefault();
             var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight);
             logger.LogInformation("Fetching additional metadata");
-            var fullMetaDataTable = AddAditionalMetaData(dataContext, tripToProcess, virtualImageList, virtualImage);
+            var fullMetaDataTable = AddAdditionalMetaData(dataContext, tripToProcess, virtualImage.MetaData);
 
             var fileBaseName = Path.GetFileNameWithoutExtension(virtualImageFile);
             logger.LogInformation("Storing virtual image {image}", virtualImageFile);
@@ -146,8 +148,8 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                     AddMat(virtualImageFolder + $"/{PhotoTourTrip.IrPrefix}{fileBaseName}.png", virtualImage.IrColorImage, zip);
                     AddMat(virtualImageFolder + $"/{PhotoTourTrip.VisPrefix}{fileBaseName}.png", virtualImage.VisImage, zip);
                     AddMat(virtualImageFolder + $"/{PhotoTourTrip.RawIrPrefix}{fileBaseName}.png", virtualImage.IrRawData, zip);
-                    var tsvPath = virtualImageFolder + $"/data_{fileBaseName}.tsv";
-                    File.WriteAllText(tsvPath, fullMetaDataTable);
+                    var tsvPath = virtualImageFolder + $"/{PhotoTourTrip.MetaDataPrefix}{fileBaseName}.tsv";
+                    File.WriteAllText(tsvPath, fullMetaDataTable.ExportAsTsv());
                     var fileName = Path.GetFileName(tsvPath);
                     zip.CreateEntryFromFile(tsvPath, fileName);
                     File.Delete(tsvPath);
@@ -164,10 +166,15 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         logger.LogInformation("All trips of tour {tour} processed", tripToProcess.PhotoTourFkNavigation.Name);
     }
 
-    private string AddAditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, List<PhotoStitcher.PhotoStitchData> virtualImageList, (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) virtualImage)
+    private VirtualImageMetaDataModel AddAdditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, VirtualImageMetaDataModel metaData)
     {
         var from = tripToProcess.Timestamp;
-        var to = from.Add(TimeSpan.FromMinutes(tripToProcess.PhotoTourFkNavigation.IntervallInMinutes));
+        var nextTrip = dataContext.PhotoTourTrips
+            .Where(ptt => ptt.PhotoTourFk == tripToProcess.PhotoTourFk && ptt.Timestamp > from)
+            .OrderBy(ptt => ptt.Timestamp)
+            .FirstOrDefault();
+        var timeToNextTrip = nextTrip?.Timestamp - from;
+        var to = from.Add(timeToNextTrip ?? TimeSpan.FromMinutes(tripToProcess.PhotoTourFkNavigation.IntervallInMinutes));
         logger.LogInformation("Fetching Temperatures from {from} to {to}", from, to);
         var temperaturesOfTrip = dataContext.TemperatureMeasurementValues
             .Include(tmv => tmv.MeasurementFkNavigation)
@@ -175,17 +182,21 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             .OrderBy(tm => tm.Timestamp)
             .Take(10000)
             .ToList();
+        metaData.TimeInfos = new(from, to);
         logger.LogInformation("Creating temperature table");
-        var timeTable = $"\nStart Time\tEnd Time\n{from:yyyy.MM.dd_HH:mm:ss}\t{to:yyyy.MM.dd_HH:mm:ss}";
         var measurementValues = temperaturesOfTrip
             .Where(tot => !tot.MeasurementFkNavigation.IsThermalCamera())
             .OrderBy(tot => tot.MeasurementFk)
             .ThenBy(tot => tot.Timestamp)
-            .Select(tot => $"{tot.MeasurementFkNavigation.Comment}_{tot.MeasurementFkNavigation.SensorId}\t" +
-            $"{tot.Temperature.ToString("0.00 °C", CultureInfo.InvariantCulture)}\t{tot.Timestamp:yyyy.MM.dd_HH:mm:ss}")
-            .Concat("\n");
-        var temperatureTable = $"\nDevice\tTemperature\tTime\n{measurementValues}";
-        return $"{virtualImage.MetaDataTable}\n{timeTable}\n{temperatureTable}";
+            .Select(tot => new
+            {
+                tot.MeasurementFkNavigation.Comment,
+                tot.MeasurementFkNavigation.SensorId,
+                tot.Temperature,
+                tot.Timestamp
+            });
+        foreach (var value in measurementValues) metaData.TemperatureReadings.Add(new(value.SensorId, value.Comment, value.Temperature, value.Timestamp));
+        return metaData;
     }
 
     private static void AddMat(string path, Mat mat, ZipArchive zip)

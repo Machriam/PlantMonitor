@@ -53,6 +53,15 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         return folder;
     }
 
+    [HttpPost("deletetourdata")]
+    public void DeleteTourData(long photoTourId)
+    {
+        var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
+        var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
+        var zipFile = Path.Combine(DownloadFolder(), photoTour.Name.SanitizeFileName() + ".zip");
+        if (File.Exists(zipFile)) File.Delete(zipFile);
+    }
+
     [HttpGet("requestdownloadtourdata")]
     public DownloadInfo RequestDownloadTourData(long photoTourId)
     {
@@ -76,7 +85,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
                 var finalInfo = new DownloadInfo(currentInfo.PhotoTourId, currentInfo.Path, size, currentInfo.SizeToDownloadInGb, true);
                 s_fileReadyToDownload.TryUpdate(zipFile, finalInfo, info);
             }
-            await Task.Delay(TimeSpan.FromMinutes(30));
+            await Task.Delay(TimeSpan.FromHours(12));
             File.Delete(zipFile);
             s_fileReadyToDownload.Remove(zipFile, out _);
         }

@@ -9,6 +9,7 @@ public partial class PhotoTourTrip
     public const string IrPrefix = "ir_";
     public const string VisPrefix = "vis_";
     public const string RawIrPrefix = "rawIr_";
+    public const string MetaDataPrefix = "data_";
 
     public string VirtualImageFileName(string folder)
     {

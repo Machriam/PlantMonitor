@@ -10,7 +10,7 @@
     } from "~/services/GatewayAppApi";
     import {onDestroy, onMount} from "svelte";
     import {HubConnection} from "@microsoft/signalr";
-    import {Task} from "~/types/task";
+    import {Task} from "~/types/Task";
 
     let _connection: HubConnection | undefined;
     let _temperatureMeasurementById: Map<number, TemperatureMeasurement> = new Map();

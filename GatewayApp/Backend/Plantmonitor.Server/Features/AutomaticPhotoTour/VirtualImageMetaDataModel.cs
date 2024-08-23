@@ -1,0 +1,271 @@
+﻿using System.Globalization;
+using System.Text;
+
+namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
+
+public static class ITsvFormattableExtensions
+{
+    public static string GetTsv(this ITsvFormattable model, bool withHeader, string tableName)
+    {
+        var result = new StringBuilder();
+        if (withHeader)
+        {
+            result.AppendLine(tableName.Where(char.IsLetterOrDigit).Concat(""));
+            result.AppendLine(model.GetType().GetProperties().Select(p => p.Name).Concat("\t"));
+        }
+        foreach (var property in model.GetType().GetProperties()) result.Append(model.FormatValue(property.Name, property.GetValue(model)) + "\t");
+        return result.ToString();
+    }
+}
+
+public interface ITsvFormattable
+{
+    string FormatValue(string name, object? value);
+
+    object ParseFromText(string key, string text);
+}
+
+public record struct VirtualImageMetaDataModel()
+{
+    private const string DateFormat = "yyyy-MM-dd HH:mm:ss";
+    public class ImageDimensions : ITsvFormattable
+    {
+        public ImageDimensions() { }
+        public ImageDimensions(int width, int height, int imageWidth, int imageHeight, int leftPadding, int topPadding, int imagesPerRow, int rowCount, int imageCount, string comment)
+        {
+            Width = width;
+            Height = height;
+            ImageWidth = imageWidth;
+            ImageHeight = imageHeight;
+            LeftPadding = leftPadding;
+            TopPadding = topPadding;
+            ImagesPerRow = imagesPerRow;
+            RowCount = rowCount;
+            ImageCount = imageCount;
+            Comment = comment;
+        }
+
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public int ImageWidth { get; set; }
+        public int ImageHeight { get; set; }
+        public int LeftPadding { get; set; }
+        public int TopPadding { get; set; }
+        public int ImagesPerRow { get; set; }
+        public int RowCount { get; set; }
+        public int ImageCount { get; set; }
+        public string Comment { get; set; } = "";
+
+        public string FormatValue(string name, object? value) => value?.ToString() ?? "";
+        public object ParseFromText(string key, string text) => key switch
+        {
+            nameof(Comment) => text,
+            _ => int.Parse(text),
+        };
+    }
+
+    public class ImageMetaDatum : ITsvFormattable
+    {
+        public ImageMetaDatum() { }
+        public ImageMetaDatum(int imageIndex, string imageName, string imageComment, bool hasIr, bool hasVis, DateTime irTime, DateTime visTime, float irTempInK)
+        {
+            ImageIndex = imageIndex;
+            ImageName = imageName;
+            ImageComment = imageComment;
+            HasIr = hasIr;
+            HasVis = hasVis;
+            IrTime = irTime;
+            VisTime = visTime;
+            IrTempInC = irTempInK.KelvinToCelsius();
+        }
+
+        public int ImageIndex { get; set; }
+        public string ImageName { get; set; } = "";
+        public string ImageComment { get; set; } = "";
+        public bool HasIr { get; set; }
+        public bool HasVis { get; set; }
+        public DateTime IrTime { get; set; }
+        public DateTime VisTime { get; set; }
+        public float IrTempInC { get; set; }
+
+        public string FormatValue(string name, object? value)
+        {
+            if (value == null) return "";
+            return name switch
+            {
+                nameof(IrTime) or nameof(VisTime) => ((DateTime)value).ToString(DateFormat),
+                nameof(IrTempInC) => ((float)value).ToString("0.00 °C", CultureInfo.InvariantCulture),
+                _ => value?.ToString() ?? "",
+            };
+        }
+
+        public object ParseFromText(string key, string text) => key switch
+        {
+            nameof(ImageName) or nameof(ImageComment) => text,
+            nameof(HasIr) or nameof(HasVis) => bool.Parse(text),
+            nameof(IrTempInC) => float.Parse(text.Replace("°C", ""), CultureInfo.InvariantCulture),
+            nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture),
+            nameof(ImageIndex) => int.Parse(text),
+            _ => text,
+        };
+    }
+
+    public class TimeInfo : ITsvFormattable
+    {
+        public TimeInfo() { }
+        public TimeInfo(DateTime startTime, DateTime endTime)
+        {
+            StartTime = startTime;
+            EndTime = endTime;
+        }
+
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+
+        public string FormatValue(string name, object? value)
+        {
+            if (value == null) return "";
+            return name switch
+            {
+                nameof(StartTime) or nameof(EndTime) => ((DateTime)value).ToString(DateFormat),
+                _ => value?.ToString() ?? "",
+            };
+        }
+
+        public object ParseFromText(string key, string text) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture);
+    }
+
+    public class TemperatureReading : ITsvFormattable
+    {
+        public TemperatureReading() { }
+        public TemperatureReading(string sensorId, string comment, float temperatureInC, DateTime time)
+        {
+            SensorId = sensorId;
+            Comment = comment;
+            TemperatureInC = temperatureInC;
+            Time = time;
+        }
+
+        public string SensorId { get; set; } = "";
+        public string Comment { get; set; } = "";
+        public float TemperatureInC { get; set; }
+        public DateTime Time { get; set; }
+
+        public string FormatValue(string name, object? value)
+        {
+            if (value == null) return "";
+            return name switch
+            {
+                nameof(TemperatureInC) => TemperatureInC.ToString("0.00 °C", CultureInfo.InvariantCulture),
+                nameof(Time) => ((DateTime)value).ToString(DateFormat),
+                _ => value?.ToString() ?? "",
+            };
+        }
+
+        public object ParseFromText(string key, string text) => key switch
+        {
+            nameof(TemperatureInC) => float.Parse(text.Replace("°C", ""), CultureInfo.InvariantCulture),
+            nameof(Time) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture),
+            _ => text,
+        };
+    }
+
+    public ImageDimensions Dimensions { get; set; } = new();
+    public ICollection<ImageMetaDatum> ImageMetaData { get; set; } = [];
+    public TimeInfo TimeInfos { get; set; } = new();
+    public ICollection<TemperatureReading> TemperatureReadings { get; set; } = [];
+
+    public static VirtualImageMetaDataModel FromTsvFile(string tsv)
+    {
+        var nextTable = true;
+        var tableDataByTableName = new Dictionary<string, Dictionary<string, List<string>>>()
+        {
+            { nameof(ImageDimensions),new() },
+            { nameof(ImageMetaDatum),new() },
+            { nameof(TimeInfo),new() },
+            { nameof(TemperatureReading),new()},
+        };
+        var currentTable = tableDataByTableName.First().Value;
+        var headers = new List<string>();
+        foreach (var line in tsv.Split('\n', StringSplitOptions.None))
+        {
+            if (line.IsEmpty())
+            {
+                nextTable = true;
+                continue;
+            }
+            if (nextTable && tableDataByTableName.TryGetValue(line, out var tableData))
+            {
+                currentTable = tableData;
+                nextTable = false;
+                headers = [];
+                continue;
+            }
+            if (headers.Count == 0)
+            {
+                headers = line.Split('\t').Select(w => w.Trim()).ToList();
+                foreach (var header in headers) currentTable.Add(header, []);
+                continue;
+            }
+            var dataColumns = line.Split('\t');
+            for (var i = 0; i < headers.Count; i++)
+            {
+                currentTable[headers[i]].Add(dataColumns[i]);
+            }
+        }
+        return new VirtualImageMetaDataModel()
+        {
+            Dimensions = FromTsvRowData<ImageDimensions>(tableDataByTableName[nameof(ImageDimensions)]).FirstOrDefault() ?? new(),
+            ImageMetaData = [.. FromTsvRowData<ImageMetaDatum>(tableDataByTableName[nameof(ImageMetaDatum)])],
+            TemperatureReadings = [.. FromTsvRowData<TemperatureReading>(tableDataByTableName[nameof(TemperatureReading)])],
+            TimeInfos = FromTsvRowData<TimeInfo>(tableDataByTableName[nameof(TimeInfo)]).FirstOrDefault() ?? new(),
+        };
+    }
+
+    private static List<T> FromTsvRowData<T>(Dictionary<string, List<string>> table) where T : ITsvFormattable, new()
+    {
+        var result = new List<T>();
+        var sortedEntries = table
+            .SelectMany(t => t.Value.WithIndex().Select(v => (t.Key, v.Item, v.Index)))
+            .OrderBy(r => r.Index)
+            .ToLookup(r => r.Index);
+        var propertyNames = typeof(T).GetProperties().ToList();
+        foreach (var entry in sortedEntries)
+        {
+            var newEntry = new T();
+            propertyNames.ForEach(p => p.SetValue(newEntry, newEntry.ParseFromText(p.Name, entry.First(e => e.Key == p.Name).Item)));
+            result.Add(newEntry);
+        }
+        return result;
+    }
+
+    public readonly string ExportAsTsv()
+    {
+        var thisObject = this;
+        var data = typeof(VirtualImageMetaDataModel).GetProperties()
+            .Where(p => p.GetMethod != null)
+            .OrderBy(p => p.Name)
+            .Select(p => p.GetMethod!.Invoke(thisObject, null)!).ToList();
+        var result = new StringBuilder();
+        foreach (var item in data)
+        {
+            var typeInfo = item.GetType();
+            if (typeInfo.IsAssignableTo(typeof(System.Collections.IEnumerable)))
+            {
+                var exportHeader = true;
+                foreach (var listModel in (System.Collections.IEnumerable)item)
+                {
+                    result.AppendLine((listModel as ITsvFormattable)!.GetTsv(exportHeader, typeInfo.Name));
+                    exportHeader = false;
+                }
+            }
+            if (typeInfo.IsAssignableTo(typeof(ITsvFormattable)))
+            {
+                result.AppendLine((item as ITsvFormattable)!.GetTsv(true, typeInfo.Name));
+            }
+            result.AppendLine();
+        }
+        result.Replace("\r\n", "\n");
+        return result.ToString();
+    }
+}

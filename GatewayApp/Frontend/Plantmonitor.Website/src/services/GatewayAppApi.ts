@@ -1839,6 +1839,8 @@ export interface IDashboardClient {
 
     statusOfDownloadTourData(): Promise<DownloadInfo[]>;
 
+    deleteTourData(photoTourId?: number | undefined): Promise<void>;
+
     requestDownloadTourData(photoTourId?: number | undefined): Promise<DownloadInfo>;
 }
 
@@ -1986,6 +1988,42 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             });
         }
         return Promise.resolve<DownloadInfo[]>(null as any);
+    }
+
+    deleteTourData(photoTourId?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Dashboard/deletetourdata?";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processDeleteTourData(_response));
+        });
+    }
+
+    protected processDeleteTourData(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     requestDownloadTourData(photoTourId?: number | undefined): Promise<DownloadInfo> {

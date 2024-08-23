@@ -1,6 +1,6 @@
 import type { Mat } from "mirada/dist/src/types/opencv/Mat";
 import { printError } from "./CvUtils";
-import { ColormapTypes, optionalCvFunctions } from "~/types/mirada";
+import { ColormapTypes, OptionalCvFunctions } from "~/types/mirada";
 export const IrScalingHeight = 480;
 export const IrScalingWidth = 640;
 export const IrHeight = 120;
@@ -76,7 +76,7 @@ export class CvInterop {
     }
     thermalDataToImage(source: Uint32Array): ThermalImage {
         try {
-            const optCv = new optionalCvFunctions();
+            const optCv = new OptionalCvFunctions();
             const temp15Celsius = 28815;
             const canvas = document.createElement("canvas");
             const mat = cv.matFromArray(IrHeight, IrWidth, cv.CV_32FC1, source);

@@ -28,11 +28,14 @@ namespace Plantmonitor.Server.Features.AppConfiguration
         IEnumerable<string> PictureFolders();
 
         string VirtualImagePath(string name, long id);
+
+        IEnumerable<string> VirtualImageFolders();
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
     {
         private const string CertificateFolder = nameof(CertificateFolder);
+        private const string VirtualImageFolderPrefix = "VirtualImages_";
 
         public string RepoRootPath()
         {
@@ -58,10 +61,16 @@ namespace Plantmonitor.Server.Features.AppConfiguration
             return imageFolder;
         }
 
+        public IEnumerable<string> VirtualImageFolders()
+        {
+            var directory = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ?? throw new Exception("No App configuration path found");
+            return Directory.EnumerateDirectories(directory, VirtualImageFolderPrefix + "*");
+        }
+
         public string VirtualImagePath(string name, long id)
         {
             var directory = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ?? throw new Exception("No App configuration path found");
-            var imageFolder = Path.Combine(directory, $"VirtualImages_{id}_{name.SanitizeFileName()}");
+            var imageFolder = Path.Combine(directory, $"{VirtualImageFolderPrefix}{id}_{name.SanitizeFileName()}");
             Directory.CreateDirectory(imageFolder);
             return imageFolder;
         }

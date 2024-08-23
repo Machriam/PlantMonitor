@@ -3,17 +3,19 @@ using System.Globalization;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using static Plantmonitor.Server.Features.ImageStitching.PhotoStitcher;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
 
 public interface IPhotoStitcher
 {
-    (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) CreateVirtualImage(IEnumerable<PhotoStitchData> images, int width, int height);
+    (Mat VisImage, Mat IrColorImage, Mat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images, int width, int height);
 }
 
 public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
 {
+    public const int WhiteBorderSize = 5;
     private const float DesiredRatio = 16 / 9f;
     public record class PhotoStitchData : IDisposable
     {
@@ -46,7 +48,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         return imagesPerRow.MinBy(ipr => ipr.Ratio).Columns;
     }
 
-    public (Mat VisImage, Mat IrColorImage, Mat IrRawData, string MetaDataTable) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
+    public (Mat VisImage, Mat IrColorImage, Mat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
         int width, int height)
     {
         var imageList = images.ToList();
@@ -58,25 +60,14 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         logger.LogInformation("Concatenating ir images");
         var irData = ConcatImages(width, height, imagesPerRow, imageList, psd => psd?.IrImageRawData, out _);
         logger.LogInformation("Creating metadata");
-        var metaDataHeader = new string[] { "Image Height", "Image Width", "Spacing after Image", "Images per Row", "Row Count", "Image Count", "Comment" };
-        var metaDataInfo = new object[] { finalMatSize.Height, finalMatSize.Width, imagesPerRow,
-            (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count,"Raw IR in °C, first channel full degree, second channel decimal values" }
-        .Select(md => md.ToString())
-        .ToList();
-        var dataHeader = new string[] { "Index", "Name", "Comment", "Has IR", "Has VIS", "IR Time", "Vis Time", "IR Temp" };
-        var data = imageList.WithIndex()
-        .Select(im => new string[] { im.Index.ToString(), im.Item.Name, im.Item.Comment,
-            im.Item.ColoredIrImage == null ? "false" : "true", im.Item.VisImage == null ? "false" : "true",
-            im.Item.IrImageTime.ToString("yyyy.MM.dd_HH:mm:ss",CultureInfo.InvariantCulture),
-            im.Item.VisImageTime.ToString("yyyy.MM.dd_HH:mm:ss",CultureInfo.InvariantCulture),
-            (im.Item.IrTemperatureInK/100f).ToString("0.00 K",CultureInfo.InvariantCulture),
-        }.Concat("\t"))
-        .Concat("\n");
-        var metaDataTsv = new List<string>() { metaDataHeader.Concat("\t") }
-            .Append(metaDataInfo.Concat("\t"))
-            .Append($"\n{dataHeader.Concat("\t")}")
-            .Append(data);
-        return (visImage, irColorImage, irData, metaDataTsv.Concat("\n"));
+        var metaData = new VirtualImageMetaDataModel()
+        {
+            Dimensions = new(finalMatSize.Height, finalMatSize.Width, width, height, WhiteBorderSize, WhiteBorderSize, imagesPerRow,
+                            (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count, "Raw IR in °C, first channel full degree, second channel decimal values"),
+            ImageMetaData = imageList.WithIndex().Select(im => new VirtualImageMetaDataModel.ImageMetaDatum(im.Index, im.Item.Name, im.Item.Comment,
+                            im.Item.ColoredIrImage == null, im.Item.VisImage == null, im.Item.IrImageTime, im.Item.VisImageTime, im.Item.IrTemperatureInK)).ToArray()
+        };
+        return (visImage, irColorImage, irData, metaData);
     }
 
     private static Mat ConcatImages(int width, int height, int imagesPerRow, IList<PhotoStitchData> images, Func<PhotoStitchData?, Mat?> selector, out Size finalMatSize)
@@ -102,7 +93,6 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
                 else mat = selector(images[index])!;
                 var bottomPadding = size.Height - mat.Rows;
                 var rightPadding = size.Width - mat.Cols;
-                const int WhiteBorderSize = 5;
                 var refHeight = size.Height;
                 var textSize = CvInvoke.GetTextSize("test", FontFace.HersheySimplex, 2d, 3, ref refHeight);
                 CvInvoke.CopyMakeBorder(mat, mat, 0, bottomPadding + textSize.Height + WhiteBorderSize, 0, rightPadding, BorderType.Constant, new MCvScalar(0d, 0d, 0d));

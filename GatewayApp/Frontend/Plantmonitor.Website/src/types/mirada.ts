@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Mat } from "mirada";
 
-export class optionalCvFunctions {
+export class OptionalCvFunctions {
     applyColorMap(src: Mat, dst: Mat, colormap: ColormapTypes): void {
         (cv as any).applyColorMap(src, dst, colormap);
     }

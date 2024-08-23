@@ -14,7 +14,7 @@
         type IIrCameraOffset
     } from "~/services/GatewayAppApi";
     import ImageCutter from "./ImageCutter.svelte";
-    import {Task} from "~/types/task";
+    import {Task} from "~/types/Task";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import {imageToCutChanged, plantPolygonChanged, selectedPhotoTourPlantInfo} from "./PhotoStitchingContext";
     import type {Unsubscriber} from "svelte/motion";
