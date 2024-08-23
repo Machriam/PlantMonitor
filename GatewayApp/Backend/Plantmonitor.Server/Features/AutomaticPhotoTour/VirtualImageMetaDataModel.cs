@@ -239,6 +239,22 @@ public record struct VirtualImageMetaDataModel()
         return result;
     }
 
+    public Func<(int Left, int Top), ImageMetaDatum> BuildCoordinateToImageFunction()
+    {
+        var imageList = ImageMetaData.OrderBy(imd => imd.ImageIndex).ToList();
+        var index = 0;
+        var result = new List<(int Left, int Top, ImageMetaDatum Image)>();
+        for (var ri = 0; ri < float.Ceiling(Dimensions.ImageCount / Dimensions.ImagesPerRow); ri++)
+        {
+            for (var ci = 0; ci < Dimensions.ImagesPerRow; ci++)
+            {
+                result.Add((Dimensions.Width * ci, ri * Dimensions.Height, imageList[index]));
+                index++;
+            }
+        }
+        return (pixel) => result.First(r => r.Left <= pixel.Left && r.Top <= pixel.Top).Image;
+    }
+
     public readonly string ExportAsTsv()
     {
         var thisObject = this;
