@@ -62,7 +62,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         logger.LogInformation("Creating metadata");
         var metaData = new VirtualImageMetaDataModel()
         {
-            Dimensions = new(finalMatSize.Height, finalMatSize.Width, width, height, WhiteBorderSize, WhiteBorderSize, imagesPerRow,
+            Dimensions = new(finalMatSize.Width, finalMatSize.Height, width, height, WhiteBorderSize, WhiteBorderSize, imagesPerRow,
                             (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count, "Raw IR in °C, first channel full degree, second channel decimal values"),
             ImageMetaData = imageList.WithIndex().Select(im => new VirtualImageMetaDataModel.ImageMetaDatum(im.Index, im.Item.Name, im.Item.Comment,
                             im.Item.ColoredIrImage == null, im.Item.VisImage == null, im.Item.IrImageTime, im.Item.VisImageTime, im.Item.IrTemperatureInK)).ToArray()
