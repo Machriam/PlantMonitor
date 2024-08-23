@@ -69,6 +69,12 @@
         }
         await updateDownloadStatus();
     }
+    async function DeletePackedData() {
+        const dashboardClient = new DashboardClient();
+        if (_selectedTour == undefined) return;
+        await dashboardClient.deleteTourData(_selectedTour.id);
+        updateDownloadStatus();
+    }
 
     function DownloadMessage() {
         if (_selectedTour == undefined) return "";
@@ -87,18 +93,19 @@
                 class="btn btn-dark {tour.name == _selectedTour?.name ? 'opacity-100' : 'opacity-50'}">{tour.name}</button>
         {/each}
     </div>
-    <div on:wheel={nextImage} style="height: 80vh; width:80vw">
+    <div on:wheel={nextImage} class="p-0" style="height: 80vh; width:80vw">
         <div style="align-items:center" class="col-md-12 row mt-2">
             <div class="col-md-3">{_virtualImages[_currentImageIndex]}</div>
             <div class="col-md-3">
                 Index: {Math.min(_currentImageIndex + 1, _virtualImages.length)} of {_virtualImages.length}
             </div>
             <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show every nth image"></NumberInput>
-            <div class="col-md-2"></div>
-            <div class="col-md-2">
-                <button class="btn btn-primary col-md-12" on:click={downloadTourData}>{_currentDownloadStatus}</button>
+            <div class="col-md-1"></div>
+            <div class="col-md-3 p-0 row">
+                <button class="btn btn-primary col-md-9" on:click={downloadTourData}>{_currentDownloadStatus}</button>
                 {#if _currentDownloadStatus.includes("ready")}
-                    <button class="btn btn-danger col-md-12 mt-1" on:click={updateDownloadStatus}>Pack Data again</button>
+                <div class="col-md-1"></div>
+                    <button class="btn btn-danger col-md-2" on:click={DeletePackedData}>X</button>
                 {/if}
             </div>
         </div>
