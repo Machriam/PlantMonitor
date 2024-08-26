@@ -31,7 +31,8 @@ public record struct VirtualImageMetaDataModel()
     public class ImageDimensions : ITsvFormattable
     {
         public ImageDimensions() { }
-        public ImageDimensions(int width, int height, int imageWidth, int imageHeight, int leftPadding, int topPadding, int imagesPerRow, int rowCount, int imageCount, string comment)
+        public ImageDimensions(int width, int height, int imageWidth, int imageHeight, int leftPadding,
+            int topPadding, int imagesPerRow, int rowCount, int imageCount, string comment, float sizeOfPixelInMm)
         {
             Width = width;
             Height = height;
@@ -43,12 +44,14 @@ public record struct VirtualImageMetaDataModel()
             RowCount = rowCount;
             ImageCount = imageCount;
             Comment = comment;
+            SizeOfPixelInMm = sizeOfPixelInMm;
         }
 
         public int Width { get; set; }
         public int Height { get; set; }
         public int ImageWidth { get; set; }
         public int ImageHeight { get; set; }
+        public float SizeOfPixelInMm { get; set; }
         public int LeftPadding { get; set; }
         public int TopPadding { get; set; }
         public int ImagesPerRow { get; set; }
@@ -56,10 +59,15 @@ public record struct VirtualImageMetaDataModel()
         public int ImageCount { get; set; }
         public string Comment { get; set; } = "";
 
-        public string FormatValue(string name, object? value) => value?.ToString() ?? "";
+        public string FormatValue(string name, object? value) => name switch
+        {
+            nameof(SizeOfPixelInMm) => ((float?)value ?? 0f).ToString("0.00", CultureInfo.InvariantCulture),
+            _ => value?.ToString() ?? ""
+        };
         public object ParseFromText(string key, string text) => key switch
         {
             nameof(Comment) => text,
+            nameof(SizeOfPixelInMm) => float.Parse(text, CultureInfo.InvariantCulture),
             _ => int.Parse(text),
         };
     }

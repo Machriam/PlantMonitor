@@ -8,7 +8,7 @@ namespace Plantmonitor.Server.Features.Dashboard;
 
 public class PhotoSummaryResult(float pixelSizeInMm)
 {
-    public record struct PixelInfo(int Left, int Top, float Temperature, byte[] pixelColorInRgb);
+    public record struct PixelInfo(int Left, int Top, float Temperature, byte[] PixelColorInRgb);
     public record struct ImageResult(VirtualImageMetaDataModel.ImageMetaDatum Plant, float SizeInMm2, float AverageTemperature,
         float MedianTemperature, float TemperatureDev, float MaxTemperature, float MinTemperature,
         float HeightInMm, float WidthInMm, float Extent, float Roundness, float ConvexHullAreaInMm2, float Solidity);
@@ -85,7 +85,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 var left = col + leftOffset;
                 var top = row + topOffset;
                 var pixel = pixelList.Find(p => p.Left == left && p.Top == top);
-                var rgb = pixel == default ? emptyPixel : pixel.pixelColorInRgb;
+                var rgb = pixel == default ? emptyPixel : pixel.PixelColorInRgb;
                 var index = ((row * width) + col) * 3;
                 for (var i = 0; i < rgb.Length; i++) subImageData[index + i] = rgb[i];
             }
