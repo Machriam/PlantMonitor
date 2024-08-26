@@ -82,28 +82,8 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
 
     public PhotoSummaryResult ProcessImage(string image, float pixelSizeInMm)
     {
-        var tempFolder = Directory.CreateTempSubdirectory().FullName;
-        var zip = new ZipArchive(File.OpenRead(image));
-        var files = new HashSet<string>();
-        foreach (var entry in zip.Entries)
-        {
-            var path = Path.Combine(tempFolder, entry.Name);
-            File.WriteAllBytes(path, entry.Open().ConvertToArray());
-            files.Add(path);
-        }
-        zip.Dispose();
-        var visMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.VisPrefix)));
-        var rawIrMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.RawIrPrefix)));
-        var metaData = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.MetaDataPrefix))));
-        var hsvMat = new Mat();
-        CvInvoke.CvtColor(visMat, hsvMat, Emgu.CV.CvEnum.ColorConversion.Rgb2Hsv);
-        var lowGreen = new ScalarArray(new MCvScalar(50, 50, 50));
-        var highGreen = new ScalarArray(new MCvScalar(110, 255, 255));
-        var mask = new Mat();
-        var element = CvInvoke.GetStructuringElement(Emgu.CV.CvEnum.ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
-        CvInvoke.InRange(hsvMat, lowGreen, highGreen, mask);
-        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), 2, Emgu.CV.CvEnum.BorderType.Constant, new MCvScalar(0));
-        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), 2, Emgu.CV.CvEnum.BorderType.Constant, new MCvScalar(0));
+        var (visMat, rawIrMat, metaData) = GetDataFromZip(image);
+        var mask = GetPlantMask(visMat);
         var maskData = mask.GetData(true);
         var irData = rawIrMat.GetData(true);
         var getImage = metaData.BuildCoordinateToImageFunction();
@@ -127,10 +107,42 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         mask.Dispose();
         visMat.Dispose();
         rawIrMat.Dispose();
+        return resultData;
+    }
+
+    public (Mat VisImage, Mat RawIrImage, VirtualImageMetaDataModel MetaData) GetDataFromZip(string image)
+    {
+        var tempFolder = Directory.CreateTempSubdirectory().FullName;
+        var zip = new ZipArchive(File.OpenRead(image));
+        var files = new HashSet<string>();
+        foreach (var entry in zip.Entries)
+        {
+            var path = Path.Combine(tempFolder, entry.Name);
+            File.WriteAllBytes(path, entry.Open().ConvertToArray());
+            files.Add(path);
+        }
+        zip.Dispose();
+        var visMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.VisPrefix)));
+        var rawIrMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.RawIrPrefix)));
+        var metaData = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.MetaDataPrefix))));
+        return (visMat, rawIrMat, metaData);
+    }
+
+    public Mat GetPlantMask(Mat visMat)
+    {
+        var hsvMat = new Mat();
+        CvInvoke.CvtColor(visMat, hsvMat, Emgu.CV.CvEnum.ColorConversion.Rgb2Hsv);
+        var lowGreen = new ScalarArray(new MCvScalar(50, 50, 50));
+        var highGreen = new ScalarArray(new MCvScalar(110, 255, 255));
+        var mask = new Mat();
+        var element = CvInvoke.GetStructuringElement(Emgu.CV.CvEnum.ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
+        CvInvoke.InRange(hsvMat, lowGreen, highGreen, mask);
+        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), 2, Emgu.CV.CvEnum.BorderType.Constant, new MCvScalar(0));
+        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), 2, Emgu.CV.CvEnum.BorderType.Constant, new MCvScalar(0));
         element.Dispose();
         hsvMat.Dispose();
         lowGreen.Dispose();
         highGreen.Dispose();
-        return resultData;
+        return mask;
     }
 }

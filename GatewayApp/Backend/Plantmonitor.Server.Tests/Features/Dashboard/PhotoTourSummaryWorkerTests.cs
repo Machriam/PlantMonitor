@@ -3,9 +3,7 @@ using NSubstitute;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.Dashboard;
 using Plantmonitor.Server.Features.DeviceConfiguration;
-using System;
-using System.Threading.Tasks;
-using Xunit;
+using Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests;
 
 namespace Plantmonitor.Server.Tests.Features.Dashboard;
 
@@ -43,5 +41,19 @@ public class PhotoTourSummaryWorkerTests
         var sut = CreatePhotoTourSummaryWorker();
         var result = sut.ProcessImage(testZip, 0.2f);
         result.GetResults();
+    }
+
+    [Fact]
+    public void ProcessImage_CreatePlantMask_ShouldLookGood()
+    {
+        var testZip = s_testZipFolder + "/BigPlantsTest.zip";
+        var sut = CreatePhotoTourSummaryWorker();
+        var zipData = sut.GetDataFromZip(testZip);
+        var result = sut.GetPlantMask(zipData.VisImage);
+        result.ShowImage("PlantMask", 200);
+        zipData.VisImage.ShowImage("Vis Original", 200);
+        zipData.VisImage.Dispose();
+        zipData.RawIrImage.Dispose();
+        result.Dispose();
     }
 }
