@@ -98,9 +98,9 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 var imageData = getImage((col, row));
                 var temperatureInteger = (byte)irData.GetValue(row, col, 0)!;
                 var temperatureFraction = (byte)irData.GetValue(row, col, 1)!;
-                var bValue = (byte)visData.GetValue(row, col, 0)!;
+                var rValue = (byte)visData.GetValue(row, col, 0)!;
                 var gValue = (byte)visData.GetValue(row, col, 1)!;
-                var rValue = (byte)visData.GetValue(row, col, 2)!;
+                var bValue = (byte)visData.GetValue(row, col, 2)!;
                 resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f), [rValue, gValue, bValue]);
             }
         }

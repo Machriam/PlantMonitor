@@ -1,0 +1,1 @@
+update plantmonitor.configuration_data set value='8' where key='PatchNumber';

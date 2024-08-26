@@ -40,7 +40,7 @@ public class PhotoTourSummaryWorkerTests
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
         var result = sut.ProcessImage(testZip, 0.2f);
-        result.GetResults();
+        var imageDescriptors = result.GetResults();
     }
 
     [Fact]
