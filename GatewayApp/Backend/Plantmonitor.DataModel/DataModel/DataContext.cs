@@ -110,6 +110,9 @@ public partial class DataContext : DbContext, IDataContext
             entity.Property(e => e.Finished).HasColumnName("finished");
             entity.Property(e => e.IntervallInMinutes).HasColumnName("intervall_in_minutes");
             entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.PixelSizeInMm)
+                .HasDefaultValueSql("0.2")
+                .HasColumnName("pixel_size_in_mm");
         });
 
         modelBuilder.Entity<ConfigurationDatum>(entity =>
