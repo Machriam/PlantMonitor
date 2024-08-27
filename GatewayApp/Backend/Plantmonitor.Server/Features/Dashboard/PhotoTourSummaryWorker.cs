@@ -95,13 +95,15 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
             {
                 var value = (byte)maskData.GetValue(row, col)!;
                 if (value == 0) continue;
+                var leafOutOfRange = false;
+                if (row == 0 || col == 0 || row == mask.Rows - 1 || col == mask.Cols - 1) leafOutOfRange = true;
                 var imageData = getImage((col, row));
                 var temperatureInteger = (byte)irData.GetValue(row, col, 0)!;
                 var temperatureFraction = (byte)irData.GetValue(row, col, 1)!;
                 var rValue = (byte)visData.GetValue(row, col, 0)!;
                 var gValue = (byte)visData.GetValue(row, col, 1)!;
                 var bValue = (byte)visData.GetValue(row, col, 2)!;
-                resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f), [rValue, gValue, bValue]);
+                resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f), [rValue, gValue, bValue], leafOutOfRange);
             }
         }
         mask.Dispose();
