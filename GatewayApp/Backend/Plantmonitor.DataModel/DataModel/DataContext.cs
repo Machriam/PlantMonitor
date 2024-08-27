@@ -309,12 +309,12 @@ public partial class DataContext : DbContext, IDataContext
                 .HasNoKey()
                 .ToTable("virtual_image_summary", "plantmonitor");
 
-            entity.Property(e => e.Data)
-                .HasColumnType("jsonb")
-                .HasColumnName("data");
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd()
                 .HasColumnName("id");
+            entity.Property(e => e.ImageDescriptorsJson)
+                .HasColumnType("jsonb")
+                .HasColumnName("image_descriptors_json");
             entity.Property(e => e.VirtualImageCreationDate).HasColumnName("virtual_image_creation_date");
             entity.Property(e => e.VirtualImagePath).HasColumnName("virtual_image_path");
         });

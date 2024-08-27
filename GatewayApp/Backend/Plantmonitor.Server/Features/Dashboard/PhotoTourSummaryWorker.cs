@@ -63,14 +63,27 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
             nextImage = s_imagesToProcess.First();
             s_isProcessing = true;
         }
-        Action action = () => ProcessImage(nextImage.Key, 0.2f);
+        Action action = () =>
+        {
+            var pixelSummary = ProcessImage(nextImage.Key, 0.2f);
+            var imageResults = pixelSummary.GetResults();
+            context.VirtualImageSummaries.Add(new VirtualImageSummary()
+            {
+                VirtualImageCreationDate = nextImage.Value,
+                ImageDescriptors = imageResults.ConvertAll(ir => ir.GetDataModel()),
+                VirtualImagePath = nextImage.Key
+            });
+            context.SaveChanges();
+        };
         action.Try(ex =>
         {
             context.VirtualImageSummaries.Add(new VirtualImageSummary
             {
                 VirtualImageCreationDate = nextImage.Value,
-                VirtualImagePath = nextImage.Key
+                VirtualImagePath = nextImage.Key,
+                ImageDescriptors = []
             });
+            context.SaveChanges();
             ex.LogError();
         });
         lock (s_lock)

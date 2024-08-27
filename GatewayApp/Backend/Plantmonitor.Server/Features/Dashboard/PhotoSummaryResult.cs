@@ -3,6 +3,7 @@ using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
+using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 namespace Plantmonitor.Server.Features.Dashboard;
@@ -13,7 +14,45 @@ public class PhotoSummaryResult(float pixelSizeInMm)
     public record struct ImageResult(VirtualImageMetaDataModel.ImageMetaDatum Plant, float SizeInMm2, float AverageTemperature,
         float MedianTemperature, float TemperatureDev, float MaxTemperature, float MinTemperature,
         float HeightInMm, float WidthInMm, float Extent, float ConvexHullAreaInMm2, float Solidity, int LeafCount, bool LeafOutOfRange, float[] HslAverage,
-        float[] HslMedian, float[] HslMax, float[] HslMin, float[] HslDeviation, bool NoImage);
+        float[] HslMedian, float[] HslMax, float[] HslMin, float[] HslDeviation, bool NoImage)
+    {
+        public readonly PlantImageDescriptors GetDataModel()
+        {
+            return new PlantImageDescriptors()
+            {
+                AverageTemperature = AverageTemperature,
+                ConvexHullAreaInMm2 = ConvexHullAreaInMm2,
+                Extent = Extent,
+                HeightInMm = HeightInMm,
+                HslAverage = HslAverage,
+                HslDeviation = HslDeviation,
+                HslMax = HslMax,
+                HslMedian = HslMedian,
+                HslMin = HslMin,
+                LeafCount = LeafCount,
+                LeafOutOfRange = LeafOutOfRange,
+                MaxTemperature = MaxTemperature,
+                MedianTemperature = MedianTemperature,
+                MinTemperature = MinTemperature,
+                NoImage = NoImage,
+                Plant = new ReferencedPlant()
+                {
+                    HasIr = Plant.HasIr,
+                    HasVis = Plant.HasVis,
+                    ImageComment = Plant.ImageComment,
+                    ImageIndex = Plant.ImageIndex,
+                    ImageName = Plant.ImageName,
+                    IrTempInC = Plant.IrTempInC,
+                    IrTime = Plant.IrTime,
+                    VisTime = Plant.VisTime
+                },
+                SizeInMm2 = SizeInMm2,
+                Solidity = Solidity,
+                TemperatureDev = TemperatureDev,
+                WidthInMm = WidthInMm
+            };
+        }
+    }
     private readonly Dictionary<VirtualImageMetaDataModel.ImageMetaDatum, List<PixelInfo>> _result = [];
 
     public void AddPixelInfo(VirtualImageMetaDataModel.ImageMetaDatum image, int left, int top, float temperature, byte[] pixelColorInRgb, bool leafOutOfRange)

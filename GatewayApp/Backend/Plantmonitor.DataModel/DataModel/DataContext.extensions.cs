@@ -25,6 +25,8 @@ public partial class DataContext
     {
         modelBuilder.Entity<DeviceMovement>().Property(p => p.MovementPlan).HasColumnType("jsonb").HasColumnName("movement_plan_json");
         modelBuilder.Entity<DeviceMovement>().Ignore(p => p.MovementPlanJson);
+        modelBuilder.Entity<VirtualImageSummary>().Property(p => p.ImageDescriptors).HasColumnType("jsonb").HasColumnName("image_descriptors_json");
+        modelBuilder.Entity<VirtualImageSummary>().Ignore(p => p.ImageDescriptorsJson);
         modelBuilder.Entity<PhotoTourEvent>().Property(p => p.Type).HasColumnName("type");
     }
 }
