@@ -65,7 +65,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         }
         Action action = () =>
         {
-            var pixelSummary = ProcessImage(nextImage.Key, 0.2f);
+            var pixelSummary = ProcessImage(nextImage.Key);
             var imageResults = pixelSummary.GetResults();
             context.VirtualImageSummaries.Add(new VirtualImageSummary()
             {
@@ -93,7 +93,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         }
     }
 
-    public PhotoSummaryResult ProcessImage(string image, float pixelSizeInMm)
+    public PhotoSummaryResult ProcessImage(string image)
     {
         var (visMat, rawIrMat, metaData) = GetDataFromZip(image);
         var mask = GetPlantMask(visMat);
@@ -101,7 +101,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         var irData = rawIrMat.GetData(true);
         var getImage = metaData.BuildCoordinateToImageFunction();
         var visData = visMat.GetData(true);
-        var resultData = new PhotoSummaryResult(pixelSizeInMm);
+        var resultData = new PhotoSummaryResult(metaData.Dimensions.SizeOfPixelInMm);
         for (var row = 0; row < mask.Rows; row++)
         {
             for (var col = 0; col < mask.Cols; col++)

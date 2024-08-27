@@ -135,7 +135,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             logger.LogInformation("Stitching virtual image together");
             var maxHeight = virtualImageList.Select(v => v.VisImage?.Height ?? 10).OrderByDescending(h => h).FirstOrDefault();
             var maxWidth = virtualImageList.Select(v => v.VisImage?.Width ?? 10).OrderByDescending(h => h).FirstOrDefault();
-            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight);
+            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight, tripToProcess.PhotoTourFkNavigation.PixelSizeInMm);
             logger.LogInformation("Fetching additional metadata");
             var fullMetaDataTable = AddAdditionalMetaData(dataContext, tripToProcess, virtualImage.MetaData);
 
