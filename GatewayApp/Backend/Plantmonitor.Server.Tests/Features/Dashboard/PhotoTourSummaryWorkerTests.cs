@@ -36,7 +36,9 @@ public class PhotoTourSummaryWorkerTests
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
         File.WriteAllText(s_testZipFolder + "/SmallPlantsTestResult.json", imageDescriptors.AsJson(writeIndented: true));
         var expectedLeafCount = File.ReadAllText(s_testZipFolder + "/CorrectLeafCount_SmallPlantsTestResult.json").FromJson<List<PhotoSummaryResult.ImageResult>>() ?? new();
-        var comparison = expectedLeafCount.Select(ex => "Expected: " + ex.LeafCount + " Found: " + imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount).Concat("\n");
+        var comparison = expectedLeafCount
+            .OrderBy(ex => ex.Plant.ImageIndex)
+            .Select(ex => $"Index: {ex.Plant.ImageIndex}\t\tExpected: " + ex.LeafCount + "\t\tFound: " + imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount).Concat("\n");
         File.WriteAllText(s_testZipFolder + "/SmallPlantsLeafComparison.txt", comparison);
     }
 
@@ -49,7 +51,9 @@ public class PhotoTourSummaryWorkerTests
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
         File.WriteAllText(s_testZipFolder + "/BigPlantsTestResult.json", imageDescriptors.AsJson(writeIndented: true));
         var expectedLeafCount = File.ReadAllText(s_testZipFolder + "/CorrectLeafCount_BigPlantsTestResult.json").FromJson<List<PhotoSummaryResult.ImageResult>>() ?? new();
-        var comparison = expectedLeafCount.Select(ex => "Expected: " + ex.LeafCount + " Found: " + imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount).Concat("\n");
+        var comparison = expectedLeafCount
+            .OrderBy(ex => ex.Plant.ImageIndex)
+            .Select(ex => $"Index: {ex.Plant.ImageIndex}\t\tExpected: " + ex.LeafCount + "\t\tFound: " + imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount).Concat("\n");
         File.WriteAllText(s_testZipFolder + "/BigPlantsLeafComparison.txt", comparison);
     }
 
