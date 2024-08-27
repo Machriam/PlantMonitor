@@ -89,7 +89,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
     {
         using var contours = new VectorOfVectorOfPoint();
         var leafCountMat = new Mat();
-        var element = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(5, 5), new Point(-1, -1));
+        var element = LeafStructuringElement();
         CvInvoke.FindContours(grayImage, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
         var leafCount = contours.Size;
         var currentLeafCount = leafCount;
@@ -105,6 +105,15 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         leafCountMat.Dispose();
         element.Dispose();
         return leafCount;
+    }
+
+    private static Mat LeafStructuringElement()
+    {
+        const string StructuringElement = "0\t1\t0\n1\t1\t1\n0\t1\t0";
+        var byteArray = StructuringElement.Split("\n").Select(l => l.Split("\t")).SelectMany(l => l.Select(c => byte.Parse(c))).ToArray();
+        var element = new Mat(5, 5, DepthType.Cv8U, 1);
+        element.SetTo(byteArray);
+        return element;
     }
 
     private static Mat CreateSubImage(List<PixelInfo> pixelList)

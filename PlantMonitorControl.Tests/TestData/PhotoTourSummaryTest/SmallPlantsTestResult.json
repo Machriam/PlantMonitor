@@ -21,7 +21,7 @@
     "Extent": 0.34535572,
     "ConvexHullAreaInMm2": 56.360004,
     "Solidity": 0.49609652,
-    "LeafCount": 5,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       136.10179,
@@ -123,7 +123,7 @@
     "Extent": 0.3336939,
     "ConvexHullAreaInMm2": 48.180004,
     "Solidity": 0.5122458,
-    "LeafCount": 5,
+    "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
       151.03891,
@@ -225,7 +225,7 @@
     "Extent": 0.3249315,
     "ConvexHullAreaInMm2": 92.36001,
     "Solidity": 0.51364225,
-    "LeafCount": 5,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       147.93745,
@@ -327,7 +327,7 @@
     "Extent": 0.23504575,
     "ConvexHullAreaInMm2": 72.32,
     "Solidity": 0.36946902,
-    "LeafCount": 7,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       153.25755,
@@ -378,7 +378,7 @@
     "Extent": 0.3433396,
     "ConvexHullAreaInMm2": 55.640003,
     "Solidity": 0.5262401,
-    "LeafCount": 5,
+    "LeafCount": 3,
     "LeafOutOfRange": false,
     "HslAverage": [
       144.67722,
@@ -531,7 +531,7 @@
     "Extent": 0.31485587,
     "ConvexHullAreaInMm2": 43.8,
     "Solidity": 0.51872146,
-    "LeafCount": 4,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       149.48102,
@@ -633,7 +633,7 @@
     "Extent": 0.2448718,
     "ConvexHullAreaInMm2": 55,
     "Solidity": 0.41672727,
-    "LeafCount": 4,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       141.83214,
@@ -786,7 +786,7 @@
     "Extent": 0.37451437,
     "ConvexHullAreaInMm2": 33.84,
     "Solidity": 0.56973994,
-    "LeafCount": 5,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       147.43137,
@@ -888,7 +888,7 @@
     "Extent": 0.38319328,
     "ConvexHullAreaInMm2": 31.7,
     "Solidity": 0.57539433,
-    "LeafCount": 5,
+    "LeafCount": 7,
     "LeafOutOfRange": false,
     "HslAverage": [
       150.06917,
@@ -990,7 +990,7 @@
     "Extent": 0.25120774,
     "ConvexHullAreaInMm2": 70.28,
     "Solidity": 0.41434264,
-    "LeafCount": 6,
+    "LeafCount": 9,
     "LeafOutOfRange": false,
     "HslAverage": [
       149.80003,
@@ -1041,7 +1041,7 @@
     "Extent": 0.3097166,
     "ConvexHullAreaInMm2": 69.36001,
     "Solidity": 0.44117647,
-    "LeafCount": 5,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       153.13748,
@@ -1092,7 +1092,7 @@
     "Extent": 0.398978,
     "ConvexHullAreaInMm2": 73.920006,
     "Solidity": 0.54924244,
-    "LeafCount": 5,
+    "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
       146.27505,
@@ -1143,7 +1143,7 @@
     "Extent": 0.28488076,
     "ConvexHullAreaInMm2": 98.1,
     "Solidity": 0.4579001,
-    "LeafCount": 6,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       134.9622,
@@ -1194,7 +1194,7 @@
     "Extent": 0.2980633,
     "ConvexHullAreaInMm2": 107.82001,
     "Solidity": 0.46818772,
-    "LeafCount": 7,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       144.41377,
@@ -1245,7 +1245,7 @@
     "Extent": 0.32846004,
     "ConvexHullAreaInMm2": 57.940002,
     "Solidity": 0.46530893,
-    "LeafCount": 5,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       151.28902,
@@ -1500,7 +1500,7 @@
     "Extent": 0.33017164,
     "ConvexHullAreaInMm2": 70.82,
     "Solidity": 0.4128777,
-    "LeafCount": 6,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       144.11133,
@@ -1551,7 +1551,7 @@
     "Extent": 0.39636365,
     "ConvexHullAreaInMm2": 28.280003,
     "Solidity": 0.6166902,
-    "LeafCount": 5,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       149.01173,
@@ -1857,7 +1857,7 @@
     "Extent": 0.44789082,
     "ConvexHullAreaInMm2": 44.820004,
     "Solidity": 0.6443552,
-    "LeafCount": 3,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       137.0931,
@@ -1908,7 +1908,7 @@
     "Extent": 0.38837448,
     "ConvexHullAreaInMm2": 50.52,
     "Solidity": 0.597783,
-    "LeafCount": 4,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       140.8699,
@@ -1959,7 +1959,7 @@
     "Extent": 0.38093182,
     "ConvexHullAreaInMm2": 60.48,
     "Solidity": 0.5839947,
-    "LeafCount": 6,
+    "LeafCount": 8,
     "LeafOutOfRange": false,
     "HslAverage": [
       148.97705,
@@ -2061,7 +2061,7 @@
     "Extent": 0.35888502,
     "ConvexHullAreaInMm2": 45.24,
     "Solidity": 0.5464191,
-    "LeafCount": 5,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       142.6386,
@@ -2265,7 +2265,7 @@
     "Extent": 0.26482213,
     "ConvexHullAreaInMm2": 38.760002,
     "Solidity": 0.4148607,
-    "LeafCount": 5,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       145.2308,
@@ -2367,7 +2367,7 @@
     "Extent": 0.4208556,
     "ConvexHullAreaInMm2": 49.280003,
     "Solidity": 0.6387987,
-    "LeafCount": 6,
+    "LeafCount": 3,
     "LeafOutOfRange": false,
     "HslAverage": [
       151.12222,
@@ -2418,7 +2418,7 @@
     "Extent": 0.41330892,
     "ConvexHullAreaInMm2": 43.02,
     "Solidity": 0.62947464,
-    "LeafCount": 3,
+    "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
       148.59561,
@@ -2520,7 +2520,7 @@
     "Extent": 0.40574867,
     "ConvexHullAreaInMm2": 44.920002,
     "Solidity": 0.5405165,
-    "LeafCount": 4,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       149.87685,
@@ -2622,7 +2622,7 @@
     "Extent": 0.3553459,
     "ConvexHullAreaInMm2": 56.260006,
     "Solidity": 0.5623889,
-    "LeafCount": 6,
+    "LeafCount": 3,
     "LeafOutOfRange": false,
     "HslAverage": [
       147.47478,
@@ -2673,7 +2673,7 @@
     "Extent": 0.36547256,
     "ConvexHullAreaInMm2": 69.44,
     "Solidity": 0.55241936,
-    "LeafCount": 4,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       148.46556,
@@ -2775,7 +2775,7 @@
     "Extent": 0.3576087,
     "ConvexHullAreaInMm2": 76.94,
     "Solidity": 0.5131271,
-    "LeafCount": 4,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       146.68994,
@@ -2979,7 +2979,7 @@
     "Extent": 0.37931034,
     "ConvexHullAreaInMm2": 31.4,
     "Solidity": 0.56050956,
-    "LeafCount": 4,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       141.20412,
@@ -3030,7 +3030,7 @@
     "Extent": 0.28106186,
     "ConvexHullAreaInMm2": 86.5,
     "Solidity": 0.4749133,
-    "LeafCount": 4,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       145.804,
@@ -3132,7 +3132,7 @@
     "Extent": 0.31538993,
     "ConvexHullAreaInMm2": 76.240005,
     "Solidity": 0.4795383,
-    "LeafCount": 6,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
       147.54884,
@@ -3336,7 +3336,7 @@
     "Extent": 0.25930852,
     "ConvexHullAreaInMm2": 101.86001,
     "Solidity": 0.38287845,
-    "LeafCount": 7,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
       147.9815,
@@ -3387,7 +3387,7 @@
     "Extent": 0.3735294,
     "ConvexHullAreaInMm2": 55.360004,
     "Solidity": 0.55057806,
-    "LeafCount": 5,
+    "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
       146.76526,
@@ -3591,7 +3591,7 @@
     "Extent": 0.46849173,
     "ConvexHullAreaInMm2": 56.960003,
     "Solidity": 0.6369382,
-    "LeafCount": 5,
+    "LeafCount": 7,
     "LeafOutOfRange": false,
     "HslAverage": [
       136.23087,
