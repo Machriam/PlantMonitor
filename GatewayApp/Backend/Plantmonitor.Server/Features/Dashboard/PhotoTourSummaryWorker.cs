@@ -102,6 +102,21 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         var getImage = metaData.BuildCoordinateToImageFunction();
         var visData = visMat.GetData(true);
         var resultData = new PhotoSummaryResult(metaData.Dimensions.SizeOfPixelInMm);
+        var deviceTemperatureInfo = metaData.TemperatureReadings
+            .GroupBy(tr => tr.Comment + " " + tr.SensorId)
+            .Select(g =>
+            {
+                var average = g.Average(tr => tr.TemperatureInC);
+                return new PhotoSummaryResult.DeviceTemperatureInfo()
+                {
+                    Name = g.Key,
+                    AverageTemperature = g.Average(tr => tr.TemperatureInC),
+                    MaxTemperature = g.Max(tr => tr.TemperatureInC),
+                    MedianTemperature = g.OrderBy(tr => tr.TemperatureInC).Median(tr => tr.TemperatureInC),
+                    MinTemperature = g.Min(tr => tr.TemperatureInC),
+                    TemperatureDeviation = g.Deviation(average, tr => tr.TemperatureInC),
+                };
+            });
         for (var row = 0; row < mask.Rows; row++)
         {
             for (var col = 0; col < mask.Cols; col++)

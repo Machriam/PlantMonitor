@@ -2,6 +2,7 @@
 
 public class PlantImageDescriptors
 {
+    public IEnumerable<DeviceTemperature> DeviceTemperatures { get; set; } = [];
     public ReferencedPlant Plant { get; set; } = new();
     public float SizeInMm2 { get; set; }
     public float AverageTemperature { get; set; }
@@ -22,6 +23,16 @@ public class PlantImageDescriptors
     public float[] HslMin { get; set; } = [];
     public float[] HslDeviation { get; set; } = [];
     public bool NoImage { get; set; }
+}
+
+public class DeviceTemperature
+{
+    public string Name { get; set; } = "";
+    public float AverageTemperature { get; set; }
+    public float MedianTemperature { get; set; }
+    public float MaxTemperature { get; set; }
+    public float MinTemperature { get; set; }
+    public float TemperatureDeviation { get; set; }
 }
 
 public class ReferencedPlant

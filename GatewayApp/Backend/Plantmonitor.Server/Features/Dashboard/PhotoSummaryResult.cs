@@ -10,16 +10,27 @@ namespace Plantmonitor.Server.Features.Dashboard;
 
 public class PhotoSummaryResult(float pixelSizeInMm)
 {
+    public record struct DeviceTemperatureInfo(string Name, float MaxTemperature,
+        float MinTemperature, float AverageTemperature, float MedianTemperature, float TemperatureDeviation);
     public record struct PixelInfo(int Left, int Top, float Temperature, byte[] PixelColorInRgb, bool LeafOutOfRange);
     public record struct ImageResult(VirtualImageMetaDataModel.ImageMetaDatum Plant, float SizeInMm2, float AverageTemperature,
         float MedianTemperature, float TemperatureDev, float MaxTemperature, float MinTemperature,
         float HeightInMm, float WidthInMm, float Extent, float ConvexHullAreaInMm2, float Solidity, int LeafCount, bool LeafOutOfRange, float[] HslAverage,
-        float[] HslMedian, float[] HslMax, float[] HslMin, float[] HslDeviation, bool NoImage)
+        float[] HslMedian, float[] HslMax, float[] HslMin, float[] HslDeviation, bool NoImage, List<DeviceTemperatureInfo> DeviceTemperatures)
     {
         public readonly PlantImageDescriptors GetDataModel()
         {
             return new PlantImageDescriptors()
             {
+                DeviceTemperatures = DeviceTemperatures.Select(dt => new DeviceTemperature()
+                {
+                    AverageTemperature = dt.AverageTemperature,
+                    MaxTemperature = dt.MaxTemperature,
+                    MedianTemperature = dt.MedianTemperature,
+                    MinTemperature = dt.MinTemperature,
+                    Name = dt.Name,
+                    TemperatureDeviation = dt.TemperatureDeviation
+                }),
                 AverageTemperature = AverageTemperature,
                 ConvexHullAreaInMm2 = ConvexHullAreaInMm2,
                 Extent = Extent,
