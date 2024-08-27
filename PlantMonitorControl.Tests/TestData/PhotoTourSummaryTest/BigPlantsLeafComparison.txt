@@ -1,3 +1,4 @@
+Total misses: 84
 Index: 0		Expected: 9		Found: 6
 Index: 1		Expected: 9		Found: 7
 Index: 2		Expected: 9		Found: 7

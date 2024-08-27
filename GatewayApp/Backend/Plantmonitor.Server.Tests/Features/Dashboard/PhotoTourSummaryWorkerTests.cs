@@ -38,7 +38,9 @@ public class PhotoTourSummaryWorkerTests
         var expectedLeafCount = File.ReadAllText(s_testZipFolder + "/CorrectLeafCount_SmallPlantsTestResult.json").FromJson<List<PhotoSummaryResult.ImageResult>>() ?? new();
         var comparison = expectedLeafCount
             .OrderBy(ex => ex.Plant.ImageIndex)
-            .Select(ex => $"Index: {ex.Plant.ImageIndex}\t\tExpected: " + ex.LeafCount + "\t\tFound: " + imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount).Concat("\n");
+            .Select(ex => $"Index: {ex.Plant.ImageIndex}\t\tExpected: " + ex.LeafCount + "\t\tDiff: " + (imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount - ex.LeafCount)).Concat("\n");
+        var totalMisses = expectedLeafCount.Sum(ex => ex.LeafCount - imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount);
+        comparison = $"Total misses: {totalMisses}\n{comparison}";
         File.WriteAllText(s_testZipFolder + "/SmallPlantsLeafComparison.txt", comparison);
     }
 
@@ -54,6 +56,8 @@ public class PhotoTourSummaryWorkerTests
         var comparison = expectedLeafCount
             .OrderBy(ex => ex.Plant.ImageIndex)
             .Select(ex => $"Index: {ex.Plant.ImageIndex}\t\tExpected: " + ex.LeafCount + "\t\tFound: " + imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount).Concat("\n");
+        var totalMisses = expectedLeafCount.Sum(ex => ex.LeafCount - imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount);
+        comparison = $"Total misses: {totalMisses}\n{comparison}";
         File.WriteAllText(s_testZipFolder + "/BigPlantsLeafComparison.txt", comparison);
     }
 
