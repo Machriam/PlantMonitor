@@ -4,6 +4,7 @@ using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.Dashboard;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests;
+using Plantmonitor.Shared.Extensions;
 
 namespace Plantmonitor.Server.Tests.Features.Dashboard;
 
@@ -32,6 +33,8 @@ public class PhotoTourSummaryWorkerTests
         var testZip = s_testZipFolder + "/SmallPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
         var result = sut.ProcessImage(testZip, 0.2f);
+        var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
+        File.WriteAllText(s_testZipFolder + "/SmallPlantsTestResult.json", imageDescriptors.AsJson(writeIndented: true));
     }
 
     [Fact]
@@ -40,7 +43,8 @@ public class PhotoTourSummaryWorkerTests
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
         var result = sut.ProcessImage(testZip, 0.2f);
-        var imageDescriptors = result.GetResults();
+        var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
+        File.WriteAllText(s_testZipFolder + "/BigPlantsTestResult.json", imageDescriptors.AsJson(writeIndented: true));
     }
 
     [Fact]

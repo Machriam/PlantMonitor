@@ -59,17 +59,8 @@ public class PhotoSummaryResult(float pixelSizeInMm)
             result.WidthInMm = subImage.Cols * pixelSizeInMm;
             result.SizeInMm2 = pixelList.Count * pixelSizeInMm * pixelSizeInMm;
             result.Extent = (pixelList.Count / ((float)subImage.Height * subImage.Width));
-            using var contours = new VectorOfVectorOfPoint();
-            CvInvoke.FindContours(grayImage, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
-            var pointArray = new List<Point>();
-            for (var i = 0; i < contours.Size; i++)
-            {
-                for (var j = 0; j < contours[i].Size; j++) pointArray.Add(contours[i][j]);
-            }
-            using var hullPoints = new VectorOfPoint(pointArray.ToArray());
-            using var hull = new VectorOfPoint();
-            CvInvoke.ConvexHull(hullPoints, hull, false, true);
-            var convexHullArea = (float)CvInvoke.ContourArea(hull);
+            result.LeafCount = CalculateLeafCount(grayImage);
+            var convexHullArea = GetConvexHull(grayImage);
             result.ConvexHullAreaInMm2 = convexHullArea * pixelSizeInMm * pixelSizeInMm;
             result.Solidity = (float)(pixelList.Count / convexHullArea);
             resultList.Add(result);
@@ -77,6 +68,43 @@ public class PhotoSummaryResult(float pixelSizeInMm)
             grayImage.Dispose();
         }
         return resultList;
+    }
+
+    private static float GetConvexHull(Mat grayImage)
+    {
+        using var contours = new VectorOfVectorOfPoint();
+        CvInvoke.FindContours(grayImage, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+        var pointArray = new List<Point>();
+        for (var i = 0; i < contours.Size; i++)
+        {
+            for (var j = 0; j < contours[i].Size; j++) pointArray.Add(contours[i][j]);
+        }
+        using var hullPoints = new VectorOfPoint(pointArray.ToArray());
+        using var hull = new VectorOfPoint();
+        CvInvoke.ConvexHull(hullPoints, hull, false, true);
+        return (float)CvInvoke.ContourArea(hull);
+    }
+
+    private static int CalculateLeafCount(Mat grayImage)
+    {
+        using var contours = new VectorOfVectorOfPoint();
+        var leafCountMat = new Mat();
+        var element = CvInvoke.GetStructuringElement(ElementShape.Ellipse, new Size(5, 5), new Point(-1, -1));
+        CvInvoke.FindContours(grayImage, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+        var leafCount = contours.Size;
+        var currentLeafCount = leafCount;
+        while (currentLeafCount > 0)
+        {
+            var matToUse = leafCountMat.Cols > 0 ? leafCountMat : grayImage;
+            CvInvoke.Erode(matToUse, leafCountMat, element, new Point(-1, -1), 1, BorderType.Constant, new MCvScalar(0d));
+            CvInvoke.FindContours(leafCountMat, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+            currentLeafCount = contours.Size;
+            leafCount = Math.Max(currentLeafCount, leafCount);
+        }
+
+        leafCountMat.Dispose();
+        element.Dispose();
+        return leafCount;
     }
 
     private static Mat CreateSubImage(List<PixelInfo> pixelList)
