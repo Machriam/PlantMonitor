@@ -55,7 +55,7 @@ public class VirtualImageMetaDataModelTests
         var date = new DateTime(2024, 12, 31, 12, 50, 50);
         return new VirtualImageMetaDataModel()
         {
-            Dimensions = new VirtualImageMetaDataModel.ImageDimensions(1, 2, 3, 4, 5, 6, 7, 8, 9, "Comment"),
+            Dimensions = new VirtualImageMetaDataModel.ImageDimensions(1, 2, 3, 4, 5, 6, 7, 8, 9, "Comment", 0.2f),
             ImageMetaData = Enumerable.Range(1, 10).Select(i => new VirtualImageMetaDataModel
                 .ImageMetaDatum(i, $"Plant {i}", $"Comment {i}", true, false, date.AddDays(-i), date.AddDays(i), (273 + i) * 100)).ToArray(),
             TemperatureReadings = Enumerable.Range(1, 10).Select(i => new VirtualImageMetaDataModel

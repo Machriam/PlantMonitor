@@ -22,11 +22,12 @@ public interface ITsvFormattable
 {
     string FormatValue(string name, object? value);
 
-    object ParseFromText(string key, string text);
+    object ParseFromText(string key, string? text);
 }
 
 public record struct VirtualImageMetaDataModel()
 {
+    private static readonly string MinDateString = DateTime.MinValue.ToString(DateFormat, CultureInfo.InvariantCulture);
     private const string DateFormat = "yyyy-MM-dd HH:mm:ss";
     public class ImageDimensions : ITsvFormattable
     {
@@ -64,11 +65,11 @@ public record struct VirtualImageMetaDataModel()
             nameof(SizeOfPixelInMm) => ((float?)value ?? 0f).ToString("0.00", CultureInfo.InvariantCulture),
             _ => value?.ToString() ?? ""
         };
-        public object ParseFromText(string key, string text) => key switch
+        public object ParseFromText(string key, string? text) => key switch
         {
-            nameof(Comment) => text,
-            nameof(SizeOfPixelInMm) => float.Parse(text, CultureInfo.InvariantCulture),
-            _ => int.Parse(text),
+            nameof(Comment) => text ?? "",
+            nameof(SizeOfPixelInMm) => float.TryParse(text ?? "", CultureInfo.InvariantCulture, out var size) ? size : 0.2f,
+            _ => int.TryParse(text, CultureInfo.InvariantCulture, out var number) ? number : 0,
         };
     }
 
@@ -107,14 +108,14 @@ public record struct VirtualImageMetaDataModel()
             };
         }
 
-        public object ParseFromText(string key, string text) => key switch
+        public object ParseFromText(string key, string? text) => key switch
         {
-            nameof(ImageName) or nameof(ImageComment) => text,
-            nameof(HasIr) or nameof(HasVis) => bool.Parse(text),
-            nameof(IrTempInC) => float.Parse(text.Replace("°C", ""), CultureInfo.InvariantCulture),
-            nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture),
-            nameof(ImageIndex) => int.Parse(text),
-            _ => text,
+            nameof(ImageName) or nameof(ImageComment) => text ?? "",
+            nameof(HasIr) or nameof(HasVis) => bool.Parse(text ?? "False"),
+            nameof(IrTempInC) => float.Parse(text?.Replace("°C", "") ?? "0", CultureInfo.InvariantCulture),
+            nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text ?? MinDateString, DateFormat, CultureInfo.InvariantCulture),
+            nameof(ImageIndex) => int.Parse(text ?? "0"),
+            _ => text ?? "",
         };
     }
 
@@ -140,7 +141,8 @@ public record struct VirtualImageMetaDataModel()
             };
         }
 
-        public object ParseFromText(string key, string text) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture);
+        public object ParseFromText(string key, string? text) =>
+            DateTime.ParseExact(text ?? MinDateString, DateFormat, CultureInfo.InvariantCulture);
     }
 
     public class TemperatureReading : ITsvFormattable
@@ -170,11 +172,11 @@ public record struct VirtualImageMetaDataModel()
             };
         }
 
-        public object ParseFromText(string key, string text) => key switch
+        public object ParseFromText(string key, string? text) => key switch
         {
-            nameof(TemperatureInC) => float.Parse(text.Replace("°C", ""), CultureInfo.InvariantCulture),
-            nameof(Time) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture),
-            _ => text,
+            nameof(TemperatureInC) => float.Parse(text?.Replace("°C", "") ?? "0", CultureInfo.InvariantCulture),
+            nameof(Time) => DateTime.ParseExact(text ?? MinDateString, DateFormat, CultureInfo.InvariantCulture),
+            _ => text ?? "",
         };
     }
 
@@ -241,7 +243,7 @@ public record struct VirtualImageMetaDataModel()
         foreach (var entry in sortedEntries)
         {
             var newEntry = new T();
-            propertyNames.ForEach(p => p.SetValue(newEntry, newEntry.ParseFromText(p.Name, entry.First(e => e.Key == p.Name).Item)));
+            propertyNames.ForEach(p => p.SetValue(newEntry, newEntry.ParseFromText(p.Name, entry.FirstOrDefault(e => e.Key == p.Name).Item)));
             result.Add(newEntry);
         }
         return result;

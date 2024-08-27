@@ -11,7 +11,8 @@ public class PhotoSummaryResult(float pixelSizeInMm)
     public record struct PixelInfo(int Left, int Top, float Temperature, byte[] PixelColorInRgb);
     public record struct ImageResult(VirtualImageMetaDataModel.ImageMetaDatum Plant, float SizeInMm2, float AverageTemperature,
         float MedianTemperature, float TemperatureDev, float MaxTemperature, float MinTemperature,
-        float HeightInMm, float WidthInMm, float Extent, float Roundness, float ConvexHullAreaInMm2, float Solidity);
+        float HeightInMm, float WidthInMm, float Extent, float ConvexHullAreaInMm2, float Solidity, int LeafCount, bool LeafOutOfRange, byte[] HueAverage,
+        byte[] HueMedian, byte[] HueMax, byte[] HueMin, byte[] HueDeviation, bool NoImage);
     private readonly Dictionary<VirtualImageMetaDataModel.ImageMetaDatum, List<PixelInfo>> _result = [];
 
     public void AddPixelInfo(VirtualImageMetaDataModel.ImageMetaDatum image, int left, int top, float temperature, byte[] pixelColorInRgb)
@@ -55,11 +56,9 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 perimeter += (float)CvInvoke.ArcLength(contour, true);
                 using var hull = new VectorOfPoint();
                 CvInvoke.ConvexHull(contour, hull, false, true);
-                CvInvoke.Polylines(grayImage, hull, true, new MCvScalar(100, 100, 100), 3);
                 convexHullArea += (float)CvInvoke.ContourArea(hull);
             }
             result.ConvexHullAreaInMm2 = convexHullArea * pixelSizeInMm * pixelSizeInMm;
-            result.Roundness = (float)(4f * Math.PI * pixelList.Count / (perimeter * perimeter));
             result.Solidity = (float)(pixelList.Count / convexHullArea);
             resultList.Add(result);
             subImage.Dispose();
