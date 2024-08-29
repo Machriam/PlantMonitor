@@ -5,5 +5,5 @@ namespace Plantmonitor.DataModel.DataModel;
 
 public partial class VirtualImageSummary
 {
-    public List<PlantImageDescriptors> ImageDescriptors { get; set; } = [];
+    public PhotoTourDescriptor ImageDescriptors { get; set; } = new();
 }

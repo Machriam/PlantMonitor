@@ -1,8 +1,16 @@
 ﻿namespace Plantmonitor.DataModel.DataModel;
 
-public class PlantImageDescriptors
+public class PhotoTourDescriptor
 {
     public IEnumerable<DeviceTemperature> DeviceTemperatures { get; set; } = [];
+    public IEnumerable<PlantImageDescriptors> PlantDescriptors { get; set; } = [];
+    public string TourName { get; set; } = "";
+    public DateTime TripStart { get; set; }
+    public DateTime TripEnd { get; set; }
+}
+
+public class PlantImageDescriptors
+{
     public ReferencedPlant Plant { get; set; } = new();
     public float SizeInMm2 { get; set; }
     public float AverageTemperature { get; set; }
@@ -33,6 +41,7 @@ public class DeviceTemperature
     public float MaxTemperature { get; set; }
     public float MinTemperature { get; set; }
     public float TemperatureDeviation { get; set; }
+    public int CountOfMeasurements { get; set; }
 }
 
 public class ReferencedPlant

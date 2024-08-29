@@ -182,7 +182,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             .OrderBy(tm => tm.Timestamp)
             .Take(10000)
             .ToList();
-        metaData.TimeInfos = new(from, to);
+        metaData.TimeInfos = new(from, to, tripToProcess.PhotoTourFkNavigation.Name);
         logger.LogInformation("Creating temperature table");
         var measurementValues = temperaturesOfTrip
             .Where(tot => !tot.MeasurementFkNavigation.IsThermalCamera())

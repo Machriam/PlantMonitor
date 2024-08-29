@@ -70,7 +70,23 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
             context.VirtualImageSummaries.Add(new VirtualImageSummary()
             {
                 VirtualImageCreationDate = nextImage.Value,
-                ImageDescriptors = imageResults.ConvertAll(ir => ir.GetDataModel()),
+                ImageDescriptors = new PhotoTourDescriptor()
+                {
+                    PlantDescriptors = imageResults.ConvertAll(ir => ir.GetDataModel()),
+                    TripStart = pixelSummary.GetPhotoTripData.TripStart,
+                    TourName = pixelSummary.GetPhotoTripData.TourName,
+                    TripEnd = pixelSummary.GetPhotoTripData.TripEnd,
+                    DeviceTemperatures = pixelSummary.DeviceTemperatures.Select(dt => new DeviceTemperature()
+                    {
+                        AverageTemperature = dt.AverageTemperature,
+                        CountOfMeasurements = dt.CountOfMeasurements,
+                        MaxTemperature = dt.MaxTemperature,
+                        MedianTemperature = dt.MedianTemperature,
+                        MinTemperature = dt.MinTemperature,
+                        Name = dt.Name,
+                        TemperatureDeviation = dt.TemperatureDeviation
+                    })
+                },
                 VirtualImagePath = nextImage.Key
             });
             context.SaveChanges();
@@ -81,7 +97,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
             {
                 VirtualImageCreationDate = nextImage.Value,
                 VirtualImagePath = nextImage.Key,
-                ImageDescriptors = []
+                ImageDescriptors = new()
             });
             context.SaveChanges();
             ex.LogError();
@@ -115,8 +131,11 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                     MedianTemperature = g.OrderBy(tr => tr.TemperatureInC).Median(tr => tr.TemperatureInC),
                     MinTemperature = g.Min(tr => tr.TemperatureInC),
                     TemperatureDeviation = g.Deviation(average, tr => tr.TemperatureInC),
+                    CountOfMeasurements = g.Count()
                 };
             });
+        resultData.AddDeviceTemperatures(deviceTemperatureInfo);
+        resultData.AddPhotoTripData("", metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime);
         for (var row = 0; row < mask.Rows; row++)
         {
             for (var col = 0; col < mask.Cols; col++)

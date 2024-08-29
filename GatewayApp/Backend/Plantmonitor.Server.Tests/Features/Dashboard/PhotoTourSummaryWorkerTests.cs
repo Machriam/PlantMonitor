@@ -32,7 +32,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/SmallPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        var result = sut.ProcessImage(testZip, 0.2f);
+        var result = sut.ProcessImage(testZip);
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
         File.WriteAllText(s_testZipFolder + "/SmallPlantsTestResult.json", imageDescriptors.AsJson(writeIndented: true));
         var expectedLeafCount = File.ReadAllText(s_testZipFolder + "/CorrectLeafCount_SmallPlantsTestResult.json").FromJson<List<PhotoSummaryResult.ImageResult>>() ?? new();
@@ -49,7 +49,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        var result = sut.ProcessImage(testZip, 0.2f);
+        var result = sut.ProcessImage(testZip);
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
         File.WriteAllText(s_testZipFolder + "/BigPlantsTestResult.json", imageDescriptors.AsJson(writeIndented: true));
         var expectedLeafCount = File.ReadAllText(s_testZipFolder + "/CorrectLeafCount_BigPlantsTestResult.json").FromJson<List<PhotoSummaryResult.ImageResult>>() ?? new();

@@ -305,13 +305,11 @@ public partial class DataContext : DbContext, IDataContext
 
         modelBuilder.Entity<VirtualImageSummary>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("virtual_image_summary", "plantmonitor");
+            entity.HasKey(e => e.Id).HasName("virtual_image_summary_pkey");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
+            entity.ToTable("virtual_image_summary", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.ImageDescriptorsJson)
                 .HasColumnType("jsonb")
                 .HasColumnName("image_descriptors_json");

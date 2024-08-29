@@ -10,8 +10,9 @@ namespace Plantmonitor.Server.Features.Dashboard;
 
 public class PhotoSummaryResult(float pixelSizeInMm)
 {
+    public record struct PhotoTripData(string TourName, DateTime TripStart, DateTime TripEnd);
     public record struct DeviceTemperatureInfo(string Name, float MaxTemperature,
-        float MinTemperature, float AverageTemperature, float MedianTemperature, float TemperatureDeviation);
+        float MinTemperature, float AverageTemperature, float MedianTemperature, float TemperatureDeviation, int CountOfMeasurements);
     public record struct PixelInfo(int Left, int Top, float Temperature, byte[] PixelColorInRgb, bool LeafOutOfRange);
     public record struct ImageResult(VirtualImageMetaDataModel.ImageMetaDatum Plant, float SizeInMm2, float AverageTemperature,
         float MedianTemperature, float TemperatureDev, float MaxTemperature, float MinTemperature,
@@ -22,15 +23,6 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         {
             return new PlantImageDescriptors()
             {
-                DeviceTemperatures = DeviceTemperatures.Select(dt => new DeviceTemperature()
-                {
-                    AverageTemperature = dt.AverageTemperature,
-                    MaxTemperature = dt.MaxTemperature,
-                    MedianTemperature = dt.MedianTemperature,
-                    MinTemperature = dt.MinTemperature,
-                    Name = dt.Name,
-                    TemperatureDeviation = dt.TemperatureDeviation
-                }),
                 AverageTemperature = AverageTemperature,
                 ConvexHullAreaInMm2 = ConvexHullAreaInMm2,
                 Extent = Extent,
@@ -65,12 +57,19 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         }
     }
     private readonly Dictionary<VirtualImageMetaDataModel.ImageMetaDatum, List<PixelInfo>> _result = [];
+    private PhotoTripData _photoTripData = new();
+    public PhotoTripData GetPhotoTripData => _photoTripData;
+    public List<DeviceTemperatureInfo> DeviceTemperatures { get; } = [];
+
+    public void AddPhotoTripData(string tourName, DateTime tripStart, DateTime tripEnd) => _photoTripData = new(tourName, tripStart, tripEnd);
 
     public void AddPixelInfo(VirtualImageMetaDataModel.ImageMetaDatum image, int left, int top, float temperature, byte[] pixelColorInRgb, bool leafOutOfRange)
     {
         if (_result.TryGetValue(image, out var list)) list.Add(new(left, top, temperature, pixelColorInRgb, leafOutOfRange));
         else _result[image] = [new(left, top, temperature, pixelColorInRgb, leafOutOfRange)];
     }
+
+    public void AddDeviceTemperatures(IEnumerable<DeviceTemperatureInfo> deviceTemperatures) => DeviceTemperatures.AddRange(deviceTemperatures);
 
     public List<ImageResult> GetResults()
     {
