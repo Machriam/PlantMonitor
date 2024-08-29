@@ -135,7 +135,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 };
             });
         resultData.AddDeviceTemperatures(deviceTemperatureInfo);
-        resultData.AddPhotoTripData("", metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime);
+        resultData.AddPhotoTripData(metaData.TimeInfos.TripName, metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime);
         for (var row = 0; row < mask.Rows; row++)
         {
             for (var col = 0; col < mask.Cols; col++)
@@ -145,6 +145,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 var leafOutOfRange = false;
                 if (row == 0 || col == 0 || row == mask.Rows - 1 || col == mask.Cols - 1) leafOutOfRange = true;
                 var imageData = getImage((col, row));
+                if (imageData == null) continue;
                 var temperatureInteger = (byte)irData.GetValue(row, col, 0)!;
                 var temperatureFraction = (byte)irData.GetValue(row, col, 1)!;
                 var rValue = (byte)visData.GetValue(row, col, 0)!;

@@ -254,7 +254,7 @@ public record struct VirtualImageMetaDataModel()
         return result;
     }
 
-    public readonly Func<(int Left, int Top), ImageMetaDatum> BuildCoordinateToImageFunction()
+    public readonly Func<(int Left, int Top), ImageMetaDatum?> BuildCoordinateToImageFunction()
     {
         var imageList = ImageMetaData.OrderBy(imd => imd.ImageIndex).ToList();
         var index = 0;
@@ -273,7 +273,8 @@ public record struct VirtualImageMetaDataModel()
         {
             var column = pixel.Left / @this.Dimensions.Width;
             var row = pixel.Top / @this.Dimensions.Height;
-            return result[(row, column)];
+            if (result.TryGetValue((row, column), out var datum)) return datum;
+            return null;
         };
     }
 

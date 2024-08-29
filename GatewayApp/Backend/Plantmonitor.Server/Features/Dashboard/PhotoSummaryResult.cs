@@ -167,6 +167,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
 
     private static Mat CreateSubImage(List<PixelInfo> pixelList)
     {
+        var pixelByCoordinate = pixelList.ToDictionary(p => (p.Left, p.Top));
         var width = pixelList.Max(p => p.Left) - pixelList.Min(p => p.Left);
         var leftOffset = pixelList.Min(p => p.Left);
         var height = pixelList.Max(p => p.Top) - pixelList.Min(p => p.Top);
@@ -181,7 +182,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
             {
                 var left = col + leftOffset;
                 var top = row + topOffset;
-                var pixel = pixelList.Find(p => p.Left == left && p.Top == top);
+                var pixel = pixelByCoordinate.TryGetValue((left, top), out var pixelResult) ? pixelResult : default;
                 var rgb = pixel == default ? emptyPixel : pixel.PixelColorInRgb;
                 var index = ((row * width) + col) * 3;
                 for (var i = 0; i < rgb.Length; i++) subImageData[index + i] = rgb[i];

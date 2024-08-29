@@ -63,6 +63,15 @@ public class PhotoTourSummaryWorkerTests
     }
 
     [Fact]
+    public void ProcessImage_6_6_NotInDictionary_ShouldWork()
+    {
+        var testZip = s_testZipFolder + "/6_6_NotInDictionaryTest.zip";
+        var sut = CreatePhotoTourSummaryWorker();
+        var result = sut.ProcessImage(testZip);
+        var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
+    }
+
+    [Fact]
     public void ProcessImage_BigPlants_ShouldWork()
     {
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";
