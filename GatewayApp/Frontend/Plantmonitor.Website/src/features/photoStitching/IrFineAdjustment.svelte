@@ -107,6 +107,20 @@
                 }}
                 class="btn btn-primary col-md-2">Reload Polygon</button>
             <button on:click={() => storePolygonIrOffset()} class="btn btn-success col-md-2 ms-2">Update Offset</button>
+            <button
+                on:click={async () => {
+                    const defaultPoly = await loadNewPolygon();
+                    if (defaultPoly == undefined) return;
+                    _xOffset = (defaultPoly?.previousOffset.x ?? 0) - defaultPoly.currentOffset.x;
+                    _yOffset = (defaultPoly?.previousOffset.y ?? 0) - defaultPoly.currentOffset.y;
+                    _selectedTemplate = defaultPoly?.previousOffset;
+                    await displayPolygonIrOffset();
+                    _availableExtractionTemplates = _availableExtractionTemplates;
+                }}
+                class="btn btn-dark col-md-3 ms-2">
+                Previous Offset (X,Y): {_imageCropPreview?.previousOffset.x.toFixed(1)}, {_imageCropPreview?.previousOffset.y.toFixed(
+                    1
+                )}</button>
         </div>
     {/if}
     {#if _imageCropPreview != undefined}
@@ -132,25 +146,7 @@
                     alt="Vis Crop" />
             </div>
             <div class="col-md-4" style="z-index: 1;"></div>
-            <div class="col-md-2 d-flex flex-column colm-3" style="height: 480px;overflow-y:auto;z-index:1">
-                {#each _availableExtractionTemplates as template}
-                    <button
-                        on:click={async () => {
-                            const defaultPoly = await loadNewPolygon();
-                            if (defaultPoly == undefined) return;
-                            _xOffset = defaultPoly.currentOffset.x - template.x;
-                            _yOffset = defaultPoly.currentOffset.y - template.y;
-                            _selectedTemplate = template;
-                            await displayPolygonIrOffset();
-                            _availableExtractionTemplates = _availableExtractionTemplates;
-                        }}
-                        class="btn btn-dark {_selectedTemplate == template ||
-                        (_imageCropPreview.currentOffset.x == template.x && _imageCropPreview.currentOffset.y == template.y)
-                            ? ''
-                            : 'opacity-50'}">
-                        Try Offset (X,Y): {template.x.toFixed(1)}, {template.y.toFixed(1)}</button>
-                {/each}
-            </div>
+            <div class="col-md-2 d-flex flex-column colm-3" style="height: 480px;overflow-y:auto;z-index:1"></div>
         </div>
     {/if}
 </div>

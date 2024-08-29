@@ -3856,6 +3856,7 @@ export class ImageCropPreview implements IImageCropPreview {
     irImage!: string;
     visImage!: string;
     currentOffset!: NpgsqlPoint;
+    previousOffset!: NpgsqlPoint;
 
     constructor(data?: IImageCropPreview) {
         if (data) {
@@ -3871,6 +3872,7 @@ export class ImageCropPreview implements IImageCropPreview {
             this.irImage = _data["IrImage"];
             this.visImage = _data["VisImage"];
             this.currentOffset = _data["CurrentOffset"] ? NpgsqlPoint.fromJS(_data["CurrentOffset"]) : <any>undefined;
+            this.previousOffset = _data["PreviousOffset"] ? NpgsqlPoint.fromJS(_data["PreviousOffset"]) : <any>undefined;
         }
     }
 
@@ -3886,6 +3888,7 @@ export class ImageCropPreview implements IImageCropPreview {
         data["IrImage"] = this.irImage;
         data["VisImage"] = this.visImage;
         data["CurrentOffset"] = this.currentOffset ? this.currentOffset.toJSON() : <any>undefined;
+        data["PreviousOffset"] = this.previousOffset ? this.previousOffset.toJSON() : <any>undefined;
         return data;
     }
 
@@ -3901,6 +3904,7 @@ export interface IImageCropPreview {
     irImage: string;
     visImage: string;
     currentOffset: NpgsqlPoint;
+    previousOffset: NpgsqlPoint;
 }
 
 export class IrOffsetFineAdjustment implements IIrOffsetFineAdjustment {
