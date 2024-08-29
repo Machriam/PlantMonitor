@@ -11,6 +11,7 @@ public class VirtualImageMetaDataModelTests
         "GatewayApp", "Backend", "Plantmonitor.Server.Tests", "Features", "AutomaticPhotoTour", file);
 
     private const string DefaultTestFile = "ExportAsTsv_Result.txt";
+    private const string OutdatedFormat = "ExportAsTsv_OutdatedFormat.txt";
     private const string TestFileWithEmptyList = "ExportAsTsv_WithEmptyList_Result.txt";
 
     [Fact]
@@ -19,6 +20,13 @@ public class VirtualImageMetaDataModelTests
         var sut = CreateDefaultTestModel().AsJson();
         var importedModel = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(TestFilePath(DefaultTestFile))).AsJson();
         sut.Should().BeEquivalentTo(importedModel);
+    }
+
+    [Fact]
+    public void FromTsvFile_OutdatedFormat_ShouldNotThrow()
+    {
+        var sut = new VirtualImageMetaDataModel().AsJson();
+        var importedModel = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(TestFilePath(OutdatedFormat))).AsJson();
     }
 
     [Fact]

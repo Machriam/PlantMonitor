@@ -223,7 +223,7 @@ public record struct VirtualImageMetaDataModel()
                 continue;
             }
             var dataColumns = line.Split('\t');
-            for (var i = 0; i < headers.Count; i++)
+            for (var i = 0; i < headers.Count && i < dataColumns.Length; i++)
             {
                 currentTable[headers[i]].Add(dataColumns[i]);
             }
