@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.Dashboard;
@@ -42,6 +43,23 @@ public class PhotoTourSummaryWorkerTests
         var totalMisses = expectedLeafCount.Sum(ex => ex.LeafCount - imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount);
         comparison = $"Total misses: {totalMisses}\n{comparison}";
         File.WriteAllText(s_testZipFolder + "/SmallPlantsLeafComparison.txt", comparison);
+    }
+
+    [Fact]
+    public void ProcessImage_EmptyImages_ShouldWork()
+    {
+        var testZip = s_testZipFolder + "/EmptyImage.zip";
+        var sut = CreatePhotoTourSummaryWorker();
+        var result = sut.ProcessImage(testZip);
+        var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
+        imageDescriptors.Count().Should().Be(0);
+        var photoTrip = result.GetPhotoTripData;
+        var deviceTemps = result.DeviceTemperatures;
+        deviceTemps.Count.Should().Be(1);
+        deviceTemps[0].MedianTemperature.Should().Be(45f);
+        deviceTemps[0].CountOfMeasurements.Should().Be(13);
+        photoTrip.TripStart.Ticks.Should().Be(638605240420000000L);
+        photoTrip.TripEnd.Ticks.Should().Be(00638605240720000000L);
     }
 
     [Fact]
