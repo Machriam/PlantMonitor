@@ -39,7 +39,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _context.DeviceMovements.ReturnsForAnyArgs(deviceMovements);
             var sut = CreateAutomaticPhotoTourController();
 
-            await sut.PausePhotoTour(1, true, 5);
+            await sut.PausePhotoTour(1, true);
 
             _context.Received(1).SaveChanges();
             result.First().Finished.Should().BeTrue();
@@ -61,7 +61,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _deviceApi.HealthClient("").ReturnsForAnyArgs(healthClient);
             healthClient.CheckdevicehealthAsync().ReturnsForAnyArgs(new DeviceHealth(new(0, 0), DeviceId, "test", HealthState.NoirCameraFunctional | HealthState.ThermalCameraFunctional));
 
-            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [], "comment", "name", DeviceId, true));
+            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [], "comment", "name", DeviceId, true, 0.2f));
 
             photoTours.Count.Should().Be(1);
             photoTours.First().DeviceId.Should().Be(DeviceId);
@@ -87,7 +87,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _deviceApi.HealthClient("").ReturnsForAnyArgs(healthClient);
             healthClient.CheckdevicehealthAsync().ReturnsForAnyArgs(new DeviceHealth(new(0, 0), DeviceId, "test", HealthState.NoirCameraFunctional | HealthState.ThermalCameraFunctional));
 
-            Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true));
+            Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true, 0.2f));
             await action.Should().ThrowAsync<Exception>().WithMessage("*Not all requested temperature measurement devices are available*");
         }
 
@@ -111,7 +111,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _deviceApi.HealthClient("").ReturnsForAnyArgs(healthClient);
             healthClient.CheckdevicehealthAsync().ReturnsForAnyArgs(new DeviceHealth(new(0, 0), DeviceId, "test", HealthState.NoirCameraFunctional | HealthState.ThermalCameraFunctional));
 
-            Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true));
+            Func<Task> action = () => sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true, 0.2f));
             await action.Should().ThrowAsync<Exception>().WithMessage("*tempDev1 has no temperature sensor*tempDev2 has no temperature sensor*");
         }
 
@@ -138,7 +138,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             _deviceApi.HealthClient("").ReturnsForAnyArgs(healthClient);
             healthClient.CheckdevicehealthAsync().ReturnsForAnyArgs(new DeviceHealth(new(0, 0), DeviceId, "test", HealthState.NoirCameraFunctional | HealthState.ThermalCameraFunctional));
 
-            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true));
+            await sut.StartAutomaticTour(new AutomaticTourStartInfo(1, 1, [new(Temp1, "Temp1"), new(Temp2, "Temp2")], "comment", "name", DeviceId, true, 0.2f));
 
             photoTours.Count.Should().Be(1);
             photoTours.First().DeviceId.Should().Be(DeviceId);

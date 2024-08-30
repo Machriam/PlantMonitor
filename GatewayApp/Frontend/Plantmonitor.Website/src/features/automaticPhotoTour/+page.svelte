@@ -69,15 +69,21 @@
         _startInfo.intervallInMinutes = _selectedPhotoTour?.intervallInMinutes ?? 0;
         _startInfo.name = _selectedPhotoTour?.name ?? "";
         _startInfo.comment = _selectedPhotoTour?.comment ?? "";
+        _startInfo.pixelSizeInMm = _selectedPhotoTour?.pixelSizeInMm ?? 0;
+    }
+
+    async function UpdatePhotoTour() {
+        if (_selectedPhotoTour == undefined) return;
+        const photoTourClient = new AutomaticPhotoTourClient();
+        await photoTourClient.updatePhotoTour(_selectedPhotoTour.id, _startInfo.intervallInMinutes, _startInfo.pixelSizeInMm);
+        _existingPhototours = await photoTourClient.getPhotoTours();
     }
 
     async function PausePhotoTour() {
         if (_selectedPhotoTour == undefined) return;
         const photoTourClient = new AutomaticPhotoTourClient();
         _selectedPhotoTour.finished = !_selectedPhotoTour.finished;
-        const result = await photoTourClient
-            .pausePhotoTour(_selectedPhotoTour.id, _selectedPhotoTour.finished, _startInfo.intervallInMinutes)
-            .try();
+        const result = await photoTourClient.pausePhotoTour(_selectedPhotoTour.id, _selectedPhotoTour.finished).try();
         if (result.hasError) _selectedPhotoTour.finished = !_selectedPhotoTour.finished;
         _existingPhototours = _existingPhototours;
     }
@@ -95,10 +101,22 @@
     <div class="col-md-12 row">
         <TextInput class="col-md-2" bind:value={_startInfo.name} label="Name"></TextInput>
         <TextInput class="col-md-2" bind:value={_startInfo.comment} label="Comment"></TextInput>
-        <NumberInput class="col-md-2" bind:value={_startInfo.intervallInMinutes} step={0.1} label="Interval in min"></NumberInput>
+        <NumberInput class="col-md-1" bind:value={_startInfo.intervallInMinutes} step={0.1} label="Interval in min"></NumberInput>
+        <NumberInput class="col-md-1" bind:value={_startInfo.pixelSizeInMm} step={0.1} label="mm per Pixel"></NumberInput>
         <Checkbox class="col-md-2 align-content-center" label="Use IR?" bind:value={_startInfo.shouldUseIR}></Checkbox>
-        <button on:click={AddPhotoTour} disabled={!_startInfo[isValid]($selectedDevice)} class="btn btn-primary col-md-2"
+        <button
+            on:click={AddPhotoTour}
+            disabled={!_startInfo[isValid]($selectedDevice)}
+            style="height: 40px;align-self:center"
+            class="btn btn-primary col-md-2"
             >Add new Tour
+        </button>
+        <button
+            on:click={UpdatePhotoTour}
+            disabled={!_startInfo[isValid]($selectedDevice)}
+            style="height: 40px;align-self:center"
+            class="btn btn-primary col-md-2 ms-2"
+            >Update Tour Parameter
         </button>
         <hr class="col-md-12 mt-2" />
         <h4 class="col-md-12">Available Sensors</h4>

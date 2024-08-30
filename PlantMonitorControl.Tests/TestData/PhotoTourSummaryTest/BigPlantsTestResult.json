@@ -1,0 +1,3746 @@
+[
+  {
+    "Plant": {
+      "ImageIndex": 0,
+      "ImageName": "Bay 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:21",
+      "VisTime": "2024-08-14T04:40:21",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 144.8,
+    "AverageTemperature": 20.393335,
+    "MedianTemperature": 20.38,
+    "TemperatureDev": 0.11859031,
+    "MaxTemperature": 20.71,
+    "MinTemperature": 20.12,
+    "HeightInMm": 16.4,
+    "WidthInMm": 17.6,
+    "Extent": 0.50166297,
+    "ConvexHullAreaInMm2": 231.52,
+    "Solidity": 0.62543195,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      124.773,
+      0.24440853,
+      0.33313292
+    ],
+    "HslMedian": [
+      125.333336,
+      0.24623115,
+      0.34117648
+    ],
+    "HslMax": [
+      132.94118,
+      0.5294118,
+      0.45294118
+    ],
+    "HslMin": [
+      100,
+      0.10982659,
+      0.13333334
+    ],
+    "HslDeviation": [
+      4.566396,
+      0.04531197,
+      0.060779806
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 1,
+      "ImageName": "Bay 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:07",
+      "VisTime": "2024-08-14T04:41:07",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 165.6,
+    "AverageTemperature": 17.389608,
+    "MedianTemperature": 17.37,
+    "TemperatureDev": 0.13885331,
+    "MaxTemperature": 17.71,
+    "MinTemperature": 17.12,
+    "HeightInMm": 19.4,
+    "WidthInMm": 20.6,
+    "Extent": 0.41437292,
+    "ConvexHullAreaInMm2": 263.74002,
+    "Solidity": 0.6278911,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      147.22748,
+      0.4295931,
+      0.25975657
+    ],
+    "HslMedian": [
+      147.2,
+      0.4347826,
+      0.26666668
+    ],
+    "HslMax": [
+      153.52942,
+      0.8965517,
+      0.3529412
+    ],
+    "HslMin": [
+      138.94737,
+      0.12592593,
+      0.10980392
+    ],
+    "HslDeviation": [
+      1.4472405,
+      0.07804819,
+      0.05015355
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 2,
+      "ImageName": "Bay 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 148.16,
+    "AverageTemperature": 17.320837,
+    "MedianTemperature": 17.31,
+    "TemperatureDev": 0.24809155,
+    "MaxTemperature": 17.94,
+    "MinTemperature": 16.7,
+    "HeightInMm": 19.2,
+    "WidthInMm": 16,
+    "Extent": 0.48229167,
+    "ConvexHullAreaInMm2": 235.40001,
+    "Solidity": 0.6293968,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      148.22353,
+      0.38663572,
+      0.27510217
+    ],
+    "HslMedian": [
+      148.30188,
+      0.39067674,
+      0.2901961
+    ],
+    "HslMax": [
+      158.57143,
+      0.8888889,
+      0.37058824
+    ],
+    "HslMin": [
+      138.75,
+      0.11827957,
+      0.105882354
+    ],
+    "HslDeviation": [
+      1.7410597,
+      0.07366608,
+      0.046803273
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 3,
+      "ImageName": "Bur 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 180.08,
+    "AverageTemperature": 20.171331,
+    "MedianTemperature": 20.14,
+    "TemperatureDev": 0.14472124,
+    "MaxTemperature": 20.63,
+    "MinTemperature": 19.88,
+    "HeightInMm": 18.800001,
+    "WidthInMm": 20.800001,
+    "Extent": 0.46051556,
+    "ConvexHullAreaInMm2": 273.88,
+    "Solidity": 0.6575142,
+    "LeafCount": 10,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      145.78522,
+      0.33788317,
+      0.2839357
+    ],
+    "HslMedian": [
+      146,
+      0.3478261,
+      0.2901961
+    ],
+    "HslMax": [
+      161.25,
+      0.75438595,
+      0.38235295
+    ],
+    "HslMin": [
+      137.64706,
+      0.11290322,
+      0.11176471
+    ],
+    "HslDeviation": [
+      2.2865164,
+      0.061927352,
+      0.040291246
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 4,
+      "ImageName": "Bur 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:24",
+      "VisTime": "2024-08-14T04:41:25",
+      "IrTempInC": 23.39
+    },
+    "SizeInMm2": 222.12,
+    "AverageTemperature": 17.035011,
+    "MedianTemperature": 17.06,
+    "TemperatureDev": 0.2063729,
+    "MaxTemperature": 17.52,
+    "MinTemperature": 16.54,
+    "HeightInMm": 20.2,
+    "WidthInMm": 24.4,
+    "Extent": 0.45065737,
+    "ConvexHullAreaInMm2": 380.48,
+    "Solidity": 0.5837889,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.87733,
+      0.3730564,
+      0.24961424
+    ],
+    "HslMedian": [
+      144,
+      0.375,
+      0.25490198
+    ],
+    "HslMax": [
+      157.5,
+      0.6825397,
+      0.35490197
+    ],
+    "HslMin": [
+      132,
+      0.11111111,
+      0.12156863
+    ],
+    "HslDeviation": [
+      2.247368,
+      0.068684034,
+      0.04683593
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 5,
+      "ImageName": "Bur 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:31",
+      "VisTime": "2024-08-14T04:40:31",
+      "IrTempInC": 22.24
+    },
+    "SizeInMm2": 190.68001,
+    "AverageTemperature": 20.07845,
+    "MedianTemperature": 20.07,
+    "TemperatureDev": 0.17129147,
+    "MaxTemperature": 20.7,
+    "MinTemperature": 19.72,
+    "HeightInMm": 20,
+    "WidthInMm": 22,
+    "Extent": 0.43336365,
+    "ConvexHullAreaInMm2": 341.24002,
+    "Solidity": 0.5587856,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      133.42355,
+      0.26882792,
+      0.29916584
+    ],
+    "HslMedian": [
+      133.95349,
+      0.27160493,
+      0.30980393
+    ],
+    "HslMax": [
+      142.32558,
+      0.6,
+      0.38235295
+    ],
+    "HslMin": [
+      110,
+      0.1097561,
+      0.12745099
+    ],
+    "HslDeviation": [
+      3.5681539,
+      0.045802537,
+      0.04375326
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 6,
+      "ImageName": "Col 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:47",
+      "VisTime": "2024-08-14T04:40:48",
+      "IrTempInC": 22.54
+    },
+    "SizeInMm2": 154.36,
+    "AverageTemperature": 18.844063,
+    "MedianTemperature": 18.82,
+    "TemperatureDev": 0.15222278,
+    "MaxTemperature": 19.54,
+    "MinTemperature": 18.47,
+    "HeightInMm": 20.800001,
+    "WidthInMm": 19.2,
+    "Extent": 0.38651842,
+    "ConvexHullAreaInMm2": 248.48001,
+    "Solidity": 0.621217,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      149.25006,
+      0.3033904,
+      0.2266121
+    ],
+    "HslMedian": [
+      149.14285,
+      0.30973452,
+      0.22941177
+    ],
+    "HslMax": [
+      166.15385,
+      0.5625,
+      0.28431374
+    ],
+    "HslMin": [
+      141.29031,
+      0.109375,
+      0.1254902
+    ],
+    "HslDeviation": [
+      2.4372826,
+      0.049070302,
+      0.027638355
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 7,
+      "ImageName": "Col 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 160.56,
+    "AverageTemperature": 17.373787,
+    "MedianTemperature": 17.35,
+    "TemperatureDev": 0.24236815,
+    "MaxTemperature": 17.98,
+    "MinTemperature": 16.79,
+    "HeightInMm": 19.6,
+    "WidthInMm": 18,
+    "Extent": 0.45510203,
+    "ConvexHullAreaInMm2": 248.2,
+    "Solidity": 0.6468977,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      140.25768,
+      0.32025546,
+      0.27350548
+    ],
+    "HslMedian": [
+      140.45454,
+      0.32484075,
+      0.28235295
+    ],
+    "HslMax": [
+      147,
+      0.7241379,
+      0.3627451
+    ],
+    "HslMin": [
+      128.57143,
+      0.11940298,
+      0.11372549
+    ],
+    "HslDeviation": [
+      1.9849902,
+      0.057130467,
+      0.047722287
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 8,
+      "ImageName": "Col 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:07",
+      "VisTime": "2024-08-14T04:41:07",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 157.84001,
+    "AverageTemperature": 17.773418,
+    "MedianTemperature": 17.76,
+    "TemperatureDev": 0.11771933,
+    "MaxTemperature": 18.09,
+    "MinTemperature": 17.47,
+    "HeightInMm": 20.6,
+    "WidthInMm": 19,
+    "Extent": 0.4032703,
+    "ConvexHullAreaInMm2": 267.02,
+    "Solidity": 0.5911168,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      145.19809,
+      0.3454443,
+      0.22544548
+    ],
+    "HslMedian": [
+      145.26317,
+      0.349302,
+      0.22941177
+    ],
+    "HslMax": [
+      152.30771,
+      0.6451613,
+      0.3
+    ],
+    "HslMin": [
+      136.15385,
+      0.11940298,
+      0.12156863
+    ],
+    "HslDeviation": [
+      1.9428735,
+      0.05563537,
+      0.03661896
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 9,
+      "ImageName": "Cvi 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 215.68001,
+    "AverageTemperature": 17.54623,
+    "MedianTemperature": 17.52,
+    "TemperatureDev": 0.3021577,
+    "MaxTemperature": 18.43,
+    "MinTemperature": 16.96,
+    "HeightInMm": 18.4,
+    "WidthInMm": 24.6,
+    "Extent": 0.47649345,
+    "ConvexHullAreaInMm2": 346.12,
+    "Solidity": 0.62313646,
+    "LeafCount": 10,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      146.63821,
+      0.35184032,
+      0.25274882
+    ],
+    "HslMedian": [
+      146.80852,
+      0.359375,
+      0.25882354
+    ],
+    "HslMax": [
+      153.75,
+      0.75438595,
+      0.33529413
+    ],
+    "HslMin": [
+      135.78947,
+      0.12765957,
+      0.11176471
+    ],
+    "HslDeviation": [
+      2.1619668,
+      0.05839623,
+      0.036311105
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 10,
+      "ImageName": "Cvi 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:07",
+      "VisTime": "2024-08-14T04:41:07",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 82.08,
+    "AverageTemperature": 17.262276,
+    "MedianTemperature": 17.25,
+    "TemperatureDev": 0.14176185,
+    "MaxTemperature": 17.55,
+    "MinTemperature": 16.89,
+    "HeightInMm": 11.6,
+    "WidthInMm": 17.6,
+    "Extent": 0.40203762,
+    "ConvexHullAreaInMm2": 133.98001,
+    "Solidity": 0.61262876,
+    "LeafCount": 5,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      146.68407,
+      0.3467206,
+      0.23749092
+    ],
+    "HslMedian": [
+      146.8421,
+      0.352518,
+      0.24411765
+    ],
+    "HslMax": [
+      156.52173,
+      0.7241379,
+      0.34509805
+    ],
+    "HslMin": [
+      135,
+      0.12962963,
+      0.11372549
+    ],
+    "HslDeviation": [
+      2.0300565,
+      0.066964686,
+      0.044750363
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 11,
+      "ImageName": "Cvi 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 169.56,
+    "AverageTemperature": 20.377605,
+    "MedianTemperature": 20.36,
+    "TemperatureDev": 0.15007623,
+    "MaxTemperature": 20.87,
+    "MinTemperature": 20.05,
+    "HeightInMm": 17.6,
+    "WidthInMm": 16.6,
+    "Extent": 0.5803669,
+    "ConvexHullAreaInMm2": 236.26001,
+    "Solidity": 0.7176839,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      139.032,
+      0.3000811,
+      0.30040845
+    ],
+    "HslMedian": [
+      139.14894,
+      0.3015873,
+      0.3137255
+    ],
+    "HslMax": [
+      147.6923,
+      0.7288136,
+      0.39215687
+    ],
+    "HslMin": [
+      124.61539,
+      0.11111111,
+      0.115686275
+    ],
+    "HslDeviation": [
+      2.603889,
+      0.06007575,
+      0.049647864
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 12,
+      "ImageName": "Fei 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:21",
+      "VisTime": "2024-08-14T04:40:21",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 129.36,
+    "AverageTemperature": 20.60273,
+    "MedianTemperature": 20.56,
+    "TemperatureDev": 0.1737817,
+    "MaxTemperature": 21.12,
+    "MinTemperature": 20.3,
+    "HeightInMm": 18.6,
+    "WidthInMm": 19.800001,
+    "Extent": 0.3512545,
+    "ConvexHullAreaInMm2": 239.38,
+    "Solidity": 0.54039603,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      129.13641,
+      0.22546288,
+      0.29073328
+    ],
+    "HslMedian": [
+      129.67743,
+      0.22795913,
+      0.3
+    ],
+    "HslMax": [
+      140,
+      0.41025642,
+      0.36666667
+    ],
+    "HslMin": [
+      106.15385,
+      0.10810811,
+      0.14509805
+    ],
+    "HslDeviation": [
+      4.761766,
+      0.042971663,
+      0.044108417
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 13,
+      "ImageName": "Fei 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:15",
+      "VisTime": "2024-08-14T04:41:16",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 126.44,
+    "AverageTemperature": 17.373297,
+    "MedianTemperature": 17.36,
+    "TemperatureDev": 0.12958048,
+    "MaxTemperature": 17.87,
+    "MinTemperature": 17.07,
+    "HeightInMm": 17.4,
+    "WidthInMm": 18.2,
+    "Extent": 0.3992674,
+    "ConvexHullAreaInMm2": 225.81999,
+    "Solidity": 0.559915,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      148.76968,
+      0.38109204,
+      0.2340895
+    ],
+    "HslMedian": [
+      148.63637,
+      0.3859649,
+      0.23921569
+    ],
+    "HslMax": [
+      156.92308,
+      0.73333335,
+      0.30784315
+    ],
+    "HslMin": [
+      141,
+      0.13333334,
+      0.11372549
+    ],
+    "HslDeviation": [
+      1.852099,
+      0.07075057,
+      0.04267994
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 14,
+      "ImageName": "Fei 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:39",
+      "VisTime": "2024-08-14T04:41:39",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 163.16,
+    "AverageTemperature": 16.879637,
+    "MedianTemperature": 16.8,
+    "TemperatureDev": 0.28683138,
+    "MaxTemperature": 17.79,
+    "MinTemperature": 16.43,
+    "HeightInMm": 19.2,
+    "WidthInMm": 18,
+    "Extent": 0.4721065,
+    "ConvexHullAreaInMm2": 287.92,
+    "Solidity": 0.5666852,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      144.0054,
+      0.36193058,
+      0.24711218
+    ],
+    "HslMedian": [
+      144,
+      0.36,
+      0.2529412
+    ],
+    "HslMax": [
+      150,
+      0.6721311,
+      0.33137256
+    ],
+    "HslMin": [
+      135,
+      0.1368421,
+      0.11764706
+    ],
+    "HslDeviation": [
+      1.8819629,
+      0.065276265,
+      0.044498287
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 15,
+      "ImageName": "Ge 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 142.96,
+    "AverageTemperature": 20.25027,
+    "MedianTemperature": 20.25,
+    "TemperatureDev": 0.119967155,
+    "MaxTemperature": 20.62,
+    "MinTemperature": 19.97,
+    "HeightInMm": 15.2,
+    "WidthInMm": 18,
+    "Extent": 0.52251464,
+    "ConvexHullAreaInMm2": 195.88,
+    "Solidity": 0.7298346,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      142.96074,
+      0.31847078,
+      0.34235492
+    ],
+    "HslMedian": [
+      142.64151,
+      0.32066444,
+      0.3627451
+    ],
+    "HslMax": [
+      158,
+      0.8181818,
+      0.4764706
+    ],
+    "HslMin": [
+      132.85713,
+      0.10982659,
+      0.10784314
+    ],
+    "HslDeviation": [
+      2.5253468,
+      0.062586166,
+      0.06413086
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 16,
+      "ImageName": "Ge 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:39",
+      "VisTime": "2024-08-14T04:41:39",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 153.24,
+    "AverageTemperature": 17.367601,
+    "MedianTemperature": 17.32,
+    "TemperatureDev": 0.24218835,
+    "MaxTemperature": 18.05,
+    "MinTemperature": 16.89,
+    "HeightInMm": 19,
+    "WidthInMm": 19.4,
+    "Extent": 0.41573521,
+    "ConvexHullAreaInMm2": 235.7,
+    "Solidity": 0.6501485,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      150.77551,
+      0.38397688,
+      0.24914296
+    ],
+    "HslMedian": [
+      150.69768,
+      0.3898305,
+      0.26078433
+    ],
+    "HslMax": [
+      158.70967,
+      0.75438595,
+      0.3392157
+    ],
+    "HslMin": [
+      138.75,
+      0.11111111,
+      0.11176471
+    ],
+    "HslDeviation": [
+      1.8697451,
+      0.066786274,
+      0.039481193
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 17,
+      "ImageName": "Ge 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:31",
+      "VisTime": "2024-08-14T04:40:31",
+      "IrTempInC": 22.24
+    },
+    "SizeInMm2": 113,
+    "AverageTemperature": 20.154247,
+    "MedianTemperature": 20.17,
+    "TemperatureDev": 0.10532687,
+    "MaxTemperature": 20.36,
+    "MinTemperature": 19.8,
+    "HeightInMm": 16,
+    "WidthInMm": 13.400001,
+    "Extent": 0.5270522,
+    "ConvexHullAreaInMm2": 159.28001,
+    "Solidity": 0.7094425,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.23788,
+      0.27102706,
+      0.30393407
+    ],
+    "HslMedian": [
+      143.72093,
+      0.27659574,
+      0.31960785
+    ],
+    "HslMax": [
+      151.11111,
+      0.69491524,
+      0.35490197
+    ],
+    "HslMin": [
+      128.57143,
+      0.11111111,
+      0.115686275
+    ],
+    "HslDeviation": [
+      1.8870215,
+      0.044116143,
+      0.04090483
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 18,
+      "ImageName": "Hs 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:15",
+      "VisTime": "2024-08-14T04:41:16",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 177.08,
+    "AverageTemperature": 17.298338,
+    "MedianTemperature": 17.29,
+    "TemperatureDev": 0.11872959,
+    "MaxTemperature": 17.63,
+    "MinTemperature": 16.95,
+    "HeightInMm": 16.4,
+    "WidthInMm": 19.2,
+    "Extent": 0.562373,
+    "ConvexHullAreaInMm2": 234.44002,
+    "Solidity": 0.7553319,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      146.13162,
+      0.4167308,
+      0.24785209
+    ],
+    "HslMedian": [
+      146.19719,
+      0.42068964,
+      0.24901961
+    ],
+    "HslMax": [
+      151.66666,
+      0.9245283,
+      0.34313726
+    ],
+    "HslMin": [
+      140,
+      0.14018692,
+      0.10392157
+    ],
+    "HslDeviation": [
+      1.3815713,
+      0.07104634,
+      0.047090914
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 19,
+      "ImageName": "Hs 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 176.92001,
+    "AverageTemperature": 19.991268,
+    "MedianTemperature": 19.98,
+    "TemperatureDev": 0.10974309,
+    "MaxTemperature": 20.4,
+    "MinTemperature": 19.7,
+    "HeightInMm": 16,
+    "WidthInMm": 19.4,
+    "Extent": 0.56997424,
+    "ConvexHullAreaInMm2": 231.12,
+    "Solidity": 0.7654898,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      146.25879,
+      0.34204125,
+      0.2853981
+    ],
+    "HslMedian": [
+      146.55737,
+      0.3488372,
+      0.29607844
+    ],
+    "HslMax": [
+      153.33333,
+      0.7894737,
+      0.38627452
+    ],
+    "HslMin": [
+      135.78947,
+      0.11111111,
+      0.11176471
+    ],
+    "HslDeviation": [
+      2.147627,
+      0.061396424,
+      0.044612624
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 20,
+      "ImageName": "Hs 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 173.6,
+    "AverageTemperature": 17.345415,
+    "MedianTemperature": 17.31,
+    "TemperatureDev": 0.27416122,
+    "MaxTemperature": 18.14,
+    "MinTemperature": 16.78,
+    "HeightInMm": 18.800001,
+    "WidthInMm": 21.4,
+    "Extent": 0.4314973,
+    "ConvexHullAreaInMm2": 263.32,
+    "Solidity": 0.65927386,
+    "LeafCount": 5,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      150.10593,
+      0.39790788,
+      0.24339253
+    ],
+    "HslMedian": [
+      150,
+      0.40952381,
+      0.24901961
+    ],
+    "HslMax": [
+      161.25,
+      0.8909091,
+      0.31764707
+    ],
+    "HslMin": [
+      140,
+      0.13235295,
+      0.10784314
+    ],
+    "HslDeviation": [
+      1.8971977,
+      0.06766775,
+      0.035137773
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 21,
+      "ImageName": "Kondara 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 264.16,
+    "AverageTemperature": 17.393803,
+    "MedianTemperature": 17.38,
+    "TemperatureDev": 0.3778403,
+    "MaxTemperature": 18.67,
+    "MinTemperature": 16.62,
+    "HeightInMm": 30,
+    "WidthInMm": 25.2,
+    "Extent": 0.34941798,
+    "ConvexHullAreaInMm2": 522.2,
+    "Solidity": 0.50585985,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      140.67088,
+      0.32541925,
+      0.27272362
+    ],
+    "HslMedian": [
+      141.11111,
+      0.32911393,
+      0.2784314
+    ],
+    "HslMax": [
+      151.42856,
+      0.625,
+      0.37254903
+    ],
+    "HslMin": [
+      101.53846,
+      0.10869565,
+      0.12156863
+    ],
+    "HslDeviation": [
+      4.0344777,
+      0.06502943,
+      0.046629667
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 22,
+      "ImageName": "Kondara 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:21",
+      "VisTime": "2024-08-14T04:40:21",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 234.28001,
+    "AverageTemperature": 20.55166,
+    "MedianTemperature": 20.54,
+    "TemperatureDev": 0.19102281,
+    "MaxTemperature": 21.15,
+    "MinTemperature": 20.01,
+    "HeightInMm": 27.800001,
+    "WidthInMm": 28.4,
+    "Extent": 0.29673725,
+    "ConvexHullAreaInMm2": 592.34,
+    "Solidity": 0.3955161,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      114.99063,
+      0.2153232,
+      0.31360465
+    ],
+    "HslMedian": [
+      115.5,
+      0.21546961,
+      0.327451
+    ],
+    "HslMax": [
+      128.57143,
+      0.3783784,
+      0.4019608
+    ],
+    "HslMin": [
+      99,
+      0.10843374,
+      0.14509805
+    ],
+    "HslDeviation": [
+      6.1118455,
+      0.027495902,
+      0.051106013
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 23,
+      "ImageName": "Kondara 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:56",
+      "VisTime": "2024-08-14T04:40:56",
+      "IrTempInC": 22.64
+    },
+    "SizeInMm2": 248.76001,
+    "AverageTemperature": 17.946283,
+    "MedianTemperature": 17.92,
+    "TemperatureDev": 0.16784571,
+    "MaxTemperature": 18.61,
+    "MinTemperature": 17.6,
+    "HeightInMm": 29.6,
+    "WidthInMm": 27.6,
+    "Extent": 0.3044947,
+    "ConvexHullAreaInMm2": 528.8,
+    "Solidity": 0.4704236,
+    "LeafCount": 11,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      139.67464,
+      0.31371242,
+      0.26688233
+    ],
+    "HslMedian": [
+      140,
+      0.31736526,
+      0.27058825
+    ],
+    "HslMax": [
+      150,
+      0.6393443,
+      0.34705883
+    ],
+    "HslMin": [
+      120,
+      0.11827957,
+      0.11960784
+    ],
+    "HslDeviation": [
+      2.2072647,
+      0.052240852,
+      0.04337612
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 24,
+      "ImageName": "Lip 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 187.72002,
+    "AverageTemperature": 17.409449,
+    "MedianTemperature": 17.37,
+    "TemperatureDev": 0.2612843,
+    "MaxTemperature": 18.14,
+    "MinTemperature": 16.87,
+    "HeightInMm": 18.4,
+    "WidthInMm": 23.4,
+    "Extent": 0.43599033,
+    "ConvexHullAreaInMm2": 298.72,
+    "Solidity": 0.6284146,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      148.3602,
+      0.356215,
+      0.2566927
+    ],
+    "HslMedian": [
+      148.16327,
+      0.36363637,
+      0.2627451
+    ],
+    "HslMax": [
+      165,
+      0.75438595,
+      0.35490197
+    ],
+    "HslMin": [
+      141.17648,
+      0.12230216,
+      0.11176471
+    ],
+    "HslDeviation": [
+      2.4779136,
+      0.06486474,
+      0.045828033
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 25,
+      "ImageName": "Lip 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:39",
+      "VisTime": "2024-08-14T04:41:39",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 234.92,
+    "AverageTemperature": 17.005451,
+    "MedianTemperature": 16.96,
+    "TemperatureDev": 0.35448667,
+    "MaxTemperature": 18.92,
+    "MinTemperature": 16.35,
+    "HeightInMm": 28,
+    "WidthInMm": 21.800001,
+    "Extent": 0.3848624,
+    "ConvexHullAreaInMm2": 396.80002,
+    "Solidity": 0.5920363,
+    "LeafCount": 10,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      145.73395,
+      0.3651948,
+      0.24507801
+    ],
+    "HslMedian": [
+      145.7143,
+      0.36956522,
+      0.24705882
+    ],
+    "HslMax": [
+      154.73683,
+      0.6721311,
+      0.36078432
+    ],
+    "HslMin": [
+      124.99999,
+      0.11111111,
+      0.11960784
+    ],
+    "HslDeviation": [
+      2.287226,
+      0.06965193,
+      0.04345839
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 26,
+      "ImageName": "Lip 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:47",
+      "VisTime": "2024-08-14T04:40:48",
+      "IrTempInC": 22.54
+    },
+    "SizeInMm2": 189.2,
+    "AverageTemperature": 18.6025,
+    "MedianTemperature": 18.57,
+    "TemperatureDev": 0.2007081,
+    "MaxTemperature": 19.02,
+    "MinTemperature": 18.17,
+    "HeightInMm": 23.4,
+    "WidthInMm": 19,
+    "Extent": 0.42555106,
+    "ConvexHullAreaInMm2": 294.48,
+    "Solidity": 0.6424885,
+    "LeafCount": 11,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      139.224,
+      0.29733387,
+      0.24673922
+    ],
+    "HslMedian": [
+      139.35483,
+      0.30173707,
+      0.24705882
+    ],
+    "HslMax": [
+      146.40001,
+      0.5522388,
+      0.327451
+    ],
+    "HslMin": [
+      114.545456,
+      0.112676054,
+      0.12941177
+    ],
+    "HslDeviation": [
+      2.9093072,
+      0.050029747,
+      0.033430945
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 27,
+      "ImageName": "Mt 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:01",
+      "VisTime": "2024-08-14T04:40:02",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 157.48001,
+    "AverageTemperature": 19.78206,
+    "MedianTemperature": 19.79,
+    "TemperatureDev": 0.15312707,
+    "MaxTemperature": 20.18,
+    "MinTemperature": 19.4,
+    "HeightInMm": 17.2,
+    "WidthInMm": 19.800001,
+    "Extent": 0.46241486,
+    "ConvexHullAreaInMm2": 241.06001,
+    "Solidity": 0.65328133,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      136.40727,
+      0.27348885,
+      0.28907302
+    ],
+    "HslMedian": [
+      136.5,
+      0.2751678,
+      0.3
+    ],
+    "HslMax": [
+      142.85715,
+      0.5492958,
+      0.3764706
+    ],
+    "HslMin": [
+      123.333336,
+      0.11111111,
+      0.12745099
+    ],
+    "HslDeviation": [
+      2.3022592,
+      0.049997184,
+      0.04531463
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 28,
+      "ImageName": "Mt 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:24",
+      "VisTime": "2024-08-14T04:41:25",
+      "IrTempInC": 23.39
+    },
+    "SizeInMm2": 239,
+    "AverageTemperature": 17.111345,
+    "MedianTemperature": 17.12,
+    "TemperatureDev": 0.16667166,
+    "MaxTemperature": 17.5,
+    "MinTemperature": 16.7,
+    "HeightInMm": 22,
+    "WidthInMm": 22.2,
+    "Extent": 0.489353,
+    "ConvexHullAreaInMm2": 335.30002,
+    "Solidity": 0.7127945,
+    "LeafCount": 10,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.69658,
+      0.3780998,
+      0.24350776
+    ],
+    "HslMedian": [
+      143.79309,
+      0.3809524,
+      0.24509804
+    ],
+    "HslMax": [
+      151.30434,
+      0.78571427,
+      0.34705883
+    ],
+    "HslMin": [
+      129.23077,
+      0.13402061,
+      0.10980392
+    ],
+    "HslDeviation": [
+      1.6357163,
+      0.066194676,
+      0.048866794
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 29,
+      "ImageName": "Mt 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:47",
+      "VisTime": "2024-08-14T04:40:48",
+      "IrTempInC": 22.54
+    },
+    "SizeInMm2": 248.16002,
+    "AverageTemperature": 18.569311,
+    "MedianTemperature": 18.6,
+    "TemperatureDev": 0.16291317,
+    "MaxTemperature": 18.94,
+    "MinTemperature": 18.14,
+    "HeightInMm": 23,
+    "WidthInMm": 22.2,
+    "Extent": 0.48601645,
+    "ConvexHullAreaInMm2": 367.80002,
+    "Solidity": 0.6747145,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      139.7,
+      0.34422418,
+      0.2712665
+    ],
+    "HslMedian": [
+      140,
+      0.35053837,
+      0.2784314
+    ],
+    "HslMax": [
+      146.8421,
+      0.8214286,
+      0.3882353
+    ],
+    "HslMin": [
+      124.61539,
+      0.109375,
+      0.10980392
+    ],
+    "HslDeviation": [
+      2.0766976,
+      0.061281335,
+      0.043019306
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 30,
+      "ImageName": "Nd 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 114.28001,
+    "AverageTemperature": 20.345058,
+    "MedianTemperature": 20.35,
+    "TemperatureDev": 0.098288484,
+    "MaxTemperature": 20.65,
+    "MinTemperature": 20.1,
+    "HeightInMm": 14.8,
+    "WidthInMm": 16.800001,
+    "Extent": 0.45962033,
+    "ConvexHullAreaInMm2": 165.74,
+    "Solidity": 0.6895137,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.37102,
+      0.3041134,
+      0.25266048
+    ],
+    "HslMedian": [
+      143.47826,
+      0.3043478,
+      0.25686276
+    ],
+    "HslMax": [
+      150.90909,
+      0.5625,
+      0.3392157
+    ],
+    "HslMin": [
+      134.54546,
+      0.11111111,
+      0.1254902
+    ],
+    "HslDeviation": [
+      2.2340136,
+      0.059323244,
+      0.0399313
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 31,
+      "ImageName": "Nd 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 119.200005,
+    "AverageTemperature": 17.339952,
+    "MedianTemperature": 17.35,
+    "TemperatureDev": 0.26086253,
+    "MaxTemperature": 18.04,
+    "MinTemperature": 16.64,
+    "HeightInMm": 16.800001,
+    "WidthInMm": 16.800001,
+    "Extent": 0.4223356,
+    "ConvexHullAreaInMm2": 206.96,
+    "Solidity": 0.5759567,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      145.84099,
+      0.33483744,
+      0.22782406
+    ],
+    "HslMedian": [
+      145.33333,
+      0.34351146,
+      0.22352941
+    ],
+    "HslMax": [
+      159,
+      0.61904764,
+      0.33137256
+    ],
+    "HslMin": [
+      138.75,
+      0.10891089,
+      0.12352941
+    ],
+    "HslDeviation": [
+      2.6474874,
+      0.055959277,
+      0.0365038
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 32,
+      "ImageName": "Nd 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:56",
+      "VisTime": "2024-08-14T04:40:56",
+      "IrTempInC": 22.64
+    },
+    "SizeInMm2": 88.28,
+    "AverageTemperature": 17.89439,
+    "MedianTemperature": 17.9,
+    "TemperatureDev": 0.0966684,
+    "MaxTemperature": 18.11,
+    "MinTemperature": 17.67,
+    "HeightInMm": 13.2,
+    "WidthInMm": 12,
+    "Extent": 0.5573232,
+    "ConvexHullAreaInMm2": 114.880005,
+    "Solidity": 0.768454,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.02423,
+      0.33619046,
+      0.22465773
+    ],
+    "HslMedian": [
+      142.5,
+      0.33913043,
+      0.21960784
+    ],
+    "HslMax": [
+      156.92308,
+      0.69491524,
+      0.33333334
+    ],
+    "HslMin": [
+      134.11765,
+      0.12962963,
+      0.115686275
+    ],
+    "HslDeviation": [
+      2.4831192,
+      0.06041794,
+      0.03824248
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 33,
+      "ImageName": "No 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:39",
+      "VisTime": "2024-08-14T04:41:39",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 122.28001,
+    "AverageTemperature": 17.039833,
+    "MedianTemperature": 17.03,
+    "TemperatureDev": 0.20621487,
+    "MaxTemperature": 17.5,
+    "MinTemperature": 16.57,
+    "HeightInMm": 14.400001,
+    "WidthInMm": 16.2,
+    "Extent": 0.52417696,
+    "ConvexHullAreaInMm2": 160.6,
+    "Solidity": 0.7613948,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      144.63724,
+      0.37223476,
+      0.2634231
+    ],
+    "HslMedian": [
+      144.70587,
+      0.375,
+      0.27254903
+    ],
+    "HslMax": [
+      151.30434,
+      0.7647059,
+      0.36666667
+    ],
+    "HslMin": [
+      134.11765,
+      0.13043478,
+      0.11764706
+    ],
+    "HslDeviation": [
+      1.8588514,
+      0.0714385,
+      0.049910747
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 34,
+      "ImageName": "No 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:07",
+      "VisTime": "2024-08-14T04:41:07",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 130,
+    "AverageTemperature": 17.757729,
+    "MedianTemperature": 17.73,
+    "TemperatureDev": 0.12691009,
+    "MaxTemperature": 18.22,
+    "MinTemperature": 17.47,
+    "HeightInMm": 16.6,
+    "WidthInMm": 15,
+    "Extent": 0.52208835,
+    "ConvexHullAreaInMm2": 170.32,
+    "Solidity": 0.7632691,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      145.71568,
+      0.38321096,
+      0.28442895
+    ],
+    "HslMedian": [
+      145.86208,
+      0.3855085,
+      0.29215688
+    ],
+    "HslMax": [
+      155,
+      0.89285713,
+      0.37843138
+    ],
+    "HslMin": [
+      138.26086,
+      0.11666667,
+      0.10392157
+    ],
+    "HslDeviation": [
+      1.9515687,
+      0.07333274,
+      0.051191047
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 35,
+      "ImageName": "No 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:01",
+      "VisTime": "2024-08-14T04:40:02",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 101.48,
+    "AverageTemperature": 19.660872,
+    "MedianTemperature": 19.64,
+    "TemperatureDev": 0.17124987,
+    "MaxTemperature": 20.17,
+    "MinTemperature": 19.25,
+    "HeightInMm": 13,
+    "WidthInMm": 16.2,
+    "Extent": 0.48186135,
+    "ConvexHullAreaInMm2": 165.68001,
+    "Solidity": 0.61250603,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      137.13707,
+      0.28032473,
+      0.2727855
+    ],
+    "HslMedian": [
+      137.72726,
+      0.2866242,
+      0.2764706
+    ],
+    "HslMax": [
+      146.25,
+      0.5714286,
+      0.39019608
+    ],
+    "HslMin": [
+      120,
+      0.11111111,
+      0.13333334
+    ],
+    "HslDeviation": [
+      3.1243985,
+      0.05495398,
+      0.04799896
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 36,
+      "ImageName": "Oy 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:11",
+      "VisTime": "2024-08-14T04:40:11",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 126.200005,
+    "AverageTemperature": 20.272684,
+    "MedianTemperature": 20.27,
+    "TemperatureDev": 0.093031,
+    "MaxTemperature": 20.61,
+    "MinTemperature": 20.04,
+    "HeightInMm": 15.6,
+    "WidthInMm": 14.6,
+    "Extent": 0.55409205,
+    "ConvexHullAreaInMm2": 184.6,
+    "Solidity": 0.6836403,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      123.56634,
+      0.23991245,
+      0.3166651
+    ],
+    "HslMedian": [
+      124.137924,
+      0.24293785,
+      0.31960785
+    ],
+    "HslMax": [
+      140,
+      0.44927537,
+      0.48235294
+    ],
+    "HslMin": [
+      100,
+      0.10843374,
+      0.13529412
+    ],
+    "HslDeviation": [
+      4.4918914,
+      0.04155442,
+      0.057962023
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 37,
+      "ImageName": "Oy 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:21",
+      "VisTime": "2024-08-14T04:40:21",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 174.16,
+    "AverageTemperature": 20.599089,
+    "MedianTemperature": 20.59,
+    "TemperatureDev": 0.14096645,
+    "MaxTemperature": 21.22,
+    "MinTemperature": 20.34,
+    "HeightInMm": 20,
+    "WidthInMm": 20,
+    "Extent": 0.4354,
+    "ConvexHullAreaInMm2": 264.88,
+    "Solidity": 0.6575053,
+    "LeafCount": 12,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      128.92749,
+      0.24337295,
+      0.29313052
+    ],
+    "HslMedian": [
+      129.54546,
+      0.24409449,
+      0.3019608
+    ],
+    "HslMax": [
+      138.1132,
+      0.5294118,
+      0.44705883
+    ],
+    "HslMin": [
+      101.25,
+      0.109375,
+      0.12941177
+    ],
+    "HslDeviation": [
+      4.3226957,
+      0.045764618,
+      0.045501683
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 38,
+      "ImageName": "Oy 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:56",
+      "VisTime": "2024-08-14T04:40:56",
+      "IrTempInC": 22.64
+    },
+    "SizeInMm2": 191.52,
+    "AverageTemperature": 18.298752,
+    "MedianTemperature": 18.29,
+    "TemperatureDev": 0.13659967,
+    "MaxTemperature": 18.67,
+    "MinTemperature": 18.04,
+    "HeightInMm": 20.6,
+    "WidthInMm": 21.800001,
+    "Extent": 0.4264719,
+    "ConvexHullAreaInMm2": 293.88,
+    "Solidity": 0.6516946,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      145.11868,
+      0.37442648,
+      0.25297478
+    ],
+    "HslMedian": [
+      145.26317,
+      0.3741914,
+      0.25686276
+    ],
+    "HslMax": [
+      155,
+      0.875,
+      0.33333334
+    ],
+    "HslMin": [
+      137.77779,
+      0.12,
+      0.10980392
+    ],
+    "HslDeviation": [
+      1.6730444,
+      0.07075827,
+      0.042806763
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 39,
+      "ImageName": "P2-23 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:21",
+      "VisTime": "2024-08-14T04:40:21",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 102.920006,
+    "AverageTemperature": 20.471748,
+    "MedianTemperature": 20.48,
+    "TemperatureDev": 0.15586218,
+    "MaxTemperature": 20.79,
+    "MinTemperature": 20.09,
+    "HeightInMm": 16.4,
+    "WidthInMm": 16.6,
+    "Extent": 0.37804878,
+    "ConvexHullAreaInMm2": 200.42001,
+    "Solidity": 0.5135216,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      118.495155,
+      0.21573372,
+      0.31638128
+    ],
+    "HslMedian": [
+      120,
+      0.21637426,
+      0.327451
+    ],
+    "HslMax": [
+      129.76744,
+      0.39726028,
+      0.42156863
+    ],
+    "HslMin": [
+      100,
+      0.11111111,
+      0.14313726
+    ],
+    "HslDeviation": [
+      6.329153,
+      0.036637086,
+      0.058086634
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 40,
+      "ImageName": "P2-23 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:31",
+      "VisTime": "2024-08-14T04:40:31",
+      "IrTempInC": 22.24
+    },
+    "SizeInMm2": 128.36,
+    "AverageTemperature": 20.01713,
+    "MedianTemperature": 20,
+    "TemperatureDev": 0.110476,
+    "MaxTemperature": 20.32,
+    "MinTemperature": 19.73,
+    "HeightInMm": 16.2,
+    "WidthInMm": 18.6,
+    "Extent": 0.4259923,
+    "ConvexHullAreaInMm2": 235.24002,
+    "Solidity": 0.5456555,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      131.26161,
+      0.24470435,
+      0.27826703
+    ],
+    "HslMedian": [
+      132.3077,
+      0.24832214,
+      0.28039217
+    ],
+    "HslMax": [
+      141,
+      0.47826087,
+      0.38627452
+    ],
+    "HslMin": [
+      110,
+      0.10752688,
+      0.13529412
+    ],
+    "HslDeviation": [
+      4.6300044,
+      0.04587324,
+      0.04669019
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 41,
+      "ImageName": "P2-23 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 109,
+    "AverageTemperature": 20.268436,
+    "MedianTemperature": 20.26,
+    "TemperatureDev": 0.140007,
+    "MaxTemperature": 20.62,
+    "MinTemperature": 19.97,
+    "HeightInMm": 17.800001,
+    "WidthInMm": 16.2,
+    "Extent": 0.37799972,
+    "ConvexHullAreaInMm2": 194.84001,
+    "Solidity": 0.5594334,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      140.75928,
+      0.30190322,
+      0.2774355
+    ],
+    "HslMedian": [
+      140.81633,
+      0.30864197,
+      0.28431374
+    ],
+    "HslMax": [
+      146.89655,
+      0.61290324,
+      0.3764706
+    ],
+    "HslMin": [
+      129.23077,
+      0.1092437,
+      0.12156863
+    ],
+    "HslDeviation": [
+      2.0486217,
+      0.05678004,
+      0.04753387
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 42,
+      "ImageName": "Pla 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:39",
+      "VisTime": "2024-08-14T04:41:39",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 62.600002,
+    "AverageTemperature": 17.114761,
+    "MedianTemperature": 17.11,
+    "TemperatureDev": 0.14954767,
+    "MaxTemperature": 17.62,
+    "MinTemperature": 16.81,
+    "HeightInMm": 12.6,
+    "WidthInMm": 12,
+    "Extent": 0.41402116,
+    "ConvexHullAreaInMm2": 118.36,
+    "Solidity": 0.5288949,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      149.73994,
+      0.35132352,
+      0.22360459
+    ],
+    "HslMedian": [
+      150,
+      0.352518,
+      0.2254902
+    ],
+    "HslMax": [
+      157.5,
+      0.625,
+      0.30980393
+    ],
+    "HslMin": [
+      142.85715,
+      0.15254237,
+      0.1254902
+    ],
+    "HslDeviation": [
+      1.8570133,
+      0.066803046,
+      0.0378555
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 43,
+      "ImageName": "Pla 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:24",
+      "VisTime": "2024-08-14T04:41:25",
+      "IrTempInC": 23.39
+    },
+    "SizeInMm2": 66.560005,
+    "AverageTemperature": 17.639837,
+    "MedianTemperature": 17.61,
+    "TemperatureDev": 0.13398582,
+    "MaxTemperature": 17.95,
+    "MinTemperature": 17.38,
+    "HeightInMm": 15,
+    "WidthInMm": 14,
+    "Extent": 0.31695238,
+    "ConvexHullAreaInMm2": 132.72002,
+    "Solidity": 0.5015069,
+    "LeafCount": 5,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      148.6111,
+      0.34842154,
+      0.22454987
+    ],
+    "HslMedian": [
+      148.23529,
+      0.3527296,
+      0.2372549
+    ],
+    "HslMax": [
+      156.66667,
+      0.6119403,
+      0.30784315
+    ],
+    "HslMin": [
+      142,
+      0.125,
+      0.12745099
+    ],
+    "HslDeviation": [
+      2.0197523,
+      0.06574296,
+      0.04438819
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 44,
+      "ImageName": "Pla 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 75.88,
+    "AverageTemperature": 20.122198,
+    "MedianTemperature": 20.1,
+    "TemperatureDev": 0.120374426,
+    "MaxTemperature": 20.52,
+    "MinTemperature": 19.92,
+    "HeightInMm": 13.6,
+    "WidthInMm": 14.400001,
+    "Extent": 0.38745916,
+    "ConvexHullAreaInMm2": 127.12001,
+    "Solidity": 0.5969163,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      140.96698,
+      0.29004434,
+      0.29092064
+    ],
+    "HslMedian": [
+      141.17648,
+      0.2888889,
+      0.3
+    ],
+    "HslMax": [
+      148.42105,
+      0.6721311,
+      0.38431373
+    ],
+    "HslMin": [
+      124.99999,
+      0.10909091,
+      0.11960784
+    ],
+    "HslDeviation": [
+      2.117413,
+      0.059957784,
+      0.055762284
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 45,
+      "ImageName": "Pro 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:11",
+      "VisTime": "2024-08-14T04:40:11",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 197.52,
+    "AverageTemperature": 19.706974,
+    "MedianTemperature": 19.71,
+    "TemperatureDev": 0.13337632,
+    "MaxTemperature": 20.05,
+    "MinTemperature": 19.43,
+    "HeightInMm": 21.800001,
+    "WidthInMm": 17.4,
+    "Extent": 0.5207213,
+    "ConvexHullAreaInMm2": 293.4,
+    "Solidity": 0.6732106,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      128.63734,
+      0.2716847,
+      0.32890153
+    ],
+    "HslMedian": [
+      129.6,
+      0.27576888,
+      0.3392157
+    ],
+    "HslMax": [
+      136.875,
+      0.6119403,
+      0.43333334
+    ],
+    "HslMin": [
+      100,
+      0.11320755,
+      0.12352941
+    ],
+    "HslDeviation": [
+      4.502204,
+      0.04884458,
+      0.06308237
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 46,
+      "ImageName": "Pro 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:15",
+      "VisTime": "2024-08-14T04:41:16",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 180.08,
+    "AverageTemperature": 17.432068,
+    "MedianTemperature": 17.42,
+    "TemperatureDev": 0.11629867,
+    "MaxTemperature": 17.8,
+    "MinTemperature": 17.2,
+    "HeightInMm": 21.2,
+    "WidthInMm": 21.4,
+    "Extent": 0.39693177,
+    "ConvexHullAreaInMm2": 291.30002,
+    "Solidity": 0.6181943,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      149.70567,
+      0.41646263,
+      0.26056656
+    ],
+    "HslMedian": [
+      149.56522,
+      0.41791046,
+      0.26078433
+    ],
+    "HslMax": [
+      158.82353,
+      0.92727274,
+      0.34901962
+    ],
+    "HslMin": [
+      143.72093,
+      0.13761468,
+      0.10784314
+    ],
+    "HslDeviation": [
+      1.636762,
+      0.080372445,
+      0.046935376
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 47,
+      "ImageName": "Pro 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 152.76,
+    "AverageTemperature": 20.054218,
+    "MedianTemperature": 20.05,
+    "TemperatureDev": 0.119707204,
+    "MaxTemperature": 20.45,
+    "MinTemperature": 19.77,
+    "HeightInMm": 18.800001,
+    "WidthInMm": 18,
+    "Extent": 0.45141843,
+    "ConvexHullAreaInMm2": 241.8,
+    "Solidity": 0.6317618,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      146.65834,
+      0.35464403,
+      0.30805776
+    ],
+    "HslMedian": [
+      146.55737,
+      0.36196318,
+      0.3156863
+    ],
+    "HslMax": [
+      156,
+      0.9245283,
+      0.39803922
+    ],
+    "HslMin": [
+      136.21622,
+      0.10828026,
+      0.10392157
+    ],
+    "HslDeviation": [
+      1.9592239,
+      0.06490008,
+      0.049343206
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 48,
+      "ImageName": "Sav 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:47",
+      "VisTime": "2024-08-14T04:40:48",
+      "IrTempInC": 22.54
+    },
+    "SizeInMm2": 128.08,
+    "AverageTemperature": 18.435072,
+    "MedianTemperature": 18.44,
+    "TemperatureDev": 0.13309446,
+    "MaxTemperature": 18.7,
+    "MinTemperature": 18.13,
+    "HeightInMm": 16.800001,
+    "WidthInMm": 18,
+    "Extent": 0.42354497,
+    "ConvexHullAreaInMm2": 206.40001,
+    "Solidity": 0.62054265,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      144.87592,
+      0.36375928,
+      0.28724757
+    ],
+    "HslMedian": [
+      145.1613,
+      0.36969697,
+      0.29803923
+    ],
+    "HslMax": [
+      153.91306,
+      0.75,
+      0.42352942
+    ],
+    "HslMin": [
+      132.85713,
+      0.11801242,
+      0.115686275
+    ],
+    "HslDeviation": [
+      1.9708472,
+      0.07373707,
+      0.056732804
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 49,
+      "ImageName": "Sav 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 147.24,
+    "AverageTemperature": 17.238531,
+    "MedianTemperature": 17.26,
+    "TemperatureDev": 0.3114565,
+    "MaxTemperature": 18.04,
+    "MinTemperature": 16.52,
+    "HeightInMm": 20.4,
+    "WidthInMm": 18.4,
+    "Extent": 0.3922634,
+    "ConvexHullAreaInMm2": 251.92,
+    "Solidity": 0.5844713,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      148.2557,
+      0.3984307,
+      0.271489
+    ],
+    "HslMedian": [
+      148.18182,
+      0.4074074,
+      0.28235295
+    ],
+    "HslMax": [
+      156.52173,
+      0.86206895,
+      0.3764706
+    ],
+    "HslMin": [
+      136,
+      0.11827957,
+      0.10980392
+    ],
+    "HslDeviation": [
+      2.2322,
+      0.07453122,
+      0.051079113
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 50,
+      "ImageName": "Sav 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 118,
+    "AverageTemperature": 20.237099,
+    "MedianTemperature": 20.22,
+    "TemperatureDev": 0.19227824,
+    "MaxTemperature": 20.7,
+    "MinTemperature": 19.85,
+    "HeightInMm": 17.4,
+    "WidthInMm": 19,
+    "Extent": 0.3569268,
+    "ConvexHullAreaInMm2": 210.8,
+    "Solidity": 0.5597723,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      151.71957,
+      0.36013943,
+      0.2829445
+    ],
+    "HslMedian": [
+      151.63637,
+      0.36842105,
+      0.2901961
+    ],
+    "HslMax": [
+      167.14285,
+      0.79310346,
+      0.39607844
+    ],
+    "HslMin": [
+      145.33333,
+      0.11111111,
+      0.11176471
+    ],
+    "HslDeviation": [
+      2.2086675,
+      0.07321133,
+      0.050310936
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 51,
+      "ImageName": "Sha 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 204.92,
+    "AverageTemperature": 17.457722,
+    "MedianTemperature": 17.46,
+    "TemperatureDev": 0.28917858,
+    "MaxTemperature": 18.14,
+    "MinTemperature": 16.87,
+    "HeightInMm": 25.2,
+    "WidthInMm": 22.6,
+    "Extent": 0.35981178,
+    "ConvexHullAreaInMm2": 341.84003,
+    "Solidity": 0.59946173,
+    "LeafCount": 5,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.64232,
+      0.34073383,
+      0.28290525
+    ],
+    "HslMedian": [
+      143.79309,
+      0.34615386,
+      0.29411766
+    ],
+    "HslMax": [
+      154.2857,
+      0.7183099,
+      0.37843138
+    ],
+    "HslMin": [
+      135.78947,
+      0.107913665,
+      0.12352941
+    ],
+    "HslDeviation": [
+      1.7314787,
+      0.057879895,
+      0.044599988
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 52,
+      "ImageName": "Sha 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:47",
+      "VisTime": "2024-08-14T04:40:48",
+      "IrTempInC": 22.54
+    },
+    "SizeInMm2": 230.84001,
+    "AverageTemperature": 18.63825,
+    "MedianTemperature": 18.62,
+    "TemperatureDev": 0.15215231,
+    "MaxTemperature": 19.07,
+    "MinTemperature": 18.27,
+    "HeightInMm": 24.2,
+    "WidthInMm": 21,
+    "Extent": 0.4542306,
+    "ConvexHullAreaInMm2": 351.28,
+    "Solidity": 0.6571396,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      142.69731,
+      0.30548152,
+      0.2528654
+    ],
+    "HslMedian": [
+      142.5,
+      0.31092438,
+      0.25490198
+    ],
+    "HslMax": [
+      162,
+      0.5942029,
+      0.3156863
+    ],
+    "HslMin": [
+      132,
+      0.10891089,
+      0.1254902
+    ],
+    "HslDeviation": [
+      2.3104713,
+      0.043637406,
+      0.032128867
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 53,
+      "ImageName": "Sha 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:39",
+      "VisTime": "2024-08-14T04:41:39",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 157.48001,
+    "AverageTemperature": 17.457727,
+    "MedianTemperature": 17.46,
+    "TemperatureDev": 0.24068587,
+    "MaxTemperature": 18.12,
+    "MinTemperature": 17.03,
+    "HeightInMm": 18,
+    "WidthInMm": 20.6,
+    "Extent": 0.42470333,
+    "ConvexHullAreaInMm2": 253.90001,
+    "Solidity": 0.6202442,
+    "LeafCount": 5,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      148.6521,
+      0.3750125,
+      0.222618
+    ],
+    "HslMedian": [
+      148.63637,
+      0.38181818,
+      0.22352941
+    ],
+    "HslMax": [
+      157.5,
+      0.6615385,
+      0.28627452
+    ],
+    "HslMin": [
+      138.75,
+      0.12903225,
+      0.12352941
+    ],
+    "HslDeviation": [
+      1.9078611,
+      0.05749923,
+      0.031060178
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 54,
+      "ImageName": "St 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:56",
+      "VisTime": "2024-08-14T04:40:56",
+      "IrTempInC": 22.64
+    },
+    "SizeInMm2": 206.04002,
+    "AverageTemperature": 18.127224,
+    "MedianTemperature": 18.12,
+    "TemperatureDev": 0.119746976,
+    "MaxTemperature": 18.72,
+    "MinTemperature": 17.86,
+    "HeightInMm": 19.4,
+    "WidthInMm": 24,
+    "Extent": 0.44252577,
+    "ConvexHullAreaInMm2": 373.94003,
+    "Solidity": 0.5509975,
+    "LeafCount": 10,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      145.53546,
+      0.37051713,
+      0.23452634
+    ],
+    "HslMedian": [
+      145.38461,
+      0.37662336,
+      0.23529412
+    ],
+    "HslMax": [
+      161.53847,
+      0.76666665,
+      0.3509804
+    ],
+    "HslMin": [
+      136.66666,
+      0.10948905,
+      0.11372549
+    ],
+    "HslDeviation": [
+      1.9219921,
+      0.06619251,
+      0.03471888
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 55,
+      "ImageName": "St 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:07",
+      "VisTime": "2024-08-14T04:41:07",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 154.96,
+    "AverageTemperature": 17.755787,
+    "MedianTemperature": 17.76,
+    "TemperatureDev": 0.1140398,
+    "MaxTemperature": 18.06,
+    "MinTemperature": 17.51,
+    "HeightInMm": 18.800001,
+    "WidthInMm": 20,
+    "Extent": 0.41212767,
+    "ConvexHullAreaInMm2": 277.58002,
+    "Solidity": 0.55825347,
+    "LeafCount": 10,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      153.61208,
+      0.39484912,
+      0.20315883
+    ],
+    "HslMedian": [
+      153.52942,
+      0.4,
+      0.20392157
+    ],
+    "HslMax": [
+      162,
+      0.67741936,
+      0.30588236
+    ],
+    "HslMin": [
+      146.89655,
+      0.14285715,
+      0.11764706
+    ],
+    "HslDeviation": [
+      1.7500956,
+      0.074397065,
+      0.032189157
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 56,
+      "ImageName": "St 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:11",
+      "VisTime": "2024-08-14T04:40:11",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 168.16,
+    "AverageTemperature": 20.107622,
+    "MedianTemperature": 20.09,
+    "TemperatureDev": 0.13657966,
+    "MaxTemperature": 20.44,
+    "MinTemperature": 19.86,
+    "HeightInMm": 25,
+    "WidthInMm": 23,
+    "Extent": 0.2924522,
+    "ConvexHullAreaInMm2": 341.68002,
+    "Solidity": 0.49215642,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      125.48725,
+      0.23855661,
+      0.29781535
+    ],
+    "HslMedian": [
+      125.85365,
+      0.23684211,
+      0.30392158
+    ],
+    "HslMax": [
+      138,
+      0.5,
+      0.40588236
+    ],
+    "HslMin": [
+      101.25,
+      0.107913665,
+      0.13333334
+    ],
+    "HslDeviation": [
+      4.882655,
+      0.04648387,
+      0.052155398
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 57,
+      "ImageName": "Ting 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:56",
+      "VisTime": "2024-08-14T04:40:56",
+      "IrTempInC": 22.64
+    },
+    "SizeInMm2": 149.72002,
+    "AverageTemperature": 18.130562,
+    "MedianTemperature": 18.12,
+    "TemperatureDev": 0.112482786,
+    "MaxTemperature": 18.54,
+    "MinTemperature": 17.87,
+    "HeightInMm": 19.2,
+    "WidthInMm": 23,
+    "Extent": 0.33903986,
+    "ConvexHullAreaInMm2": 287.78,
+    "Solidity": 0.52025855,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.10143,
+      0.3465436,
+      0.2568397
+    ],
+    "HslMedian": [
+      143.33333,
+      0.35238096,
+      0.26078433
+    ],
+    "HslMax": [
+      150,
+      0.6393443,
+      0.33333334
+    ],
+    "HslMin": [
+      135,
+      0.11666667,
+      0.11960784
+    ],
+    "HslDeviation": [
+      1.9071786,
+      0.05963103,
+      0.039736032
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 58,
+      "ImageName": "Ting 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:31",
+      "VisTime": "2024-08-14T04:40:31",
+      "IrTempInC": 22.24
+    },
+    "SizeInMm2": 125.159996,
+    "AverageTemperature": 20.081099,
+    "MedianTemperature": 20.07,
+    "TemperatureDev": 0.08771965,
+    "MaxTemperature": 20.44,
+    "MinTemperature": 19.89,
+    "HeightInMm": 16.6,
+    "WidthInMm": 20.4,
+    "Extent": 0.36959603,
+    "ConvexHullAreaInMm2": 230.58,
+    "Solidity": 0.5428051,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      130.6678,
+      0.22448103,
+      0.3285539
+    ],
+    "HslMedian": [
+      130.76923,
+      0.22680412,
+      0.34313726
+    ],
+    "HslMax": [
+      140.52632,
+      0.4939759,
+      0.41960785
+    ],
+    "HslMin": [
+      108,
+      0.10752688,
+      0.13529412
+    ],
+    "HslDeviation": [
+      3.8290696,
+      0.043592885,
+      0.0541721
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 59,
+      "ImageName": "Ting 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:39",
+      "VisTime": "2024-08-14T04:41:39",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 219.8,
+    "AverageTemperature": 16.978746,
+    "MedianTemperature": 16.95,
+    "TemperatureDev": 0.28135753,
+    "MaxTemperature": 17.63,
+    "MinTemperature": 16.32,
+    "HeightInMm": 21.6,
+    "WidthInMm": 24.6,
+    "Extent": 0.41365552,
+    "ConvexHullAreaInMm2": 411.66,
+    "Solidity": 0.5339358,
+    "LeafCount": 17,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      142.50003,
+      0.3400793,
+      0.26138845
+    ],
+    "HslMedian": [
+      142.5,
+      0.3448276,
+      0.27058825
+    ],
+    "HslMax": [
+      154.61539,
+      0.9285714,
+      0.4137255
+    ],
+    "HslMin": [
+      131.25,
+      0.114285715,
+      0.10980392
+    ],
+    "HslDeviation": [
+      2.4481122,
+      0.06383763,
+      0.048137512
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 60,
+      "ImageName": "Ts 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:39",
+      "VisTime": "2024-08-14T04:41:39",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 85.4,
+    "AverageTemperature": 17.386726,
+    "MedianTemperature": 17.37,
+    "TemperatureDev": 0.18160954,
+    "MaxTemperature": 17.87,
+    "MinTemperature": 16.87,
+    "HeightInMm": 19,
+    "WidthInMm": 16,
+    "Extent": 0.28092104,
+    "ConvexHullAreaInMm2": 181.6,
+    "Solidity": 0.47026432,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      146.71606,
+      0.33341587,
+      0.24948524
+    ],
+    "HslMedian": [
+      146.40001,
+      0.33913043,
+      0.25490198
+    ],
+    "HslMax": [
+      171.42857,
+      0.6721311,
+      0.35686275
+    ],
+    "HslMin": [
+      137.64706,
+      0.125,
+      0.11960784
+    ],
+    "HslDeviation": [
+      3.3229506,
+      0.06875276,
+      0.0423678
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 61,
+      "ImageName": "Ts 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:56",
+      "VisTime": "2024-08-14T04:40:56",
+      "IrTempInC": 22.64
+    },
+    "SizeInMm2": 137.28001,
+    "AverageTemperature": 18.045088,
+    "MedianTemperature": 18.03,
+    "TemperatureDev": 0.15922326,
+    "MaxTemperature": 18.59,
+    "MinTemperature": 17.73,
+    "HeightInMm": 22.4,
+    "WidthInMm": 23.6,
+    "Extent": 0.25968522,
+    "ConvexHullAreaInMm2": 297.26,
+    "Solidity": 0.46181795,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      146.11172,
+      0.35995322,
+      0.2505839
+    ],
+    "HslMedian": [
+      146.40001,
+      0.36206895,
+      0.2529412
+    ],
+    "HslMax": [
+      152.72726,
+      0.78571427,
+      0.3509804
+    ],
+    "HslMin": [
+      132.85713,
+      0.11111111,
+      0.10980392
+    ],
+    "HslDeviation": [
+      1.9422882,
+      0.063185714,
+      0.04191726
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 62,
+      "ImageName": "Ts 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 126.240005,
+    "AverageTemperature": 20.289991,
+    "MedianTemperature": 20.29,
+    "TemperatureDev": 0.13036934,
+    "MaxTemperature": 20.56,
+    "MinTemperature": 19.96,
+    "HeightInMm": 19.4,
+    "WidthInMm": 17.6,
+    "Extent": 0.3697282,
+    "ConvexHullAreaInMm2": 241.1,
+    "Solidity": 0.52360016,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      147.49481,
+      0.34241155,
+      0.27803686
+    ],
+    "HslMedian": [
+      147.36842,
+      0.3503247,
+      0.2882353
+    ],
+    "HslMax": [
+      160,
+      0.8545455,
+      0.37254903
+    ],
+    "HslMin": [
+      138.46153,
+      0.11594203,
+      0.10784314
+    ],
+    "HslDeviation": [
+      1.669811,
+      0.0694909,
+      0.047649987
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 63,
+      "ImageName": "Uk 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:47",
+      "VisTime": "2024-08-14T04:40:48",
+      "IrTempInC": 22.54
+    },
+    "SizeInMm2": 183.36,
+    "AverageTemperature": 19.0197,
+    "MedianTemperature": 18.98,
+    "TemperatureDev": 0.20547704,
+    "MaxTemperature": 19.72,
+    "MinTemperature": 18.48,
+    "HeightInMm": 24.6,
+    "WidthInMm": 21,
+    "Extent": 0.35493612,
+    "ConvexHullAreaInMm2": 350.74002,
+    "Solidity": 0.5227804,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      144.75311,
+      0.29774377,
+      0.24640095
+    ],
+    "HslMedian": [
+      144.70587,
+      0.30496454,
+      0.24901961
+    ],
+    "HslMax": [
+      159.31033,
+      0.47058824,
+      0.3627451
+    ],
+    "HslMin": [
+      132,
+      0.10869565,
+      0.13333334
+    ],
+    "HslDeviation": [
+      3.1753573,
+      0.052370988,
+      0.032083746
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 64,
+      "ImageName": "Uk 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:07",
+      "VisTime": "2024-08-14T04:41:07",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 133.24,
+    "AverageTemperature": 17.704453,
+    "MedianTemperature": 17.7,
+    "TemperatureDev": 0.14040053,
+    "MaxTemperature": 18.04,
+    "MinTemperature": 17.37,
+    "HeightInMm": 16.800001,
+    "WidthInMm": 18.6,
+    "Extent": 0.4263953,
+    "ConvexHullAreaInMm2": 243.86002,
+    "Solidity": 0.5463791,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      142.61028,
+      0.33240536,
+      0.26092678
+    ],
+    "HslMedian": [
+      142.66667,
+      0.33898306,
+      0.27058825
+    ],
+    "HslMax": [
+      152.72726,
+      0.6451613,
+      0.35882354
+    ],
+    "HslMin": [
+      133.33334,
+      0.13043478,
+      0.12156863
+    ],
+    "HslDeviation": [
+      2.4865973,
+      0.06107069,
+      0.04427692
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 65,
+      "ImageName": "Uk 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:49",
+      "VisTime": "2024-08-14T04:41:50",
+      "IrTempInC": 23.82
+    },
+    "SizeInMm2": 257.56003,
+    "AverageTemperature": 17.448795,
+    "MedianTemperature": 17.39,
+    "TemperatureDev": 0.39744267,
+    "MaxTemperature": 18.48,
+    "MinTemperature": 16.7,
+    "HeightInMm": 31.6,
+    "WidthInMm": 25.800001,
+    "Extent": 0.315916,
+    "ConvexHullAreaInMm2": 481.84,
+    "Solidity": 0.5345343,
+    "LeafCount": 15,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.50018,
+      0.33105472,
+      0.28716707
+    ],
+    "HslMedian": [
+      143.63637,
+      0.3375796,
+      0.29215688
+    ],
+    "HslMax": [
+      158.57143,
+      0.7586207,
+      0.39803922
+    ],
+    "HslMin": [
+      132.41379,
+      0.11278196,
+      0.11372549
+    ],
+    "HslDeviation": [
+      2.47471,
+      0.06233918,
+      0.047861792
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 66,
+      "ImageName": "Wa 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:39:53",
+      "VisTime": "2024-08-14T04:39:53",
+      "IrTempInC": 21.87
+    },
+    "SizeInMm2": 149.68001,
+    "AverageTemperature": 20.38751,
+    "MedianTemperature": 20.37,
+    "TemperatureDev": 0.16517927,
+    "MaxTemperature": 20.88,
+    "MinTemperature": 20.01,
+    "HeightInMm": 15.2,
+    "WidthInMm": 17.800001,
+    "Extent": 0.55322295,
+    "ConvexHullAreaInMm2": 206.42,
+    "Solidity": 0.7251235,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      141.2008,
+      0.26132235,
+      0.29339403
+    ],
+    "HslMedian": [
+      140,
+      0.2647059,
+      0.3
+    ],
+    "HslMax": [
+      170.76923,
+      0.625,
+      0.48431373
+    ],
+    "HslMin": [
+      129,
+      0.107913665,
+      0.1254902
+    ],
+    "HslDeviation": [
+      5.806787,
+      0.047491547,
+      0.049336202
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 67,
+      "ImageName": "Wa 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:24",
+      "VisTime": "2024-08-14T04:41:25",
+      "IrTempInC": 23.39
+    },
+    "SizeInMm2": 193.12001,
+    "AverageTemperature": 17.861153,
+    "MedianTemperature": 17.92,
+    "TemperatureDev": 0.19634205,
+    "MaxTemperature": 18.35,
+    "MinTemperature": 17.45,
+    "HeightInMm": 24,
+    "WidthInMm": 22.2,
+    "Extent": 0.36246246,
+    "ConvexHullAreaInMm2": 365.18002,
+    "Solidity": 0.5288351,
+    "LeafCount": 9,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      150.01546,
+      0.3932639,
+      0.2077745
+    ],
+    "HslMedian": [
+      150,
+      0.4074074,
+      0.21568628
+    ],
+    "HslMax": [
+      165.71428,
+      0.6056338,
+      0.28627452
+    ],
+    "HslMin": [
+      134.11765,
+      0.13513513,
+      0.12941177
+    ],
+    "HslDeviation": [
+      2.2158363,
+      0.072212175,
+      0.034691323
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 68,
+      "ImageName": "Wa 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:31",
+      "VisTime": "2024-08-14T04:40:31",
+      "IrTempInC": 22.24
+    },
+    "SizeInMm2": 181.68001,
+    "AverageTemperature": 19.95229,
+    "MedianTemperature": 19.97,
+    "TemperatureDev": 0.15301085,
+    "MaxTemperature": 20.28,
+    "MinTemperature": 19.47,
+    "HeightInMm": 19.6,
+    "WidthInMm": 22.4,
+    "Extent": 0.41381195,
+    "ConvexHullAreaInMm2": 321.08002,
+    "Solidity": 0.5658403,
+    "LeafCount": 7,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      127.419334,
+      0.23323394,
+      0.31694642
+    ],
+    "HslMedian": [
+      127.89474,
+      0.23529412,
+      0.32941177
+    ],
+    "HslMax": [
+      137.33334,
+      0.41333333,
+      0.4490196
+    ],
+    "HslMin": [
+      108,
+      0.10769231,
+      0.14313726
+    ],
+    "HslDeviation": [
+      4.002658,
+      0.0381659,
+      0.051865753
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 69,
+      "ImageName": "Ws 1",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:41:15",
+      "VisTime": "2024-08-14T04:41:16",
+      "IrTempInC": 23.04
+    },
+    "SizeInMm2": 223.48001,
+    "AverageTemperature": 17.478836,
+    "MedianTemperature": 17.47,
+    "TemperatureDev": 0.12853418,
+    "MaxTemperature": 17.82,
+    "MinTemperature": 17.22,
+    "HeightInMm": 21.4,
+    "WidthInMm": 26.800001,
+    "Extent": 0.38966382,
+    "ConvexHullAreaInMm2": 411.9,
+    "Solidity": 0.54255885,
+    "LeafCount": 12,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      146.64401,
+      0.39342454,
+      0.22954689
+    ],
+    "HslMedian": [
+      146.66667,
+      0.40206185,
+      0.22745098
+    ],
+    "HslMax": [
+      155.55556,
+      0.7741935,
+      0.4490196
+    ],
+    "HslMin": [
+      137.5,
+      0.15,
+      0.11176471
+    ],
+    "HslDeviation": [
+      1.938602,
+      0.06725627,
+      0.046536207
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 70,
+      "ImageName": "Ws 2",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:11",
+      "VisTime": "2024-08-14T04:40:11",
+      "IrTempInC": 22.29
+    },
+    "SizeInMm2": 180.44,
+    "AverageTemperature": 19.953102,
+    "MedianTemperature": 19.95,
+    "TemperatureDev": 0.14519764,
+    "MaxTemperature": 20.37,
+    "MinTemperature": 19.62,
+    "HeightInMm": 22,
+    "WidthInMm": 20,
+    "Extent": 0.41009092,
+    "ConvexHullAreaInMm2": 314.68002,
+    "Solidity": 0.5734079,
+    "LeafCount": 6,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      125.73875,
+      0.23889913,
+      0.30468747
+    ],
+    "HslMedian": [
+      126.42857,
+      0.24223602,
+      0.30980393
+    ],
+    "HslMax": [
+      136.09756,
+      0.45714286,
+      0.44117647
+    ],
+    "HslMin": [
+      100,
+      0.10769231,
+      0.13725491
+    ],
+    "HslDeviation": [
+      4.4914484,
+      0.044532496,
+      0.057417307
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  },
+  {
+    "Plant": {
+      "ImageIndex": 71,
+      "ImageName": "Ws 3",
+      "ImageComment": "",
+      "HasIr": false,
+      "HasVis": false,
+      "IrTime": "2024-08-14T04:40:47",
+      "VisTime": "2024-08-14T04:40:48",
+      "IrTempInC": 22.54
+    },
+    "SizeInMm2": 160.6,
+    "AverageTemperature": 18.75293,
+    "MedianTemperature": 18.73,
+    "TemperatureDev": 0.1537671,
+    "MaxTemperature": 19.23,
+    "MinTemperature": 18.42,
+    "HeightInMm": 19.4,
+    "WidthInMm": 15.6,
+    "Extent": 0.5306635,
+    "ConvexHullAreaInMm2": 241.1,
+    "Solidity": 0.6661137,
+    "LeafCount": 8,
+    "LeafOutOfRange": false,
+    "HslAverage": [
+      143.20319,
+      0.3278486,
+      0.24879155
+    ],
+    "HslMedian": [
+      143.63637,
+      0.33898306,
+      0.2529412
+    ],
+    "HslMax": [
+      149.09091,
+      0.56962025,
+      0.32941177
+    ],
+    "HslMin": [
+      132,
+      0.14492753,
+      0.12745099
+    ],
+    "HslDeviation": [
+      1.8228707,
+      0.05430412,
+      0.034877155
+    ],
+    "NoImage": false,
+    "DeviceTemperatures": null
+  }
+]

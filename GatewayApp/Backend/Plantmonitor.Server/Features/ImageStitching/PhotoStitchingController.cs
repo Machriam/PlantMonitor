@@ -18,7 +18,7 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     public record struct PlantModel(string Name, string Comment, string Position);
     public record struct IrOffsetFineAdjustment(long ExtractionTemplateId, NpgsqlPoint NewIrOffset);
     public record struct PlantImageSection(int StepCount, long PhotoTripId, NpgsqlPolygon Polygon, NpgsqlPoint IrPolygonOffset, long PlantId);
-    public record struct ImageCropPreview(byte[] IrImage, byte[] VisImage, NpgsqlPoint CurrentOffset);
+    public record struct ImageCropPreview(byte[] IrImage, byte[] VisImage, NpgsqlPoint CurrentOffset, NpgsqlPoint PreviousOffset);
 
     [HttpGet("plantsfortour")]
     public IEnumerable<PhotoTourPlantInfo> PlantsForTour(long tourId)
@@ -72,7 +72,13 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     [HttpGet("croppedimagefor")]
     public ImageCropPreview CroppedImageFor(long extractionTemplateId, long photoTripId, double xOffset, double yOffset)
     {
-        var template = context.PlantExtractionTemplates.First(pet => pet.Id == extractionTemplateId);
+        var template = context.PlantExtractionTemplates
+            .Include(pet => pet.PhotoTripFkNavigation)
+            .First(pet => pet.Id == extractionTemplateId);
+        var previousTemplate = context.PlantExtractionTemplates
+            .Include(pet => pet.PhotoTripFkNavigation)
+            .FirstOrDefault(pet => pet.PhotoTripFkNavigation.Timestamp < template.PhotoTripFkNavigation.Timestamp &&
+                                   pet.PhotoTourPlantFk == template.PhotoTourPlantFk);
         var photoTrip = context.PhotoTourTrips.First(ptt => ptt.Id == photoTripId);
         var irFile = CameraStreamFormatter.FindInFolder(photoTrip.IrDataFolder, template.MotorPosition);
         var visFile = CameraStreamFormatter.FindInFolder(photoTrip.VisDataFolder, template.MotorPosition);
@@ -93,6 +99,7 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
             IrImage = cropper.MatToByteArray(irImage),
             VisImage = cropper.MatToByteArray(visImage),
             CurrentOffset = irOffset,
+            PreviousOffset = previousTemplate?.IrBoundingBoxOffset ?? new NpgsqlPoint(0, 0)
         };
     }
 

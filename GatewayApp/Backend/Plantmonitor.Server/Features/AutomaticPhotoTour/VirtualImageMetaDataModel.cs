@@ -22,16 +22,18 @@ public interface ITsvFormattable
 {
     string FormatValue(string name, object? value);
 
-    object ParseFromText(string key, string text);
+    object ParseFromText(string key, string? text);
 }
 
 public record struct VirtualImageMetaDataModel()
 {
+    private static readonly string s_minDateString = DateTime.MinValue.ToString(DateFormat, CultureInfo.InvariantCulture);
     private const string DateFormat = "yyyy-MM-dd HH:mm:ss";
     public class ImageDimensions : ITsvFormattable
     {
         public ImageDimensions() { }
-        public ImageDimensions(int width, int height, int imageWidth, int imageHeight, int leftPadding, int topPadding, int imagesPerRow, int rowCount, int imageCount, string comment)
+        public ImageDimensions(int width, int height, int imageWidth, int imageHeight, int leftPadding,
+            int topPadding, int imagesPerRow, int rowCount, int imageCount, string comment, float sizeOfPixelInMm)
         {
             Width = width;
             Height = height;
@@ -43,12 +45,14 @@ public record struct VirtualImageMetaDataModel()
             RowCount = rowCount;
             ImageCount = imageCount;
             Comment = comment;
+            SizeOfPixelInMm = sizeOfPixelInMm;
         }
 
         public int Width { get; set; }
         public int Height { get; set; }
         public int ImageWidth { get; set; }
         public int ImageHeight { get; set; }
+        public float SizeOfPixelInMm { get; set; }
         public int LeftPadding { get; set; }
         public int TopPadding { get; set; }
         public int ImagesPerRow { get; set; }
@@ -56,11 +60,16 @@ public record struct VirtualImageMetaDataModel()
         public int ImageCount { get; set; }
         public string Comment { get; set; } = "";
 
-        public string FormatValue(string name, object? value) => value?.ToString() ?? "";
-        public object ParseFromText(string key, string text) => key switch
+        public string FormatValue(string name, object? value) => name switch
         {
-            nameof(Comment) => text,
-            _ => int.Parse(text),
+            nameof(SizeOfPixelInMm) => ((float?)value ?? 0f).ToString("0.00", CultureInfo.InvariantCulture),
+            _ => value?.ToString() ?? ""
+        };
+        public object ParseFromText(string key, string? text) => key switch
+        {
+            nameof(Comment) => text ?? "",
+            nameof(SizeOfPixelInMm) => float.TryParse(text ?? "", CultureInfo.InvariantCulture, out var size) ? size : 0.2f,
+            _ => int.TryParse(text, CultureInfo.InvariantCulture, out var number) ? number : 0,
         };
     }
 
@@ -99,28 +108,30 @@ public record struct VirtualImageMetaDataModel()
             };
         }
 
-        public object ParseFromText(string key, string text) => key switch
+        public object ParseFromText(string key, string? text) => key switch
         {
-            nameof(ImageName) or nameof(ImageComment) => text,
-            nameof(HasIr) or nameof(HasVis) => bool.Parse(text),
-            nameof(IrTempInC) => float.Parse(text.Replace("°C", ""), CultureInfo.InvariantCulture),
-            nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture),
-            nameof(ImageIndex) => int.Parse(text),
-            _ => text,
+            nameof(ImageName) or nameof(ImageComment) => text ?? "",
+            nameof(HasIr) or nameof(HasVis) => bool.Parse(text ?? "False"),
+            nameof(IrTempInC) => float.Parse(text?.Replace("°C", "") ?? "0", CultureInfo.InvariantCulture),
+            nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text ?? s_minDateString, DateFormat, CultureInfo.InvariantCulture),
+            nameof(ImageIndex) => int.Parse(text ?? "0"),
+            _ => text ?? "",
         };
     }
 
     public class TimeInfo : ITsvFormattable
     {
         public TimeInfo() { }
-        public TimeInfo(DateTime startTime, DateTime endTime)
+        public TimeInfo(DateTime startTime, DateTime endTime, string tripName)
         {
             StartTime = startTime;
             EndTime = endTime;
+            TripName = tripName;
         }
 
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public string TripName { get; set; } = "";
 
         public string FormatValue(string name, object? value)
         {
@@ -132,7 +143,11 @@ public record struct VirtualImageMetaDataModel()
             };
         }
 
-        public object ParseFromText(string key, string text) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture);
+        public object ParseFromText(string key, string? text) => key switch
+        {
+            nameof(StartTime) or nameof(EndTime) => DateTime.ParseExact(text ?? s_minDateString, DateFormat, CultureInfo.InvariantCulture),
+            _ => text ?? "",
+        };
     }
 
     public class TemperatureReading : ITsvFormattable
@@ -162,11 +177,11 @@ public record struct VirtualImageMetaDataModel()
             };
         }
 
-        public object ParseFromText(string key, string text) => key switch
+        public object ParseFromText(string key, string? text) => key switch
         {
-            nameof(TemperatureInC) => float.Parse(text.Replace("°C", ""), CultureInfo.InvariantCulture),
-            nameof(Time) => DateTime.ParseExact(text, DateFormat, CultureInfo.InvariantCulture),
-            _ => text,
+            nameof(TemperatureInC) => float.Parse(text?.Replace("°C", "") ?? "0", CultureInfo.InvariantCulture),
+            nameof(Time) => DateTime.ParseExact(text ?? s_minDateString, DateFormat, CultureInfo.InvariantCulture),
+            _ => text ?? "",
         };
     }
 
@@ -208,7 +223,7 @@ public record struct VirtualImageMetaDataModel()
                 continue;
             }
             var dataColumns = line.Split('\t');
-            for (var i = 0; i < headers.Count; i++)
+            for (var i = 0; i < headers.Count && i < dataColumns.Length; i++)
             {
                 currentTable[headers[i]].Add(dataColumns[i]);
             }
@@ -233,10 +248,34 @@ public record struct VirtualImageMetaDataModel()
         foreach (var entry in sortedEntries)
         {
             var newEntry = new T();
-            propertyNames.ForEach(p => p.SetValue(newEntry, newEntry.ParseFromText(p.Name, entry.First(e => e.Key == p.Name).Item)));
+            propertyNames.ForEach(p => p.SetValue(newEntry, newEntry.ParseFromText(p.Name, entry.FirstOrDefault(e => e.Key == p.Name).Item)));
             result.Add(newEntry);
         }
         return result;
+    }
+
+    public readonly Func<(int Left, int Top), ImageMetaDatum?> BuildCoordinateToImageFunction()
+    {
+        var imageList = ImageMetaData.OrderBy(imd => imd.ImageIndex).ToList();
+        var index = 0;
+        var result = new Dictionary<(int Row, int Col), ImageMetaDatum>();
+        for (var ri = 0; ri < float.Ceiling(Dimensions.ImageCount / (float)Dimensions.ImagesPerRow); ri++)
+        {
+            for (var ci = 0; ci < Dimensions.ImagesPerRow; ci++)
+            {
+                if (index >= imageList.Count) break;
+                result.Add((ri, ci), imageList[index]);
+                index++;
+            }
+        }
+        var @this = this;
+        return (pixel) =>
+        {
+            var column = pixel.Left / @this.Dimensions.Width;
+            var row = pixel.Top / @this.Dimensions.Height;
+            if (result.TryGetValue((row, column), out var datum)) return datum;
+            return null;
+        };
     }
 
     public readonly string ExportAsTsv()

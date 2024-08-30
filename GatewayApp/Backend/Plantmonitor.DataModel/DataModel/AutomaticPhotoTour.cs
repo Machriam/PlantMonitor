@@ -17,6 +17,8 @@ public partial class AutomaticPhotoTour
 
     public bool Finished { get; set; }
 
+    public float PixelSizeInMm { get; set; }
+
     public virtual ICollection<PhotoTourEvent> PhotoTourEvents { get; set; } = new List<PhotoTourEvent>();
 
     public virtual ICollection<PhotoTourPlant> PhotoTourPlants { get; set; } = new List<PhotoTourPlant>();

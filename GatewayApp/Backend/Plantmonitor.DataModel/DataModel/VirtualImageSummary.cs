@@ -11,5 +11,5 @@ public partial class VirtualImageSummary
 
     public DateTime VirtualImageCreationDate { get; set; }
 
-    public string Data { get; set; } = null!;
+    public string ImageDescriptorsJson { get; set; } = null!;
 }

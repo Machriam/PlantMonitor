@@ -2069,7 +2069,9 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
 
 export interface IAutomaticPhotoTourClient {
 
-    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined, newIntervallInMinutes?: number | undefined): Promise<void>;
+    updatePhotoTour(id?: number | undefined, newIntervallInMinutes?: number | undefined, pixelSizeInMm?: number | undefined): Promise<void>;
+
+    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined): Promise<void>;
 
     getEvents(photoTourId?: number | undefined, allLogs?: boolean | undefined): Promise<PhotoTourEvent[]>;
 
@@ -2089,7 +2091,51 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined, newIntervallInMinutes?: number | undefined): Promise<void> {
+    updatePhotoTour(id?: number | undefined, newIntervallInMinutes?: number | undefined, pixelSizeInMm?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/AutomaticPhotoTour/updatephototour?";
+        if (id === null)
+            throw new Error("The parameter 'id' cannot be null.");
+        else if (id !== undefined)
+            url_ += "id=" + encodeURIComponent("" + id) + "&";
+        if (newIntervallInMinutes === null)
+            throw new Error("The parameter 'newIntervallInMinutes' cannot be null.");
+        else if (newIntervallInMinutes !== undefined)
+            url_ += "newIntervallInMinutes=" + encodeURIComponent("" + newIntervallInMinutes) + "&";
+        if (pixelSizeInMm === null)
+            throw new Error("The parameter 'pixelSizeInMm' cannot be null.");
+        else if (pixelSizeInMm !== undefined)
+            url_ += "pixelSizeInMm=" + encodeURIComponent("" + pixelSizeInMm) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUpdatePhotoTour(_response));
+        });
+    }
+
+    protected processUpdatePhotoTour(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    pausePhotoTour(id?: number | undefined, shouldBePaused?: boolean | undefined): Promise<void> {
         let url_ = this.baseUrl + "/api/AutomaticPhotoTour/pausephototour?";
         if (id === null)
             throw new Error("The parameter 'id' cannot be null.");
@@ -2099,10 +2145,6 @@ export class AutomaticPhotoTourClient extends GatewayAppApiBase implements IAuto
             throw new Error("The parameter 'shouldBePaused' cannot be null.");
         else if (shouldBePaused !== undefined)
             url_ += "shouldBePaused=" + encodeURIComponent("" + shouldBePaused) + "&";
-        if (newIntervallInMinutes === null)
-            throw new Error("The parameter 'newIntervallInMinutes' cannot be null.");
-        else if (newIntervallInMinutes !== undefined)
-            url_ += "newIntervallInMinutes=" + encodeURIComponent("" + newIntervallInMinutes) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -2500,6 +2542,7 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
     comment!: string;
     intervallInMinutes!: number;
     finished!: boolean;
+    pixelSizeInMm!: number;
     photoTourEvents!: PhotoTourEvent[];
     photoTourPlants!: PhotoTourPlant[];
     photoTourTrips!: PhotoTourTrip[];
@@ -2522,6 +2565,7 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
             this.comment = _data["Comment"];
             this.intervallInMinutes = _data["IntervallInMinutes"];
             this.finished = _data["Finished"];
+            this.pixelSizeInMm = _data["PixelSizeInMm"];
             if (Array.isArray(_data["PhotoTourEvents"])) {
                 this.photoTourEvents = [] as any;
                 for (let item of _data["PhotoTourEvents"])
@@ -2560,6 +2604,7 @@ export class AutomaticPhotoTour implements IAutomaticPhotoTour {
         data["Comment"] = this.comment;
         data["IntervallInMinutes"] = this.intervallInMinutes;
         data["Finished"] = this.finished;
+        data["PixelSizeInMm"] = this.pixelSizeInMm;
         if (Array.isArray(this.photoTourEvents)) {
             data["PhotoTourEvents"] = [];
             for (let item of this.photoTourEvents)
@@ -2598,6 +2643,7 @@ export interface IAutomaticPhotoTour {
     comment: string;
     intervallInMinutes: number;
     finished: boolean;
+    pixelSizeInMm: number;
     photoTourEvents: PhotoTourEvent[];
     photoTourPlants: PhotoTourPlant[];
     photoTourTrips: PhotoTourTrip[];
@@ -3810,6 +3856,7 @@ export class ImageCropPreview implements IImageCropPreview {
     irImage!: string;
     visImage!: string;
     currentOffset!: NpgsqlPoint;
+    previousOffset!: NpgsqlPoint;
 
     constructor(data?: IImageCropPreview) {
         if (data) {
@@ -3825,6 +3872,7 @@ export class ImageCropPreview implements IImageCropPreview {
             this.irImage = _data["IrImage"];
             this.visImage = _data["VisImage"];
             this.currentOffset = _data["CurrentOffset"] ? NpgsqlPoint.fromJS(_data["CurrentOffset"]) : <any>undefined;
+            this.previousOffset = _data["PreviousOffset"] ? NpgsqlPoint.fromJS(_data["PreviousOffset"]) : <any>undefined;
         }
     }
 
@@ -3840,6 +3888,7 @@ export class ImageCropPreview implements IImageCropPreview {
         data["IrImage"] = this.irImage;
         data["VisImage"] = this.visImage;
         data["CurrentOffset"] = this.currentOffset ? this.currentOffset.toJSON() : <any>undefined;
+        data["PreviousOffset"] = this.previousOffset ? this.previousOffset.toJSON() : <any>undefined;
         return data;
     }
 
@@ -3855,6 +3904,7 @@ export interface IImageCropPreview {
     irImage: string;
     visImage: string;
     currentOffset: NpgsqlPoint;
+    previousOffset: NpgsqlPoint;
 }
 
 export class IrOffsetFineAdjustment implements IIrOffsetFineAdjustment {
@@ -4413,6 +4463,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
     lastEvent!: Date;
     intervallInMinutes!: number;
     comment!: string;
+    pixelSizeInMm!: number;
 
     constructor(data?: IPhotoTourInfo) {
         if (data) {
@@ -4432,6 +4483,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
             this.lastEvent = _data["LastEvent"] ? new Date(_data["LastEvent"].toString()) : <any>undefined;
             this.intervallInMinutes = _data["IntervallInMinutes"];
             this.comment = _data["Comment"];
+            this.pixelSizeInMm = _data["PixelSizeInMm"];
         }
     }
 
@@ -4451,6 +4503,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
         data["LastEvent"] = this.lastEvent ? this.lastEvent.toISOString() : <any>undefined;
         data["IntervallInMinutes"] = this.intervallInMinutes;
         data["Comment"] = this.comment;
+        data["PixelSizeInMm"] = this.pixelSizeInMm;
         return data;
     }
 
@@ -4470,6 +4523,7 @@ export interface IPhotoTourInfo {
     lastEvent: Date;
     intervallInMinutes: number;
     comment: string;
+    pixelSizeInMm: number;
 }
 
 export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
@@ -4480,6 +4534,7 @@ export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
     name!: string;
     deviceGuid!: string;
     shouldUseIR!: boolean;
+    pixelSizeInMm!: number;
 
     constructor(data?: IAutomaticTourStartInfo) {
         if (data) {
@@ -4503,6 +4558,7 @@ export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
             this.name = _data["Name"];
             this.deviceGuid = _data["DeviceGuid"];
             this.shouldUseIR = _data["ShouldUseIR"];
+            this.pixelSizeInMm = _data["PixelSizeInMm"];
         }
     }
 
@@ -4526,6 +4582,7 @@ export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {
         data["Name"] = this.name;
         data["DeviceGuid"] = this.deviceGuid;
         data["ShouldUseIR"] = this.shouldUseIR;
+        data["PixelSizeInMm"] = this.pixelSizeInMm;
         return data;
     }
 
@@ -4545,6 +4602,7 @@ export interface IAutomaticTourStartInfo {
     name: string;
     deviceGuid: string;
     shouldUseIR: boolean;
+    pixelSizeInMm: number;
 }
 
 export class TemperatureMeasurementInfo implements ITemperatureMeasurementInfo {

@@ -110,6 +110,9 @@ public partial class DataContext : DbContext, IDataContext
             entity.Property(e => e.Finished).HasColumnName("finished");
             entity.Property(e => e.IntervallInMinutes).HasColumnName("intervall_in_minutes");
             entity.Property(e => e.Name).HasColumnName("name");
+            entity.Property(e => e.PixelSizeInMm)
+                .HasDefaultValueSql("0.2")
+                .HasColumnName("pixel_size_in_mm");
         });
 
         modelBuilder.Entity<ConfigurationDatum>(entity =>
@@ -302,16 +305,14 @@ public partial class DataContext : DbContext, IDataContext
 
         modelBuilder.Entity<VirtualImageSummary>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("virtual_image_summary", "plantmonitor");
+            entity.HasKey(e => e.Id).HasName("virtual_image_summary_pkey");
 
-            entity.Property(e => e.Data)
+            entity.ToTable("virtual_image_summary", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ImageDescriptorsJson)
                 .HasColumnType("jsonb")
-                .HasColumnName("data");
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd()
-                .HasColumnName("id");
+                .HasColumnName("image_descriptors_json");
             entity.Property(e => e.VirtualImageCreationDate).HasColumnName("virtual_image_creation_date");
             entity.Property(e => e.VirtualImagePath).HasColumnName("virtual_image_path");
         });

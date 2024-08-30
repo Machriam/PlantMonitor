@@ -25,6 +25,8 @@ public partial class DataContext
     {
         modelBuilder.Entity<DeviceMovement>().Property(p => p.MovementPlan).HasColumnType("jsonb").HasColumnName("movement_plan_json");
         modelBuilder.Entity<DeviceMovement>().Ignore(p => p.MovementPlanJson);
+        modelBuilder.Entity<VirtualImageSummary>().Property(p => p.ImageDescriptors).HasColumnType("jsonb").HasColumnName("image_descriptors_json");
+        modelBuilder.Entity<VirtualImageSummary>().Ignore(p => p.ImageDescriptorsJson);
         modelBuilder.Entity<PhotoTourEvent>().Property(p => p.Type).HasColumnName("type");
     }
 }
@@ -92,6 +94,18 @@ public static class IQueryableExtensions
         }
         var listSet = (IList<T>)list;
         foreach (var value in values) listSet.Add(value);
+    }
+
+    public static void Remove<T>(this IQueryable<T> list, T value) where T : class
+    {
+        if (IsDbSet(list))
+        {
+            var dbSet = (DbSet<T>)list;
+            dbSet.Remove(value);
+            return;
+        }
+        var listSet = (IList<T>)list;
+        listSet.Remove(value);
     }
 
     public static void RemoveRange<T>(this IQueryable<T> list, IEnumerable<T> values) where T : class

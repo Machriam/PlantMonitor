@@ -10,7 +10,8 @@ namespace Plantmonitor.Server.Features.ImageStitching;
 
 public interface IPhotoStitcher
 {
-    (Mat VisImage, Mat IrColorImage, Mat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images, int width, int height);
+    (Mat VisImage, Mat IrColorImage, Mat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
+        int width, int height, float pixelSizeInMm);
 }
 
 public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
@@ -49,7 +50,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
     }
 
     public (Mat VisImage, Mat IrColorImage, Mat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
-        int width, int height)
+        int width, int height, float pixelSizeInMm)
     {
         var imageList = images.ToList();
         var imagesPerRow = CalculateImagesPerRow(imageList.Count, width, height);
@@ -62,8 +63,9 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         logger.LogInformation("Creating metadata");
         var metaData = new VirtualImageMetaDataModel()
         {
-            Dimensions = new(finalMatSize.Height, finalMatSize.Width, width, height, WhiteBorderSize, WhiteBorderSize, imagesPerRow,
-                            (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count, "Raw IR in °C, first channel full degree, second channel decimal values"),
+            Dimensions = new(finalMatSize.Width, finalMatSize.Height, width, height, WhiteBorderSize, WhiteBorderSize, imagesPerRow,
+                            (int)float.Ceiling(imageList.Count / (float)imagesPerRow), imageList.Count, "Raw IR in °C, depending on order, first or last channel full degree, middle channel decimal values, third channel zero",
+                            pixelSizeInMm),
             ImageMetaData = imageList.WithIndex().Select(im => new VirtualImageMetaDataModel.ImageMetaDatum(im.Index, im.Item.Name, im.Item.Comment,
                             im.Item.ColoredIrImage == null, im.Item.VisImage == null, im.Item.IrImageTime, im.Item.VisImageTime, im.Item.IrTemperatureInK)).ToArray()
         };
