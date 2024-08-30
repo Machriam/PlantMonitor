@@ -2,14 +2,14 @@
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using Plantmonitor.DataModel.DataModel;
-using Plantmonitor.Server.Features.ImageStitching;
+using Plantmonitor.Server.Features.Dashboard;
 using Plantmonitor.Shared.Features.ImageStreaming;
 
-namespace Plantmonitor.Server.Features.DeviceProgramming;
+namespace Plantmonitor.Server.Features.ImageStitching;
 
 [ApiController]
 [Route("api/[controller]")]
-public class PhotoStitchingController(IDataContext context, IVirtualImageWorker virtualImageWorker, IImageCropper cropper)
+public class PhotoStitchingController(IDataContext context, IVirtualImageWorker virtualImageWorker, IImageCropper cropper, IPhotoTourSummaryWorker photoTourSummary)
 {
     public record struct AddPlantModel(IEnumerable<PlantModel> Plants, long TourId);
     public record struct PhotoTourPlantInfo(long Id, string Name, string Comment, string? Position, long PhotoTourFk, IEnumerable<ExtractionMetaData> ExtractionMetaData);
@@ -147,6 +147,7 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     public void RecalculatePhotoTour(long photoTourFk)
     {
         virtualImageWorker.RecalculateTour(photoTourFk);
+        photoTourSummary.RecalculateSummaries(photoTourFk);
     }
 
     [HttpPost("addplantstotour")]

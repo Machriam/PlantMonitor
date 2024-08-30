@@ -9,12 +9,19 @@ using Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 namespace Plantmonitor.Server.Features.Dashboard;
 
-public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, IServiceScopeFactory scopeFactory, ILogger<PhotoTourSummaryWorker> logger) : IHostedService
+public interface IPhotoTourSummaryWorker
+{
+    void RecalculateSummaries(long photoTourId);
+}
+
+public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
+    IServiceScopeFactory scopeFactory, ILogger<PhotoTourSummaryWorker> logger) : IHostedService, IPhotoTourSummaryWorker
 {
     private Timer? _processImageTimer;
     private Timer? _processFindImagesToProcessTimer;
     private static readonly ConcurrentDictionary<string, DateTime> s_imagesToProcess = new();
-    private static readonly object s_lock = new();
+    private static readonly object s_processingLock = new();
+    private static readonly object s_imageFindingLock = new();
     private static bool s_isProcessing;
     private const string FileLookupDate = "yyyy-MM-dd_HH-mm-ss";
 
@@ -33,6 +40,17 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         await _processFindImagesToProcessTimer.DisposeAsync();
     }
 
+    public void RecalculateSummaries(long photoTourId)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
+        var summariesToRemove = dataContext.VirtualImageSummaries
+            .Where(ptt => ptt.ImageDescriptors.PhotoTourId == photoTourId || ptt.ImageDescriptors.PhotoTourId <= 0);
+        dataContext.VirtualImageSummaries.RemoveRange(summariesToRemove);
+        dataContext.SaveChanges();
+        FindImagesToProcess();
+    }
+
     public void FindImagesToProcess()
     {
         logger.LogInformation("Search virtual images to process");
@@ -43,6 +61,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
             .ToList()
             .Select(x => (x.VirtualImageCreationDate.ToString(FileLookupDate), x.VirtualImagePath))
             .ToHashSet();
+        lock (s_imageFindingLock) s_imagesToProcess.Clear();
         foreach (var folder in configuration.VirtualImageFolders().OrderBy(f => f))
         {
             foreach (var file in Directory.EnumerateFiles(folder).OrderBy(f => f).Select(f => new FileInfo(f)))
@@ -60,12 +79,15 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         using var scope = scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IDataContext>();
         KeyValuePair<string, DateTime> nextImage;
-        lock (s_lock)
+        lock (s_processingLock)
         {
             if (s_isProcessing) return;
-            if (s_imagesToProcess.IsEmpty) return;
-            nextImage = s_imagesToProcess.OrderByDescending(itp => itp.Value).First();
-            s_isProcessing = true;
+            lock (s_imageFindingLock)
+            {
+                if (s_imagesToProcess.IsEmpty) return;
+                nextImage = s_imagesToProcess.OrderByDescending(itp => itp.Value).FirstOrDefault();
+                s_isProcessing = true;
+            }
         }
         Action action = () =>
         {
@@ -80,6 +102,8 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 {
                     PlantDescriptors = imageResults.ConvertAll(ir => ir.GetDataModel()),
                     TripStart = pixelSummary.GetPhotoTripData.TripStart,
+                    PhotoTourId = pixelSummary.GetPhotoTripData.PhotoTourId,
+                    PhotoTripId = pixelSummary.GetPhotoTripData.PhotoTripId,
                     TourName = pixelSummary.GetPhotoTripData.TourName,
                     TripEnd = pixelSummary.GetPhotoTripData.TripEnd,
                     DeviceTemperatures = pixelSummary.DeviceTemperatures.Select(dt => new DeviceTemperature()
@@ -111,7 +135,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
             logger.LogInformation("Virtual image {zip} threw an error", nextImage.Key);
             ex.LogError();
         });
-        lock (s_lock)
+        lock (s_processingLock)
         {
             s_imagesToProcess.TryRemove(nextImage.Key, out _);
             s_isProcessing = false;
@@ -157,7 +181,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 };
             });
         resultData.AddDeviceTemperatures(deviceTemperatureInfo);
-        resultData.AddPhotoTripData(metaData.TimeInfos.TripName, metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime);
+        resultData.AddPhotoTripData(metaData.TimeInfos.TripName, metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime, metaData.TimeInfos.PhotoTourId, metaData.TimeInfos.PhotoTripId);
         for (var row = 0; row < mask.Rows; row++)
         {
             for (var col = 0; col < mask.Cols; col++)

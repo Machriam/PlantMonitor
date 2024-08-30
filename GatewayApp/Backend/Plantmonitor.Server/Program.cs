@@ -35,6 +35,7 @@ builder.Services.AddTransient<ITemperatureMeasurementWorker, TemperatureMeasurem
 builder.Services.AddTransient<IPictureDiskStreamer, PictureDiskStreamer>();
 builder.Services.AddTransient<IDeviceRestarter, DeviceRestarter>();
 builder.Services.AddTransient<IVirtualImageWorker, VirtualImageWorker>();
+builder.Services.AddTransient<IPhotoTourSummaryWorker, PhotoTourSummaryWorker>();
 builder.Services.AddTransient<IPhotoStitcher, PhotoStitcher>();
 builder.Services.AddTransient<IImageCropper, ImageCropper>();
 

@@ -10,7 +10,7 @@ namespace Plantmonitor.Server.Features.Dashboard;
 
 public class PhotoSummaryResult(float pixelSizeInMm)
 {
-    public record struct PhotoTripData(string TourName, DateTime TripStart, DateTime TripEnd);
+    public record struct PhotoTripData(string TourName, DateTime TripStart, DateTime TripEnd, long PhotoTourId, long PhotoTripId);
     public record struct DeviceTemperatureInfo(string Name, float MaxTemperature,
         float MinTemperature, float AverageTemperature, float MedianTemperature, float TemperatureDeviation, int CountOfMeasurements);
     public record struct PixelInfo(int Left, int Top, float Temperature, byte[] PixelColorInRgb, bool LeafOutOfRange);
@@ -61,7 +61,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
     public PhotoTripData GetPhotoTripData => _photoTripData;
     public List<DeviceTemperatureInfo> DeviceTemperatures { get; } = [];
 
-    public void AddPhotoTripData(string tourName, DateTime tripStart, DateTime tripEnd) => _photoTripData = new(tourName, tripStart, tripEnd);
+    public void AddPhotoTripData(string tourName, DateTime tripStart, DateTime tripEnd, long photoTourId, long photoTripId) => _photoTripData = new(tourName, tripStart, tripEnd, photoTourId, photoTripId);
 
     public void AddPixelInfo(VirtualImageMetaDataModel.ImageMetaDatum image, int left, int top, float temperature, byte[] pixelColorInRgb, bool leafOutOfRange)
     {
