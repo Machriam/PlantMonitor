@@ -134,8 +134,8 @@ public record struct VirtualImageMetaDataModel()
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string TripName { get; set; } = "";
-        public long PhotoTripId { get; }
-        public long PhotoTourId { get; }
+        public long PhotoTripId { get; set; }
+        public long PhotoTourId { get; set; }
 
         public string FormatValue(string name, object? value)
         {
