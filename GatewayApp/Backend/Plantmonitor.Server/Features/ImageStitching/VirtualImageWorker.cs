@@ -58,39 +58,39 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
     public void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IEnvironmentConfiguration configuration)
     {
         logger.LogInformation("Running virtual image creation");
-        var tripToProcess = dataContext.PhotoTourTrips
+        var photoTourTrip = dataContext.PhotoTourTrips
             .Include(ttp => ttp.PhotoTourFkNavigation)
             .OrderByDescending(apt => apt.PhotoTourFk)
             .Where(apt => apt.VirtualPicturePath == null)
             .FirstOrDefault();
-        if (tripToProcess == null)
+        if (photoTourTrip == null)
         {
             logger.LogInformation("No trips to process for virtual image creation. Exiting");
             return;
         }
-        logger.LogInformation("Processing Tour {tour}", tripToProcess.PhotoTourFkNavigation.Name);
+        logger.LogInformation("Processing Tour {tour}", photoTourTrip.PhotoTourFkNavigation.Name);
         var extractionTemplates = dataContext.PlantExtractionTemplates
             .Include(pet => pet.PhotoTripFkNavigation)
             .Include(pet => pet.PhotoTourPlantFkNavigation)
-            .Where(pet => pet.PhotoTripFkNavigation.PhotoTourFk == tripToProcess.PhotoTourFk)
+            .Where(pet => pet.PhotoTripFkNavigation.PhotoTourFk == photoTourTrip.PhotoTourFk)
             .OrderByDescending(pet => pet.PhotoTripFkNavigation.Timestamp)
             .ToList();
         if (extractionTemplates.Count == 0)
         {
-            logger.LogWarning("No extraction templates defined for tour {tour}. Exiting", tripToProcess.PhotoTourFkNavigation.Name);
+            logger.LogWarning("No extraction templates defined for tour {tour}. Exiting", photoTourTrip.PhotoTourFkNavigation.Name);
             return;
         }
-        var imagesToCreate = dataContext.PhotoTourTrips
-            .Where(ptt => ptt.VirtualPicturePath == null && ptt.PhotoTourFk == tripToProcess.PhotoTourFk)
+        var tripsToProcess = dataContext.PhotoTourTrips
+            .Where(ptt => ptt.VirtualPicturePath == null && ptt.PhotoTourFk == photoTourTrip.PhotoTourFk)
             .OrderBy(ptt => ptt.Timestamp)
             .ToList();
-        var plantsOfTour = dataContext.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == tripToProcess.PhotoTourFk).ToList();
-        var virtualImageFolder = configuration.VirtualImagePath(tripToProcess.PhotoTourFkNavigation.Name, tripToProcess.PhotoTourFk);
+        var plantsOfTour = dataContext.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == photoTourTrip.PhotoTourFk).ToList();
+        var virtualImageFolder = configuration.VirtualImagePath(photoTourTrip.PhotoTourFkNavigation.Name, photoTourTrip.PhotoTourFk);
 
-        foreach (var image in imagesToCreate)
+        foreach (var currentTrip in tripsToProcess)
         {
-            var virtualImageFile = image.VirtualImageFileName(virtualImageFolder);
-            logger.LogInformation("Processing virtual image {image} of tour {tour}", virtualImageFile, tripToProcess.PhotoTourFkNavigation.Name);
+            var virtualImageFile = currentTrip.VirtualImageFileName(virtualImageFolder);
+            logger.LogInformation("Processing virtual image {image} of tour {tour}", virtualImageFile, photoTourTrip.PhotoTourFkNavigation.Name);
             var virtualImageList = new List<PhotoStitcher.PhotoStitchData>();
             foreach (var plant in plantsOfTour
                 .Select(pot => (Number: pot.Name.ExtractNumbersFromString(out var cleanText), CleanText: cleanText, Plant: pot))
@@ -100,7 +100,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             {
                 logger.LogInformation("Adding plant {plant} to virtual image {image}", $"{plant.Name} {plant.Comment}", virtualImageFile);
                 var extractionTemplate = extractionTemplates
-                    .Where(et => et.PhotoTripFkNavigation.Timestamp <= image.Timestamp && et.PhotoTourPlantFk == plant.Id)
+                    .Where(et => et.PhotoTripFkNavigation.Timestamp <= currentTrip.Timestamp && et.PhotoTourPlantFk == plant.Id)
                     .MaxBy(et => et.PhotoTripFkNavigation.Timestamp);
                 logger.LogInformation("Using extraction from {template} for position {position}",
                     extractionTemplate?.PhotoTripFkNavigation.Timestamp.ToString("yyyy.MM.dd HH:mm:ss") ?? "NA", extractionTemplate?.MotorPosition.ToString() ?? "NA");
@@ -109,9 +109,9 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                     Comment = plant.Comment,
                     Name = plant.Name,
                 });
-                if (extractionTemplate == null || !Path.Exists(image.VisDataFolder) || !Path.Exists(image.IrDataFolder)) continue;
-                var visImage = CameraStreamFormatter.FindInFolder(image.VisDataFolder, extractionTemplate.MotorPosition);
-                var irImage = CameraStreamFormatter.FindInFolder(image.IrDataFolder, extractionTemplate.MotorPosition);
+                if (extractionTemplate == null || !Path.Exists(currentTrip.VisDataFolder) || !Path.Exists(currentTrip.IrDataFolder)) continue;
+                var visImage = CameraStreamFormatter.FindInFolder(currentTrip.VisDataFolder, extractionTemplate.MotorPosition);
+                var irImage = CameraStreamFormatter.FindInFolder(currentTrip.IrDataFolder, extractionTemplate.MotorPosition);
 
                 if (visImage.FileName == null || visImage.Formatter == null)
                 {
@@ -135,9 +135,9 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             logger.LogInformation("Stitching virtual image together");
             var maxHeight = virtualImageList.Select(v => v.VisImage?.Height ?? 10).OrderByDescending(h => h).FirstOrDefault();
             var maxWidth = virtualImageList.Select(v => v.VisImage?.Width ?? 10).OrderByDescending(h => h).FirstOrDefault();
-            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight, tripToProcess.PhotoTourFkNavigation.PixelSizeInMm);
+            var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight, photoTourTrip.PhotoTourFkNavigation.PixelSizeInMm);
             logger.LogInformation("Fetching additional metadata");
-            var fullMetaDataTable = AddAdditionalMetaData(dataContext, tripToProcess, virtualImage.MetaData);
+            var fullMetaDataTable = AddAdditionalMetaData(dataContext, currentTrip, photoTourTrip.PhotoTourFkNavigation, virtualImage.MetaData);
 
             var fileBaseName = Path.GetFileNameWithoutExtension(virtualImageFile);
             logger.LogInformation("Storing virtual image {image}", virtualImageFile);
@@ -158,15 +158,16 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                 zipStream.Seek(0, SeekOrigin.Begin);
                 zipStream.CopyTo(resultFile);
             }
-            image.VirtualPicturePath = virtualImageFile;
+            currentTrip.VirtualPicturePath = virtualImageFile;
             dataContext.SaveChanges();
             virtualImageList.DisposeItems();
-            logger.LogInformation("Finished virtual image creation of trip {trip}", image.Timestamp.ToString("yyyy.MM.dd HH:mm:ss"));
+            logger.LogInformation("Finished virtual image creation of trip {trip}", currentTrip.Timestamp.ToString("yyyy.MM.dd HH:mm:ss"));
         }
-        logger.LogInformation("All trips of tour {tour} processed", tripToProcess.PhotoTourFkNavigation.Name);
+        logger.LogInformation("All trips of tour {tour} processed", photoTourTrip.PhotoTourFkNavigation.Name);
     }
 
-    private VirtualImageMetaDataModel AddAdditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess, VirtualImageMetaDataModel metaData)
+    private VirtualImageMetaDataModel AddAdditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess,
+        DataModel.DataModel.AutomaticPhotoTour photoTour, VirtualImageMetaDataModel metaData)
     {
         var from = tripToProcess.Timestamp;
         var nextTrip = dataContext.PhotoTourTrips
@@ -174,7 +175,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             .OrderBy(ptt => ptt.Timestamp)
             .FirstOrDefault();
         var timeToNextTrip = nextTrip?.Timestamp - from;
-        var to = from.Add(timeToNextTrip ?? TimeSpan.FromMinutes(tripToProcess.PhotoTourFkNavigation.IntervallInMinutes));
+        var to = from.Add(timeToNextTrip ?? TimeSpan.FromMinutes(photoTour.IntervallInMinutes));
         logger.LogInformation("Fetching Temperatures from {from} to {to}", from, to);
         var temperaturesOfTrip = dataContext.TemperatureMeasurementValues
             .Include(tmv => tmv.MeasurementFkNavigation)
@@ -182,7 +183,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             .OrderBy(tm => tm.Timestamp)
             .Take(10000)
             .ToList();
-        metaData.TimeInfos = new(from, to, tripToProcess.PhotoTourFkNavigation.Name);
+        metaData.TimeInfos = new(from, to, photoTour.Name);
         logger.LogInformation("Creating temperature table");
         var measurementValues = temperaturesOfTrip
             .Where(tot => !tot.MeasurementFkNavigation.IsThermalCamera())
