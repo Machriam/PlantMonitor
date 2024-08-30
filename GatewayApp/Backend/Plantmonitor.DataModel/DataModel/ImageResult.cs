@@ -5,6 +5,8 @@ public class PhotoTourDescriptor
     public IEnumerable<DeviceTemperature> DeviceTemperatures { get; set; } = [];
     public IEnumerable<PlantImageDescriptors> PlantDescriptors { get; set; } = [];
     public string TourName { get; set; } = "";
+    public long PhotoTourId { get; set; }
+    public long PhotoTripId { get; set; }
     public DateTime TripStart { get; set; }
     public DateTime TripEnd { get; set; }
 }

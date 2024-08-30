@@ -122,16 +122,20 @@ public record struct VirtualImageMetaDataModel()
     public class TimeInfo : ITsvFormattable
     {
         public TimeInfo() { }
-        public TimeInfo(DateTime startTime, DateTime endTime, string tripName)
+        public TimeInfo(DateTime startTime, DateTime endTime, string tripName, long photoTourId, long photoTripId)
         {
             StartTime = startTime;
             EndTime = endTime;
             TripName = tripName;
+            PhotoTripId = photoTripId;
+            PhotoTourId = photoTourId;
         }
 
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string TripName { get; set; } = "";
+        public long PhotoTripId { get; }
+        public long PhotoTourId { get; }
 
         public string FormatValue(string name, object? value)
         {
@@ -146,6 +150,7 @@ public record struct VirtualImageMetaDataModel()
         public object ParseFromText(string key, string? text) => key switch
         {
             nameof(StartTime) or nameof(EndTime) => DateTime.ParseExact(text ?? s_minDateString, DateFormat, CultureInfo.InvariantCulture),
+            nameof(PhotoTripId) or nameof(PhotoTourId) => long.Parse(text ?? "0"),
             _ => text ?? "",
         };
     }
