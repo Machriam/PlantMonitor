@@ -182,7 +182,19 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                     TemperatureDeviation = g.Deviation(average, tr => tr.TemperatureInC),
                     CountOfMeasurements = g.Count()
                 };
-            });
+            }).ToList();
+        var irTemperatures = metaData.ImageMetaData.Select(im => im.IrTempInC).ToList();
+        var irAverageTemperature = irTemperatures.Average();
+        deviceTemperatureInfo.Add(new PhotoSummaryResult.DeviceTemperatureInfo()
+        {
+            Name = TemperatureMeasurement.FlirLeptonSensorId,
+            AverageTemperature = irAverageTemperature,
+            CountOfMeasurements = irTemperatures.Count,
+            MaxTemperature = irTemperatures.Max(),
+            MedianTemperature = irTemperatures.OrderBy(t => t).Median(t => t),
+            MinTemperature = irTemperatures.Min(),
+            TemperatureDeviation = irTemperatures.Deviation(irAverageTemperature, t => t),
+        });
         resultData.AddDeviceTemperatures(deviceTemperatureInfo);
         resultData.AddPhotoTripData(metaData.TimeInfos.TripName, metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime, metaData.TimeInfos.PhotoTourId, metaData.TimeInfos.PhotoTripId);
         for (var row = 0; row < mask.Rows; row++)
