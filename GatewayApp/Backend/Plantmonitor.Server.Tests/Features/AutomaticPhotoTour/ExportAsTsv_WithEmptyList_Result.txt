@@ -17,6 +17,6 @@ ImageIndex	ImageName	ImageComment	HasIr	HasVis	IrTime	VisTime	IrTempInC
 
 
 TimeInfos
-StartTime	EndTime	TripName
-2024-12-31 12:40:50	2024-12-31 13:00:50	Trip	
+StartTime	EndTime	TripName	PhotoTripId	PhotoTourId
+2024-12-31 12:40:50	2024-12-31 13:00:50	Trip	2	1	
 
