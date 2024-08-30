@@ -169,13 +169,13 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
     private VirtualImageMetaDataModel AddAdditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess,
         DataModel.DataModel.AutomaticPhotoTour photoTour, VirtualImageMetaDataModel metaData)
     {
-        var from = tripToProcess.Timestamp;
-        var nextTrip = dataContext.PhotoTourTrips
-            .Where(ptt => ptt.PhotoTourFk == tripToProcess.PhotoTourFk && ptt.Timestamp > from)
-            .OrderBy(ptt => ptt.Timestamp)
+        var to = tripToProcess.Timestamp;
+        var previousTrip = dataContext.PhotoTourTrips
+            .Where(ptt => ptt.PhotoTourFk == tripToProcess.PhotoTourFk && ptt.Timestamp < to)
+            .OrderByDescending(ptt => ptt.Timestamp)
             .FirstOrDefault();
-        var timeToNextTrip = nextTrip?.Timestamp - from;
-        var to = from.Add(timeToNextTrip ?? TimeSpan.FromMinutes(photoTour.IntervallInMinutes));
+        var timeToNextTrip = to - previousTrip?.Timestamp;
+        var from = to.Add(-timeToNextTrip ?? -TimeSpan.FromMinutes(photoTour.IntervallInMinutes));
         logger.LogInformation("Fetching Temperatures from {from} to {to}", from, to);
         var temperaturesOfTrip = dataContext.TemperatureMeasurementValues
             .Include(tmv => tmv.MeasurementFkNavigation)
