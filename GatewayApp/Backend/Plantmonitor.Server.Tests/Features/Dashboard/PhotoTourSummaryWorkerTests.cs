@@ -112,7 +112,6 @@ public class PhotoTourSummaryWorkerTests
         var zipData = sut.GetDataFromZip(testZip);
         var result = sut.SubImageBorderMask(zipData.VisImage);
         var plantMask = sut.GetPlantMask(zipData.VisImage);
-        result = sut.LeafOutOfRange(plantMask, result);
         result.ShowImage("PlantMask", 200);
         zipData.VisImage.ShowImage("Vis Original", 200);
         zipData.VisImage.Dispose();

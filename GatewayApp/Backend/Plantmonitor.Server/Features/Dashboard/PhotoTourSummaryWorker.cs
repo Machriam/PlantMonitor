@@ -134,8 +134,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         var (visMat, rawIrMat, metaData) = GetDataFromZip(image);
         var mask = GetPlantMask(visMat);
         var borderMask = SubImageBorderMask(visMat);
-        var leafOutOfRangeMat = LeafOutOfRange(mask, borderMask);
-        var leafOutOfRangeData = leafOutOfRangeMat.GetData(true);
+        var borderMaskData = borderMask.GetData(true);
         var maskData = mask.GetData(true);
         var irData = rawIrMat.GetData(true);
         var getImage = metaData.BuildCoordinateToImageFunction();
@@ -166,7 +165,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 var value = (byte)maskData.GetValue(row, col)!;
                 if (value == 0) continue;
                 var leafOutOfRange = false;
-                if ((byte?)leafOutOfRangeData.GetValue(row, col) == 255) leafOutOfRange = true;
+                if ((byte?)borderMaskData.GetValue(row, col) == 255) leafOutOfRange = true;
                 var imageData = getImage((col, row));
                 if (imageData == null) continue;
                 var temperatureInteger = (byte)irData.GetValue(row, col, 0)!;
@@ -180,7 +179,6 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         mask.Dispose();
         visMat.Dispose();
         rawIrMat.Dispose();
-        leafOutOfRangeMat.Dispose();
         borderMask.Dispose();
         return resultData;
     }
@@ -203,13 +201,6 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         return (visMat, rawIrMat, metaData);
     }
 
-    public Mat LeafOutOfRange(Mat plantMask, Mat borderMask)
-    {
-        var leafMask = new Mat();
-        CvInvoke.BitwiseAnd(plantMask, borderMask, leafMask);
-        return leafMask;
-    }
-
     public Mat SubImageBorderMask(Mat visMat)
     {
         var mask = new Mat();
@@ -218,12 +209,9 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         var whiteMask = new Mat();
         CvInvoke.InRange(mask, new ScalarArray(new MCvScalar(255)), new ScalarArray(new MCvScalar(255)), whiteMask);
         mask.SetTo(new MCvScalar(0), whiteMask);
-        CvInvoke.Threshold(mask, mask, 1d, 254d, Emgu.CV.CvEnum.ThresholdType.Binary);
+        CvInvoke.Threshold(mask, mask, 0d, 255d, Emgu.CV.CvEnum.ThresholdType.Binary);
         CvInvoke.Canny(mask, mask, 100, 300);
-        var element = CvInvoke.GetStructuringElement(Emgu.CV.CvEnum.ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
-        //CvInvoke.Dilate(mask, mask, element, new Point(-1, -1), 1, Emgu.CV.CvEnum.BorderType.Constant, new MCvScalar(0));
         whiteMask.Dispose();
-        element.Dispose();
         return mask;
     }
 
