@@ -9,13 +9,14 @@ using Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 namespace Plantmonitor.Server.Features.Dashboard;
 
-public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, IServiceScopeFactory scopeFactory) : IHostedService
+public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, IServiceScopeFactory scopeFactory, ILogger<PhotoTourSummaryWorker> logger) : IHostedService
 {
     private Timer? _processImageTimer;
     private Timer? _processFindImagesToProcessTimer;
     private static readonly ConcurrentDictionary<string, DateTime> s_imagesToProcess = new();
     private static readonly object s_lock = new();
     private static bool s_isProcessing;
+    private const string FileLookupDate = "yyyy-MM-dd_HH-mm-ss";
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
@@ -34,21 +35,24 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
 
     public void FindImagesToProcess()
     {
+        logger.LogInformation("Search virtual images to process");
         using var scope = scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IDataContext>();
         var existingResults = context.VirtualImageSummaries
             .Select(vis => new { vis.VirtualImageCreationDate, vis.VirtualImagePath })
             .ToList()
-            .Select(x => (x.VirtualImageCreationDate, x.VirtualImagePath))
+            .Select(x => (x.VirtualImageCreationDate.ToString(FileLookupDate), x.VirtualImagePath))
             .ToHashSet();
         foreach (var folder in configuration.VirtualImageFolders().OrderBy(f => f))
         {
             foreach (var file in Directory.EnumerateFiles(folder).OrderBy(f => f).Select(f => new FileInfo(f)))
             {
-                if (existingResults.Contains((file.CreationTime, file.FullName))) continue;
+                var creationDateText = file.CreationTimeUtc.ToString(FileLookupDate);
+                if (existingResults.Contains((creationDateText, file.FullName))) continue;
                 s_imagesToProcess.TryAdd(file.FullName, file.CreationTimeUtc);
             }
         }
+        logger.LogInformation("Finished searching for virtual images. Found {images} virtual images to process", s_imagesToProcess.Count);
     }
 
     public void FindNextImageToProcess()
@@ -65,8 +69,10 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         }
         Action action = () =>
         {
+            logger.LogInformation("Processing virtual image {image}", nextImage.Key);
             var pixelSummary = ProcessImage(nextImage.Key);
             var imageResults = pixelSummary.GetResults();
+            RemoveExistingSummary(logger, context, nextImage);
             context.VirtualImageSummaries.Add(new VirtualImageSummary()
             {
                 VirtualImageCreationDate = nextImage.Value,
@@ -90,9 +96,11 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 VirtualImagePath = nextImage.Key
             });
             context.SaveChanges();
+            logger.LogInformation("Summary for {image} was added successfully", nextImage.Key);
         };
         action.Try(ex =>
         {
+            RemoveExistingSummary(logger, context, nextImage);
             context.VirtualImageSummaries.Add(new VirtualImageSummary
             {
                 VirtualImageCreationDate = nextImage.Value,
@@ -100,12 +108,24 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
                 ImageDescriptors = new()
             });
             context.SaveChanges();
+            logger.LogInformation("Virtual image {zip} threw an error", nextImage.Key);
             ex.LogError();
         });
         lock (s_lock)
         {
             s_imagesToProcess.TryRemove(nextImage.Key, out _);
             s_isProcessing = false;
+        }
+    }
+
+    private static void RemoveExistingSummary(ILogger<PhotoTourSummaryWorker> logger, IDataContext context, KeyValuePair<string, DateTime> nextImage)
+    {
+        var existingSummary = context.VirtualImageSummaries.FirstOrDefault(vim => vim.VirtualImagePath == nextImage.Key);
+        if (existingSummary != default)
+        {
+            logger.LogInformation("Removing existing summary for {image}", nextImage.Key);
+            context.VirtualImageSummaries.Remove(existingSummary);
+            context.SaveChanges();
         }
     }
 

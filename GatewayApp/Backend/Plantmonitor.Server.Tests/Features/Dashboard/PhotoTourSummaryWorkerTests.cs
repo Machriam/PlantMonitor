@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.Dashboard;
@@ -25,7 +26,7 @@ public class PhotoTourSummaryWorkerTests
     {
         return new PhotoTourSummaryWorker(
             _environmentConfiguration,
-            _serviceScopeFactory);
+            _serviceScopeFactory, Substitute.For<ILogger<PhotoTourSummaryWorker>>());
     }
 
     [Fact]

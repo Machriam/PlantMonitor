@@ -96,6 +96,18 @@ public static class IQueryableExtensions
         foreach (var value in values) listSet.Add(value);
     }
 
+    public static void Remove<T>(this IQueryable<T> list, T value) where T : class
+    {
+        if (IsDbSet(list))
+        {
+            var dbSet = (DbSet<T>)list;
+            dbSet.Remove(value);
+            return;
+        }
+        var listSet = (IList<T>)list;
+        listSet.Remove(value);
+    }
+
     public static void RemoveRange<T>(this IQueryable<T> list, IEnumerable<T> values) where T : class
     {
         if (IsDbSet(list))
