@@ -64,7 +64,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration, ISe
         {
             if (s_isProcessing) return;
             if (s_imagesToProcess.IsEmpty) return;
-            nextImage = s_imagesToProcess.First();
+            nextImage = s_imagesToProcess.OrderByDescending(itp => itp.Value).First();
             s_isProcessing = true;
         }
         Action action = () =>
