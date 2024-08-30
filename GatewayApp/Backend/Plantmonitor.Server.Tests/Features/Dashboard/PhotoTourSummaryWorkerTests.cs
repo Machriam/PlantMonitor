@@ -64,6 +64,21 @@ public class PhotoTourSummaryWorkerTests
     }
 
     [Fact]
+    public void ProcessImage_LeafOutOfRange_ShouldWork()
+    {
+        var testZip = s_testZipFolder + "/LeafOutOfRange.zip";
+        var expectedData = File.ReadAllText(s_testZipFolder + "/LeafOutOfRange_Expected.txt");
+        var sut = CreatePhotoTourSummaryWorker();
+        var result = sut.ProcessImage(testZip);
+        var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
+        var leafsOutOfRange = imageDescriptors
+            .Where(id => id.LeafOutOfRange)
+            .Select(id => id.Plant.ImageName + ":" + id.LeafOutOfRange)
+            .Concat("\n");
+        leafsOutOfRange.Should().Be(expectedData);
+    }
+
+    [Fact]
     public void ProcessImage_6_6_NotInDictionary_ShouldWork()
     {
         var testZip = s_testZipFolder + "/6_6_NotInDictionaryTest.zip";
@@ -87,6 +102,22 @@ public class PhotoTourSummaryWorkerTests
         var totalMisses = expectedLeafCount.Sum(ex => ex.LeafCount - imageDescriptors.First(i => i.Plant.ImageIndex == ex.Plant.ImageIndex).LeafCount);
         comparison = $"Total misses: {totalMisses}\n{comparison}";
         File.WriteAllText(s_testZipFolder + "/BigPlantsLeafComparison.txt", comparison);
+    }
+
+    [Fact]
+    public void ProcessImage_GetBorderMask_ShouldWork()
+    {
+        var testZip = s_testZipFolder + "/LeafOutOfRange.zip";
+        var sut = CreatePhotoTourSummaryWorker();
+        var zipData = sut.GetDataFromZip(testZip);
+        var result = sut.SubImageBorderMask(zipData.VisImage);
+        var plantMask = sut.GetPlantMask(zipData.VisImage);
+        result = sut.LeafOutOfRange(plantMask, result);
+        result.ShowImage("PlantMask", 200);
+        zipData.VisImage.ShowImage("Vis Original", 200);
+        zipData.VisImage.Dispose();
+        zipData.RawIrImage.Dispose();
+        result.Dispose();
     }
 
     [Fact]
