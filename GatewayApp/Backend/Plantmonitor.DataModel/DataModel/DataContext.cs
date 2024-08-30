@@ -37,6 +37,8 @@ public interface IDataContext : IAsyncDisposable, IDisposable
 
     IQueryable<VirtualImageSummary> VirtualImageSummaries { get; }
 
+    IQueryable<VirtualImageSummaryByPhotoTourId> VirtualImageSummaryByPhotoTourIds { get; }
+
 }
 
 public partial class DataContext : DbContext, IDataContext
@@ -93,6 +95,10 @@ public partial class DataContext : DbContext, IDataContext
     public virtual DbSet<VirtualImageSummary> VirtualImageSummaries { get; set; }
 
     IQueryable<VirtualImageSummary> IDataContext.VirtualImageSummaries => VirtualImageSummaries;
+
+    public virtual DbSet<VirtualImageSummaryByPhotoTourId> VirtualImageSummaryByPhotoTourIds { get; set; }
+
+    IQueryable<VirtualImageSummaryByPhotoTourId> IDataContext.VirtualImageSummaryByPhotoTourIds => VirtualImageSummaryByPhotoTourIds;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -315,6 +321,16 @@ public partial class DataContext : DbContext, IDataContext
                 .HasColumnName("image_descriptors_json");
             entity.Property(e => e.VirtualImageCreationDate).HasColumnName("virtual_image_creation_date");
             entity.Property(e => e.VirtualImagePath).HasColumnName("virtual_image_path");
+        });
+
+        modelBuilder.Entity<VirtualImageSummaryByPhotoTourId>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("virtual_image_summary_by_photo_tour_id", "plantmonitor");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PhotoTourId).HasColumnName("photo_tour_id");
         });
 
         OnModelCreatingPartial(modelBuilder);

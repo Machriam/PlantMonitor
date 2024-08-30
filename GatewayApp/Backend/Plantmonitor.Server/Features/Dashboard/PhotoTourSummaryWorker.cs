@@ -3,6 +3,7 @@ using System.Drawing;
 using System.IO.Compression;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.AutomaticPhotoTour;
@@ -44,9 +45,11 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     {
         using var scope = scopeFactory.CreateScope();
         var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
-        var summariesToRemove = dataContext.VirtualImageSummaries
-            .Where(ptt => ptt.ImageDescriptors.PhotoTourId == photoTourId || ptt.ImageDescriptors.PhotoTourId <= 0);
-        dataContext.VirtualImageSummaries.RemoveRange(summariesToRemove);
+        var summariesToRemove = dataContext.VirtualImageSummaryByPhotoTourIds
+            .Where(vis => vis.PhotoTourId == null || vis.PhotoTourId <= 0 || vis.PhotoTourId == photoTourId)
+            .Select(vis => vis.Id)
+            .ToHashSet();
+        dataContext.VirtualImageSummaries.RemoveRange(dataContext.VirtualImageSummaries.Where(vis => summariesToRemove.Contains(vis.Id)));
         dataContext.SaveChanges();
         FindImagesToProcess();
     }
