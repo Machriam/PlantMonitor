@@ -183,7 +183,10 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                     CountOfMeasurements = g.Count()
                 };
             }).ToList();
-        var irTemperatures = metaData.ImageMetaData.Select(im => im.IrTempInC).ToList();
+        var irTemperatures = metaData.ImageMetaData
+            .DistinctBy(im => im.MotorPosition)
+            .Select(im => im.IrTempInC)
+            .ToList();
         var irAverageTemperature = irTemperatures.Average();
         deviceTemperatureInfo.Add(new PhotoSummaryResult.DeviceTemperatureInfo()
         {
