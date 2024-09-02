@@ -15,12 +15,36 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     private static readonly ConcurrentDictionary<string, DownloadInfo> s_fileReadyToDownload = new();
     public record struct DownloadInfo(long PhotoTourId, string Path, double CurrentSize, double SizeToDownloadInGb, bool ReadyToDownload);
 
+    public record struct TemperatureSummaryData(string Device, IEnumerable<TemperatureDatum> Data);
+    public record struct TemperatureDatum(DateTime Time, float Temperature, float Deviation);
+
     [HttpGet("virtualimagelist")]
     public IEnumerable<string> VirtualImageList(long photoTourId)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         return Directory.EnumerateFiles(configuration.VirtualImagePath(photoTour.Name, photoTour.Id))
             .Select(f => Path.GetFileName(f));
+    }
+
+    [HttpPost("createsummaryexport")]
+    public void CreatePhotoSummaryExport(long photoTourId)
+    {
+    }
+
+    [HttpGet("temperaturedata")]
+    public IEnumerable<TemperatureSummaryData> TemperatureSummary(long photoTourId)
+    {
+        var summaries = context.VirtualImageSummaryByPhotoTourIds
+            .Where(vis => vis.PhotoTourId == photoTourId)
+            .Select(vis => vis.Id)
+            .ToHashSet();
+        return context.VirtualImageSummaries
+            .Where(vis => summaries.Contains(vis.Id))
+            .ToList()
+            .SelectMany(vis => vis.ImageDescriptors.DeviceTemperatures.Select(dt => new { Temperature = dt, vis.ImageDescriptors.TripStart }))
+            .GroupBy(dt => dt.Temperature.Name)
+            .Select(g => new TemperatureSummaryData(g.Key,
+                g.Select(dt => new TemperatureDatum(dt.TripStart, dt.Temperature.AverageTemperature, dt.Temperature.TemperatureDeviation))));
     }
 
     [HttpGet("virtualimage")]

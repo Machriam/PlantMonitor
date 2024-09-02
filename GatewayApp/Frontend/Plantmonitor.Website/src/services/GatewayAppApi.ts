@@ -1835,6 +1835,10 @@ export interface IDashboardClient {
 
     virtualImageList(photoTourId?: number | undefined): Promise<string[]>;
 
+    createPhotoSummaryExport(photoTourId?: number | undefined): Promise<void>;
+
+    temperatureSummary(photoTourId?: number | undefined): Promise<TemperatureSummaryData[]>;
+
     virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string>;
 
     statusOfDownloadTourData(): Promise<DownloadInfo[]>;
@@ -1900,6 +1904,89 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             });
         }
         return Promise.resolve<string[]>(null as any);
+    }
+
+    createPhotoSummaryExport(photoTourId?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Dashboard/createsummaryexport?";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processCreatePhotoSummaryExport(_response));
+        });
+    }
+
+    protected processCreatePhotoSummaryExport(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    temperatureSummary(photoTourId?: number | undefined): Promise<TemperatureSummaryData[]> {
+        let url_ = this.baseUrl + "/api/Dashboard/temperaturedata?";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processTemperatureSummary(_response));
+        });
+    }
+
+    protected processTemperatureSummary(response: Response): Promise<TemperatureSummaryData[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TemperatureSummaryData.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TemperatureSummaryData[]>(null as any);
     }
 
     virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string> {
@@ -4394,6 +4481,112 @@ export interface IDeviceHealthState {
     health: DeviceHealth;
     retryTimes: number;
     ip: string;
+}
+
+export class TemperatureSummaryData implements ITemperatureSummaryData {
+    device!: string;
+    data!: TemperatureDatum[];
+
+    constructor(data?: ITemperatureSummaryData) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.device = _data["Device"];
+            if (Array.isArray(_data["Data"])) {
+                this.data = [] as any;
+                for (let item of _data["Data"])
+                    this.data!.push(TemperatureDatum.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): TemperatureSummaryData {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemperatureSummaryData();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Device"] = this.device;
+        if (Array.isArray(this.data)) {
+            data["Data"] = [];
+            for (let item of this.data)
+                data["Data"].push(item.toJSON());
+        }
+        return data;
+    }
+
+    clone(): TemperatureSummaryData {
+        const json = this.toJSON();
+        let result = new TemperatureSummaryData();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ITemperatureSummaryData {
+    device: string;
+    data: TemperatureDatum[];
+}
+
+export class TemperatureDatum implements ITemperatureDatum {
+    time!: Date;
+    temperature!: number;
+    deviation!: number;
+
+    constructor(data?: ITemperatureDatum) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.time = _data["Time"] ? new Date(_data["Time"].toString()) : <any>undefined;
+            this.temperature = _data["Temperature"];
+            this.deviation = _data["Deviation"];
+        }
+    }
+
+    static fromJS(data: any): TemperatureDatum {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemperatureDatum();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Time"] = this.time ? this.time.toISOString() : <any>undefined;
+        data["Temperature"] = this.temperature;
+        data["Deviation"] = this.deviation;
+        return data;
+    }
+
+    clone(): TemperatureDatum {
+        const json = this.toJSON();
+        let result = new TemperatureDatum();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ITemperatureDatum {
+    time: Date;
+    temperature: number;
+    deviation: number;
 }
 
 export class DownloadInfo implements IDownloadInfo {
