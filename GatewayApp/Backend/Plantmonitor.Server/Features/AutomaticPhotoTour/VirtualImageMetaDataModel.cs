@@ -76,7 +76,8 @@ public record struct VirtualImageMetaDataModel()
     public class ImageMetaDatum : ITsvFormattable
     {
         public ImageMetaDatum() { }
-        public ImageMetaDatum(int imageIndex, string imageName, string imageComment, bool hasIr, bool hasVis, DateTime irTime, DateTime visTime, int irTempInK)
+        public ImageMetaDatum(int imageIndex, string imageName, string imageComment, bool hasIr, bool hasVis, DateTime irTime,
+            DateTime visTime, int irTempInK, int motorPosition)
         {
             ImageIndex = imageIndex;
             ImageName = imageName;
@@ -86,8 +87,10 @@ public record struct VirtualImageMetaDataModel()
             IrTime = irTime;
             VisTime = visTime;
             IrTempInC = irTempInK.KelvinToCelsius();
+            MotorPosition = motorPosition;
         }
 
+        public int MotorPosition { get; set; }
         public int ImageIndex { get; set; }
         public string ImageName { get; set; } = "";
         public string ImageComment { get; set; } = "";
