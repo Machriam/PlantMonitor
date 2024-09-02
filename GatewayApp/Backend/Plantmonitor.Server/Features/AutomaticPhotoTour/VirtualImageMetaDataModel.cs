@@ -90,10 +90,10 @@ public record struct VirtualImageMetaDataModel()
             MotorPosition = motorPosition;
         }
 
-        public int MotorPosition { get; set; }
         public int ImageIndex { get; set; }
         public string ImageName { get; set; } = "";
         public string ImageComment { get; set; } = "";
+        public int MotorPosition { get; set; }
         public bool HasIr { get; set; }
         public bool HasVis { get; set; }
         public DateTime IrTime { get; set; }
@@ -117,7 +117,7 @@ public record struct VirtualImageMetaDataModel()
             nameof(HasIr) or nameof(HasVis) => bool.Parse(text ?? "False"),
             nameof(IrTempInC) => float.Parse(text?.Replace("°C", "") ?? "0", CultureInfo.InvariantCulture),
             nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text ?? s_minDateString, DateFormat, CultureInfo.InvariantCulture),
-            nameof(ImageIndex) => int.Parse(text ?? "0"),
+            nameof(ImageIndex) or nameof(MotorPosition) => int.Parse(text ?? "0"),
             _ => text ?? "",
         };
     }
