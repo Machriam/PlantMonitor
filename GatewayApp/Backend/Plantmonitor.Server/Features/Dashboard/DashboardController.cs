@@ -36,12 +36,12 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var fileName = name.SanitizeFileName().Replace(" ", "") + ".json";
         var path = DownloadFolder() + fileName;
         File.WriteAllText(path, resultJson);
-        var deleteFile = new Task(async () =>
+        async Task DeleteFile()
         {
             await Task.Delay(TimeSpan.FromMinutes(5));
             File.Delete(path);
-        });
-        deleteFile.RunInBackground(ex => ex.LogError());
+        }
+        DeleteFile().RunInBackground(ex => ex.LogError());
         return Path.Combine(IWebHostEnvironmentExtensions.DownloadFolder, Path.GetFileName(fileName));
     }
 

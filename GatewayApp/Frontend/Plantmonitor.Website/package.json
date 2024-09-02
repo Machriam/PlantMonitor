@@ -39,6 +39,7 @@
     "dependencies": {
         "@microsoft/signalr": "^8.0.0",
         "@microsoft/signalr-protocol-msgpack": "^8.0.0",
+        "echarts": "^5.5.1",
         "mirada": "^0.0.15"
     }
 }
