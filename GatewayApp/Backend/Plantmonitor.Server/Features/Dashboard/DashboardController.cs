@@ -26,25 +26,43 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
             .Select(f => Path.GetFileName(f));
     }
 
-    [HttpPost("createsummaryexport")]
-    public void CreatePhotoSummaryExport(long photoTourId)
+    [HttpPost("summaryexport")]
+    public string CreatePhotoSummaryExport(long photoTourId)
     {
+        var name = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId).Name;
+        var resultJson = SummariesById(context, photoTourId)
+            .ToList()
+            .AsJson();
+        var fileName = name.SanitizeFileName().Replace(" ", "") + ".json";
+        var path = DownloadFolder() + fileName;
+        File.WriteAllText(path, resultJson);
+        var deleteFile = new Task(async () =>
+        {
+            await Task.Delay(TimeSpan.FromMinutes(5));
+            File.Delete(path);
+        });
+        deleteFile.RunInBackground(ex => ex.LogError());
+        return Path.Combine(IWebHostEnvironmentExtensions.DownloadFolder, Path.GetFileName(fileName));
     }
 
     [HttpGet("temperaturedata")]
     public IEnumerable<TemperatureSummaryData> TemperatureSummary(long photoTourId)
+    {
+        return SummariesById(context, photoTourId).ToList()
+            .SelectMany(vis => vis.ImageDescriptors.DeviceTemperatures.Select(dt => new { Temperature = dt, vis.ImageDescriptors.TripStart }))
+            .GroupBy(dt => dt.Temperature.Name)
+            .Select(g => new TemperatureSummaryData(g.Key,
+                g.Select(dt => new TemperatureDatum(dt.TripStart, dt.Temperature.AverageTemperature, dt.Temperature.TemperatureDeviation)))); ;
+    }
+
+    private static IQueryable<VirtualImageSummary> SummariesById(IDataContext context, long photoTourId)
     {
         var summaries = context.VirtualImageSummaryByPhotoTourIds
             .Where(vis => vis.PhotoTourId == photoTourId)
             .Select(vis => vis.Id)
             .ToHashSet();
         return context.VirtualImageSummaries
-            .Where(vis => summaries.Contains(vis.Id))
-            .ToList()
-            .SelectMany(vis => vis.ImageDescriptors.DeviceTemperatures.Select(dt => new { Temperature = dt, vis.ImageDescriptors.TripStart }))
-            .GroupBy(dt => dt.Temperature.Name)
-            .Select(g => new TemperatureSummaryData(g.Key,
-                g.Select(dt => new TemperatureDatum(dt.TripStart, dt.Temperature.AverageTemperature, dt.Temperature.TemperatureDeviation))));
+            .Where(vis => summaries.Contains(vis.Id));
     }
 
     [HttpGet("virtualimage")]
