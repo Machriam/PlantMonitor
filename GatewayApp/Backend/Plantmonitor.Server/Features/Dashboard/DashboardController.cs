@@ -52,7 +52,8 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
             .SelectMany(vis => vis.ImageDescriptors.DeviceTemperatures.Select(dt => new { Temperature = dt, vis.ImageDescriptors.TripStart }))
             .GroupBy(dt => dt.Temperature.Name)
             .Select(g => new TemperatureSummaryData(g.Key,
-                g.Select(dt => new TemperatureDatum(dt.TripStart, dt.Temperature.AverageTemperature, dt.Temperature.TemperatureDeviation)))); ;
+                g.Select(dt => new TemperatureDatum(dt.TripStart, dt.Temperature.AverageTemperature, dt.Temperature.TemperatureDeviation))
+                .OrderBy(dt => dt.Time)));
     }
 
     private static IQueryable<VirtualImageSummary> SummariesById(IDataContext context, long photoTourId)

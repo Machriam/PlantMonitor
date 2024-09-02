@@ -2,8 +2,11 @@
     import {DeviceStreaming} from "~/services/DeviceStreaming";
     import {selectedDevice} from "../store";
     import {
+        AutomaticPhotoTourClient,
+        DashboardClient,
         MeasurementDevice,
         MeasurementStartInfo,
+        PhotoTourInfo,
         RunningMeasurement,
         TemperatureClient,
         TemperatureMeasurement
@@ -12,12 +15,13 @@
     import {HubConnection} from "@microsoft/signalr";
     import {Task} from "~/types/Task";
     import * as echarts from "echarts";
+    import TextInput from "../reuseableComponents/TextInput.svelte";
 
     let _connection: HubConnection | undefined;
     let _temperatureMeasurementById: Map<number, TemperatureMeasurement> = new Map();
     let _runningMeasurementByIp: Map<string, RunningMeasurement[]> = new Map();
     let _devices: MeasurementDevice[] = [];
-    const _databaseTemperatureChartId = Math.random().toString(36).substring(7);
+    let _photoTours: PhotoTourInfo[] = [];
     const _liveTemperatureChartId = Math.random().toString(36).substring(7);
     let _liveChart: echarts.ECharts;
     let _liveTemperatureByDevice: Map<string, {date: Date; temperature: number}[]> = new Map();
@@ -25,9 +29,54 @@
         _connection?.stop();
     });
     onMount(async () => {
+        const photoTourClient = new AutomaticPhotoTourClient();
+        _photoTours = await photoTourClient.getPhotoTours();
         await getMeasurements();
         _liveChart = echarts.init(document.getElementById(_liveTemperatureChartId));
+        setTemperatureData([]);
     });
+    async function showTemperaturesOfTour(info: PhotoTourInfo) {
+        const dashboardClient = new DashboardClient();
+        const summary = await dashboardClient.temperatureSummary(info.id);
+        let newData: {name: string; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
+        summary.forEach((x) => {
+            newData.push({name: x.device, type: "line", showSymbol: true, data: x.data.map((y) => [y.time, y.temperature])});
+        });
+        setTemperatureData(newData);
+    }
+
+    async function showTemperaturesOfMeasurement(measurement: TemperatureMeasurement) {
+        const dashboardClient = new TemperatureClient();
+        const temperatures = await dashboardClient.temperaturesOfMeasurement(measurement.id);
+        let newData: {name: string; sampling: string; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
+        newData.push({
+            name: measurement.comment,
+            type: "line",
+            sampling: "lttb",
+            showSymbol: true,
+            data: temperatures.map((y) => [y.timestamp, y.temperature])
+        });
+        setTemperatureData(newData);
+    }
+
+    function setTemperatureData(newData: {name: string; type: string; showSymbol: boolean; data: (number | Date)[][]}[]) {
+        _liveChart.clear();
+        _liveChart.setOption({
+            title: {text: "Temperatures: " + newData.map((x) => x.name).join(", ")},
+            series: [],
+            animation: false,
+            tooltip: {
+                trigger: "axis",
+                axisPointer: {animation: false},
+                formatter: function (params: {seriesName: string; value: [Date, number]}[]) {
+                    return params.map((x) => x.seriesName + ": " + x.value[1].toFixed(1) + "°C").join("<br>");
+                }
+            },
+            xAxis: {type: "time"},
+            yAxis: {type: "value"}
+        });
+        _liveChart.setOption({series: newData});
+    }
 
     async function getMeasurements() {
         const temperatureClient = new TemperatureClient();
@@ -66,19 +115,7 @@
         const connection = streamer.temperatureConnection($selectedDevice.ip, devices);
         _connection = connection.connection;
         _liveChart.clear();
-        _liveChart.setOption({
-            title: {text: "Live Temperature"},
-            series: [],
-            tooltip: {
-                trigger: "axis",
-                axisPointer: {animation: false},
-                formatter: function (params: {seriesName: string; value: [Date, number]}[]) {
-                    return params.map((x) => x.seriesName + ": " + x.value[1].toFixed(1) + "°C").join("<br>");
-                }
-            },
-            xAxis: {type: "time"},
-            yAxis: {type: "value"}
-        });
+
         await connection.start(async (temperature, device, date) => {
             if (_liveTemperatureByDevice.has(device)) {
                 _liveTemperatureByDevice.get(device)?.push({date: date, temperature: temperature});
@@ -87,9 +124,7 @@
             _liveTemperatureByDevice.forEach((value, key) => {
                 newData.push({name: key, type: "line", showSymbol: true, data: value.map((x) => [x.date, x.temperature])});
             });
-            _liveChart.setOption({
-                series: newData
-            });
+            _liveChart.setOption({series: newData});
         });
     }
 </script>
@@ -97,27 +132,55 @@
 <svelte:head><title>Temperature Monitoring</title></svelte:head>
 
 <div class="col-md-12 row">
-    <button disabled={$selectedDevice?.ip == undefined} on:click={getTemperatures} class=" btn btn-primary col-md-2"
-        >Show Temperatures</button>
-    <div style="height: 40vh;" id={_liveTemperatureChartId} class="col-md-10"></div>
-    <div>{$selectedDevice?.ip}</div>
-    <hr />
+    <div style="height: 40vh;" id={_liveTemperatureChartId} class="col-md-12"></div>
+    <div class="col-md-10"></div>
+    <button
+        disabled={$selectedDevice?.ip == undefined}
+        on:click={getTemperatures}
+        style="align-self: center;height: 40px;"
+        class=" btn btn-primary col-md-2">Temperatures of {$selectedDevice?.ip}</button>
+    <hr class="mt-2" />
     <button on:click={getDevices} class="btn btn-primary col-md-2">Get Devices</button>
-    <div class="col-md-12">
-        {#each _devices as device}
-            <div>{device.sensorId}</div>
-            <input type="text" class="form-control" bind:value={device.comment} />
-        {/each}
-    </div>
-    <button on:click={startMeasurement} class="btn btn-primary col-md-2">Start Measurement</button>
+    {#each _devices as device}
+        <TextInput class="col-md-2" label="Comment {device.sensorId}" bind:value={device.comment}></TextInput>
+    {/each}
+    <div class="col-md-12 mt-2"></div>
+    <button
+        disabled={_devices.length == 0 || _devices.filter((d) => d.comment.isEmpty()).length > 0}
+        on:click={startMeasurement}
+        class="btn btn-primary col-md-2">Start Measurement</button>
     <div class="col-md-12 row">
         {#each _runningMeasurementByIp.keys() as ip}
-            <div class="col-md-1">{ip}</div>
+            <hr class="mt-2" />
+            <div class="col-md-3">Running measurement: {ip}</div>
             {#each _runningMeasurementByIp.get(ip) ?? [] as measurement}
-                <div class="col-md-1">{_temperatureMeasurementById.get(measurement.measurementId)?.comment}</div>
+                <div class="col-md-1">
+                    {_temperatureMeasurementById.get(measurement.measurementId)?.sensorId}: {_temperatureMeasurementById.get(
+                        measurement.measurementId
+                    )?.comment}
+                </div>
             {/each}
             <button on:click={async () => await stopMeasurement(ip)} class="btn btn-danger col-md-2">Abort</button>
+            <button class="btn btn-primary col-md-2 ms-2">Show data</button>
+        {/each}
+    </div>
+    <hr />
+    <div style="height: 30vh;overflow-y:auto" class="col-md-6 row">
+        <h4>Existing Phototours</h4>
+        {#each _photoTours.toSorted((a, b) => (a.lastEvent > b.lastEvent ? -1 : 1)) as tour}
+            <div class="col-md-4">{tour.name}</div>
+            <button on:click={() => showTemperaturesOfTour(tour)} class="btn btn-primary col-md-4">Show Temperatures</button>
+            <div class="col-md-12 mt-2"></div>
+        {/each}
+    </div>
+    <div style="height: 30vh;overflow-y:auto" class="col-md-6 row">
+        <h4>All measurements</h4>
+        {#each _temperatureMeasurementById.values() as measurement}
+            <div class="col-md-4">{measurement.sensorId}</div>
+            <div class="col-md-4">{measurement.comment}</div>
+            <button on:click={() => showTemperaturesOfMeasurement(measurement)} class="col-md-4 btn btn-primary"
+                >Show Temperatures</button>
+            <div class="col-md-12 mt-2"></div>
         {/each}
     </div>
 </div>
-<div id={_databaseTemperatureChartId}></div>

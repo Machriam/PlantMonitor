@@ -18,6 +18,8 @@ export interface ITemperatureClient {
 
     measurements(): Promise<TemperatureMeasurement[]>;
 
+    temperaturesOfMeasurement(measurementId?: number | undefined): Promise<TemperatureDatum[]>;
+
     addMeasurement(info: MeasurementStartInfo): Promise<void>;
 
     stopMeasurement(ip?: string | undefined): Promise<void>;
@@ -165,6 +167,53 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
             });
         }
         return Promise.resolve<TemperatureMeasurement[]>(null as any);
+    }
+
+    temperaturesOfMeasurement(measurementId?: number | undefined): Promise<TemperatureDatum[]> {
+        let url_ = this.baseUrl + "/api/Temperature/temperatureofmeasurement?";
+        if (measurementId === null)
+            throw new Error("The parameter 'measurementId' cannot be null.");
+        else if (measurementId !== undefined)
+            url_ += "measurementId=" + encodeURIComponent("" + measurementId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processTemperaturesOfMeasurement(_response));
+        });
+    }
+
+    protected processTemperaturesOfMeasurement(response: Response): Promise<TemperatureDatum[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TemperatureDatum.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TemperatureDatum[]>(null as any);
     }
 
     addMeasurement(info: MeasurementStartInfo): Promise<void> {
@@ -3161,6 +3210,53 @@ export interface ITemperatureMeasurementValue {
     measurementFkNavigation: TemperatureMeasurement;
 }
 
+export class TemperatureDatum implements ITemperatureDatum {
+    temperature!: number;
+    timestamp!: Date;
+
+    constructor(data?: ITemperatureDatum) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.temperature = _data["Temperature"];
+            this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): TemperatureDatum {
+        data = typeof data === 'object' ? data : {};
+        let result = new TemperatureDatum();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Temperature"] = this.temperature;
+        data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
+        return data;
+    }
+
+    clone(): TemperatureDatum {
+        const json = this.toJSON();
+        let result = new TemperatureDatum();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ITemperatureDatum {
+    temperature: number;
+    timestamp: Date;
+}
+
 export class MeasurementStartInfo implements IMeasurementStartInfo {
     devices!: MeasurementDevice[];
     ip!: string;
@@ -4490,7 +4586,7 @@ export interface IDeviceHealthState {
 
 export class TemperatureSummaryData implements ITemperatureSummaryData {
     device!: string;
-    data!: TemperatureDatum[];
+    data!: TemperatureDatum2[];
 
     constructor(data?: ITemperatureSummaryData) {
         if (data) {
@@ -4507,7 +4603,7 @@ export class TemperatureSummaryData implements ITemperatureSummaryData {
             if (Array.isArray(_data["Data"])) {
                 this.data = [] as any;
                 for (let item of _data["Data"])
-                    this.data!.push(TemperatureDatum.fromJS(item));
+                    this.data!.push(TemperatureDatum2.fromJS(item));
             }
         }
     }
@@ -4540,15 +4636,15 @@ export class TemperatureSummaryData implements ITemperatureSummaryData {
 
 export interface ITemperatureSummaryData {
     device: string;
-    data: TemperatureDatum[];
+    data: TemperatureDatum2[];
 }
 
-export class TemperatureDatum implements ITemperatureDatum {
+export class TemperatureDatum2 implements ITemperatureDatum2 {
     time!: Date;
     temperature!: number;
     deviation!: number;
 
-    constructor(data?: ITemperatureDatum) {
+    constructor(data?: ITemperatureDatum2) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4565,9 +4661,9 @@ export class TemperatureDatum implements ITemperatureDatum {
         }
     }
 
-    static fromJS(data: any): TemperatureDatum {
+    static fromJS(data: any): TemperatureDatum2 {
         data = typeof data === 'object' ? data : {};
-        let result = new TemperatureDatum();
+        let result = new TemperatureDatum2();
         result.init(data);
         return result;
     }
@@ -4580,15 +4676,15 @@ export class TemperatureDatum implements ITemperatureDatum {
         return data;
     }
 
-    clone(): TemperatureDatum {
+    clone(): TemperatureDatum2 {
         const json = this.toJSON();
-        let result = new TemperatureDatum();
+        let result = new TemperatureDatum2();
         result.init(json);
         return result;
     }
 }
 
-export interface ITemperatureDatum {
+export interface ITemperatureDatum2 {
     time: Date;
     temperature: number;
     deviation: number;

@@ -128,12 +128,13 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         action.Try(ex =>
         {
             RemoveExistingSummary(logger, context, nextImage);
-            context.VirtualImageSummaries.Add(new VirtualImageSummary
+            var newSummary = new VirtualImageSummary
             {
                 VirtualImageCreationDate = nextImage.Value,
                 VirtualImagePath = nextImage.Key,
                 ImageDescriptors = new()
-            });
+            };
+            context.VirtualImageSummaries.Add(newSummary);
             context.SaveChanges();
             logger.LogInformation("Virtual image {zip} threw an error", nextImage.Key);
             ex.LogError();
