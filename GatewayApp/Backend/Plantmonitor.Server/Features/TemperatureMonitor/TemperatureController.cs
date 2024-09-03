@@ -10,7 +10,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor;
 [Route("api/[controller]")]
 public class TemperatureController(IDeviceApiFactory apiFactory, ITemperatureMeasurementWorker worker, IDataContext dataContext)
 {
-    public record struct TemperatureDatum(float Temperature, DateTime Timestamp);
+    public record struct MeasurementTemperatureDatum(float Temperature, DateTime Timestamp);
     public record struct MeasurementStartInfo(MeasurementDevice[] Devices, string Ip);
     public record struct RunningMeasurement(string Ip, long MeasurementId);
 
@@ -33,13 +33,13 @@ public class TemperatureController(IDeviceApiFactory apiFactory, ITemperatureMea
     }
 
     [HttpGet("temperatureofmeasurement")]
-    public IEnumerable<TemperatureDatum> TemperaturesOfMeasurement(long measurementId)
+    public IEnumerable<MeasurementTemperatureDatum> TemperaturesOfMeasurement(long measurementId)
     {
         var measurement = dataContext.TemperatureMeasurements
             .Include(tm => tm.TemperatureMeasurementValues)
             .Where(tm => tm.Id == measurementId);
         return measurement
-            .SelectMany(tv => tv.TemperatureMeasurementValues.Select(mv => new TemperatureDatum(mv.Temperature, mv.Timestamp)))
+            .SelectMany(tv => tv.TemperatureMeasurementValues.Select(mv => new MeasurementTemperatureDatum(mv.Temperature, mv.Timestamp)))
             .ToList()
             .OrderBy(tv => tv.Timestamp);
     }

@@ -18,7 +18,7 @@ export interface ITemperatureClient {
 
     measurements(): Promise<TemperatureMeasurement[]>;
 
-    temperaturesOfMeasurement(measurementId?: number | undefined): Promise<TemperatureDatum[]>;
+    temperaturesOfMeasurement(measurementId?: number | undefined): Promise<MeasurementTemperatureDatum[]>;
 
     addMeasurement(info: MeasurementStartInfo): Promise<void>;
 
@@ -169,7 +169,7 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
         return Promise.resolve<TemperatureMeasurement[]>(null as any);
     }
 
-    temperaturesOfMeasurement(measurementId?: number | undefined): Promise<TemperatureDatum[]> {
+    temperaturesOfMeasurement(measurementId?: number | undefined): Promise<MeasurementTemperatureDatum[]> {
         let url_ = this.baseUrl + "/api/Temperature/temperatureofmeasurement?";
         if (measurementId === null)
             throw new Error("The parameter 'measurementId' cannot be null.");
@@ -191,7 +191,7 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
         });
     }
 
-    protected processTemperaturesOfMeasurement(response: Response): Promise<TemperatureDatum[]> {
+    protected processTemperaturesOfMeasurement(response: Response): Promise<MeasurementTemperatureDatum[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -201,7 +201,7 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(TemperatureDatum.fromJS(item));
+                    result200!.push(MeasurementTemperatureDatum.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -213,7 +213,7 @@ export class TemperatureClient extends GatewayAppApiBase implements ITemperature
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<TemperatureDatum[]>(null as any);
+        return Promise.resolve<MeasurementTemperatureDatum[]>(null as any);
     }
 
     addMeasurement(info: MeasurementStartInfo): Promise<void> {
@@ -1884,6 +1884,8 @@ export interface IDashboardClient {
 
     virtualImageList(photoTourId?: number | undefined): Promise<string[]>;
 
+    summaryForTour(photoTourId?: number | undefined): Promise<VirtualImageSummary[]>;
+
     createPhotoSummaryExport(photoTourId?: number | undefined): Promise<string>;
 
     temperatureSummary(photoTourId?: number | undefined): Promise<TemperatureSummaryData[]>;
@@ -1953,6 +1955,53 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             });
         }
         return Promise.resolve<string[]>(null as any);
+    }
+
+    summaryForTour(photoTourId?: number | undefined): Promise<VirtualImageSummary[]> {
+        let url_ = this.baseUrl + "/api/Dashboard/fullsummaryinformation?";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processSummaryForTour(_response));
+        });
+    }
+
+    protected processSummaryForTour(response: Response): Promise<VirtualImageSummary[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(VirtualImageSummary.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<VirtualImageSummary[]>(null as any);
     }
 
     createPhotoSummaryExport(photoTourId?: number | undefined): Promise<string> {
@@ -3210,11 +3259,11 @@ export interface ITemperatureMeasurementValue {
     measurementFkNavigation: TemperatureMeasurement;
 }
 
-export class TemperatureDatum implements ITemperatureDatum {
+export class MeasurementTemperatureDatum implements IMeasurementTemperatureDatum {
     temperature!: number;
     timestamp!: Date;
 
-    constructor(data?: ITemperatureDatum) {
+    constructor(data?: IMeasurementTemperatureDatum) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -3230,9 +3279,9 @@ export class TemperatureDatum implements ITemperatureDatum {
         }
     }
 
-    static fromJS(data: any): TemperatureDatum {
+    static fromJS(data: any): MeasurementTemperatureDatum {
         data = typeof data === 'object' ? data : {};
-        let result = new TemperatureDatum();
+        let result = new MeasurementTemperatureDatum();
         result.init(data);
         return result;
     }
@@ -3244,15 +3293,15 @@ export class TemperatureDatum implements ITemperatureDatum {
         return data;
     }
 
-    clone(): TemperatureDatum {
+    clone(): MeasurementTemperatureDatum {
         const json = this.toJSON();
-        let result = new TemperatureDatum();
+        let result = new MeasurementTemperatureDatum();
         result.init(json);
         return result;
     }
 }
 
-export interface ITemperatureDatum {
+export interface IMeasurementTemperatureDatum {
     temperature: number;
     timestamp: Date;
 }
@@ -4584,9 +4633,452 @@ export interface IDeviceHealthState {
     ip: string;
 }
 
+export class VirtualImageSummary implements IVirtualImageSummary {
+    id!: number;
+    virtualImagePath!: string;
+    virtualImageCreationDate!: Date;
+    imageDescriptorsJson!: string;
+    imageDescriptors!: PhotoTourDescriptor;
+
+    constructor(data?: IVirtualImageSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["Id"];
+            this.virtualImagePath = _data["VirtualImagePath"];
+            this.virtualImageCreationDate = _data["VirtualImageCreationDate"] ? new Date(_data["VirtualImageCreationDate"].toString()) : <any>undefined;
+            this.imageDescriptorsJson = _data["ImageDescriptorsJson"];
+            this.imageDescriptors = _data["ImageDescriptors"] ? PhotoTourDescriptor.fromJS(_data["ImageDescriptors"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): VirtualImageSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new VirtualImageSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Id"] = this.id;
+        data["VirtualImagePath"] = this.virtualImagePath;
+        data["VirtualImageCreationDate"] = this.virtualImageCreationDate ? this.virtualImageCreationDate.toISOString() : <any>undefined;
+        data["ImageDescriptorsJson"] = this.imageDescriptorsJson;
+        data["ImageDescriptors"] = this.imageDescriptors ? this.imageDescriptors.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): VirtualImageSummary {
+        const json = this.toJSON();
+        let result = new VirtualImageSummary();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IVirtualImageSummary {
+    id: number;
+    virtualImagePath: string;
+    virtualImageCreationDate: Date;
+    imageDescriptorsJson: string;
+    imageDescriptors: PhotoTourDescriptor;
+}
+
+export class PhotoTourDescriptor implements IPhotoTourDescriptor {
+    deviceTemperatures!: DeviceTemperature[];
+    plantDescriptors!: PlantImageDescriptors[];
+    tourName!: string;
+    photoTourId!: number;
+    photoTripId!: number;
+    tripStart!: Date;
+    tripEnd!: Date;
+
+    constructor(data?: IPhotoTourDescriptor) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["DeviceTemperatures"])) {
+                this.deviceTemperatures = [] as any;
+                for (let item of _data["DeviceTemperatures"])
+                    this.deviceTemperatures!.push(DeviceTemperature.fromJS(item));
+            }
+            if (Array.isArray(_data["PlantDescriptors"])) {
+                this.plantDescriptors = [] as any;
+                for (let item of _data["PlantDescriptors"])
+                    this.plantDescriptors!.push(PlantImageDescriptors.fromJS(item));
+            }
+            this.tourName = _data["TourName"];
+            this.photoTourId = _data["PhotoTourId"];
+            this.photoTripId = _data["PhotoTripId"];
+            this.tripStart = _data["TripStart"] ? new Date(_data["TripStart"].toString()) : <any>undefined;
+            this.tripEnd = _data["TripEnd"] ? new Date(_data["TripEnd"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): PhotoTourDescriptor {
+        data = typeof data === 'object' ? data : {};
+        let result = new PhotoTourDescriptor();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.deviceTemperatures)) {
+            data["DeviceTemperatures"] = [];
+            for (let item of this.deviceTemperatures)
+                data["DeviceTemperatures"].push(item.toJSON());
+        }
+        if (Array.isArray(this.plantDescriptors)) {
+            data["PlantDescriptors"] = [];
+            for (let item of this.plantDescriptors)
+                data["PlantDescriptors"].push(item.toJSON());
+        }
+        data["TourName"] = this.tourName;
+        data["PhotoTourId"] = this.photoTourId;
+        data["PhotoTripId"] = this.photoTripId;
+        data["TripStart"] = this.tripStart ? this.tripStart.toISOString() : <any>undefined;
+        data["TripEnd"] = this.tripEnd ? this.tripEnd.toISOString() : <any>undefined;
+        return data;
+    }
+
+    clone(): PhotoTourDescriptor {
+        const json = this.toJSON();
+        let result = new PhotoTourDescriptor();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPhotoTourDescriptor {
+    deviceTemperatures: DeviceTemperature[];
+    plantDescriptors: PlantImageDescriptors[];
+    tourName: string;
+    photoTourId: number;
+    photoTripId: number;
+    tripStart: Date;
+    tripEnd: Date;
+}
+
+export class DeviceTemperature implements IDeviceTemperature {
+    name!: string;
+    averageTemperature!: number;
+    medianTemperature!: number;
+    maxTemperature!: number;
+    minTemperature!: number;
+    temperatureDeviation!: number;
+    countOfMeasurements!: number;
+
+    constructor(data?: IDeviceTemperature) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["Name"];
+            this.averageTemperature = _data["AverageTemperature"];
+            this.medianTemperature = _data["MedianTemperature"];
+            this.maxTemperature = _data["MaxTemperature"];
+            this.minTemperature = _data["MinTemperature"];
+            this.temperatureDeviation = _data["TemperatureDeviation"];
+            this.countOfMeasurements = _data["CountOfMeasurements"];
+        }
+    }
+
+    static fromJS(data: any): DeviceTemperature {
+        data = typeof data === 'object' ? data : {};
+        let result = new DeviceTemperature();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Name"] = this.name;
+        data["AverageTemperature"] = this.averageTemperature;
+        data["MedianTemperature"] = this.medianTemperature;
+        data["MaxTemperature"] = this.maxTemperature;
+        data["MinTemperature"] = this.minTemperature;
+        data["TemperatureDeviation"] = this.temperatureDeviation;
+        data["CountOfMeasurements"] = this.countOfMeasurements;
+        return data;
+    }
+
+    clone(): DeviceTemperature {
+        const json = this.toJSON();
+        let result = new DeviceTemperature();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IDeviceTemperature {
+    name: string;
+    averageTemperature: number;
+    medianTemperature: number;
+    maxTemperature: number;
+    minTemperature: number;
+    temperatureDeviation: number;
+    countOfMeasurements: number;
+}
+
+export class PlantImageDescriptors implements IPlantImageDescriptors {
+    plant!: ReferencedPlant;
+    sizeInMm2!: number;
+    averageTemperature!: number;
+    medianTemperature!: number;
+    temperatureDev!: number;
+    maxTemperature!: number;
+    minTemperature!: number;
+    heightInMm!: number;
+    widthInMm!: number;
+    extent!: number;
+    convexHullAreaInMm2!: number;
+    solidity!: number;
+    leafCount!: number;
+    leafOutOfRange!: boolean;
+    hslAverage!: number[];
+    hslMedian!: number[];
+    hslMax!: number[];
+    hslMin!: number[];
+    hslDeviation!: number[];
+    noImage!: boolean;
+
+    constructor(data?: IPlantImageDescriptors) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.plant = _data["Plant"] ? ReferencedPlant.fromJS(_data["Plant"]) : <any>undefined;
+            this.sizeInMm2 = _data["SizeInMm2"];
+            this.averageTemperature = _data["AverageTemperature"];
+            this.medianTemperature = _data["MedianTemperature"];
+            this.temperatureDev = _data["TemperatureDev"];
+            this.maxTemperature = _data["MaxTemperature"];
+            this.minTemperature = _data["MinTemperature"];
+            this.heightInMm = _data["HeightInMm"];
+            this.widthInMm = _data["WidthInMm"];
+            this.extent = _data["Extent"];
+            this.convexHullAreaInMm2 = _data["ConvexHullAreaInMm2"];
+            this.solidity = _data["Solidity"];
+            this.leafCount = _data["LeafCount"];
+            this.leafOutOfRange = _data["LeafOutOfRange"];
+            if (Array.isArray(_data["HslAverage"])) {
+                this.hslAverage = [] as any;
+                for (let item of _data["HslAverage"])
+                    this.hslAverage!.push(item);
+            }
+            if (Array.isArray(_data["HslMedian"])) {
+                this.hslMedian = [] as any;
+                for (let item of _data["HslMedian"])
+                    this.hslMedian!.push(item);
+            }
+            if (Array.isArray(_data["HslMax"])) {
+                this.hslMax = [] as any;
+                for (let item of _data["HslMax"])
+                    this.hslMax!.push(item);
+            }
+            if (Array.isArray(_data["HslMin"])) {
+                this.hslMin = [] as any;
+                for (let item of _data["HslMin"])
+                    this.hslMin!.push(item);
+            }
+            if (Array.isArray(_data["HslDeviation"])) {
+                this.hslDeviation = [] as any;
+                for (let item of _data["HslDeviation"])
+                    this.hslDeviation!.push(item);
+            }
+            this.noImage = _data["NoImage"];
+        }
+    }
+
+    static fromJS(data: any): PlantImageDescriptors {
+        data = typeof data === 'object' ? data : {};
+        let result = new PlantImageDescriptors();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Plant"] = this.plant ? this.plant.toJSON() : <any>undefined;
+        data["SizeInMm2"] = this.sizeInMm2;
+        data["AverageTemperature"] = this.averageTemperature;
+        data["MedianTemperature"] = this.medianTemperature;
+        data["TemperatureDev"] = this.temperatureDev;
+        data["MaxTemperature"] = this.maxTemperature;
+        data["MinTemperature"] = this.minTemperature;
+        data["HeightInMm"] = this.heightInMm;
+        data["WidthInMm"] = this.widthInMm;
+        data["Extent"] = this.extent;
+        data["ConvexHullAreaInMm2"] = this.convexHullAreaInMm2;
+        data["Solidity"] = this.solidity;
+        data["LeafCount"] = this.leafCount;
+        data["LeafOutOfRange"] = this.leafOutOfRange;
+        if (Array.isArray(this.hslAverage)) {
+            data["HslAverage"] = [];
+            for (let item of this.hslAverage)
+                data["HslAverage"].push(item);
+        }
+        if (Array.isArray(this.hslMedian)) {
+            data["HslMedian"] = [];
+            for (let item of this.hslMedian)
+                data["HslMedian"].push(item);
+        }
+        if (Array.isArray(this.hslMax)) {
+            data["HslMax"] = [];
+            for (let item of this.hslMax)
+                data["HslMax"].push(item);
+        }
+        if (Array.isArray(this.hslMin)) {
+            data["HslMin"] = [];
+            for (let item of this.hslMin)
+                data["HslMin"].push(item);
+        }
+        if (Array.isArray(this.hslDeviation)) {
+            data["HslDeviation"] = [];
+            for (let item of this.hslDeviation)
+                data["HslDeviation"].push(item);
+        }
+        data["NoImage"] = this.noImage;
+        return data;
+    }
+
+    clone(): PlantImageDescriptors {
+        const json = this.toJSON();
+        let result = new PlantImageDescriptors();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPlantImageDescriptors {
+    plant: ReferencedPlant;
+    sizeInMm2: number;
+    averageTemperature: number;
+    medianTemperature: number;
+    temperatureDev: number;
+    maxTemperature: number;
+    minTemperature: number;
+    heightInMm: number;
+    widthInMm: number;
+    extent: number;
+    convexHullAreaInMm2: number;
+    solidity: number;
+    leafCount: number;
+    leafOutOfRange: boolean;
+    hslAverage: number[];
+    hslMedian: number[];
+    hslMax: number[];
+    hslMin: number[];
+    hslDeviation: number[];
+    noImage: boolean;
+}
+
+export class ReferencedPlant implements IReferencedPlant {
+    imageIndex!: number;
+    motorPosition!: number;
+    imageName!: string;
+    imageComment!: string;
+    hasIr!: boolean;
+    hasVis!: boolean;
+    irTime!: Date;
+    visTime!: Date;
+    irTempInC!: number;
+
+    constructor(data?: IReferencedPlant) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.imageIndex = _data["ImageIndex"];
+            this.motorPosition = _data["MotorPosition"];
+            this.imageName = _data["ImageName"];
+            this.imageComment = _data["ImageComment"];
+            this.hasIr = _data["HasIr"];
+            this.hasVis = _data["HasVis"];
+            this.irTime = _data["IrTime"] ? new Date(_data["IrTime"].toString()) : <any>undefined;
+            this.visTime = _data["VisTime"] ? new Date(_data["VisTime"].toString()) : <any>undefined;
+            this.irTempInC = _data["IrTempInC"];
+        }
+    }
+
+    static fromJS(data: any): ReferencedPlant {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReferencedPlant();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["ImageIndex"] = this.imageIndex;
+        data["MotorPosition"] = this.motorPosition;
+        data["ImageName"] = this.imageName;
+        data["ImageComment"] = this.imageComment;
+        data["HasIr"] = this.hasIr;
+        data["HasVis"] = this.hasVis;
+        data["IrTime"] = this.irTime ? this.irTime.toISOString() : <any>undefined;
+        data["VisTime"] = this.visTime ? this.visTime.toISOString() : <any>undefined;
+        data["IrTempInC"] = this.irTempInC;
+        return data;
+    }
+
+    clone(): ReferencedPlant {
+        const json = this.toJSON();
+        let result = new ReferencedPlant();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IReferencedPlant {
+    imageIndex: number;
+    motorPosition: number;
+    imageName: string;
+    imageComment: string;
+    hasIr: boolean;
+    hasVis: boolean;
+    irTime: Date;
+    visTime: Date;
+    irTempInC: number;
+}
+
 export class TemperatureSummaryData implements ITemperatureSummaryData {
     device!: string;
-    data!: TemperatureDatum2[];
+    data!: TemperatureDatum[];
 
     constructor(data?: ITemperatureSummaryData) {
         if (data) {
@@ -4603,7 +5095,7 @@ export class TemperatureSummaryData implements ITemperatureSummaryData {
             if (Array.isArray(_data["Data"])) {
                 this.data = [] as any;
                 for (let item of _data["Data"])
-                    this.data!.push(TemperatureDatum2.fromJS(item));
+                    this.data!.push(TemperatureDatum.fromJS(item));
             }
         }
     }
@@ -4636,15 +5128,15 @@ export class TemperatureSummaryData implements ITemperatureSummaryData {
 
 export interface ITemperatureSummaryData {
     device: string;
-    data: TemperatureDatum2[];
+    data: TemperatureDatum[];
 }
 
-export class TemperatureDatum2 implements ITemperatureDatum2 {
+export class TemperatureDatum implements ITemperatureDatum {
     time!: Date;
     temperature!: number;
     deviation!: number;
 
-    constructor(data?: ITemperatureDatum2) {
+    constructor(data?: ITemperatureDatum) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4661,9 +5153,9 @@ export class TemperatureDatum2 implements ITemperatureDatum2 {
         }
     }
 
-    static fromJS(data: any): TemperatureDatum2 {
+    static fromJS(data: any): TemperatureDatum {
         data = typeof data === 'object' ? data : {};
-        let result = new TemperatureDatum2();
+        let result = new TemperatureDatum();
         result.init(data);
         return result;
     }
@@ -4676,15 +5168,15 @@ export class TemperatureDatum2 implements ITemperatureDatum2 {
         return data;
     }
 
-    clone(): TemperatureDatum2 {
+    clone(): TemperatureDatum {
         const json = this.toJSON();
-        let result = new TemperatureDatum2();
+        let result = new TemperatureDatum();
         result.init(json);
         return result;
     }
 }
 
-export interface ITemperatureDatum2 {
+export interface ITemperatureDatum {
     time: Date;
     temperature: number;
     deviation: number;

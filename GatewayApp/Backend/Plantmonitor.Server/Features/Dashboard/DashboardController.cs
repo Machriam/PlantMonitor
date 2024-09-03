@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Compression;
+using System.Text;
+using System.Text.Unicode;
 using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
@@ -26,6 +28,12 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
             .Select(f => Path.GetFileName(f));
     }
 
+    [HttpGet("fullsummaryinformation")]
+    public IEnumerable<VirtualImageSummary> SummaryForTour(long photoTourId)
+    {
+        return SummariesById(context, photoTourId);
+    }
+
     [HttpPost("summaryexport")]
     public string CreatePhotoSummaryExport(long photoTourId)
     {
@@ -34,15 +42,23 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
             .ToList()
             .AsJson();
         var fileName = name.SanitizeFileName().Replace(" ", "") + ".json";
-        var path = DownloadFolder() + fileName;
+        var path = Path.GetTempPath() + fileName;
         File.WriteAllText(path, resultJson);
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+        {
+            archive.CreateEntryFromFile(path, fileName);
+        }
+        var downloadFilePath = DownloadFolder() + fileName + ".zip";
+        File.WriteAllBytes(downloadFilePath, zipStream.ToArray());
         async Task DeleteFile()
         {
             await Task.Delay(TimeSpan.FromMinutes(5));
+            File.Delete(downloadFilePath);
             File.Delete(path);
         }
         DeleteFile().RunInBackground(ex => ex.LogError());
-        return Path.Combine(IWebHostEnvironmentExtensions.DownloadFolder, Path.GetFileName(fileName));
+        return Path.Combine(IWebHostEnvironmentExtensions.DownloadFolder, Path.GetFileName(downloadFilePath));
     }
 
     [HttpGet("temperaturedata")]
