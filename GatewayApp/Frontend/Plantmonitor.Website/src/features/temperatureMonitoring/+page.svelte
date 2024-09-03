@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {DeviceStreaming} from "~/services/DeviceStreaming";
     import {selectedDevice} from "../store";
     import {
         AutomaticPhotoTourClient,
@@ -12,10 +11,11 @@
         TemperatureMeasurement
     } from "~/services/GatewayAppApi";
     import {onDestroy, onMount} from "svelte";
-    import {HubConnection} from "@microsoft/signalr";
+    import {HubConnection, HubConnectionState} from "@microsoft/signalr";
     import {Task} from "~/types/Task";
     import * as echarts from "echarts";
     import TextInput from "../reuseableComponents/TextInput.svelte";
+    import {DeviceStreaming} from "~/services/DeviceStreaming";
 
     let _connection: HubConnection | undefined;
     let _temperatureMeasurementById: Map<number, TemperatureMeasurement> = new Map();
@@ -48,7 +48,13 @@
     async function showTemperaturesOfMeasurement(measurement: TemperatureMeasurement) {
         const dashboardClient = new TemperatureClient();
         const temperatures = await dashboardClient.temperaturesOfMeasurement(measurement.id);
-        let newData: {name: string; sampling: string; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
+        let newData: {
+            name: string;
+            sampling: string;
+            type: string;
+            showSymbol: boolean;
+            data: (number | Date)[][];
+        }[] = [];
         newData.push({
             name: measurement.comment,
             type: "line",
@@ -59,7 +65,32 @@
         setTemperatureData(newData);
     }
 
-    function setTemperatureData(newData: {name: string; type: string; showSymbol: boolean; data: (number | Date)[][]}[]) {
+    function setTemperatureData(
+        newData: {name: string; type: string; showSymbol: boolean; data: (number | Date)[][]}[],
+        updateDataZoom = true
+    ) {
+        const xValues = newData.flatMap((d) => d.data.map((x) => x[0] as number));
+        const getDataZoom = function () {
+            if (!updateDataZoom) return [];
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+            return [
+                {
+                    show: true,
+                    realtime: true,
+                    start: minX,
+                    end: maxX,
+                    xAxisIndex: [0, 1]
+                },
+                {
+                    type: "inside",
+                    realtime: true,
+                    start: minX,
+                    end: maxX,
+                    xAxisIndex: [0, 1]
+                }
+            ];
+        };
         _liveChart.clear();
         _liveChart.setOption({
             title: {text: "Temperatures: " + newData.map((x) => x.name).join(", ")},
@@ -69,9 +100,23 @@
                 trigger: "axis",
                 axisPointer: {animation: false},
                 formatter: function (params: {seriesName: string; value: [Date, number]}[]) {
-                    return params.map((x) => x.seriesName + ": " + x.value[1].toFixed(1) + "°C").join("<br>");
+                    return (
+                        params.map((x) => x.seriesName + ": " + x.value[1].toFixed(1) + "°C").join("<br>") +
+                        "<br>" +
+                        params[0].value[0].toLocaleString()
+                    );
                 }
             },
+            toolbox: {
+                feature: {
+                    dataZoom: {
+                        yAxisIndex: "none"
+                    },
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
+            dataZoom: getDataZoom(),
             xAxis: {type: "time"},
             yAxis: {type: "value"}
         });
@@ -106,6 +151,11 @@
         await temperatureClient.stopMeasurement(ip);
         await getMeasurements();
     }
+    async function stopLiveTemperatures() {
+        if ($selectedDevice == undefined || _connection == undefined) return;
+        _connection?.stop();
+        _connection = undefined;
+    }
 
     async function getTemperatures() {
         if ($selectedDevice == undefined) return;
@@ -124,7 +174,7 @@
             _liveTemperatureByDevice.forEach((value, key) => {
                 newData.push({name: key, type: "line", showSymbol: true, data: value.map((x) => [x.date, x.temperature])});
             });
-            _liveChart.setOption({series: newData});
+            setTemperatureData(newData, false);
         });
     }
 </script>
@@ -134,11 +184,16 @@
 <div class="col-md-12 row">
     <div style="height: 40vh;" id={_liveTemperatureChartId} class="col-md-12"></div>
     <div class="col-md-10"></div>
-    <button
-        disabled={$selectedDevice?.ip == undefined}
-        on:click={getTemperatures}
-        style="align-self: center;height: 40px;"
-        class=" btn btn-primary col-md-2">Temperatures of {$selectedDevice?.ip}</button>
+    {#if _connection == undefined || _connection?.state == HubConnectionState.Disconnected}
+        <button
+            disabled={$selectedDevice?.ip == undefined}
+            on:click={getTemperatures}
+            style="align-self: center;height: 40px;"
+            class=" btn btn-primary col-md-2">Temperatures of {$selectedDevice?.ip}</button>
+    {:else}
+        <button on:click={() => stopLiveTemperatures()} style="align-self:center;height:40px" class="col-md-2 btn btn-danger"
+            >Stop Live Temperatures</button>
+    {/if}
     <hr class="mt-2" />
     <button on:click={getDevices} class="btn btn-primary col-md-2">Get Devices</button>
     {#each _devices as device}
