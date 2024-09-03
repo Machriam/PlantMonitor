@@ -49,6 +49,7 @@ public class DeviceTemperature
 public class ReferencedPlant
 {
     public int ImageIndex { get; set; }
+    public int MotorPosition { get; set; }
     public string ImageName { get; set; } = "";
     public string ImageComment { get; set; } = "";
     public bool HasIr { get; set; }

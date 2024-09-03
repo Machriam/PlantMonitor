@@ -128,12 +128,13 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         action.Try(ex =>
         {
             RemoveExistingSummary(logger, context, nextImage);
-            context.VirtualImageSummaries.Add(new VirtualImageSummary
+            var newSummary = new VirtualImageSummary
             {
                 VirtualImageCreationDate = nextImage.Value,
                 VirtualImagePath = nextImage.Key,
                 ImageDescriptors = new()
-            });
+            };
+            context.VirtualImageSummaries.Add(newSummary);
             context.SaveChanges();
             logger.LogInformation("Virtual image {zip} threw an error", nextImage.Key);
             ex.LogError();
@@ -183,7 +184,10 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                     CountOfMeasurements = g.Count()
                 };
             }).ToList();
-        var irTemperatures = metaData.ImageMetaData.Select(im => im.IrTempInC).ToList();
+        var irTemperatures = metaData.ImageMetaData
+            .DistinctBy(im => im.MotorPosition)
+            .Select(im => im.IrTempInC)
+            .ToList();
         var irAverageTemperature = irTemperatures.Average();
         deviceTemperatureInfo.Add(new PhotoSummaryResult.DeviceTemperatureInfo()
         {
@@ -258,7 +262,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     {
         var hsvMat = new Mat();
         CvInvoke.CvtColor(visMat, hsvMat, Emgu.CV.CvEnum.ColorConversion.Rgb2Hsv);
-        var lowGreen = new ScalarArray(new MCvScalar(50, 50, 50));
+        var lowGreen = new ScalarArray(new MCvScalar(50, 60, 50));
         var highGreen = new ScalarArray(new MCvScalar(110, 255, 255));
         var mask = new Mat();
         var element = CvInvoke.GetStructuringElement(Emgu.CV.CvEnum.ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));

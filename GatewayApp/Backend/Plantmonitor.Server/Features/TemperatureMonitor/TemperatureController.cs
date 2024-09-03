@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.DeviceControl;
 using Plantmonitor.Shared.Features.MeasureTemperature;
@@ -9,6 +10,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor;
 [Route("api/[controller]")]
 public class TemperatureController(IDeviceApiFactory apiFactory, ITemperatureMeasurementWorker worker, IDataContext dataContext)
 {
+    public record struct MeasurementTemperatureDatum(float Temperature, DateTime Timestamp);
     public record struct MeasurementStartInfo(MeasurementDevice[] Devices, string Ip);
     public record struct RunningMeasurement(string Ip, long MeasurementId);
 
@@ -28,6 +30,18 @@ public class TemperatureController(IDeviceApiFactory apiFactory, ITemperatureMea
     public IEnumerable<TemperatureMeasurement> Measurements()
     {
         return dataContext.TemperatureMeasurements;
+    }
+
+    [HttpGet("temperatureofmeasurement")]
+    public IEnumerable<MeasurementTemperatureDatum> TemperaturesOfMeasurement(long measurementId)
+    {
+        var measurement = dataContext.TemperatureMeasurements
+            .Include(tm => tm.TemperatureMeasurementValues)
+            .Where(tm => tm.Id == measurementId);
+        return measurement
+            .SelectMany(tv => tv.TemperatureMeasurementValues.Select(mv => new MeasurementTemperatureDatum(mv.Temperature, mv.Timestamp)))
+            .ToList()
+            .OrderBy(tv => tv.Timestamp);
     }
 
     [HttpPost("addmeasurement")]

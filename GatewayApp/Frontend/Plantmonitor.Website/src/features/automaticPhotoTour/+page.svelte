@@ -170,7 +170,7 @@
                         </button>
                         {#if _selectedPhotoTour !== undefined && tour === _selectedPhotoTour}
                             <div class="col-md-12 form-check form-switch">
-                                <label class="form-check-label">Stopped?</label>
+                                <div class="form-check-label">Stopped?</div>
                                 <input
                                     on:click={async () => await PausePhotoTour()}
                                     type="checkbox"

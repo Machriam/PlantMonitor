@@ -123,6 +123,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
                     extractionTemplate.IrBoundingBoxOffset, VirtualPlantImageCropHeight);
                 virtualImageList[^1].VisImage = matResults.VisImage;
                 virtualImageList[^1].VisImageTime = visImage.Formatter.Timestamp;
+                virtualImageList[^1].MotorPosition = visImage.Formatter.Steps;
                 if (irImage.Formatter == null || irImage.FileName == null) continue;
                 virtualImageList[^1].IrImageTime = irImage.Formatter.Timestamp;
                 virtualImageList[^1].IrTemperatureInK = irImage.Formatter.TemperatureInK;

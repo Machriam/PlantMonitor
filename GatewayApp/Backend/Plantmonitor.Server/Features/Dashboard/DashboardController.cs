@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Compression;
+using System.Text;
+using System.Text.Unicode;
 using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
@@ -15,12 +17,69 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     private static readonly ConcurrentDictionary<string, DownloadInfo> s_fileReadyToDownload = new();
     public record struct DownloadInfo(long PhotoTourId, string Path, double CurrentSize, double SizeToDownloadInGb, bool ReadyToDownload);
 
+    public record struct TemperatureSummaryData(string Device, IEnumerable<TemperatureDatum> Data);
+    public record struct TemperatureDatum(DateTime Time, float Temperature, float Deviation);
+
     [HttpGet("virtualimagelist")]
     public IEnumerable<string> VirtualImageList(long photoTourId)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         return Directory.EnumerateFiles(configuration.VirtualImagePath(photoTour.Name, photoTour.Id))
             .Select(f => Path.GetFileName(f));
+    }
+
+    [HttpGet("fullsummaryinformation")]
+    public IEnumerable<VirtualImageSummary> SummaryForTour(long photoTourId)
+    {
+        return SummariesById(context, photoTourId);
+    }
+
+    [HttpPost("summaryexport")]
+    public string CreatePhotoSummaryExport(long photoTourId)
+    {
+        var name = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId).Name;
+        var resultJson = SummariesById(context, photoTourId)
+            .ToList()
+            .AsJson();
+        var fileName = name.SanitizeFileName().Replace(" ", "") + ".json";
+        var path = Path.GetTempPath() + fileName;
+        File.WriteAllText(path, resultJson);
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+        {
+            archive.CreateEntryFromFile(path, fileName);
+        }
+        var downloadFilePath = DownloadFolder() + fileName + ".zip";
+        File.WriteAllBytes(downloadFilePath, zipStream.ToArray());
+        async Task DeleteFile()
+        {
+            await Task.Delay(TimeSpan.FromMinutes(5));
+            File.Delete(downloadFilePath);
+            File.Delete(path);
+        }
+        DeleteFile().RunInBackground(ex => ex.LogError());
+        return Path.Combine(IWebHostEnvironmentExtensions.DownloadFolder, Path.GetFileName(downloadFilePath));
+    }
+
+    [HttpGet("temperaturedata")]
+    public IEnumerable<TemperatureSummaryData> TemperatureSummary(long photoTourId)
+    {
+        return SummariesById(context, photoTourId).ToList()
+            .SelectMany(vis => vis.ImageDescriptors.DeviceTemperatures.Select(dt => new { Temperature = dt, vis.ImageDescriptors.TripStart }))
+            .GroupBy(dt => dt.Temperature.Name)
+            .Select(g => new TemperatureSummaryData(g.Key,
+                g.Select(dt => new TemperatureDatum(dt.TripStart, dt.Temperature.AverageTemperature, dt.Temperature.TemperatureDeviation))
+                .OrderBy(dt => dt.Time)));
+    }
+
+    private static IQueryable<VirtualImageSummary> SummariesById(IDataContext context, long photoTourId)
+    {
+        var summaries = context.VirtualImageSummaryByPhotoTourIds
+            .Where(vis => vis.PhotoTourId == photoTourId)
+            .Select(vis => vis.Id)
+            .ToHashSet();
+        return context.VirtualImageSummaries
+            .Where(vis => summaries.Contains(vis.Id));
     }
 
     [HttpGet("virtualimage")]

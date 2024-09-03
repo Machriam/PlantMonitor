@@ -45,6 +45,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                     ImageComment = Plant.ImageComment,
                     ImageIndex = Plant.ImageIndex,
                     ImageName = Plant.ImageName,
+                    MotorPosition = Plant.MotorPosition,
                     IrTempInC = Plant.IrTempInC,
                     IrTime = Plant.IrTime,
                     VisTime = Plant.VisTime
