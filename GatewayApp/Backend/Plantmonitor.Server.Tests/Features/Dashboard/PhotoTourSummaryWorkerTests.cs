@@ -88,6 +88,20 @@ public class PhotoTourSummaryWorkerTests
     }
 
     [Fact]
+    public void GetPlantMask_DuringHeatstress_ShouldHaveNoArtifacts()
+    {
+        var testZip1 = s_testZipFolder + "/HeatStressBefore.zip";
+        var testZip2 = s_testZipFolder + "/HeatStressDuring.zip";
+        var sut = CreatePhotoTourSummaryWorker();
+        var zipData2 = sut.GetDataFromZip(testZip2);
+        var zipData1 = sut.GetDataFromZip(testZip1);
+        var result2 = sut.GetPlantMask(zipData2.VisImage);
+        var result1 = sut.GetPlantMask(zipData1.VisImage);
+        result2.ShowImage("Heat Stress During");
+        result1.ShowImage("Heat Stress Before");
+    }
+
+    [Fact]
     public void ProcessImage_BigPlants_ShouldWork()
     {
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";

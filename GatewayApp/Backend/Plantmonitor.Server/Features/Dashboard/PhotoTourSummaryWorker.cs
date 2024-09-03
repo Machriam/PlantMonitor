@@ -262,7 +262,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     {
         var hsvMat = new Mat();
         CvInvoke.CvtColor(visMat, hsvMat, Emgu.CV.CvEnum.ColorConversion.Rgb2Hsv);
-        var lowGreen = new ScalarArray(new MCvScalar(50, 50, 50));
+        var lowGreen = new ScalarArray(new MCvScalar(50, 60, 50));
         var highGreen = new ScalarArray(new MCvScalar(110, 255, 255));
         var mask = new Mat();
         var element = CvInvoke.GetStructuringElement(Emgu.CV.CvEnum.ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
