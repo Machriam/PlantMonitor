@@ -24,6 +24,27 @@ namespace Plantmonitor.Server.Features.DeviceControl
             await base.OnDisconnectedAsync(exception);
         }
 
+        public async Task<ChannelReader<CameraStreamData>> StorePictures(StreamingMetaData data, string ip, CancellationToken token)
+        {
+            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
+            s_ipByConnectionId.TryAdd(Context.ConnectionId, (ip, data));
+            var picturePath = data.StoreData && deviceId != null ? configuration.PicturePath(deviceId) : "";
+            var channel = Channel.CreateBounded<CameraStreamData>(new BoundedChannelOptions(1)
+            {
+                AllowSynchronousContinuations = false,
+                FullMode = BoundedChannelFullMode.DropWrite,
+                SingleReader = true,
+                SingleWriter = true,
+            });
+            var connection = new HubConnectionBuilder()
+                .WithUrl($"https://{ip}/hub/video")
+                .AddMessagePackProtocol()
+                .Build();
+            await connection.StartAsync(token);
+            StoreDataOnDeviceStream(data, picturePath, channel, connection, token).RunInBackground(ex => ex.LogError());
+            return channel.Reader;
+        }
+
         public async Task<ChannelReader<CameraStreamData>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
         {
             var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
@@ -72,6 +93,22 @@ namespace Plantmonitor.Server.Features.DeviceControl
             }
             await Task.Delay(5000);
             Context.Abort();
+        }
+
+        private async Task StoreDataOnDeviceStream(StreamingMetaData data, string picturePath, Channel<CameraStreamData> channel, HubConnection connection, CancellationToken token)
+        {
+            var cameraInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
+            var sequenceId = DateTime.Now.ToString(CameraStreamFormatter.PictureDateFormat);
+            var stream = await connection.StreamAsChannelAsync<byte[]>(cameraInfo.CustomStorageMethod, data, token);
+            while (await stream.WaitToReadAsync(token))
+            {
+                await foreach (var image in stream.ReadAllAsync(token))
+                {
+                    var cameraStream = CameraStreamFormatter.FromBytes(image);
+                    var result = await channel.Writer.WriteAsync(cameraStream.ConvertToStreamObject(), token).Try();
+                    if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);
+                }
+            }
         }
 
         private async Task StreamData(StreamingMetaData data, string picturePath, Channel<CameraStreamData> channel, HubConnection connection, CancellationToken token)

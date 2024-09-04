@@ -7,16 +7,17 @@ namespace Plantmonitor.Shared.Features.ImageStreaming;
 public class CameraTypeInfo : Attribute
 {
     public string SignalRMethod { get; set; } = "";
+    public string CustomStorageMethod { get; set; } = "";
     public string FileEnding { get; set; } = "";
     public string MetaDataFile { get; set; } = "";
 }
 
 public enum CameraType
 {
-    [CameraTypeInfo(SignalRMethod = "StreamJpg", FileEnding = ".jpg", MetaDataFile = "")]
+    [CameraTypeInfo(CustomStorageMethod = "StoreJpg", SignalRMethod = "StreamJpg", FileEnding = ".jpg", MetaDataFile = "")]
     Vis,
 
-    [CameraTypeInfo(SignalRMethod = "StreamIrData", FileEnding = ".rawir", MetaDataFile = ".metair")]
+    [CameraTypeInfo(CustomStorageMethod = "StoreIrData", SignalRMethod = "StreamIrData", FileEnding = ".rawir", MetaDataFile = ".metair")]
     IR
 }
 

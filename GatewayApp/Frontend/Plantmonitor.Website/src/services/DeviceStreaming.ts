@@ -24,6 +24,32 @@ export class RetryPolicy implements IRetryPolicy {
 
 }
 export class DeviceStreaming {
+    buildVideoStorageConnection(ip: string, type: CameraType, data = new DeviceStreamingData()) {
+        const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(`${url}/hub/video`, { withCredentials: false })
+            .withAutomaticReconnect(new RetryPolicy())
+            .withHubProtocol(new signalRProtocols.MessagePackHubProtocol())
+            .build();
+        return {
+            connection: connection,
+            start: async (callback: (step: number, image: Blob, date: Date, temperatureInK: number) => Promise<void>) => {
+                await connection.start();
+                connection.stream("StorePictures", new StreamingMetaData({
+                    distanceInM: data.focusInMeter,
+                    positionsToStream: data.positionsToStream, quality: 100, resolutionDivider: data.sizeDivider, storeData: data.storeData, type: CameraType[type]
+                }).toJSON(), ip).subscribe({
+                    next: async (x) => {
+                        const payload = x as IReplayedPicture;
+                        const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
+                        await callback(payload.Steps, blob, payload.Timestamp, payload.TemperatureInK);
+                    },
+                    complete: () => console.log("complete"),
+                    error: (x) => console.log(x)
+                });
+            }
+        };
+    };
     buildVideoConnection(ip: string, type: CameraType, data = new DeviceStreamingData()) {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
