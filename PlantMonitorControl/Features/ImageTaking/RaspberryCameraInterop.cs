@@ -91,7 +91,7 @@ public class RaspberryCameraInterop(IExposureSettingsEditor exposureSettings) : 
         new Process().RunProcess(
             "rpicam-vid", $"-t 0 -v 0 --width {width} --height {height} --mode 4608:2592 " +
             $"--gain {exposure.Gain.ToString("0.00", CultureInfo.InvariantCulture)} --shutter {exposure.ExposureTimeInMicroSeconds.ToString("0", CultureInfo.InvariantCulture)} " +
-            $"--framerate {(resolutionDivider == 1 ? 4 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath} ")
+            $"--framerate {(resolutionDivider == 1 ? 2 : -1)} --codec mjpeg -q {quality} --hflip --vflip --segment 1 --lens-position {focus} -o {filePath} ")
             .RunInBackground(ex => ex.LogError("RPI-Cam error"));
         s_cameraIsRunning = true;
         return s_tempImagePath;
