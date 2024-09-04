@@ -112,6 +112,16 @@
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Photo Stitching
             </a>
         </div>
+        <div class="nav-item px-3">
+            <a
+                on:click={(x) => {
+                    if (x.target instanceof HTMLAnchorElement) _selectedItem = x.target.href.split("/").pop();
+                }}
+                class="nav-link {_selectedItem == 'customTourCreation' ? 'nav-selected' : ''}"
+                href="customTourCreation">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Custom Tour Creation
+            </a>
+        </div>
     </nav>
 </div>
 

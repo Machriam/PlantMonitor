@@ -1,6 +1,7 @@
 ﻿using Iot.Device.GrovePiDevice;
 using Microsoft.AspNetCore.SignalR;
 using Plantmonitor.Shared.Features.ImageStreaming;
+using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.MotorMovement;
 using System.IO.Compression;
 using System.Threading.Channels;
@@ -9,9 +10,9 @@ namespace PlantMonitorControl.Features.ImageTaking;
 
 public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraInterop visCameraInterop,
     [FromKeyedServices(ICameraInterop.IrCamera)] ICameraInterop irCameraInterop,
-    IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition, ILogger<StreamingHub> logger) : Hub
+    IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition, IEnvironmentConfiguration configuration,
+    ILogger<StreamingHub> logger) : Hub
 {
-    private static readonly string s_streamArchive = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "streamArchive");
 
     public async Task<ChannelReader<byte[]>> StreamIrData(StreamingMetaData data, CancellationToken token)
     {
@@ -59,11 +60,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             SingleWriter = true,
         });
     }
-    private static string GetStreamArchive()
-    {
-        if (!Path.Exists(s_streamArchive)) Directory.CreateDirectory(s_streamArchive);
-        return s_streamArchive;
-    }
+
 
     private async Task StoreImages(Channel<byte[]> channel, string imagePath, StreamingMetaData data, ICameraInterop camera, CancellationToken token)
     {
@@ -82,7 +79,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             .Select(f => new { File = f, CreationDate = new DateTimeOffset(File.GetCreationTimeUtc(f)).ToUnixTimeMilliseconds() })
             .AsJson();
         File.WriteAllText($"{imagePath}/positionByTime.json", timeData);
-        ZipFile.CreateFromDirectory(imagePath, $"{GetStreamArchive()}/{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss-fff}_{typeInfo.SignalRMethod}.zip");
+        ZipFile.CreateFromDirectory(imagePath, $"{configuration.StreamArchivePath}/{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss-fff}_{typeInfo.SignalRMethod}.zip");
         Directory.Delete(imagePath, true);
         await channel.Writer.WriteAsync(CameraStreamFormatter.FinishSignal, token);
         channel.Writer.Complete();

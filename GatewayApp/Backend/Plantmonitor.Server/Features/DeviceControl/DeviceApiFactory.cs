@@ -10,6 +10,8 @@ public interface IDeviceApiFactory
 
     ITemperatureClient TemperatureClient(string ip);
 
+    ICustomTourClient CustomTourClient(string ip);
+
     IHealthClient HealthClient(string ip);
 
     ISwitchOutletsClient SwitchOutletsClient(string ip);
@@ -30,6 +32,11 @@ public class DeviceApiFactory : IDeviceApiFactory
     public IIrImageTakingClient IrImageTakingClient(string ip)
     {
         return new IrImageTakingClient($"https://{ip}");
+    }
+
+    public ICustomTourClient CustomTourClient(string ip)
+    {
+        return new CustomTourClient($"https://{ip}");
     }
 
     public IVisImageTakingClient VisImageTakingClient(string ip)
