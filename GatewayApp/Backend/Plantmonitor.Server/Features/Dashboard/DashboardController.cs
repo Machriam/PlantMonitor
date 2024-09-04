@@ -31,7 +31,10 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     [HttpGet("fullsummaryinformation")]
     public IEnumerable<VirtualImageSummary> SummaryForTour(long photoTourId)
     {
-        return SummariesById(context, photoTourId);
+        return SummariesById(context, photoTourId)
+            .ToList()
+            .Where(s => s.ImageDescriptors.PlantDescriptors.Any())
+            .OrderBy(s => s.VirtualImageCreationDate);
     }
 
     [HttpPost("summaryexport")]

@@ -3,7 +3,6 @@
     import {AutomaticPhotoTourClient, DashboardClient, DownloadInfo, PhotoTourInfo} from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/Download";
-    import {Task} from "~/types/Task";
     let _photoTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _virtualImages: string[] = [];
@@ -104,7 +103,7 @@
             <div class="col-md-3 p-0 row">
                 <button class="btn btn-primary col-md-9" on:click={downloadTourData}>{_currentDownloadStatus}</button>
                 {#if _currentDownloadStatus.includes("ready")}
-                <div class="col-md-1"></div>
+                    <div class="col-md-1"></div>
                     <button class="btn btn-danger col-md-2" on:click={DeletePackedData}>X</button>
                 {/if}
             </div>

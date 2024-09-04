@@ -117,8 +117,8 @@
                 }
             },
             dataZoom: getDataZoom(),
-            xAxis: {type: "time"},
-            yAxis: {type: "value"}
+            xAxis: {type: "time", name: "Time"},
+            yAxis: {type: "value", name: "Temperature in °C"}
         });
         _liveChart.setOption({series: newData});
     }
