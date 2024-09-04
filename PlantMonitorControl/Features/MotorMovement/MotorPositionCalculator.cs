@@ -21,6 +21,8 @@ public interface IMotorPositionCalculator
     void MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition);
 
     MotorPosition CurrentPosition();
+
+    string GetHistory();
 }
 
 public record struct MotorPositionInfo(int StepCount, long Time);
@@ -133,6 +135,11 @@ public class MotorPositionCalculator : IMotorPositionCalculator
             var time = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeMilliseconds();
             s_motorPositionHistory.Add(new(s_currentPosition, time));
         }
+    }
+
+    public string GetHistory()
+    {
+        return s_motorPositionHistory.AsJson();
     }
 
     public void UpdatePosition(int stepsMoved, int maxAllowedPosition, int minAllowedPosition)

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using PlantMonitorControl.Features.MotorMovement;
+using System.IO.Compression;
 using System.Threading.Channels;
 
 namespace PlantMonitorControl.Features.ImageTaking;
@@ -10,6 +11,8 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
     [FromKeyedServices(ICameraInterop.IrCamera)] ICameraInterop irCameraInterop,
     IFileStreamingReader fileStreamer, IMotorPositionCalculator motorPosition, ILogger<StreamingHub> logger) : Hub
 {
+    private static readonly string s_streamArchive = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "streamArchive");
+
     public async Task<ChannelReader<byte[]>> StreamIrData(StreamingMetaData data, CancellationToken token)
     {
         motorPosition.ResetHistory();
@@ -28,6 +31,24 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         return channel.Reader;
     }
 
+    public async Task<ChannelReader<byte[]>> StoreIrData(StreamingMetaData data, CancellationToken token)
+    {
+        motorPosition.ResetHistory();
+        var channel = CreateChannel(data);
+        var folder = await irCameraInterop.StreamPictureDataToFolder(data.ResolutionDivider, data.Quality, data.DistanceInM);
+        StoreImages(channel, folder, data, irCameraInterop, token).RunInBackground(ex => ex.LogError());
+        return channel.Reader;
+    }
+
+    public async Task<ChannelReader<byte[]>> StoreJpg(StreamingMetaData data, CancellationToken token)
+    {
+        motorPosition.ResetHistory();
+        var channel = CreateChannel(data);
+        var folder = await visCameraInterop.StreamPictureDataToFolder(data.ResolutionDivider, data.Quality, data.DistanceInM);
+        StoreImages(channel, folder, data, visCameraInterop, token).RunInBackground(ex => ex.LogError());
+        return channel.Reader;
+    }
+
     private static Channel<byte[]> CreateChannel(StreamingMetaData data)
     {
         return Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
@@ -37,6 +58,34 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             SingleReader = true,
             SingleWriter = true,
         });
+    }
+    private static string GetStreamArchive()
+    {
+        if (!Path.Exists(s_streamArchive)) Directory.CreateDirectory(s_streamArchive);
+        return s_streamArchive;
+    }
+
+    private async Task StoreImages(Channel<byte[]> channel, string imagePath, StreamingMetaData data, ICameraInterop camera, CancellationToken token)
+    {
+        var typeInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
+        logger.LogInformation("Reading images from file type: {type}, live: {live}", data.Type, !data.StoreData);
+        while (camera.CameraIsRunning())
+        {
+            await Task.Delay(100, token);
+            var steps = BitConverter.GetBytes(motorPosition.CurrentPosition().Position);
+            var tickBytes = BitConverter.GetBytes(DateTime.UtcNow.Ticks);
+            await channel.Writer.WriteAsync([.. steps, .. tickBytes], token);
+        }
+        var history = motorPosition.GetHistory();
+        File.WriteAllText($"{imagePath}/positionHistory.json", history);
+        var timeData = Directory.EnumerateFiles(imagePath)
+            .Select(f => new { File = f, CreationDate = new DateTimeOffset(File.GetCreationTimeUtc(f)).ToUnixTimeMilliseconds() })
+            .AsJson();
+        File.WriteAllText($"{imagePath}/positionByTime.json", timeData);
+        ZipFile.CreateFromDirectory(imagePath, $"{GetStreamArchive()}/{DateTime.UtcNow:yyyy-MM-dd_HH-mm-ss-fff}_{typeInfo.SignalRMethod}.zip");
+        Directory.Delete(imagePath, true);
+        await channel.Writer.WriteAsync(CameraStreamFormatter.FinishSignal, token);
+        channel.Writer.Complete();
     }
 
     private async Task ReadImagesFromFiles(Channel<byte[]> channel, string imagePath, StreamingMetaData data, ICameraInterop camera, CancellationToken token)

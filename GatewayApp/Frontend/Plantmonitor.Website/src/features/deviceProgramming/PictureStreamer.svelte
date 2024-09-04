@@ -46,6 +46,27 @@
             if (!image.src.isEmpty()) firstImageReceived = true;
         });
     };
+    export const customPhotoStream = function (ip: string, type: CameraType, focusInMeter: number) {
+        const connection = new DeviceStreaming().buildVideoStorageConnection(ip, type, {
+            focusInMeter: focusInMeter / 100,
+            storeData: true,
+            positionsToStream: [],
+            sizeDivider: 1
+        });
+        hubConnection?.stop();
+        hubConnection = connection.connection;
+        connection.start(async (step, data, date, temperatureInK) => {
+            if (hubConnection == undefined) return;
+            firstDataReceived = true;
+            currentPosition = step;
+            currentTime = date;
+            if (type == CameraType.IR) {
+                temperature = temperatureInK.kelvinToCelsius();
+                updateTooltip();
+            }
+        });
+    };
+
     export const storeDataStream = function (positionsToReach: number[], ip: string, type: CameraType, focusInMeter: number) {
         const connection = new DeviceStreaming().buildVideoConnection(ip, type, {
             focusInMeter: focusInMeter / 100,

@@ -21,6 +21,7 @@
     import PictureStreamer from "./PictureStreamer.svelte";
 
     let previewEnabled = false;
+    let isCustomPhotoStream = false;
     let visStreamer: PictureStreamer;
     let irStreamer: PictureStreamer;
     let selectedDeviceData: DeviceHealthState | undefined;
@@ -57,8 +58,14 @@
 
     async function stopPreview() {
         if (selectedDeviceData?.ip == undefined) return;
-        await irStreamer?.stopStreaming();
-        await visStreamer?.stopStreaming();
+        if (isCustomPhotoStream) {
+            const pictureClient = new DeviceClient();
+            await pictureClient.killCamera(selectedDeviceData?.ip, CameraType.Vis);
+            await pictureClient.killCamera(selectedDeviceData?.ip, CameraType.IR);
+        } else {
+            await irStreamer?.stopStreaming();
+            await visStreamer?.stopStreaming();
+        }
         previewEnabled = false;
     }
 
@@ -124,6 +131,14 @@
         currentlyMoving = false;
     }
 
+    async function storeRawPhotoTrip() {
+        if (selectedDeviceData?.ip == undefined) return;
+        visStreamer.customPhotoStream(selectedDeviceData.ip, CameraType.Vis, defaultFocus);
+        irStreamer.customPhotoStream(selectedDeviceData.ip, CameraType.IR, defaultFocus);
+        previewEnabled = true;
+        isCustomPhotoStream = true;
+    }
+
     async function takePhotoTrip() {
         if (selectedDeviceData?.ip == undefined) return;
         let positionsToReach = movementPlan.movementPlan.stepPoints.map((sp) =>
@@ -169,7 +184,7 @@
             <button class="btn btn-dark col-md-3" on:click={async () => await zeroPosition()}>Zero Position</button>
         {:else}
             <button on:click={async () => await showPreview()} class="btn btn-primary col-md-4">Start Preview</button>
-            <div class="col-md-4"></div>
+            <button on:click={async () => await storeRawPhotoTrip()} class="btn btn-dark col-md-4">Store Raw Photos</button>
             <button on:click={async () => await takePhotoTrip()} class="btn btn-success col-md-4">Store Photo Trip </button>
         {/if}
         <div style="height: 200px; overflow-y:scroll" class="col-md-12 row p-0">
