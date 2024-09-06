@@ -10,6 +10,7 @@ public interface IEnvironmentConfiguration
     string StreamArchivePath { get; }
     string GetDownloadfolder { get; }
     public const string DownloadFolderName = "/download/";
+    public const string LinuxStaticFilesFolder = "/srv/dist/wwwroot";
 
     void ClearDownloadfolder();
 }

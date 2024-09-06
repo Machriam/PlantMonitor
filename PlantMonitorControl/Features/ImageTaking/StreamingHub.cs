@@ -60,7 +60,6 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         var resultZip = downloadFolder + $"CustomTour_{timeStamp}.zip";
         var downloadLink = Path.Combine(IEnvironmentConfiguration.DownloadFolderName, Path.GetFileName(resultZip));
         var archive = ZipFile.Open(resultZip, ZipArchiveMode.Create);
-        archive.Dispose();
         logger.LogInformation("Initializing custom data stream, result zip: {zip}", resultZip);
         var storedCameraData = new StoredDataStream(motorPosition.CurrentPosition().Position,
             [new(nameof(CameraType.IR), 0, 0, 0), new(nameof(CameraType.Vis), 0, 0, 0)], downloadLink, 0f);
@@ -82,13 +81,14 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                 var sw = new Stopwatch();
                 sw.Start();
                 (storedCameraData.CompressionStatus[i], var error) =
-                    compressionStatus.WriteFileToZip(resultZip, files, compressionStatus.Type, GetStepTime);
+                    compressionStatus.WriteFileToZip(archive, files, compressionStatus.Type, GetStepTime);
                 logger.LogInformation("Zipping {file} took: {milliseconds} ms", files[0], sw.ElapsedMilliseconds);
                 if (!error.IsEmpty()) logger.LogError("An error happened during zipping: {error}", error);
             }
             storedCameraData.CurrentStep = motorPosition.CurrentPosition().Position;
             await channel.Writer.WriteAsync(storedCameraData, token);
         }
+        archive.Dispose();
         channel.Writer.Complete();
     }
 

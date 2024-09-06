@@ -8,13 +8,10 @@ public record struct CompressionStatus(string Type, int ZippedImageCount, int To
 {
     private static readonly Dictionary<string, CameraTypeInfo> s_cameraTypeInfoByName =
         Enum.GetValues<CameraType>()?.ToDictionary(ct => Enum.GetName(ct) ?? "", ct => ct.Attribute<CameraTypeInfo>()) ?? [];
-    public (CompressionStatus Status, string Error) WriteFileToZip(string zip, string[] files, string type, Func<DateTime, int> getStepCount)
+    public (CompressionStatus Status, string Error) WriteFileToZip(ZipArchive archive, string[] files, string type, Func<DateTime, int> getStepCount)
     {
         var cameraInfo = s_cameraTypeInfoByName[type];
         string error = "";
-        ZipArchive? archive = default;
-        Action openArchiveAction = () => archive = ZipFile.Open(zip, ZipArchiveMode.Update);
-        if (!openArchiveAction.Try(ex => error = $"Could not open archive: {ex.Message}") || archive == null) return (this, error);
         var file = files.FirstOrDefault();
         if (file == null) return (this, error);
         var creationDate = File.GetCreationTimeUtc(file);

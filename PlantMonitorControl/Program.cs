@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore;
+﻿using Microsoft.Extensions.FileProviders;
 using Plantmonitor.Server.Features.AppConfiguration;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.HealthChecking;
@@ -24,6 +24,7 @@ builder.Configuration
     .AddJsonFile("appsettings.json")
     .AddJsonFile("appsettings.Development.json", optional: true);
 
+builder.Environment.WebRootPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? builder.Environment.WebRootPath : IEnvironmentConfiguration.LinuxStaticFilesFolder;
 var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options, builder.Environment));
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
@@ -91,7 +92,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions()
+{
+    FileProvider = new PhysicalFileProvider(builder.Environment.WebRootPath),
+    RequestPath = "/"
+});
 
 app.UseAuthorization();
 
