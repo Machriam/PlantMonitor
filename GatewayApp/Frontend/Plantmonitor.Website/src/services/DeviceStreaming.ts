@@ -11,6 +11,18 @@ export interface IReplayedPicture {
     TemperatureInK: number;
     PictureData: Uint8Array;
 }
+export interface ICompressionStatus {
+    Type: string;
+    ZippedImageCount: number;
+    TotalImages: number;
+    TemperatureInK: number;
+}
+export interface IStoredDataStream {
+    ZipFileName: string;
+    CurrentStep: number;
+    CompressionStatus: ICompressionStatus[];
+    DownloadStatus: number;
+}
 export class DeviceStreamingData {
     sizeDivider = 4;
     focusInMeter = 10;
@@ -24,7 +36,7 @@ export class RetryPolicy implements IRetryPolicy {
 
 }
 export class DeviceStreaming {
-    buildVideoStorageConnection(ip: string, type: CameraType, data = new DeviceStreamingData()) {
+    buildCustomTourAsZipConnection(ip: string, type: CameraType, data = new DeviceStreamingData()) {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
         const connection = new signalR.HubConnectionBuilder()
             .withUrl(`${url}/hub/video`, { withCredentials: false })
@@ -33,16 +45,20 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (step: number, image: Blob, date: Date, temperatureInK: number) => Promise<void>) => {
+            start: async (callback: (step: number, cameraType: string, totalImages: number,
+                zippedImages: number, temperatureInK: number, downloadStatus: number, zipFile: string) => Promise<void>) => {
                 await connection.start();
-                connection.stream("StorePictures", new StreamingMetaData({
+                connection.stream("CustomStreamAsZip", new StreamingMetaData({
                     distanceInM: data.focusInMeter,
                     positionsToStream: data.positionsToStream, quality: 100, resolutionDivider: data.sizeDivider, storeData: data.storeData, type: CameraType[type]
                 }).toJSON(), ip).subscribe({
                     next: async (x) => {
-                        const payload = x as IReplayedPicture;
-                        const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
-                        await callback(payload.Steps, blob, payload.Timestamp, payload.TemperatureInK);
+                        const payload = x as IStoredDataStream;
+                        for (let i = 0; i < payload.CompressionStatus.length; i++) {
+                            const status = payload.CompressionStatus[i];
+                            await callback(payload.CurrentStep, status.Type, status.TotalImages, status.ZippedImageCount,
+                                status.TemperatureInK, payload.DownloadStatus, payload.ZipFileName);
+                        }
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)

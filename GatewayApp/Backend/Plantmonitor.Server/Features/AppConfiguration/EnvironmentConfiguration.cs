@@ -30,12 +30,16 @@ namespace Plantmonitor.Server.Features.AppConfiguration
         string VirtualImagePath(string name, long id);
 
         IEnumerable<string> VirtualImageFolders();
+
+        string CustomTourDataPath();
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
     {
         private const string CertificateFolder = nameof(CertificateFolder);
         private const string VirtualImageFolderPrefix = "VirtualImages_";
+        private const string CustomTourDataPrefix = "CustomTourData_";
+        private const string ImageFolderPrefix = "Images_";
 
         public string RepoRootPath()
         {
@@ -50,13 +54,13 @@ namespace Plantmonitor.Server.Features.AppConfiguration
         {
             var imageFolder = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
                 throw new Exception("No App configuration path found");
-            return Directory.GetDirectories(imageFolder, "Images_*");
+            return Directory.GetDirectories(imageFolder, $"{ImageFolderPrefix}*");
         }
 
         public string PicturePath(string device)
         {
             var imageFolder = Path.Combine(Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
-                throw new Exception("No App configuration path found"), $"Images_{device}");
+                throw new Exception("No App configuration path found"), ImageFolderPrefix + device);
             Directory.CreateDirectory(imageFolder);
             return imageFolder;
         }
@@ -65,6 +69,12 @@ namespace Plantmonitor.Server.Features.AppConfiguration
         {
             var directory = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ?? throw new Exception("No App configuration path found");
             return Directory.EnumerateDirectories(directory, VirtualImageFolderPrefix + "*");
+        }
+
+        public string CustomTourDataPath()
+        {
+            var directory = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ?? throw new Exception("No App configuration path found");
+            return Directory.EnumerateDirectories(directory, CustomTourDataPrefix + "*").First();
         }
 
         public string VirtualImagePath(string name, long id)

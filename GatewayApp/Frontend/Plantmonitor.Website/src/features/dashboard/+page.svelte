@@ -6,7 +6,7 @@
     let _selectedTab: SelectedDashboardTab = SelectedDashboardTab.plantSummary;
 </script>
 
-<svelte:head><title>Home</title></svelte:head>
+<svelte:head><title>Dashboard</title></svelte:head>
 
 <div class="row col-md-12 rowm-3">
     {#each Enum.getAllEntries(SelectedDashboardTab) as { value }}

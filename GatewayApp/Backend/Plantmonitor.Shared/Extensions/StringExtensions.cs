@@ -20,9 +20,14 @@ public static class StringExtensions
         return decimal.TryParse(numberText.ToString(), out var result) ? result : null;
     }
 
+    public static int TemperatureInKFromIrPath(this string irFilePath)
+    {
+        return int.TryParse(Path.GetFileNameWithoutExtension(irFilePath).Split('_').Last(), out var temperature) ? temperature : default;
+    }
+
     public static FileData GetBytesFromIrFilePath(this string irFilePath, out int temperatureInK)
     {
-        temperatureInK = int.TryParse(Path.GetFileNameWithoutExtension(irFilePath).Split('_').Last(), out var temperature) ? temperature : default;
+        temperatureInK = irFilePath.TemperatureInKFromIrPath();
         var data = File.ReadAllText(irFilePath)
             .Replace("\n", " ")
             .Split(" ")

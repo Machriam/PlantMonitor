@@ -1,4 +1,5 @@
-﻿using Plantmonitor.Server.Features.AppConfiguration;
+﻿using Microsoft.AspNetCore;
+using Plantmonitor.Server.Features.AppConfiguration;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.HealthChecking;
 using PlantMonitorControl.Features.ImageTaking;
@@ -24,7 +25,7 @@ builder.Configuration
     .AddJsonFile("appsettings.Development.json", optional: true);
 
 var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
-builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options));
+builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options, builder.Environment));
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
 builder.Services.AddTransient<IFileStreamingReader, FileStreamingReader>();
 builder.Services.AddTransient<IExposureSettingsEditor, ExposureSettingsEditor>();
@@ -90,6 +91,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
+app.UseStaticFiles();
 
 app.UseAuthorization();
 

@@ -64,7 +64,7 @@ public class DevelopVisCameraInterop() : ICameraInterop
             {
                 foreach (var file in files)
                 {
-                    await Task.Delay(20);
+                    await Task.Delay(70);
                     File.Copy(file, Path.Combine(copyToDir, counter++.ToString(FileStreamingReader.CounterFormat) + ".jpg"));
                 }
             }

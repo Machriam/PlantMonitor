@@ -24,12 +24,12 @@ namespace Plantmonitor.Server.Features.DeviceControl
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task<ChannelReader<CameraStreamData>> StorePictures(StreamingMetaData data, string ip, CancellationToken token)
+        public async Task<ChannelReader<StoredDataStream>> CustomStreamAsZip(StreamingMetaData data, string ip, CancellationToken token)
         {
             var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, (ip, data));
             var picturePath = data.StoreData && deviceId != null ? configuration.PicturePath(deviceId) : "";
-            var channel = Channel.CreateBounded<CameraStreamData>(new BoundedChannelOptions(1)
+            var channel = Channel.CreateBounded<StoredDataStream>(new BoundedChannelOptions(1)
             {
                 AllowSynchronousContinuations = false,
                 FullMode = BoundedChannelFullMode.DropWrite,
@@ -41,7 +41,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
                 .AddMessagePackProtocol()
                 .Build();
             await connection.StartAsync(token);
-            StoreDataOnDeviceStream(data, picturePath, channel, connection, token).RunInBackground(ex => ex.LogError());
+            StoreDataOnDeviceStream(data, picturePath, channel, connection, ip, token).RunInBackground(ex => ex.LogError());
             return channel.Reader;
         }
 
@@ -95,20 +95,29 @@ namespace Plantmonitor.Server.Features.DeviceControl
             Context.Abort();
         }
 
-        private async Task StoreDataOnDeviceStream(StreamingMetaData data, string picturePath, Channel<CameraStreamData> channel, HubConnection connection, CancellationToken token)
+        private async Task StoreDataOnDeviceStream(StreamingMetaData data, string picturePath, Channel<StoredDataStream> channel, HubConnection connection, string ip, CancellationToken token)
         {
             var cameraInfo = data.GetCameraType().Attribute<CameraTypeInfo>();
-            var sequenceId = DateTime.Now.ToString(CameraStreamFormatter.PictureDateFormat);
-            var stream = await connection.StreamAsChannelAsync<byte[]>(cameraInfo.CustomStorageMethod, data, token);
+            var stream = await connection.StreamAsChannelAsync<StoredDataStream>(cameraInfo.CustomStorageMethod, data, token);
+            var lastMessage = new StoredDataStream();
             while (await stream.WaitToReadAsync(token))
             {
                 await foreach (var image in stream.ReadAllAsync(token))
                 {
-                    var cameraStream = CameraStreamFormatter.FromBytes(image);
-                    var result = await channel.Writer.WriteAsync(cameraStream.ConvertToStreamObject(), token).Try();
+                    lastMessage = image;
+                    var result = await channel.Writer.WriteAsync(image, token).Try();
                     if (!result.IsEmpty()) logger.LogWarning("Could not write Picturestream {error}", result);
                 }
             }
+            var downloadResult = await factory.StaticFilesClient(ip).DownloadToStaticFiles(lastMessage.ZipFileName, async s =>
+            {
+                lastMessage.DownloadStatus = s;
+                var result = await channel.Writer.WriteAsync(lastMessage, token).Try();
+                if (!result.IsEmpty()) logger.LogWarning("Could not update download status {error}", result);
+            }).Try();
+            if (!downloadResult.Error.IsEmpty()) logger.LogError("Could not download zip from device {error}", downloadResult.Error);
+            lastMessage.DownloadStatus = 1;
+            await channel.Writer.WriteAsync(lastMessage, token);
         }
 
         private async Task StreamData(StreamingMetaData data, string picturePath, Channel<CameraStreamData> channel, HubConnection connection, CancellationToken token)

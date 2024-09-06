@@ -134,7 +134,6 @@
     async function storeRawPhotoTrip() {
         if (selectedDeviceData?.ip == undefined) return;
         visStreamer.customPhotoStream(selectedDeviceData.ip, CameraType.Vis, defaultFocus);
-        irStreamer.customPhotoStream(selectedDeviceData.ip, CameraType.IR, defaultFocus);
         previewEnabled = true;
         isCustomPhotoStream = true;
     }
