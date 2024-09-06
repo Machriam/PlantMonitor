@@ -26,7 +26,6 @@ public record struct CompressionStatus(string Type, int ZippedImageCount, int To
         if (!addArchiveAction.Try(ex => error = $"Could not add to archive: {ex.Message}")) return (this, error);
         TotalImages = files.Length + ZippedImageCount;
         ZippedImageCount++;
-        archive.Dispose();
         Action deleteAction = () => File.Delete(file);
         deleteAction.Try(ex => error = $"Could not delete: {ex.Message}");
         return (this, error);
