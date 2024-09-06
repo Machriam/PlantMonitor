@@ -47,7 +47,7 @@
         });
     };
     export const customPhotoStream = function (ip: string, type: CameraType, focusInMeter: number) {
-        const connection = new DeviceStreaming().buildVideoStorageConnection(ip, type, {
+        const connection = new DeviceStreaming().buildCustomTourAsZipConnection(ip, type, {
             focusInMeter: focusInMeter / 100,
             storeData: true,
             positionsToStream: [],
@@ -55,12 +55,12 @@
         });
         hubConnection?.stop();
         hubConnection = connection.connection;
-        connection.start(async (step, data, date, temperatureInK) => {
+        connection.start(async (step, cameraType, totalImages, zippedImages, temperatureInK, downloadStatus) => {
             if (hubConnection == undefined) return;
             firstDataReceived = true;
             currentPosition = step;
-            currentTime = date;
-            if (type == CameraType.IR) {
+            console.log({step, cameraType, totalImages, zippedImages, temperatureInK, downloadStatus});
+            if (cameraType == CameraType.IR.toString()) {
                 temperature = temperatureInK.kelvinToCelsius();
                 updateTooltip();
             }

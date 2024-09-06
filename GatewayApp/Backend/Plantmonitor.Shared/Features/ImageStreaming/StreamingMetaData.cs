@@ -14,10 +14,10 @@ public class CameraTypeInfo : Attribute
 
 public enum CameraType
 {
-    [CameraTypeInfo(CustomStorageMethod = "StoreJpg", SignalRMethod = "StreamJpg", FileEnding = ".jpg", MetaDataFile = "")]
+    [CameraTypeInfo(CustomStorageMethod = "CustomDataStream", SignalRMethod = "StreamJpg", FileEnding = ".jpg", MetaDataFile = "")]
     Vis,
 
-    [CameraTypeInfo(CustomStorageMethod = "StoreIrData", SignalRMethod = "StreamIrData", FileEnding = ".rawir", MetaDataFile = ".metair")]
+    [CameraTypeInfo(CustomStorageMethod = "CustomDataStream", SignalRMethod = "StreamIrData", FileEnding = ".rawir", MetaDataFile = ".metair")]
     IR
 }
 

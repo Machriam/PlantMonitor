@@ -8,9 +8,13 @@ public interface IEnvironmentConfiguration
     PowerSwitchPinout PowerSwitchPinout { get; }
     PowerSwitchPrograms PowerSwitchPrograms { get; }
     string StreamArchivePath { get; }
+    string GetDownloadfolder { get; }
+    public const string DownloadFolderName = "/download/";
+
+    void ClearDownloadfolder();
 }
 
-public class EnvironmentConfiguration(ConfigurationOptions options) : IEnvironmentConfiguration
+public class EnvironmentConfiguration(ConfigurationOptions options, IWebHostEnvironment webHost) : IEnvironmentConfiguration
 {
     private static readonly string s_streamArchive = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "streamArchive");
     public MotorPinout MotorPinout => options.MotorPinout;
@@ -26,5 +30,21 @@ public class EnvironmentConfiguration(ConfigurationOptions options) : IEnvironme
             if (!Path.Exists(s_streamArchive)) Directory.CreateDirectory(s_streamArchive);
             return s_streamArchive;
         }
+    }
+
+    public string GetDownloadfolder
+    {
+        get
+        {
+            var downloadPath = webHost.WebRootPath + IEnvironmentConfiguration.DownloadFolderName;
+            Directory.CreateDirectory(downloadPath);
+            return downloadPath;
+        }
+    }
+
+    public void ClearDownloadfolder()
+    {
+        var downloadfolder = GetDownloadfolder;
+        Directory.Delete(downloadfolder, true);
     }
 }

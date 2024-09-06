@@ -1,4 +1,12 @@
-﻿namespace Plantmonitor.Server.Features.DeviceControl;
+﻿using System.Net;
+using Plantmonitor.Server.Features.AppConfiguration;
+
+namespace Plantmonitor.Server.Features.DeviceControl;
+
+public interface IStaticFilesClient
+{
+    Task<string> DownloadToStaticFiles(string file, Func<float, Task> onProgressChanged);
+}
 
 public interface IDeviceApiFactory
 {
@@ -10,14 +18,14 @@ public interface IDeviceApiFactory
 
     ITemperatureClient TemperatureClient(string ip);
 
-    ICustomTourClient CustomTourClient(string ip);
-
     IHealthClient HealthClient(string ip);
 
     ISwitchOutletsClient SwitchOutletsClient(string ip);
+
+    IStaticFilesClient StaticFilesClient(string ip);
 }
 
-public class DeviceApiFactory : IDeviceApiFactory
+public class DeviceApiFactory(IWebHostEnvironment webHost) : IDeviceApiFactory
 {
     public ITemperatureClient TemperatureClient(string ip)
     {
@@ -34,11 +42,6 @@ public class DeviceApiFactory : IDeviceApiFactory
         return new IrImageTakingClient($"https://{ip}");
     }
 
-    public ICustomTourClient CustomTourClient(string ip)
-    {
-        return new CustomTourClient($"https://{ip}");
-    }
-
     public IVisImageTakingClient VisImageTakingClient(string ip)
     {
         return new VisImageTakingClient($"https://{ip}");
@@ -52,5 +55,27 @@ public class DeviceApiFactory : IDeviceApiFactory
     public ISwitchOutletsClient SwitchOutletsClient(string ip)
     {
         return new SwitchOutletsClient($"https://{ip}");
+    }
+
+    public IStaticFilesClient StaticFilesClient(string ip)
+    {
+        return new StaticFilesClient(ip, webHost);
+    }
+}
+
+public class StaticFilesClient(string ip, IWebHostEnvironment webHost) : IStaticFilesClient
+{
+    public async Task<string> DownloadToStaticFiles(string file, Func<float, Task> onProgressChanged)
+    {
+        var client = new HttpClient();
+        var downloadAddress = new Uri($"https://{ip}/{file}").ToString();
+        var downloadPath = webHost.DownloadFolderPath();
+        Directory.CreateDirectory(downloadPath);
+        var filePath = Path.Combine(downloadPath, Path.GetFileName(file));
+        await using var resultStream = new FileStream(filePath, FileMode.CreateNew);
+        var progress = new Progress<float>();
+        progress.ProgressChanged += (_, f) => onProgressChanged(f);
+        await client.DownloadAsync(downloadAddress, resultStream, progress);
+        return filePath;
     }
 }

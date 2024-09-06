@@ -1,15 +1,44 @@
 ﻿using System.Globalization;
+using System.IO.Compression;
 using Plantmonitor.Shared.Extensions;
 
 namespace Plantmonitor.Shared.Features.ImageStreaming;
 
+public record struct CompressionStatus(CameraType Type, int ZippedImageCount, int TotalImages, int TemperatureInK)
+{
+    public CompressionStatus WriteFileToZip(string zip, string[] files, CameraType type, Func<DateTime, int> getStepCount)
+    {
+        var cameraInfo = type.Attribute<CameraTypeInfo>();
+        ZipArchive? archive = default;
+        Action openArchiveAction = () => archive = ZipFile.Open(zip, ZipArchiveMode.Update);
+        if (!openArchiveAction.Try(_ => { }) || archive == null) return this;
+        var file = files.FirstOrDefault();
+        if (file == null) return this;
+        var creationDate = File.GetCreationTimeUtc(file);
+        if (type == CameraType.IR) TemperatureInK = file.TemperatureInKFromIrPath();
+        var zipFileName = Path.GetFileName(new CameraStreamFormatter()
+        {
+            Steps = getStepCount(creationDate),
+            Timestamp = creationDate,
+            TemperatureInK = TemperatureInK,
+        }.FormatFileInfo("", cameraInfo));
+        Action addArchiveAction = () => archive.CreateEntryFromFile(file, zipFileName);
+        if (!addArchiveAction.Try(_ => { })) return this;
+        TotalImages = files.Length + ZippedImageCount;
+        ZippedImageCount++;
+        archive.Dispose();
+        Action deleteAction = () => File.Delete(file);
+        deleteAction.Try(_ => { });
+        return this;
+    }
+}
+public record struct StoredDataStream(int CurrentStep, List<CompressionStatus> CompressionStatus, string ZipFileName, float DownloadStatus);
 public record struct CameraStreamData(DateTime Timestamp, int Steps, int TemperatureInK, byte[]? PictureData);
 
 public class CameraStreamFormatter
 {
     public const string PictureDateFormat = "yyyy-MM-dd_HH-mm-ss-fff";
-    private static readonly byte[] s_finishedSignal = Enumerable.Repeat(byte.MaxValue, 3).ToArray();
-    public static byte[] FinishSignal => s_finishedSignal;
+    public static byte[] FinishSignal { get; } = Enumerable.Repeat(byte.MaxValue, 3).ToArray();
 
     public static CameraStreamFormatter FromBytes(byte[] bytes)
     {
@@ -19,7 +48,7 @@ public class CameraStreamFormatter
             Timestamp = bytes.Length >= 12 ? new DateTime(BitConverter.ToInt64(bytes.AsSpan()[4..12]), DateTimeKind.Utc) : default,
             TemperatureInK = bytes.Length >= 16 ? BitConverter.ToInt32(bytes.AsSpan()[12..16]) : default,
             PictureData = bytes.Length > 16 ? bytes[16..] : null,
-            Finished = bytes.Length == s_finishedSignal.Length && bytes.All(b => b == byte.MaxValue)
+            Finished = bytes.Length == FinishSignal.Length && bytes.All(b => b == byte.MaxValue)
         };
     }
 
@@ -77,9 +106,14 @@ public class CameraStreamFormatter
         return true;
     }
 
+    public string FormatFileInfo(string basePath, CameraTypeInfo cameraInfo)
+    {
+        return Path.Combine(basePath, $"{Timestamp.ToUniversalTime().ToString(PictureDateFormat)}_{Steps}_{TemperatureInK}{cameraInfo.FileEnding}");
+    }
+
     public void WriteToFile(string basePath, CameraTypeInfo cameraInfo)
     {
-        File.WriteAllBytes(Path.Combine(basePath, $"{Timestamp.ToUniversalTime().ToString(PictureDateFormat)}_{Steps}_{TemperatureInK}{cameraInfo.FileEnding}"), PictureData ?? []);
+        File.WriteAllBytes(FormatFileInfo(basePath, cameraInfo), PictureData ?? []);
     }
 
     public byte[] GetBytes()
