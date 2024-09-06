@@ -4,18 +4,20 @@ using Plantmonitor.Shared.Extensions;
 
 namespace Plantmonitor.Shared.Features.ImageStreaming;
 
-public record struct CompressionStatus(CameraType Type, int ZippedImageCount, int TotalImages, int TemperatureInK)
+public record struct CompressionStatus(string Type, int ZippedImageCount, int TotalImages, int TemperatureInK)
 {
-    public CompressionStatus WriteFileToZip(string zip, string[] files, CameraType type, Func<DateTime, int> getStepCount)
+    private static readonly Dictionary<string, CameraTypeInfo> s_cameraTypeInfoByName =
+        Enum.GetValues<CameraType>()?.ToDictionary(ct => Enum.GetName(ct) ?? "", ct => ct.Attribute<CameraTypeInfo>()) ?? [];
+    public CompressionStatus WriteFileToZip(string zip, string[] files, string type, Func<DateTime, int> getStepCount)
     {
-        var cameraInfo = type.Attribute<CameraTypeInfo>();
+        var cameraInfo = s_cameraTypeInfoByName[type];
         ZipArchive? archive = default;
         Action openArchiveAction = () => archive = ZipFile.Open(zip, ZipArchiveMode.Update);
         if (!openArchiveAction.Try(_ => { }) || archive == null) return this;
         var file = files.FirstOrDefault();
         if (file == null) return this;
         var creationDate = File.GetCreationTimeUtc(file);
-        if (type == CameraType.IR) TemperatureInK = file.TemperatureInKFromIrPath();
+        if (type == nameof(CameraType.IR)) TemperatureInK = file.TemperatureInKFromIrPath();
         var zipFileName = Path.GetFileName(new CameraStreamFormatter()
         {
             Steps = getStepCount(creationDate),

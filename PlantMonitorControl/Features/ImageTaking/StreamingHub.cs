@@ -62,7 +62,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         archive.Dispose();
         logger.LogInformation("Initializing custom data stream");
         var storedCameraData = new StoredDataStream(motorPosition.CurrentPosition().Position,
-            [new(CameraType.IR, 0, 0, 0), new(CameraType.Vis, 0, 0, 0)], downloadLink, 0f);
+            [new(nameof(CameraType.IR), 0, 0, 0), new(nameof(CameraType.Vis), 0, 0, 0)], downloadLink, 0f);
         var noDataCounter = 0;
         while (noDataCounter < 100)
         {
@@ -70,7 +70,7 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
             for (var i = 0; i < storedCameraData.CompressionStatus.Count; i++)
             {
                 var compressionStatus = storedCameraData.CompressionStatus[i];
-                var files = Directory.GetFiles(compressionStatus.Type == CameraType.IR ? irFolder : visFolder);
+                var files = Directory.GetFiles(compressionStatus.Type == nameof(CameraType.IR) ? irFolder : visFolder);
                 if (files.Length == 0)
                 {
                     noDataCounter++;

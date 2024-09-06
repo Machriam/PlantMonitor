@@ -12,7 +12,7 @@ export interface IReplayedPicture {
     PictureData: Uint8Array;
 }
 export interface ICompressionStatus {
-    CameraType: string;
+    Type: string;
     ZippedImageCount: number;
     TotalImages: number;
     TemperatureInK: number;
@@ -45,7 +45,8 @@ export class DeviceStreaming {
             .build();
         return {
             connection: connection,
-            start: async (callback: (step: number, cameraType: string, totalImages: number, zippedImages: number, temperatureInK: number, downloadStatus: number) => Promise<void>) => {
+            start: async (callback: (step: number, cameraType: string, totalImages: number,
+                zippedImages: number, temperatureInK: number, downloadStatus: number, zipFile: string) => Promise<void>) => {
                 await connection.start();
                 connection.stream("CustomStreamAsZip", new StreamingMetaData({
                     distanceInM: data.focusInMeter,
@@ -55,7 +56,8 @@ export class DeviceStreaming {
                         const payload = x as IStoredDataStream;
                         for (let i = 0; i < payload.CompressionStatus.length; i++) {
                             const status = payload.CompressionStatus[i];
-                            await callback(payload.CurrentStep, status.CameraType, status.TotalImages, status.ZippedImageCount, status.TemperatureInK, payload.DownloadStatus);
+                            await callback(payload.CurrentStep, status.Type, status.TotalImages, status.ZippedImageCount,
+                                status.TemperatureInK, payload.DownloadStatus, payload.ZipFileName);
                         }
                     },
                     complete: () => console.log("complete"),
