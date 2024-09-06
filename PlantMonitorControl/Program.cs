@@ -95,7 +95,7 @@ app.UseCors();
 app.UseStaticFiles(new StaticFileOptions()
 {
     FileProvider = new PhysicalFileProvider(builder.Environment.WebRootPath),
-    RequestPath = "/"
+    RequestPath = ""
 });
 
 app.UseAuthorization();
