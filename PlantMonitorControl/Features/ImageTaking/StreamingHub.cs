@@ -66,7 +66,8 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         var noDataCounter = 0;
         while (noDataCounter < 100)
         {
-            await Task.Delay(100, token);
+            var delay = irCameraInterop.CameraIsRunning() || visCameraInterop.CameraIsRunning() ? 100 : 10;
+            await Task.Delay(delay, token);
             for (var i = 0; i < storedCameraData.CompressionStatus.Count; i++)
             {
                 var compressionStatus = storedCameraData.CompressionStatus[i];
