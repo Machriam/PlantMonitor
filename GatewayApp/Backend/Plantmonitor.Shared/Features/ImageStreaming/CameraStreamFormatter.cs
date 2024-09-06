@@ -22,7 +22,7 @@ public record struct CompressionStatus(string Type, int ZippedImageCount, int To
             Timestamp = creationDate,
             TemperatureInK = TemperatureInK,
         }.FormatFileInfo("", cameraInfo));
-        Action addArchiveAction = () => archive.CreateEntryFromFile(file, zipFileName, CompressionLevel.NoCompression);
+        Action addArchiveAction = () => archive.CreateEntryFromFile(file, zipFileName, CompressionLevel.Fastest);
         if (!addArchiveAction.Try(ex => error = $"Could not add to archive: {ex.Message}")) return (this, error);
         TotalImages = files.Length + ZippedImageCount;
         ZippedImageCount++;

@@ -64,9 +64,9 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         var storedCameraData = new StoredDataStream(motorPosition.CurrentPosition().Position,
             [new(nameof(CameraType.IR), 0, 0, 0), new(nameof(CameraType.Vis), 0, 0, 0)], downloadLink, 0f);
         var noDataCounter = 0;
-        while (noDataCounter < 50)
+        while (noDataCounter < 100)
         {
-            await Task.Delay(200, token);
+            await Task.Delay(100, token);
             for (var i = 0; i < storedCameraData.CompressionStatus.Count; i++)
             {
                 var compressionStatus = storedCameraData.CompressionStatus[i];
@@ -78,11 +78,8 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                 }
                 noDataCounter = 0;
                 int GetStepTime(DateTime d) => motorPosition.StepForTime(new DateTimeOffset(d).Ticks);
-                var sw = new Stopwatch();
-                sw.Start();
                 (storedCameraData.CompressionStatus[i], var error) =
                     compressionStatus.WriteFileToZip(archive, files, compressionStatus.Type, GetStepTime);
-                logger.LogInformation("Zipping {file} took: {milliseconds} ms", files[0], sw.ElapsedMilliseconds);
                 if (!error.IsEmpty()) logger.LogError("An error happened during zipping: {error}", error);
             }
             storedCameraData.CurrentStep = motorPosition.CurrentPosition().Position;
