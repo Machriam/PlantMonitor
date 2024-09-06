@@ -8,14 +8,15 @@ public record struct CompressionStatus(string Type, int ZippedImageCount, int To
 {
     private static readonly Dictionary<string, CameraTypeInfo> s_cameraTypeInfoByName =
         Enum.GetValues<CameraType>()?.ToDictionary(ct => Enum.GetName(ct) ?? "", ct => ct.Attribute<CameraTypeInfo>()) ?? [];
-    public CompressionStatus WriteFileToZip(string zip, string[] files, string type, Func<DateTime, int> getStepCount)
+    public (CompressionStatus Status, string Error) WriteFileToZip(string zip, string[] files, string type, Func<DateTime, int> getStepCount)
     {
         var cameraInfo = s_cameraTypeInfoByName[type];
+        string error = "";
         ZipArchive? archive = default;
         Action openArchiveAction = () => archive = ZipFile.Open(zip, ZipArchiveMode.Update);
-        if (!openArchiveAction.Try(_ => { }) || archive == null) return this;
+        if (!openArchiveAction.Try(ex => error = $"Could not open archive: {ex.Message}") || archive == null) return (this, error);
         var file = files.FirstOrDefault();
-        if (file == null) return this;
+        if (file == null) return (this, error);
         var creationDate = File.GetCreationTimeUtc(file);
         if (type == nameof(CameraType.IR)) TemperatureInK = file.TemperatureInKFromIrPath();
         var zipFileName = Path.GetFileName(new CameraStreamFormatter()
@@ -24,14 +25,14 @@ public record struct CompressionStatus(string Type, int ZippedImageCount, int To
             Timestamp = creationDate,
             TemperatureInK = TemperatureInK,
         }.FormatFileInfo("", cameraInfo));
-        Action addArchiveAction = () => archive.CreateEntryFromFile(file, zipFileName);
-        if (!addArchiveAction.Try(_ => { })) return this;
+        Action addArchiveAction = () => archive.CreateEntryFromFile(file, zipFileName, CompressionLevel.NoCompression);
+        if (!addArchiveAction.Try(ex => error = $"Could not add to archive: {ex.Message}")) return (this, error);
         TotalImages = files.Length + ZippedImageCount;
         ZippedImageCount++;
         archive.Dispose();
         Action deleteAction = () => File.Delete(file);
-        deleteAction.Try(_ => { });
-        return this;
+        deleteAction.Try(ex => error = $"Could not delete: {ex.Message}");
+        return (this, error);
     }
 }
 public record struct StoredDataStream(int CurrentStep, List<CompressionStatus> CompressionStatus, string ZipFileName, float DownloadStatus);

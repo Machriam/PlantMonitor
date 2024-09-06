@@ -2,6 +2,7 @@
 using Plantmonitor.Shared.Features.ImageStreaming;
 using PlantMonitorControl.Features.AppsettingsConfiguration;
 using PlantMonitorControl.Features.MotorMovement;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Threading.Channels;
 
@@ -60,13 +61,13 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
         var downloadLink = Path.Combine(IEnvironmentConfiguration.DownloadFolderName, Path.GetFileName(resultZip));
         var archive = ZipFile.Open(resultZip, ZipArchiveMode.Create);
         archive.Dispose();
-        logger.LogInformation("Initializing custom data stream");
+        logger.LogInformation("Initializing custom data stream, result zip: {zip}", resultZip);
         var storedCameraData = new StoredDataStream(motorPosition.CurrentPosition().Position,
             [new(nameof(CameraType.IR), 0, 0, 0), new(nameof(CameraType.Vis), 0, 0, 0)], downloadLink, 0f);
         var noDataCounter = 0;
-        while (noDataCounter < 100)
+        while (noDataCounter < 50)
         {
-            await Task.Delay(100, token);
+            await Task.Delay(200, token);
             for (var i = 0; i < storedCameraData.CompressionStatus.Count; i++)
             {
                 var compressionStatus = storedCameraData.CompressionStatus[i];
@@ -78,7 +79,12 @@ public class StreamingHub([FromKeyedServices(ICameraInterop.VisCamera)] ICameraI
                 }
                 noDataCounter = 0;
                 int GetStepTime(DateTime d) => motorPosition.StepForTime(new DateTimeOffset(d).Ticks);
-                storedCameraData.CompressionStatus[i] = compressionStatus.WriteFileToZip(resultZip, files, compressionStatus.Type, GetStepTime);
+                var sw = new Stopwatch();
+                sw.Start();
+                (storedCameraData.CompressionStatus[i], var error) =
+                    compressionStatus.WriteFileToZip(resultZip, files, compressionStatus.Type, GetStepTime);
+                logger.LogInformation("Zipping {file} took: {milliseconds} ms", files[0], sw.ElapsedMilliseconds);
+                if (!error.IsEmpty()) logger.LogError("An error happened during zipping: {error}", error);
             }
             storedCameraData.CurrentStep = motorPosition.CurrentPosition().Position;
             await channel.Writer.WriteAsync(storedCameraData, token);
