@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
-using Plantmonitor.Server.Features.DeviceControl;
-using Plantmonitor.Server.Features.ImageStitching;
 using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.CustomTourCreation;
@@ -15,9 +13,17 @@ namespace Plantmonitor.Server.Features.CustomTourCreation;
 [Route("api/[controller]")]
 public class CustomTourCreationController(IEnvironmentConfiguration configuration, IDataContext context)
 {
+    private static Dictionary<string, UploadProgress> s_uploadProgress = new();
     private record struct NewFolderEntry(string IrPath, string VisPath);
+    public record class UploadProgress(string Status, int ExtractedImages, int CreatedTrips)
+    {
+        public string Status { get; set; } = Status;
+        public int ExtractedImages { get; set; } = ExtractedImages;
+        public int CreatedTrips { get; set; } = CreatedTrips;
+    }
+
     public record class AddNewCustomTour([MinLength(3)] string Name, [MinLength(3)] string Comment,
-        string PixelSizeInMm, IFormFile File);
+        string PixelSizeInMm, IFormFile File, string ProgressGuid);
 
     [HttpPost("uploadcustomtour")]
     [RequestSizeLimit(1024L * 1024L * 1024L * 1024L)]
@@ -25,6 +31,8 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
     public void UploadFile([FromForm] AddNewCustomTour tourData)
     {
         using var transaction = context.Database.BeginTransaction();
+        s_uploadProgress.Remove(tourData.ProgressGuid);
+        s_uploadProgress.Add(tourData.ProgressGuid, new("Starting Extraction", 0, 0));
         var newTour = new DataModel.DataModel.AutomaticPhotoTour()
         {
             Comment = tourData.Comment,
@@ -48,11 +56,14 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
         var imagePath = configuration.PicturePath(newTour.DeviceId.ToString());
         using var fileStream = tourData.File.OpenReadStream();
         using var archive = new ZipArchive(fileStream);
+        s_uploadProgress[tourData.ProgressGuid].Status = "Extracting Images";
         foreach (var entry in archive.Entries)
         {
+            s_uploadProgress[tourData.ProgressGuid].ExtractedImages++;
             entry.ExtractToFile(Path.Combine(imagePath, entry.Name.SanitizeFileName()), true);
         }
         var newFolderEntry = new NewFolderEntry();
+        s_uploadProgress[tourData.ProgressGuid].Status = "Creating Phototrips";
         foreach (var fileData in Directory.GetFiles(imagePath)
             .Select(p => new { Path = p, Success = CameraStreamFormatter.FromFileLazy(p, out var result), Info = result })
             .OrderBy(f => f.Info.Timestamp))
@@ -69,6 +80,7 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
             }
             else if (fileData.Info.GetCameraType() == CameraType.IR && !newFolderEntry.VisPath.IsEmpty())
             {
+                s_uploadProgress[tourData.ProgressGuid].CreatedTrips++;
                 newFolderEntry.IrPath = fileData.Path;
                 var visFolder = MoveToImageFolder(imagePath, newFolderEntry.VisPath, fileData.Info.Timestamp);
                 var irFolder = MoveToImageFolder(imagePath, newFolderEntry.IrPath, fileData.Info.Timestamp.AddMilliseconds(10));
@@ -88,6 +100,13 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
         }
         context.SaveChanges();
         transaction.Commit();
+        s_uploadProgress[tourData.ProgressGuid].Status = "Phototour successfully added";
+    }
+
+    [HttpGet("uploadprogress")]
+    public UploadProgress? GetUploadProgress(string progressGuid)
+    {
+        return s_uploadProgress.TryGetValue(progressGuid, out var progress) ? progress : null;
     }
 
     private static string MoveToImageFolder(string imagePath, string fileToMove, DateTime timestamp)

@@ -2259,7 +2259,9 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
 
 export interface ICustomTourCreationClient {
 
-    uploadFile(name?: string | null | undefined, comment?: string | null | undefined, pixelSizeInMm?: string | null | undefined, file?: FileParameter | null | undefined): Promise<void>;
+    uploadFile(name?: string | null | undefined, comment?: string | null | undefined, pixelSizeInMm?: string | null | undefined, file?: FileParameter | null | undefined, progressGuid?: string | null | undefined): Promise<void>;
+
+    getUploadProgress(progressGuid?: string | undefined): Promise<UploadProgress | null>;
 }
 
 export class CustomTourCreationClient extends GatewayAppApiBase implements ICustomTourCreationClient {
@@ -2273,7 +2275,7 @@ export class CustomTourCreationClient extends GatewayAppApiBase implements ICust
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    uploadFile(name?: string | null | undefined, comment?: string | null | undefined, pixelSizeInMm?: string | null | undefined, file?: FileParameter | null | undefined): Promise<void> {
+    uploadFile(name?: string | null | undefined, comment?: string | null | undefined, pixelSizeInMm?: string | null | undefined, file?: FileParameter | null | undefined, progressGuid?: string | null | undefined): Promise<void> {
         let url_ = this.baseUrl + "/api/CustomTourCreation/uploadcustomtour";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -2286,6 +2288,8 @@ export class CustomTourCreationClient extends GatewayAppApiBase implements ICust
             content_.append("PixelSizeInMm", pixelSizeInMm.toString());
         if (file !== null && file !== undefined)
             content_.append("File", file.data, file.fileName ? file.fileName : "File");
+        if (progressGuid !== null && progressGuid !== undefined)
+            content_.append("ProgressGuid", progressGuid.toString());
 
         let options_: RequestInit = {
             body: content_,
@@ -2314,6 +2318,46 @@ export class CustomTourCreationClient extends GatewayAppApiBase implements ICust
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    getUploadProgress(progressGuid?: string | undefined): Promise<UploadProgress | null> {
+        let url_ = this.baseUrl + "/api/CustomTourCreation/uploadprogress?";
+        if (progressGuid === null)
+            throw new Error("The parameter 'progressGuid' cannot be null.");
+        else if (progressGuid !== undefined)
+            url_ += "progressGuid=" + encodeURIComponent("" + progressGuid) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetUploadProgress(_response));
+        });
+    }
+
+    protected processGetUploadProgress(response: Response): Promise<UploadProgress | null> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = resultData200 ? UploadProgress.fromJS(resultData200) : <any>null;
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<UploadProgress | null>(null as any);
     }
 }
 
@@ -5299,6 +5343,57 @@ export interface IDownloadInfo {
     currentSize: number;
     sizeToDownloadInGb: number;
     readyToDownload: boolean;
+}
+
+export class UploadProgress implements IUploadProgress {
+    status!: string;
+    extractedImages!: number;
+    createdTrips!: number;
+
+    constructor(data?: IUploadProgress) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.status = _data["Status"];
+            this.extractedImages = _data["ExtractedImages"];
+            this.createdTrips = _data["CreatedTrips"];
+        }
+    }
+
+    static fromJS(data: any): UploadProgress {
+        data = typeof data === 'object' ? data : {};
+        let result = new UploadProgress();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Status"] = this.status;
+        data["ExtractedImages"] = this.extractedImages;
+        data["CreatedTrips"] = this.createdTrips;
+        return data;
+    }
+
+    clone(): UploadProgress {
+        const json = this.toJSON();
+        let result = new UploadProgress();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IUploadProgress {
+    status: string;
+    extractedImages: number;
+    createdTrips: number;
 }
 
 export class PhotoTourInfo implements IPhotoTourInfo {

@@ -1,11 +1,11 @@
 <script lang="ts">
-    import {CustomTourCreationClient} from "~/services/GatewayAppApi";
+    import {CustomTourCreationClient, UploadProgress} from "~/services/GatewayAppApi";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import NumberInput from "../reuseableComponents/NumberInput.svelte";
     import {Task} from "~/types/Task";
 
     let _uploadFileId = Math.random().toString(36);
-    let _uploadStatus = "";
+    let _uploadProgress: UploadProgress = new UploadProgress();
     let _uploadData: {photoTourName: string; comment: string; pixelSizeInMm: number} = {
         photoTourName: "",
         comment: "",
@@ -17,7 +17,7 @@
         const formData = new FormData();
         formData.append("file", file.files[0]);
         const customTourClient = new CustomTourCreationClient();
-        _uploadStatus = "Uploading.";
+        const uploadId = Math.random().toString(36);
         const promise = customTourClient.uploadFile(
             _uploadData.photoTourName,
             _uploadData.comment,
@@ -25,21 +25,25 @@
             {
                 fileName: file.files[0].name,
                 data: file.files[0]
-            }
+            },
+            uploadId
         );
         let uploadFinished = false;
+        _uploadProgress = new UploadProgress({status: "Uploading", extractedImages: 0, createdTrips: 0});
         promise
-            .then(() => {
-                _uploadStatus = "Upload successful.";
+            .then(async () => {
+                _uploadProgress.status = "Upload successful.";
+                _uploadProgress = (await customTourClient.getUploadProgress(uploadId)) ?? _uploadProgress;
                 uploadFinished = true;
             })
             .catch((e) => {
-                _uploadStatus = "Upload failed: " + e;
+                _uploadProgress.status = "Upload failed: " + e;
                 uploadFinished = true;
             });
         while (!uploadFinished) {
             await Task.delay(1000);
-            _uploadStatus += ".";
+            _uploadProgress.status += ".";
+            _uploadProgress = (await customTourClient.getUploadProgress(uploadId)) ?? _uploadProgress;
         }
     }
 </script>
@@ -54,7 +58,19 @@
     <TextInput class="col-md-2" label="Phototour Comment" bind:value={_uploadData.comment}></TextInput>
     <NumberInput class="col-md-2" label="Pixel size in mm" bind:value={_uploadData.pixelSizeInMm}></NumberInput>
     <button class="btn btn-primary col-md-2" on:click={uploadFile}>Create new Phototour</button>
-    {#if !_uploadStatus.isEmpty()}
-        <div>Upload Status: {_uploadStatus}</div>
+    {#if _uploadProgress.status != undefined}
+        <div class="col-md-4">
+            <table class="table col-md-12">
+                <thead>
+                    <tr><th>Status</th><th>Extracted Images</th><th>Created Trips</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{_uploadProgress?.status}</td>
+                        <td>{_uploadProgress?.extractedImages ?? 0}</td>
+                        <td>{_uploadProgress?.createdTrips ?? 0}</td></tr>
+                </tbody>
+            </table>
+        </div>
     {/if}
 </div>
