@@ -2257,6 +2257,66 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
     }
 }
 
+export interface ICustomTourCreationClient {
+
+    uploadFile(name?: string | null | undefined, comment?: string | null | undefined, pixelSizeInMm?: string | null | undefined, file?: FileParameter | null | undefined): Promise<void>;
+}
+
+export class CustomTourCreationClient extends GatewayAppApiBase implements ICustomTourCreationClient {
+    private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
+    private baseUrl: string;
+    protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
+
+    constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
+        super();
+        this.http = http ? http : window as any;
+        this.baseUrl = this.getBaseUrl("", baseUrl);
+    }
+
+    uploadFile(name?: string | null | undefined, comment?: string | null | undefined, pixelSizeInMm?: string | null | undefined, file?: FileParameter | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/CustomTourCreation/uploadcustomtour";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (name !== null && name !== undefined)
+            content_.append("Name", name.toString());
+        if (comment !== null && comment !== undefined)
+            content_.append("Comment", comment.toString());
+        if (pixelSizeInMm !== null && pixelSizeInMm !== undefined)
+            content_.append("PixelSizeInMm", pixelSizeInMm.toString());
+        if (file !== null && file !== undefined)
+            content_.append("File", file.data, file.fileName ? file.fileName : "File");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processUploadFile(_response));
+        });
+    }
+
+    protected processUploadFile(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+}
+
 export interface IAutomaticPhotoTourClient {
 
     updatePhotoTour(id?: number | undefined, newIntervallInMinutes?: number | undefined, pixelSizeInMm?: number | undefined): Promise<void>;
@@ -5558,6 +5618,11 @@ export interface ITemperatureStreamData {
     temperatureInC: number;
     device: string;
     time: Date;
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export interface FileResponse {
