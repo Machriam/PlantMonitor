@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.IO.Compression;
+using System.Text.Json.Serialization;
 using Plantmonitor.Shared.Extensions;
 
 namespace Plantmonitor.Shared.Features.ImageStreaming;
@@ -57,6 +58,9 @@ public class CameraStreamFormatter
     public int Steps { get; set; }
     public DateTime Timestamp { get; set; }
     public int TemperatureInK { get; set; }
+
+    public CameraType GetCameraType() => TemperatureInK > 0 ? CameraType.IR : CameraType.Vis;
+
     public byte[]? PictureData { get; set; }
     public Func<byte[]?> FetchImageData { get; set; } = () => null;
 
