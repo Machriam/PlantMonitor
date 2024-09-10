@@ -11,6 +11,7 @@
     import {Download} from "~/types/Download";
     class DescriptorInfo {
         name: string;
+        unit: string;
         getDescriptor: (descriptor: PlantImageDescriptors) => number;
     }
     let _photoTours: PhotoTourInfo[] = [];
@@ -19,14 +20,16 @@
     let _selectedPlants: string[] = [];
     let _selectedDescriptors: DescriptorInfo[] = [];
     let _chart: echarts.ECharts;
+    let _chartData: {name: string; yAxisIndex: number; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
+    let _descriptorBySeries: Map<string, DescriptorInfo> = new Map();
     const _graphId = Math.random().toString(36).substring(7);
     let _descriptorsFor: DescriptorInfo[] = [
-        {name: "Convex Hull", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.convexHullAreaInMm2},
-        {name: "Approx. Leaf Count", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.leafCount},
-        {name: "Plant Size", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.sizeInMm2},
-        {name: "Solidity", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.solidity},
-        {name: "IR Temperature", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.averageTemperature},
-        {name: "Extent", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.extent}
+        {name: "Convex Hull", unit: "mm²", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.convexHullAreaInMm2},
+        {name: "Approx. Leaf Count", unit: "count", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.leafCount},
+        {name: "Plant Size", unit: "mm²", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.sizeInMm2},
+        {name: "Solidity", unit: "%", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.solidity * 100},
+        {name: "IR Temperature", unit: "°C", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.averageTemperature},
+        {name: "Extent", unit: "%", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.extent * 100}
     ];
 
     onMount(async () => {
@@ -38,18 +41,27 @@
     function updateChart() {
         if (_virtualImageSummaries.length == 0) return;
         _chart ??= echarts.init(document.getElementById(_graphId));
-        const newData: {name: string; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
+        const filteredSummaries = _virtualImageSummaries.filter((x) =>
+            _selectedPlants.reduce(
+                (a, p) => a && x.imageDescriptors.plantDescriptors.find((pd) => pd.plant.imageName == p) != undefined,
+                true
+            )
+        );
+        _chartData = [];
+        _descriptorBySeries = new Map();
         for (let i = 0; i < _selectedPlants.length; i++) {
             const plant = _selectedPlants[i];
             for (let j = 0; j < _selectedDescriptors.length; j++) {
                 const descriptor = _selectedDescriptors[j];
-                const data = _virtualImageSummaries.map((x) => {
+                const data = filteredSummaries.map((x) => {
                     const descriptorValue = x.imageDescriptors.plantDescriptors.find((p) => p.plant.imageName == plant);
                     return [new Date(x.imageDescriptors.tripStart), descriptor.getDescriptor(descriptorValue!)];
                 });
-                newData.push({
-                    name: plant + " " + descriptor.name,
+                _descriptorBySeries.set(descriptor.name + " " + plant, descriptor);
+                _chartData.push({
+                    name: descriptor.name + " " + plant,
                     type: "line",
+                    yAxisIndex: j,
                     showSymbol: false,
                     data: data
                 });
@@ -57,17 +69,27 @@
         }
         _chart.clear();
         _chart.setOption({
-            title: {text: newData.map((x) => x.name).join(", ")},
-            series: [],
+            series: _chartData,
+            legend: {left: "left"},
             animation: false,
             tooltip: {
                 trigger: "axis",
                 axisPointer: {animation: false},
-                formatter: function (params: {seriesName: string; value: [Date, number]}[]) {
+                formatter: function (params: {seriesName: string; value: [Date, number]}[], x: any) {
                     return (
-                        params.map((x) => x.seriesName + ": " + x.value[1].toFixed(1) + "°C").join("<br>") +
-                        "<br>" +
-                        params[0].value[0].toLocaleString()
+                        params
+                            .map((p, i) => ({
+                                descriptor: _descriptorBySeries.get(p.seriesName),
+                                value: p
+                            }))
+                            .map(
+                                (x) =>
+                                    '<span class="d-flex flex-row mb-2" style="width:300px">' +
+                                    `<span class=\"col-md-8\">${x.value.seriesName}</span>` +
+                                    `<span class=\"col-md-4\">${x.value.value[1].toFixed(1)}${x.descriptor?.unit}</span>` +
+                                    "</span>"
+                            )
+                            .join("") + params[0].value[0].toLocaleString()
                     );
                 }
             },
@@ -77,9 +99,8 @@
                 {type: "inside", realtime: true, xAxisIndex: [0, 1]}
             ],
             xAxis: {type: "time"},
-            yAxis: {type: "value"}
+            yAxis: _selectedDescriptors.map((d) => ({type: "value", name: d.name + " in " + d.unit}))
         });
-        _chart.setOption({series: newData});
     }
     async function selectedTourChanged(newTour: PhotoTourInfo) {
         _selectedTour = newTour;
@@ -95,7 +116,10 @@
     function toggleDescriptorSelection(descriptor: DescriptorInfo) {
         const index = _selectedDescriptors.findIndex((d) => d.name == descriptor.name);
         if (index >= 0) _selectedDescriptors.splice(index, 1);
-        else _selectedDescriptors.push(descriptor);
+        else {
+            _selectedDescriptors.push(descriptor);
+            if (_selectedDescriptors.length > 2) _selectedDescriptors.shift();
+        }
         _selectedDescriptors = _selectedDescriptors;
         updateChart();
     }
