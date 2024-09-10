@@ -32,6 +32,8 @@
         );
     });
     function keyPressed(evt: KeyboardEvent) {
+        const target = evt.target as HTMLElement;
+        if (target.tagName == "INPUT" || target.tagName == "TEXTAREA") return;
         if (evt.key == "ArrowRight") {
             _xOffset += 1;
             evt.preventDefault();
@@ -68,7 +70,13 @@
         return result;
     }
     async function displayPolygonIrOffset() {
-        if (_extractionTemplates.length == 0 || _selectedTrip == undefined || $selectedPhotoTourPlantInfo == undefined) return;
+        if (
+            _extractionTemplates.length == 0 ||
+            _selectedTrip == undefined ||
+            $selectedPhotoTourPlantInfo == undefined ||
+            $selectedPhotoTourPlantInfo.length == 0
+        )
+            return;
         const extractionTemplateId = _extractionTemplates.find(
             (et) => et.photoTourPlantFk == $selectedPhotoTourPlantInfo[0].id
         )?.id;
