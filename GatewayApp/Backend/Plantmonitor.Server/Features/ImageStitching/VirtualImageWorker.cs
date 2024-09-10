@@ -170,7 +170,6 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         dataContext.SaveChanges();
         virtualImageList.DisposeItems();
         logger.LogInformation("Finished virtual image creation of trip {trip}", currentTrip.Timestamp.ToString("yyyy.MM.dd HH:mm:ss"));
-        logger.LogInformation("All trips of tour {tour} processed", photoTourTrip.PhotoTourFkNavigation.Name);
     }
 
     private VirtualImageMetaDataModel AddAdditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess,
