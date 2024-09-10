@@ -14,7 +14,7 @@
     import type {Unsubscriber} from "svelte/motion";
     export let _selectedTrip: PictureTripData | undefined;
     export let _extractionTemplates: PlantExtractionTemplateModel[] = [];
-    let _imageCropPreview: ImageCropPreview | undefined;
+    let _imageCropPreview: ImageCropPreview | undefined | null;
     let _opacity = 1;
     let _xOffset = 0;
     let _yOffset = 0;
@@ -35,20 +35,23 @@
         if (evt.key == "ArrowRight") {
             _xOffset += 1;
             evt.preventDefault();
+            _polygonUpdater();
         }
         if (evt.key == "ArrowLeft") {
             _xOffset -= 1;
             evt.preventDefault();
+            _polygonUpdater();
         }
         if (evt.key == "ArrowUp") {
             _yOffset -= 1;
             evt.preventDefault();
+            _polygonUpdater();
         }
         if (evt.key == "ArrowDown") {
             _yOffset += 1;
             evt.preventDefault();
+            _polygonUpdater();
         }
-        _polygonUpdater();
     }
     async function loadNewPolygon() {
         if (_extractionTemplates.length == 0 || _selectedTrip == undefined || $selectedPhotoTourPlantInfo == undefined) return;
@@ -123,7 +126,7 @@
                 )}</button>
         </div>
     {/if}
-    {#if _imageCropPreview != undefined}
+    {#if _imageCropPreview != undefined && _imageCropPreview != null}
         <div>
             Current Offset (X,Y): {_imageCropPreview.currentOffset.x.toFixed(1)},
             {_imageCropPreview.currentOffset.y.toFixed(1)}

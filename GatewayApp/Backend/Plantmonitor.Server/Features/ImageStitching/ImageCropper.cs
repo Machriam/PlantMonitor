@@ -103,12 +103,17 @@ public class ImageCropper() : IImageCropper
         inverseMat.Dispose();
     }
 
-    public Mat MatFromFile(string filename, out bool isIr)
+    public Mat? MatFromFile(string filename, out bool isIr)
     {
         isIr = false;
         if (!filename.EndsWith(CameraType.IR.GetInfo().FileEnding)) return CvInvoke.Imread(filename);
-        var irMat = new Mat(120, 160, DepthType.Cv32S, 1);
+        var irMat = new Mat(ImageConstants.IrHeight, ImageConstants.IrWidth, DepthType.Cv32S, 1);
         var tempArray = File.ReadAllBytes(filename).Chunk(4).Select(b => (int)BitConverter.ToUInt32(b)).ToArray();
+        if (tempArray.Length != ImageConstants.IrPixelCount)
+        {
+            irMat.Dispose();
+            return null;
+        }
         irMat.SetTo(tempArray);
         isIr = true;
         return irMat;
@@ -134,7 +139,7 @@ public class ImageCropper() : IImageCropper
 
     public (Mat VisImage, Mat? IrImage) CropImages(string visImage, string? irImage, NpgsqlPoint[] visPolygon, NpgsqlPoint irOffset, int scalingHeightInPx)
     {
-        var visMat = MatFromFile(visImage, out _);
+        var visMat = MatFromFile(visImage, out _) ?? throw new Exception("Could not read vis image file");
         var resizeRatio = scalingHeightInPx / (double)visMat.Height;
         visPolygon = visPolygon.Select(vp => new NpgsqlPoint(vp.X * resizeRatio, vp.Y * resizeRatio)).ToArray();
         irOffset = new NpgsqlPoint(-irOffset.X * scalingHeightInPx / Const.IrScalingHeight, -irOffset.Y * scalingHeightInPx / Const.IrScalingHeight);
@@ -146,6 +151,11 @@ public class ImageCropper() : IImageCropper
             return (visCrop, null);
         }
         var irMat = MatFromFile(irImage!, out _);
+        if (irMat == null)
+        {
+            visMat.Dispose();
+            return (visCrop, null);
+        }
         Resize(irMat, scalingHeightInPx);
         var irPolygon = visPolygon
             .Select(p => new NpgsqlPoint(p.X + irOffset.X, p.Y + irOffset.Y))

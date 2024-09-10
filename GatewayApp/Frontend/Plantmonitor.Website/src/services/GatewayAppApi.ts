@@ -299,7 +299,7 @@ export interface IPhotoStitchingClient {
 
     removePlantsFromTour(plantIds: number[]): Promise<void>;
 
-    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined, xOffset?: number | undefined, yOffset?: number | undefined): Promise<ImageCropPreview>;
+    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined, xOffset?: number | undefined, yOffset?: number | undefined): Promise<ImageCropPreview | null>;
 
     updateIrOffset(adjustment: IrOffsetFineAdjustment): Promise<void>;
 
@@ -500,7 +500,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
         return Promise.resolve<void>(null as any);
     }
 
-    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined, xOffset?: number | undefined, yOffset?: number | undefined): Promise<ImageCropPreview> {
+    croppedImageFor(extractionTemplateId?: number | undefined, photoTripId?: number | undefined, xOffset?: number | undefined, yOffset?: number | undefined): Promise<ImageCropPreview | null> {
         let url_ = this.baseUrl + "/api/PhotoStitching/croppedimagefor?";
         if (extractionTemplateId === null)
             throw new Error("The parameter 'extractionTemplateId' cannot be null.");
@@ -534,14 +534,14 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
         });
     }
 
-    protected processCroppedImageFor(response: Response): Promise<ImageCropPreview> {
+    protected processCroppedImageFor(response: Response): Promise<ImageCropPreview | null> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ImageCropPreview.fromJS(resultData200);
+            result200 = resultData200 ? ImageCropPreview.fromJS(resultData200) : <any>null;
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -549,7 +549,7 @@ export class PhotoStitchingClient extends GatewayAppApiBase implements IPhotoSti
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<ImageCropPreview>(null as any);
+        return Promise.resolve<ImageCropPreview | null>(null as any);
     }
 
     updateIrOffset(adjustment: IrOffsetFineAdjustment): Promise<void> {
