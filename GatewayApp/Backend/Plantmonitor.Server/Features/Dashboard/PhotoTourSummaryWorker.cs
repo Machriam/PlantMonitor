@@ -28,9 +28,9 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _processImageTimer = new Timer(_ => FindNextImageToProcess(), default, (int)TimeSpan.FromSeconds(10).TotalMilliseconds, (int)TimeSpan.FromSeconds(5).TotalMilliseconds);
+        _processImageTimer = new Timer(_ => FindNextImageToProcess(), default, (int)TimeSpan.FromSeconds(10).TotalMilliseconds, (int)TimeSpan.FromSeconds(1).TotalMilliseconds);
         _processFindImagesToProcessTimer = new Timer(_ => FindImagesToProcess(), default,
-            (int)TimeSpan.FromSeconds(20).TotalMilliseconds, (int)TimeSpan.FromMinutes(5).TotalMilliseconds);
+            (int)TimeSpan.FromSeconds(20).TotalMilliseconds, (int)TimeSpan.FromMinutes(2).TotalMilliseconds);
         return Task.CompletedTask;
     }
 

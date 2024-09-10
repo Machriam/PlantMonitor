@@ -82,8 +82,8 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
             {
                 s_uploadProgress[tourData.ProgressGuid].CreatedTrips++;
                 newFolderEntry.IrPath = fileData.Path;
-                var visFolder = MoveToImageFolder(imagePath, newFolderEntry.VisPath, fileData.Info.Timestamp);
-                var irFolder = MoveToImageFolder(imagePath, newFolderEntry.IrPath, fileData.Info.Timestamp.AddMilliseconds(10));
+                var visFolder = MoveToImageFolder(imagePath, newFolderEntry.VisPath, fileData.Info.Timestamp, CameraType.Vis);
+                var irFolder = MoveToImageFolder(imagePath, newFolderEntry.IrPath, fileData.Info.Timestamp.AddMilliseconds(10), CameraType.IR);
                 newFolderEntry = new();
                 context.PhotoTourTrips.Add(new PhotoTourTrip()
                 {
@@ -109,12 +109,13 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
         return s_uploadProgress.TryGetValue(progressGuid, out var progress) ? progress : null;
     }
 
-    private static string MoveToImageFolder(string imagePath, string fileToMove, DateTime timestamp)
+    private static string MoveToImageFolder(string imagePath, string fileToMove, DateTime timestamp, CameraType type)
     {
         var sequenceId = timestamp.ToString(CameraStreamFormatter.PictureDateFormat);
         var newFolder = Path.Combine(imagePath, sequenceId);
         Directory.CreateDirectory(newFolder);
-        File.WriteAllBytes(Path.Combine(newFolder, Path.GetFileName(fileToMove)), File.ReadAllBytes(fileToMove));
+        var bytes = type == CameraType.IR ? fileToMove.GetBytesFromIrFilePath(out _).Bytes : File.ReadAllBytes(fileToMove);
+        File.WriteAllBytes(Path.Combine(newFolder, Path.GetFileName(fileToMove)), bytes);
         File.Delete(fileToMove);
         return newFolder;
     }
