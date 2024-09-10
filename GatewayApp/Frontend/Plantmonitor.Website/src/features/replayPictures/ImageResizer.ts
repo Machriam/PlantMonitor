@@ -1,3 +1,5 @@
+import { Task } from "~/types/Task";
+
 export function resizeBase64Img(base64: string, width: number, height: number): Promise<string> {
     return new Promise((resolve, reject) => {
         try {
@@ -6,7 +8,8 @@ export function resizeBase64Img(base64: string, width: number, height: number): 
             canvas.height = height;
             const context = canvas.getContext("2d");
             const image = new Image(width, height);
-            image.onload = () => {
+            image.onload = async () => {
+                await image.decode();
                 context?.drawImage(image, 0, 0, width, height);
                 const result = canvas.toDataURL("image/jpeg");
                 resolve(result);
@@ -84,7 +87,14 @@ export function drawImageOnCanvas(base64: string, canvas: HTMLCanvasElement): Pr
             context.imageSmoothingEnabled = false;
 
             const image = new Image();
-            image.onload = () => {
+            image.onload = async () => {
+                let counter = 0;
+                let decodeResult = image.decode().try();
+                while ((await decodeResult).hasError && counter < 100) {
+                    counter++;
+                    decodeResult = image.decode().try();
+                    await Task.delay(10);
+                }
                 const ratio = canvas.offsetWidth / image.width;
                 const canvasWidth = image.width * ratio;
                 const canvasHeight = image.height * ratio;

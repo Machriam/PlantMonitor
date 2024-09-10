@@ -17,6 +17,7 @@
     import {imageToCutChanged, plantPolygonChanged, selectedPhotoTourPlantInfo} from "./PhotoStitchingContext";
     import type {Unsubscriber} from "svelte/motion";
     import {selectedDevice} from "../store";
+    import {Task} from "~/types/Task";
 
     export let deviceId: string;
     export let irSeries: string;
@@ -198,6 +199,7 @@
     async function refreshImage() {
         if (_selectedImage?.imageUrl == undefined) return;
         const canvas = document.getElementById(_selectedImageCanvasId) as HTMLCanvasElement;
+        await Task.delay(500);
         const ratio = await drawImageOnCanvas(_selectedImage.imageUrl, canvas);
         _imageRatio = ratio.ratio;
         const activatedTooltip = document.getElementById(_selectedThumbnailId + "_" + _currentImageIndex);

@@ -38,7 +38,7 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
             Comment = tourData.Comment,
             DeviceId = Guid.NewGuid(),
             Finished = true,
-            IntervallInMinutes = float.MaxValue,
+            IntervallInMinutes = 0.1f,
             Name = tourData.Name.SanitizeFileName(),
             PixelSizeInMm = float.TryParse(tourData.PixelSizeInMm, CultureInfo.InvariantCulture, out var pixelSize) ? pixelSize :
             throw new Exception("Invalid Pixelsize"),
@@ -80,6 +80,11 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
             }
             else if (fileData.Info.GetCameraType() == CameraType.IR && !newFolderEntry.VisPath.IsEmpty())
             {
+                if (fileData.Path.GetBytesFromIrFilePath(out _).Bytes.Length != ImageConstants.IrPixelCount)
+                {
+                    File.Delete(fileData.Path);
+                    continue;
+                }
                 s_uploadProgress[tourData.ProgressGuid].CreatedTrips++;
                 newFolderEntry.IrPath = fileData.Path;
                 var visFolder = MoveToImageFolder(imagePath, newFolderEntry.VisPath, fileData.Info.Timestamp, CameraType.Vis);

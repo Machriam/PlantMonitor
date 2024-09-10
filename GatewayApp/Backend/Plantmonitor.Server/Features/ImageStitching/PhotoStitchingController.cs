@@ -70,11 +70,12 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
     }
 
     [HttpGet("croppedimagefor")]
-    public ImageCropPreview CroppedImageFor(long extractionTemplateId, long photoTripId, double xOffset, double yOffset)
+    public ImageCropPreview? CroppedImageFor(long extractionTemplateId, long photoTripId, double xOffset, double yOffset)
     {
         var template = context.PlantExtractionTemplates
             .Include(pet => pet.PhotoTripFkNavigation)
-            .First(pet => pet.Id == extractionTemplateId);
+            .FirstOrDefault(pet => pet.Id == extractionTemplateId);
+        if (template == null) return null;
         var previousTemplate = context.PlantExtractionTemplates
             .Include(pet => pet.PhotoTripFkNavigation)
             .FirstOrDefault(pet => pet.PhotoTripFkNavigation.Timestamp < template.PhotoTripFkNavigation.Timestamp &&
