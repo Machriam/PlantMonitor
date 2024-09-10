@@ -12,6 +12,8 @@
     class DescriptorInfo {
         name: string;
         unit: string;
+        validator: (value: number) => boolean;
+        tooltipFormatter: (value: number) => string;
         getDescriptor: (descriptor: PlantImageDescriptors) => number;
     }
     let _photoTours: PhotoTourInfo[] = [];
@@ -24,12 +26,48 @@
     let _descriptorBySeries: Map<string, DescriptorInfo> = new Map();
     const _graphId = Math.random().toString(36).substring(7);
     let _descriptorsFor: DescriptorInfo[] = [
-        {name: "Convex Hull", unit: "mm²", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.convexHullAreaInMm2},
-        {name: "Approx. Leaf Count", unit: "count", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.leafCount},
-        {name: "Plant Size", unit: "mm²", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.sizeInMm2},
-        {name: "Solidity", unit: "%", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.solidity * 100},
-        {name: "IR Temperature", unit: "°C", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.averageTemperature},
-        {name: "Extent", unit: "%", getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.extent * 100}
+        {
+            name: "Convex Hull",
+            unit: "mm²",
+            tooltipFormatter: (value) => value.toFixed(1) + " mm²",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.convexHullAreaInMm2
+        },
+        {
+            name: "Approx. Leaf Count",
+            unit: "count",
+            tooltipFormatter: (value) => value + "",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.leafCount
+        },
+        {
+            name: "Plant Size",
+            unit: "mm²",
+            tooltipFormatter: (value) => value.toFixed(1) + " mm²",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.sizeInMm2
+        },
+        {
+            name: "Solidity",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1) + "%",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.solidity * 100
+        },
+        {
+            name: "IR Temperature",
+            unit: "°C",
+            tooltipFormatter: (value) => value.toFixed(1) + "°C",
+            validator: (x) => x > 0,
+            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.averageTemperature
+        },
+        {
+            name: "Extent",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1) + "%",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.extent * 100
+        }
     ];
 
     onMount(async () => {
@@ -53,10 +91,14 @@
             const plant = _selectedPlants[i];
             for (let j = 0; j < _selectedDescriptors.length; j++) {
                 const descriptor = _selectedDescriptors[j];
-                const data = filteredSummaries.map((x) => {
-                    const descriptorValue = x.imageDescriptors.plantDescriptors.find((p) => p.plant.imageName == plant);
-                    return [new Date(x.imageDescriptors.tripStart), descriptor.getDescriptor(descriptorValue!)];
-                });
+                const data = filteredSummaries
+                    .map((x) => {
+                        const descriptorValue = x.imageDescriptors.plantDescriptors.find((p) => p.plant.imageName == plant);
+                        const value = descriptor.getDescriptor(descriptorValue!);
+                        if (!descriptor.validator(value)) return [];
+                        return [new Date(x.imageDescriptors.tripStart), value];
+                    })
+                    .filter((x) => x.length > 0);
                 _descriptorBySeries.set(descriptor.name + " " + plant, descriptor);
                 _chartData.push({
                     name: descriptor.name + " " + plant,
@@ -86,7 +128,7 @@
                                 (x) =>
                                     '<span class="d-flex flex-row mb-2" style="width:300px">' +
                                     `<span class=\"col-md-8\">${x.value.seriesName}</span>` +
-                                    `<span class=\"col-md-4\">${x.value.value[1].toFixed(1)}${x.descriptor?.unit}</span>` +
+                                    `<span class=\"col-md-4\">${x.descriptor?.tooltipFormatter(x.value.value[1])}</span>` +
                                     "</span>"
                             )
                             .join("") + params[0].value[0].toLocaleString()
