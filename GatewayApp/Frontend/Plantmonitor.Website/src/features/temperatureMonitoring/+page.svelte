@@ -40,7 +40,12 @@
         const summary = await dashboardClient.temperatureSummary(info.id);
         let newData: {name: string; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
         summary.forEach((x) => {
-            newData.push({name: x.device, type: "line", showSymbol: true, data: x.data.map((y) => [y.time, y.temperature])});
+            newData.push({
+                name: x.device,
+                type: "line",
+                showSymbol: true,
+                data: x.data.filter((d) => d.temperature > 0).map((y) => [y.time, y.temperature])
+            });
         });
         setTemperatureData(newData);
     }
@@ -60,7 +65,7 @@
             type: "line",
             sampling: "lttb",
             showSymbol: true,
-            data: temperatures.map((y) => [y.timestamp, y.temperature])
+            data: temperatures.filter((t) => t.temperature > 0).map((y) => [y.timestamp, y.temperature])
         });
         setTemperatureData(newData);
     }

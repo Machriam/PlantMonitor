@@ -33,7 +33,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     {
         return SummariesById(context, photoTourId)
             .ToList()
-            .Where(s => s.ImageDescriptors.PlantDescriptors.Any())
+            .Where(s => s.ImageDescriptors.PlantDescriptors.Any() && !s.IsDark())
             .OrderBy(s => s.VirtualImageCreationDate);
     }
 
