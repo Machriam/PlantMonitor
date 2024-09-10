@@ -80,7 +80,7 @@ public class CustomTourCreationController(IEnvironmentConfiguration configuratio
             }
             else if (fileData.Info.GetCameraType() == CameraType.IR && !newFolderEntry.VisPath.IsEmpty())
             {
-                if (fileData.Path.GetBytesFromIrFilePath(out _).Bytes.Length != ImageConstants.IrPixelCount)
+                if (fileData.Path.GetBytesFromIrFilePath(out _).Bytes.Length != ImageConstants.IrPixelCount * sizeof(int))
                 {
                     File.Delete(fileData.Path);
                     continue;
