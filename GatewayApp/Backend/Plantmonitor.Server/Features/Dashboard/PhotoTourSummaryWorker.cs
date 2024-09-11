@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO.Compression;
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
@@ -109,7 +110,9 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                     PhotoTripId = pixelSummary.GetPhotoTripData.PhotoTripId,
                     TourName = pixelSummary.GetPhotoTripData.TourName,
                     TripEnd = pixelSummary.GetPhotoTripData.TripEnd,
-                    DeviceTemperatures = pixelSummary.DeviceTemperatures.Select(dt => new DeviceTemperature()
+                    DeviceTemperatures = pixelSummary.DeviceTemperatures
+                    .Where(dt => dt.AverageTemperature > 0)
+                    .Select(dt => new DeviceTemperature()
                     {
                         AverageTemperature = dt.AverageTemperature,
                         CountOfMeasurements = dt.CountOfMeasurements,
@@ -169,6 +172,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         var visData = visMat.GetData(true);
         var resultData = new PhotoSummaryResult(metaData.Dimensions.SizeOfPixelInMm);
         var deviceTemperatureInfo = metaData.TemperatureReadings
+            .Where(tr => tr.TemperatureInC > 0f)
             .GroupBy(tr => tr.Comment + " " + tr.SensorId)
             .Select(g =>
             {
@@ -187,18 +191,22 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         var irTemperatures = metaData.ImageMetaData
             .DistinctBy(im => im.MotorPosition)
             .Select(im => im.IrTempInC)
+            .Where(x => x > 0f)
             .ToList();
-        var irAverageTemperature = irTemperatures.Average();
-        deviceTemperatureInfo.Add(new PhotoSummaryResult.DeviceTemperatureInfo()
+        deviceTemperatureInfo.PushIf(() =>
         {
-            Name = TemperatureMeasurement.FlirLeptonSensorId,
-            AverageTemperature = irAverageTemperature,
-            CountOfMeasurements = irTemperatures.Count,
-            MaxTemperature = irTemperatures.Max(),
-            MedianTemperature = irTemperatures.OrderBy(t => t).Median(t => t),
-            MinTemperature = irTemperatures.Min(),
-            TemperatureDeviation = irTemperatures.Deviation(irAverageTemperature, t => t),
-        });
+            var irAverageTemperature = irTemperatures.Average();
+            return new PhotoSummaryResult.DeviceTemperatureInfo()
+            {
+                Name = TemperatureMeasurement.FlirLeptonSensorId,
+                AverageTemperature = irAverageTemperature,
+                CountOfMeasurements = irTemperatures.Count,
+                MaxTemperature = irTemperatures.Max(),
+                MedianTemperature = irTemperatures.OrderBy(t => t).Median(t => t),
+                MinTemperature = irTemperatures.Min(),
+                TemperatureDeviation = irTemperatures.Deviation(irAverageTemperature, t => t),
+            };
+        }, () => irTemperatures.Count > 0);
         resultData.AddDeviceTemperatures(deviceTemperatureInfo);
         resultData.AddPhotoTripData(metaData.TimeInfos.TripName, metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime, metaData.TimeInfos.PhotoTourId, metaData.TimeInfos.PhotoTripId);
         for (var row = 0; row < mask.Rows; row++)
@@ -213,9 +221,9 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                 if (imageData == null) continue;
                 var temperatureInteger = (byte)irData.GetValue(row, col, 0)!;
                 var temperatureFraction = (byte)irData.GetValue(row, col, 1)!;
-                var rValue = (byte)visData.GetValue(row, col, 0)!;
+                var rValue = (byte)visData.GetValue(row, col, 2)!;
                 var gValue = (byte)visData.GetValue(row, col, 1)!;
-                var bValue = (byte)visData.GetValue(row, col, 2)!;
+                var bValue = (byte)visData.GetValue(row, col, 0)!;
                 resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f), [rValue, gValue, bValue], leafOutOfRange);
             }
         }
@@ -238,7 +246,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
             files.Add(path);
         }
         zip.Dispose();
-        var visMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.VisPrefix)));
+        var visMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.VisPrefix)), ImreadModes.Color);
         var rawIrMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.RawIrPrefix)));
         var metaData = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.MetaDataPrefix))));
         return (visMat, rawIrMat, metaData);
@@ -248,11 +256,11 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     {
         var mask = new Mat();
         visMat.CopyTo(mask);
-        CvInvoke.CvtColor(mask, mask, Emgu.CV.CvEnum.ColorConversion.Rgb2Gray);
+        CvInvoke.CvtColor(mask, mask, ColorConversion.Rgb2Gray);
         var whiteMask = new Mat();
         CvInvoke.InRange(mask, new ScalarArray(new MCvScalar(255)), new ScalarArray(new MCvScalar(255)), whiteMask);
         mask.SetTo(new MCvScalar(0), whiteMask);
-        CvInvoke.Threshold(mask, mask, 0d, 255d, Emgu.CV.CvEnum.ThresholdType.Binary);
+        CvInvoke.Threshold(mask, mask, 0d, 255d, ThresholdType.Binary);
         CvInvoke.Canny(mask, mask, 100, 300);
         whiteMask.Dispose();
         return mask;
@@ -261,18 +269,40 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     public Mat GetPlantMask(Mat visMat)
     {
         var hsvMat = new Mat();
-        CvInvoke.CvtColor(visMat, hsvMat, Emgu.CV.CvEnum.ColorConversion.Rgb2Hsv);
-        var lowGreen = new ScalarArray(new MCvScalar(50, 60, 50));
-        var highGreen = new ScalarArray(new MCvScalar(110, 255, 255));
         var mask = new Mat();
-        var element = CvInvoke.GetStructuringElement(Emgu.CV.CvEnum.ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
-        CvInvoke.InRange(hsvMat, lowGreen, highGreen, mask);
-        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), 2, Emgu.CV.CvEnum.BorderType.Constant, new MCvScalar(0));
-        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), 2, Emgu.CV.CvEnum.BorderType.Constant, new MCvScalar(0));
-        element.Dispose();
+        CvInvoke.CvtColor(visMat, hsvMat, ColorConversion.Bgr2Hsv);
+        SegmentHsvColorSpace(hsvMat, mask);
+        MorphologicalOpening(mask);
+        OtsuTresholdingOnSaturationChannel(hsvMat, mask);
+        MorphologicalOpening(mask);
         hsvMat.Dispose();
+        return mask;
+    }
+
+    private static void OtsuTresholdingOnSaturationChannel(Mat hsvMat, Mat mask)
+    {
+        var colorMaskedImage = new Mat();
+        CvInvoke.BitwiseAnd(hsvMat, hsvMat, colorMaskedImage, mask);
+        var hsvChannels = colorMaskedImage.Split();
+        CvInvoke.Threshold(hsvChannels[1], mask, 65d, 255d, ThresholdType.Otsu);
+        colorMaskedImage.Dispose();
+        foreach (var channel in hsvChannels) channel.Dispose();
+    }
+
+    private static void MorphologicalOpening(Mat mask)
+    {
+        var element = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
+        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), 2, BorderType.Constant, new MCvScalar(0));
+        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), 2, BorderType.Constant, new MCvScalar(0));
+        element.Dispose();
+    }
+
+    private static void SegmentHsvColorSpace(Mat hsvMat, Mat mask)
+    {
+        var lowGreen = new ScalarArray(new MCvScalar(40d / 360d * 255d, 5d / 100d * 255d, 20d / 100d * 255d));
+        var highGreen = new ScalarArray(new MCvScalar(130d / 360d * 255d, 100d / 100d * 255d, 100d / 100d * 255d));
+        CvInvoke.InRange(hsvMat, lowGreen, highGreen, mask);
         lowGreen.Dispose();
         highGreen.Dispose();
-        return mask;
     }
 }

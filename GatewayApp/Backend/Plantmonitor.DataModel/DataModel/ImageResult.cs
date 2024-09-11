@@ -19,6 +19,7 @@ public class PlantImageDescriptors
     public float MedianTemperature { get; set; }
     public float TemperatureDev { get; set; }
     public float MaxTemperature { get; set; }
+    public int PixelCount { get; set; }
     public float MinTemperature { get; set; }
     public float HeightInMm { get; set; }
     public float WidthInMm { get; set; }

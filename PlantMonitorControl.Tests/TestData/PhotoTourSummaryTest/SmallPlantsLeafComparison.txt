@@ -1,9 +1,9 @@
-Total misses: 45
-Index: 0		Expected: 6		Diff: 0
+Total misses: 44
+Index: 0		Expected: 6		Diff: 1
 Index: 1		Expected: 6		Diff: -1
 Index: 2		Expected: 6		Diff: -2
 Index: 3		Expected: 8		Diff: -2
-Index: 4		Expected: 8		Diff: -2
+Index: 4		Expected: 8		Diff: -1
 Index: 5		Expected: 7		Diff: -1
 Index: 6		Expected: 6		Diff: -1
 Index: 7		Expected: 7		Diff: -4
@@ -14,7 +14,7 @@ Index: 11		Expected: 7		Diff: -2
 Index: 12		Expected: 7		Diff: -2
 Index: 13		Expected: 5		Diff: 0
 Index: 14		Expected: 6		Diff: -1
-Index: 15		Expected: 6		Diff: 0
+Index: 15		Expected: 6		Diff: -1
 Index: 16		Expected: 6		Diff: -2
 Index: 17		Expected: 6		Diff: 1
 Index: 18		Expected: 5		Diff: -1

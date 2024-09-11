@@ -15,7 +15,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         float MinTemperature, float AverageTemperature, float MedianTemperature, float TemperatureDeviation, int CountOfMeasurements);
     public record struct PixelInfo(int Left, int Top, float Temperature, byte[] PixelColorInRgb, bool LeafOutOfRange);
     public record struct ImageResult(VirtualImageMetaDataModel.ImageMetaDatum Plant, float SizeInMm2, float AverageTemperature,
-        float MedianTemperature, float TemperatureDev, float MaxTemperature, float MinTemperature,
+        float MedianTemperature, float TemperatureDev, float MaxTemperature, float MinTemperature, int PixelCount,
         float HeightInMm, float WidthInMm, float Extent, float ConvexHullAreaInMm2, float Solidity, int LeafCount, bool LeafOutOfRange, float[] HslAverage,
         float[] HslMedian, float[] HslMax, float[] HslMin, float[] HslDeviation, bool NoImage, List<DeviceTemperatureInfo> DeviceTemperatures)
     {
@@ -35,6 +35,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 LeafCount = LeafCount,
                 LeafOutOfRange = LeafOutOfRange,
                 MaxTemperature = MaxTemperature,
+                PixelCount = PixelCount,
                 MedianTemperature = MedianTemperature,
                 MinTemperature = MinTemperature,
                 NoImage = NoImage,
@@ -70,7 +71,8 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         else _result[image] = [new(left, top, temperature, pixelColorInRgb, leafOutOfRange)];
     }
 
-    public void AddDeviceTemperatures(IEnumerable<DeviceTemperatureInfo> deviceTemperatures) => DeviceTemperatures.AddRange(deviceTemperatures);
+    public void AddDeviceTemperatures(IEnumerable<DeviceTemperatureInfo> deviceTemperatures) =>
+        DeviceTemperatures.AddRange(deviceTemperatures.Where(dt => dt.AverageTemperature > 0f));
 
     public List<ImageResult> GetResults()
     {
@@ -104,6 +106,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
             result.MedianTemperature = pixelList.OrderBy(p => p.Temperature).Median(p => p.Temperature);
             result.MaxTemperature = pixelList.MaxBy(p => p.Temperature).Temperature;
             result.MinTemperature = pixelList.MinBy(p => p.Temperature).Temperature;
+            result.PixelCount = pixelList.Count;
             result.TemperatureDev = pixelList.Deviation(result.AverageTemperature, pi => pi.Temperature);
             result.HeightInMm = subImage.Rows * pixelSizeInMm;
             result.WidthInMm = subImage.Cols * pixelSizeInMm;

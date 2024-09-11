@@ -1,4 +1,6 @@
-﻿using FluentAssertions;
+﻿using Emgu.CV;
+using FluentAssertions;
+using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -131,6 +133,24 @@ public class PhotoTourSummaryWorkerTests
         zipData.VisImage.Dispose();
         zipData.RawIrImage.Dispose();
         result.Dispose();
+    }
+
+    [Fact]
+    public void ProcessImage_CompareMasks()
+    {
+        var files = Directory.GetFiles(s_testZipFolder, "Compare*");
+        var sut = CreatePhotoTourSummaryWorker();
+        foreach (var file in files)
+        {
+            var zipData = sut.GetDataFromZip(file);
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            var plantMask = sut.GetPlantMask(zipData.VisImage);
+            plantMask.ShowImage("PlantMask " + fileName, 200);
+            zipData.VisImage.ShowImage("VisOriginal " + fileName, 200);
+            zipData.VisImage.Dispose();
+            zipData.RawIrImage.Dispose();
+            plantMask.Dispose();
+        }
     }
 
     [Fact]
