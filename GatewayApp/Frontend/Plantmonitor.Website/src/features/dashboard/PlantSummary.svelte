@@ -9,6 +9,7 @@
         VirtualImageSummary
     } from "~/services/GatewayAppApi";
     import {Download} from "~/types/Download";
+    import {_virtualImageFilterByTime} from "./DashboardContext";
     class DescriptorInfo {
         name: string;
         unit: string;
@@ -110,6 +111,13 @@
             }
         }
         _chart.clear();
+        let currentlyHoveredTimes: Date[] = [];
+        _chart.getZr().on("click", (params) => {
+            _virtualImageFilterByTime.update((x) => {
+                currentlyHoveredTimes.map((t) => x.add(Math.round(t.getTime() / 1000)));
+                return x;
+            });
+        });
         _chart.setOption({
             series: _chartData,
             legend: {left: "left"},
@@ -118,6 +126,7 @@
                 trigger: "axis",
                 axisPointer: {animation: false},
                 formatter: function (params: {seriesName: string; value: [Date, number]}[], x: any) {
+                    currentlyHoveredTimes = params.map((p) => p.value[0]);
                     return (
                         params
                             .map((p, i) => ({
@@ -135,13 +144,24 @@
                     );
                 }
             },
-            toolbox: {feature: {dataZoom: {yAxisIndex: "none"}, restore: {}, saveAsImage: {}}},
+            toolbox: {
+                feature: {
+                    dataZoom: {yAxisIndex: "none"},
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
             dataZoom: [
                 {show: true, realtime: true, xAxisIndex: [0, 1]},
                 {type: "inside", realtime: true, xAxisIndex: [0, 1]}
             ],
             xAxis: {type: "time"},
             yAxis: _selectedDescriptors.map((d) => ({type: "value", name: d.name + " in " + d.unit}))
+        });
+        _chart.dispatchAction({
+            type: "takeGlobalCursor",
+            key: "dataZoomSelect",
+            dataZoomSelectActive: true
         });
     }
     async function selectedTourChanged(newTour: PhotoTourInfo) {
