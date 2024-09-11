@@ -269,24 +269,40 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     public Mat GetPlantMask(Mat visMat)
     {
         var hsvMat = new Mat();
-        CvInvoke.CvtColor(visMat, hsvMat, ColorConversion.Bgr2Hsv);
-        var lowGreen = new ScalarArray(new MCvScalar(40d / 360d * 255d, 5d / 100d * 255d, 20d / 100d * 255d));
-        var highGreen = new ScalarArray(new MCvScalar(130d / 360d * 255d, 100d / 100d * 255d, 100d / 100d * 255d));
         var mask = new Mat();
-        var element = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
-        CvInvoke.InRange(hsvMat, lowGreen, highGreen, mask);
-        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), 2, BorderType.Constant, new MCvScalar(0));
-        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), 2, BorderType.Constant, new MCvScalar(0));
-        element.Dispose();
-        lowGreen.Dispose();
-        highGreen.Dispose();
+        CvInvoke.CvtColor(visMat, hsvMat, ColorConversion.Bgr2Hsv);
+        SegmentHsvColorSpace(hsvMat, mask);
+        MorphologicalOpening(mask);
+        OtsuTresholdingOnSaturationChannel(hsvMat, mask);
+        MorphologicalOpening(mask);
+        hsvMat.Dispose();
+        return mask;
+    }
+
+    private static void OtsuTresholdingOnSaturationChannel(Mat hsvMat, Mat mask)
+    {
         var colorMaskedImage = new Mat();
         CvInvoke.BitwiseAnd(hsvMat, hsvMat, colorMaskedImage, mask);
         var hsvChannels = colorMaskedImage.Split();
         CvInvoke.Threshold(hsvChannels[1], mask, 65d, 255d, ThresholdType.Otsu);
         colorMaskedImage.Dispose();
-        hsvMat.Dispose();
         foreach (var channel in hsvChannels) channel.Dispose();
-        return mask;
+    }
+
+    private static void MorphologicalOpening(Mat mask)
+    {
+        var element = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
+        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), 2, BorderType.Constant, new MCvScalar(0));
+        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), 2, BorderType.Constant, new MCvScalar(0));
+        element.Dispose();
+    }
+
+    private static void SegmentHsvColorSpace(Mat hsvMat, Mat mask)
+    {
+        var lowGreen = new ScalarArray(new MCvScalar(40d / 360d * 255d, 5d / 100d * 255d, 20d / 100d * 255d));
+        var highGreen = new ScalarArray(new MCvScalar(130d / 360d * 255d, 100d / 100d * 255d, 100d / 100d * 255d));
+        CvInvoke.InRange(hsvMat, lowGreen, highGreen, mask);
+        lowGreen.Dispose();
+        highGreen.Dispose();
     }
 }
