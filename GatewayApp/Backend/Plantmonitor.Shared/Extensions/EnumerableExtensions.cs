@@ -27,6 +27,12 @@ public static class EnumerableExtensions
         foreach (var item in list) item.Dispose();
     }
 
+    public static IEnumerable<T> PushIf<T>(this IEnumerable<T> list, Func<T> item, Func<bool> condition)
+    {
+        if (condition()) return list.Append(item());
+        return list;
+    }
+
     public static IEnumerable<T> PushIf<T>(this IEnumerable<T> list, T item, Func<T, bool> condition)
     {
         if (condition(item)) return list.Append(item);

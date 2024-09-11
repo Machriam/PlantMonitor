@@ -71,7 +71,8 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         else _result[image] = [new(left, top, temperature, pixelColorInRgb, leafOutOfRange)];
     }
 
-    public void AddDeviceTemperatures(IEnumerable<DeviceTemperatureInfo> deviceTemperatures) => DeviceTemperatures.AddRange(deviceTemperatures);
+    public void AddDeviceTemperatures(IEnumerable<DeviceTemperatureInfo> deviceTemperatures) =>
+        DeviceTemperatures.AddRange(deviceTemperatures.Where(dt => dt.AverageTemperature > 0f));
 
     public List<ImageResult> GetResults()
     {

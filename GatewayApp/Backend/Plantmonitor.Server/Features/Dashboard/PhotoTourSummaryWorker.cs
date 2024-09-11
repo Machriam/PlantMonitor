@@ -110,7 +110,9 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                     PhotoTripId = pixelSummary.GetPhotoTripData.PhotoTripId,
                     TourName = pixelSummary.GetPhotoTripData.TourName,
                     TripEnd = pixelSummary.GetPhotoTripData.TripEnd,
-                    DeviceTemperatures = pixelSummary.DeviceTemperatures.Select(dt => new DeviceTemperature()
+                    DeviceTemperatures = pixelSummary.DeviceTemperatures
+                    .Where(dt => dt.AverageTemperature > 0)
+                    .Select(dt => new DeviceTemperature()
                     {
                         AverageTemperature = dt.AverageTemperature,
                         CountOfMeasurements = dt.CountOfMeasurements,
@@ -170,6 +172,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         var visData = visMat.GetData(true);
         var resultData = new PhotoSummaryResult(metaData.Dimensions.SizeOfPixelInMm);
         var deviceTemperatureInfo = metaData.TemperatureReadings
+            .Where(tr => tr.TemperatureInC > 0f)
             .GroupBy(tr => tr.Comment + " " + tr.SensorId)
             .Select(g =>
             {
@@ -188,18 +191,22 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         var irTemperatures = metaData.ImageMetaData
             .DistinctBy(im => im.MotorPosition)
             .Select(im => im.IrTempInC)
+            .Where(x => x > 0f)
             .ToList();
-        var irAverageTemperature = irTemperatures.Average();
-        deviceTemperatureInfo.Add(new PhotoSummaryResult.DeviceTemperatureInfo()
+        deviceTemperatureInfo.PushIf(() =>
         {
-            Name = TemperatureMeasurement.FlirLeptonSensorId,
-            AverageTemperature = irAverageTemperature,
-            CountOfMeasurements = irTemperatures.Count,
-            MaxTemperature = irTemperatures.Max(),
-            MedianTemperature = irTemperatures.OrderBy(t => t).Median(t => t),
-            MinTemperature = irTemperatures.Min(),
-            TemperatureDeviation = irTemperatures.Deviation(irAverageTemperature, t => t),
-        });
+            var irAverageTemperature = irTemperatures.Average();
+            return new PhotoSummaryResult.DeviceTemperatureInfo()
+            {
+                Name = TemperatureMeasurement.FlirLeptonSensorId,
+                AverageTemperature = irAverageTemperature,
+                CountOfMeasurements = irTemperatures.Count,
+                MaxTemperature = irTemperatures.Max(),
+                MedianTemperature = irTemperatures.OrderBy(t => t).Median(t => t),
+                MinTemperature = irTemperatures.Min(),
+                TemperatureDeviation = irTemperatures.Deviation(irAverageTemperature, t => t),
+            };
+        }, () => irTemperatures.Count > 0);
         resultData.AddDeviceTemperatures(deviceTemperatureInfo);
         resultData.AddPhotoTripData(metaData.TimeInfos.TripName, metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime, metaData.TimeInfos.PhotoTourId, metaData.TimeInfos.PhotoTripId);
         for (var row = 0; row < mask.Rows; row++)
