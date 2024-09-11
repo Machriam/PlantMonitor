@@ -4953,6 +4953,7 @@ export class PlantImageDescriptors implements IPlantImageDescriptors {
     medianTemperature!: number;
     temperatureDev!: number;
     maxTemperature!: number;
+    pixelCount!: number;
     minTemperature!: number;
     heightInMm!: number;
     widthInMm!: number;
@@ -4985,6 +4986,7 @@ export class PlantImageDescriptors implements IPlantImageDescriptors {
             this.medianTemperature = _data["MedianTemperature"];
             this.temperatureDev = _data["TemperatureDev"];
             this.maxTemperature = _data["MaxTemperature"];
+            this.pixelCount = _data["PixelCount"];
             this.minTemperature = _data["MinTemperature"];
             this.heightInMm = _data["HeightInMm"];
             this.widthInMm = _data["WidthInMm"];
@@ -5037,6 +5039,7 @@ export class PlantImageDescriptors implements IPlantImageDescriptors {
         data["MedianTemperature"] = this.medianTemperature;
         data["TemperatureDev"] = this.temperatureDev;
         data["MaxTemperature"] = this.maxTemperature;
+        data["PixelCount"] = this.pixelCount;
         data["MinTemperature"] = this.minTemperature;
         data["HeightInMm"] = this.heightInMm;
         data["WidthInMm"] = this.widthInMm;
@@ -5089,6 +5092,7 @@ export interface IPlantImageDescriptors {
     medianTemperature: number;
     temperatureDev: number;
     maxTemperature: number;
+    pixelCount: number;
     minTemperature: number;
     heightInMm: number;
     widthInMm: number;

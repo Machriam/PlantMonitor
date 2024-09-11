@@ -4,49 +4,51 @@
       "ImageIndex": 0,
       "ImageName": "Bay 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:21",
       "VisTime": "2024-08-14T04:40:21",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 27.960001,
-    "AverageTemperature": 19.522474,
-    "MedianTemperature": 19.51,
-    "TemperatureDev": 0.27920082,
-    "MaxTemperature": 20.25,
+    "SizeInMm2": 28.560001,
+    "AverageTemperature": 19.581064,
+    "MedianTemperature": 19.52,
+    "TemperatureDev": 0.36218446,
+    "MaxTemperature": 20.64,
     "MinTemperature": 19.05,
-    "HeightInMm": 9.2,
-    "WidthInMm": 8.8,
-    "Extent": 0.34535572,
-    "ConvexHullAreaInMm2": 56.360004,
-    "Solidity": 0.49609652,
-    "LeafCount": 6,
+    "PixelCount": 714,
+    "HeightInMm": 18.800001,
+    "WidthInMm": 23.4,
+    "Extent": 0.064920895,
+    "ConvexHullAreaInMm2": 165.68001,
+    "Solidity": 0.17238049,
+    "LeafCount": 7,
     "LeafOutOfRange": false,
     "HslAverage": [
-      136.10179,
-      0.26618394,
-      0.31110832
+      107.84346,
+      0.26281375,
+      0.3060389
     ],
     "HslMedian": [
-      138,
-      0.27419356,
-      0.33137256
+      102.10526,
+      0.27272728,
+      0.3254902
     ],
     "HslMax": [
-      143.75,
+      184.2857,
       0.52238804,
       0.39803922
     ],
     "HslMin": [
-      116,
-      0.11111111,
+      96.25,
+      0.13559322,
       0.13137256
     ],
     "HslDeviation": [
-      4.9135575,
-      0.06933273,
-      0.06486069
+      18.161839,
+      0.06983567,
+      0.067218006
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -56,49 +58,51 @@
       "ImageIndex": 1,
       "ImageName": "Bay 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:07",
       "VisTime": "2024-08-14T04:41:07",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 28.44,
-    "AverageTemperature": 18.866005,
+    "SizeInMm2": 28.2,
+    "AverageTemperature": 18.866837,
     "MedianTemperature": 18.81,
-    "TemperatureDev": 0.2766345,
+    "TemperatureDev": 0.27726382,
     "MaxTemperature": 19.45,
     "MinTemperature": 18.36,
+    "PixelCount": 705,
     "HeightInMm": 6.8,
     "WidthInMm": 11.6,
-    "Extent": 0.36054766,
-    "ConvexHullAreaInMm2": 55.060005,
-    "Solidity": 0.5165274,
+    "Extent": 0.35750508,
+    "ConvexHullAreaInMm2": 54.960003,
+    "Solidity": 0.51310045,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      148.80486,
-      0.32386962,
-      0.29972148
+      91.17493,
+      0.32510534,
+      0.30004728
     ],
     "HslMedian": [
-      149.14285,
+      90.85714,
       0.33333334,
       0.3254902
     ],
     "HslMax": [
-      153.48837,
+      101.25,
       0.76666665,
       0.40392157
     ],
     "HslMin": [
-      138.75,
-      0.11515152,
+      86.51163,
+      0.13868614,
       0.11764706
     ],
     "HslDeviation": [
-      2.066097,
-      0.08614212,
-      0.06882155
+      2.0591884,
+      0.085046604,
+      0.06865254
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -108,49 +112,51 @@
       "ImageIndex": 2,
       "ImageName": "Bay 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 24.68,
-    "AverageTemperature": 18.871296,
+    "SizeInMm2": 24.36,
+    "AverageTemperature": 18.873909,
     "MedianTemperature": 18.87,
-    "TemperatureDev": 0.2185556,
+    "TemperatureDev": 0.21875711,
     "MaxTemperature": 19.36,
     "MinTemperature": 18.32,
+    "PixelCount": 609,
     "HeightInMm": 8.6,
     "WidthInMm": 8.6,
-    "Extent": 0.3336939,
+    "Extent": 0.32936722,
     "ConvexHullAreaInMm2": 48.180004,
-    "Solidity": 0.5122458,
+    "Solidity": 0.50560397,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      151.03891,
-      0.31895474,
-      0.28737092
+      88.96159,
+      0.31889984,
+      0.2888696
     ],
     "HslMedian": [
-      151.2,
+      88.8,
       0.3283582,
-      0.3019608
+      0.30392158
     ],
     "HslMax": [
-      160,
+      96.66667,
       0.6615385,
       0.38039216
     ],
     "HslMin": [
-      143.33333,
+      79.99999,
       0.13846155,
       0.12352941
     ],
     "HslDeviation": [
-      1.9397906,
-      0.06823901,
-      0.0611254
+      1.9411083,
+      0.06843221,
+      0.060046073
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -160,49 +166,51 @@
       "ImageIndex": 3,
       "ImageName": "Bur 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 29,
-    "AverageTemperature": 20.029352,
+    "SizeInMm2": 28.36,
+    "AverageTemperature": 20.034315,
     "MedianTemperature": 20.03,
-    "TemperatureDev": 0.22533041,
+    "TemperatureDev": 0.222575,
     "MaxTemperature": 20.54,
     "MinTemperature": 19.45,
+    "PixelCount": 709,
     "HeightInMm": 9.8,
     "WidthInMm": 9.6,
-    "Extent": 0.3082483,
-    "ConvexHullAreaInMm2": 63.8,
-    "Solidity": 0.45454547,
+    "Extent": 0.30144557,
+    "ConvexHullAreaInMm2": 63.48,
+    "Solidity": 0.44675487,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      149.1206,
-      0.30518338,
-      0.2771873
+      90.843994,
+      0.3075388,
+      0.2784369
     ],
     "HslMedian": [
-      149.14285,
-      0.31543624,
-      0.28039217
+      90.810814,
+      0.31666666,
+      0.28235295
     ],
     "HslMax": [
-      156.36363,
-      0.5873016,
+      97.5,
+      0.5652174,
       0.37058824
     ],
     "HslMin": [
-      141.42857,
-      0.11111111,
-      0.12352941
+      83.63636,
+      0.136,
+      0.13529412
     ],
     "HslDeviation": [
-      2.0621197,
-      0.06984239,
-      0.047753725
+      2.0253613,
+      0.066414274,
+      0.046705928
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -212,49 +220,51 @@
       "ImageIndex": 4,
       "ImageName": "Bur 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:24",
       "VisTime": "2024-08-14T04:41:25",
       "IrTempInC": 23.39
     },
-    "SizeInMm2": 47.44,
-    "AverageTemperature": 17.727917,
+    "SizeInMm2": 47.280003,
+    "AverageTemperature": 17.728165,
     "MedianTemperature": 17.7,
-    "TemperatureDev": 0.29261047,
+    "TemperatureDev": 0.2927701,
     "MaxTemperature": 18.46,
     "MinTemperature": 17.12,
+    "PixelCount": 1182,
     "HeightInMm": 14.6,
     "WidthInMm": 10,
-    "Extent": 0.3249315,
-    "ConvexHullAreaInMm2": 92.36001,
-    "Solidity": 0.51364225,
-    "LeafCount": 6,
+    "Extent": 0.3238356,
+    "ConvexHullAreaInMm2": 92.200005,
+    "Solidity": 0.51279825,
+    "LeafCount": 7,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.93745,
-      0.36553645,
-      0.29904607
+      92.06228,
+      0.3658804,
+      0.29950234
     ],
     "HslMedian": [
-      147.93103,
-      0.36956522,
-      0.30980393
+      92.06896,
+      0.3696311,
+      0.31176472
     ],
     "HslMax": [
-      153.65854,
+      101.53846,
       0.8305085,
       0.39607844
     ],
     "HslMin": [
-      138.46153,
-      0.115384616,
+      86.34147,
+      0.13559322,
       0.11372549
     ],
     "HslDeviation": [
-      1.566108,
-      0.08232342,
-      0.06806807
+      1.5616323,
+      0.08177801,
+      0.067711376
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -264,49 +274,51 @@
       "ImageIndex": 5,
       "ImageName": "Bur 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:31",
       "VisTime": "2024-08-14T04:40:31",
       "IrTempInC": 22.24
     },
-    "SizeInMm2": 36.44,
-    "AverageTemperature": 19.350845,
-    "MedianTemperature": 19.35,
-    "TemperatureDev": 0.20276535,
+    "SizeInMm2": 35.84,
+    "AverageTemperature": 19.353783,
+    "MedianTemperature": 19.36,
+    "TemperatureDev": 0.2024914,
     "MaxTemperature": 19.82,
     "MinTemperature": 18.85,
+    "PixelCount": 896,
     "HeightInMm": 11.8,
     "WidthInMm": 8.400001,
-    "Extent": 0.3676352,
-    "ConvexHullAreaInMm2": 70.32,
-    "Solidity": 0.5182025,
+    "Extent": 0.36158192,
+    "ConvexHullAreaInMm2": 70.200005,
+    "Solidity": 0.5105413,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      144.20732,
-      0.31857485,
-      0.27434194
+      95.758835,
+      0.32029456,
+      0.2754705
     ],
     "HslMedian": [
-      144.59016,
-      0.32919255,
-      0.28235295
+      95.409836,
+      0.32947975,
+      0.28431374
     ],
     "HslMax": [
-      150,
+      108.75,
       0.6875,
       0.34509805
     ],
     "HslMin": [
-      131.25,
-      0.12307692,
+      90,
+      0.13513513,
       0.1254902
     ],
     "HslDeviation": [
-      2.2772992,
-      0.06612259,
-      0.050114475
+      2.2530863,
+      0.0643761,
+      0.04943599
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -316,49 +328,51 @@
       "ImageIndex": 6,
       "ImageName": "Col 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:47",
       "VisTime": "2024-08-14T04:40:48",
       "IrTempInC": 22.54
     },
-    "SizeInMm2": 26.720001,
-    "AverageTemperature": 19.115225,
+    "SizeInMm2": 26.4,
+    "AverageTemperature": 19.11697,
     "MedianTemperature": 19.09,
-    "TemperatureDev": 0.23133585,
+    "TemperatureDev": 0.23139414,
     "MaxTemperature": 19.59,
     "MinTemperature": 18.61,
+    "PixelCount": 660,
     "HeightInMm": 9.8,
     "WidthInMm": 11.6,
-    "Extent": 0.23504575,
-    "ConvexHullAreaInMm2": 72.32,
-    "Solidity": 0.36946902,
+    "Extent": 0.23223083,
+    "ConvexHullAreaInMm2": 72.240005,
+    "Solidity": 0.3654485,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      153.25755,
-      0.2863839,
-      0.23134613
+      86.733376,
+      0.28797024,
+      0.23134878
     ],
     "HslMedian": [
-      153.33333,
+      86.666664,
       0.29032257,
       0.23529412
     ],
     "HslMax": [
-      159.13043,
+      96.66667,
       0.5,
       0.30392158
     ],
     "HslMin": [
-      143.33333,
-      0.11666667,
+      80.86956,
+      0.136,
       0.14705883
     ],
     "HslDeviation": [
-      1.9524431,
-      0.06411481,
-      0.029181805
+      1.9152553,
+      0.06253424,
+      0.028881527
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -368,49 +382,51 @@
       "ImageIndex": 7,
       "ImageName": "Col 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 29.280003,
-    "AverageTemperature": 18.398333,
-    "MedianTemperature": 18.34,
-    "TemperatureDev": 0.2245821,
+    "SizeInMm2": 28.880003,
+    "AverageTemperature": 18.400513,
+    "MedianTemperature": 18.345001,
+    "TemperatureDev": 0.22425537,
     "MaxTemperature": 19,
     "MinTemperature": 17.93,
+    "PixelCount": 722,
     "HeightInMm": 8.2,
     "WidthInMm": 10.400001,
-    "Extent": 0.3433396,
-    "ConvexHullAreaInMm2": 55.640003,
-    "Solidity": 0.5262401,
+    "Extent": 0.33864915,
+    "ConvexHullAreaInMm2": 55.579998,
+    "Solidity": 0.51961136,
     "LeafCount": 3,
     "LeafOutOfRange": false,
     "HslAverage": [
-      144.67722,
-      0.3041468,
-      0.2752143
+      95.34867,
+      0.3037347,
+      0.27687252
     ],
     "HslMedian": [
-      144.78261,
-      0.3049213,
+      95.25575,
+      0.30484545,
       0.2882353
     ],
     "HslMax": [
-      150,
+      102.352936,
       0.704918,
       0.38235295
     ],
     "HslMin": [
-      137.64706,
+      90,
       0.13461539,
       0.11960784
     ],
     "HslDeviation": [
-      1.8776352,
-      0.062578596,
-      0.057453718
+      1.8653932,
+      0.062357485,
+      0.056063455
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -420,49 +436,51 @@
       "ImageIndex": 8,
       "ImageName": "Col 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:07",
       "VisTime": "2024-08-14T04:41:07",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 27.480001,
-    "AverageTemperature": 18.99137,
-    "MedianTemperature": 19,
-    "TemperatureDev": 0.20842907,
+    "SizeInMm2": 27.039999,
+    "AverageTemperature": 18.989985,
+    "MedianTemperature": 18.98,
+    "TemperatureDev": 0.20927143,
     "MaxTemperature": 19.56,
     "MinTemperature": 18.54,
-    "HeightInMm": 8,
+    "PixelCount": 676,
+    "HeightInMm": 7.8,
     "WidthInMm": 11.8,
-    "Extent": 0.2911017,
-    "ConvexHullAreaInMm2": 62.68,
-    "Solidity": 0.43841735,
+    "Extent": 0.2937853,
+    "ConvexHullAreaInMm2": 61.940002,
+    "Solidity": 0.4365515,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.75569,
-      0.303492,
-      0.27155295
+      92.24436,
+      0.3043673,
+      0.272987
     ],
     "HslMedian": [
-      147.77777,
-      0.30952382,
-      0.28627452
+      92.22222,
+      0.31034482,
+      0.2882353
     ],
     "HslMax": [
-      153,
+      98.181816,
       0.6,
       0.34509805
     ],
     "HslMin": [
-      141.81819,
-      0.12230216,
-      0.12352941
+      88,
+      0.14285715,
+      0.12745099
     ],
     "HslDeviation": [
-      1.4760549,
-      0.07177342,
-      0.050270576
+      1.4574081,
+      0.06988902,
+      0.049016666
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -472,49 +490,51 @@
       "ImageIndex": 9,
       "ImageName": "Cvi 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 32.760002,
-    "AverageTemperature": 18.445898,
+    "SizeInMm2": 32.320004,
+    "AverageTemperature": 18.446684,
     "MedianTemperature": 18.38,
-    "TemperatureDev": 0.23300762,
+    "TemperatureDev": 0.23389961,
     "MaxTemperature": 18.97,
     "MinTemperature": 18,
+    "PixelCount": 808,
     "HeightInMm": 9.2,
     "WidthInMm": 11.400001,
-    "Extent": 0.31235698,
+    "Extent": 0.3081617,
     "ConvexHullAreaInMm2": 70.26,
-    "Solidity": 0.46626815,
+    "Solidity": 0.4600057,
     "LeafCount": 7,
     "LeafOutOfRange": false,
     "HslAverage": [
-      150.94258,
-      0.32015464,
-      0.26520628
+      89.05667,
+      0.31992346,
+      0.266606
     ],
     "HslMedian": [
-      151.03448,
-      0.32876712,
-      0.2764706
+      88.965515,
+      0.32871923,
+      0.2784314
     ],
     "HslMax": [
-      159.31033,
-      0.8181818,
+      100,
+      0.6231884,
       0.33529413
     ],
     "HslMin": [
-      140,
-      0.12871288,
-      0.10784314
+      80.68966,
+      0.14018692,
+      0.13333334
     ],
     "HslDeviation": [
-      2.2499185,
-      0.07102793,
-      0.050963067
+      2.2260401,
+      0.066931725,
+      0.049686126
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -524,49 +544,51 @@
       "ImageIndex": 10,
       "ImageName": "Cvi 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:07",
       "VisTime": "2024-08-14T04:41:07",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 22.72,
-    "AverageTemperature": 18.854208,
+    "SizeInMm2": 22.68,
+    "AverageTemperature": 18.854568,
     "MedianTemperature": 18.85,
-    "TemperatureDev": 0.0858598,
+    "TemperatureDev": 0.08550573,
     "MaxTemperature": 19.06,
     "MinTemperature": 18.57,
+    "PixelCount": 567,
     "HeightInMm": 8.8,
     "WidthInMm": 8.2,
-    "Extent": 0.31485587,
+    "Extent": 0.31430155,
     "ConvexHullAreaInMm2": 43.8,
-    "Solidity": 0.51872146,
+    "Solidity": 0.5178082,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      149.48102,
-      0.3102323,
-      0.2848626
+      90.51329,
+      0.3105443,
+      0.28495005
     ],
     "HslMedian": [
-      149.49153,
+      90.50848,
       0.3125,
       0.3
     ],
     "HslMax": [
-      156,
+      95.55556,
       0.6507937,
       0.37058824
     ],
     "HslMin": [
-      144.44444,
-      0.13333334,
+      84,
+      0.13953489,
       0.12352941
     ],
     "HslDeviation": [
-      1.5350468,
-      0.070351735,
-      0.057887737
+      1.5303862,
+      0.07002005,
+      0.057901286
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -576,49 +598,51 @@
       "ImageIndex": 11,
       "ImageName": "Cvi 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 26.720001,
-    "AverageTemperature": 19.796377,
+    "SizeInMm2": 26.280003,
+    "AverageTemperature": 19.801004,
     "MedianTemperature": 19.7,
-    "TemperatureDev": 0.30457544,
+    "TemperatureDev": 0.30482155,
     "MaxTemperature": 20.45,
     "MinTemperature": 19.26,
+    "PixelCount": 657,
     "HeightInMm": 8.6,
     "WidthInMm": 12.8,
-    "Extent": 0.24273255,
-    "ConvexHullAreaInMm2": 66.22,
-    "Solidity": 0.40350348,
+    "Extent": 0.23873547,
+    "ConvexHullAreaInMm2": 65.9,
+    "Solidity": 0.39878604,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      146.62883,
-      0.29824615,
-      0.27591875
+      93.38536,
+      0.2989325,
+      0.27713612
     ],
     "HslMedian": [
-      147.14285,
-      0.30571896,
+      92.85715,
+      0.30588236,
       0.28431374
     ],
     "HslMax": [
-      155,
+      103.63637,
       0.64705884,
       0.3764706
     ],
     "HslMin": [
-      132.85713,
-      0.11627907,
+      85.16129,
+      0.14285715,
       0.13333334
     ],
     "HslDeviation": [
-      3.0250025,
-      0.07205989,
-      0.052686777
+      2.8948042,
+      0.07048275,
+      0.051917695
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -628,49 +652,51 @@
       "ImageIndex": 12,
       "ImageName": "Fei 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:21",
       "VisTime": "2024-08-14T04:40:21",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 22.92,
-    "AverageTemperature": 19.392374,
+    "SizeInMm2": 22.08,
+    "AverageTemperature": 19.39701,
     "MedianTemperature": 19.43,
-    "TemperatureDev": 0.19779137,
+    "TemperatureDev": 0.19626665,
     "MaxTemperature": 19.79,
     "MinTemperature": 18.95,
+    "PixelCount": 552,
     "HeightInMm": 10.400001,
     "WidthInMm": 9,
-    "Extent": 0.2448718,
-    "ConvexHullAreaInMm2": 55,
-    "Solidity": 0.41672727,
+    "Extent": 0.23589744,
+    "ConvexHullAreaInMm2": 53.820004,
+    "Solidity": 0.41025642,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      141.83214,
-      0.25798526,
-      0.28574753
+      97.93463,
+      0.26173228,
+      0.2866759
     ],
     "HslMedian": [
-      142.5,
-      0.26857144,
+      97.5,
+      0.26961407,
       0.29411766
     ],
     "HslMax": [
-      148,
+      106.95653,
       0.45454547,
       0.35882354
     ],
     "HslMin": [
-      124.99999,
-      0.10948905,
-      0.13529412
+      92,
+      0.13513513,
+      0.1509804
     ],
     "HslDeviation": [
-      2.7033095,
-      0.060848147,
-      0.049765375
+      2.2997868,
+      0.056267623,
+      0.048806578
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -680,49 +706,51 @@
       "ImageIndex": 13,
       "ImageName": "Fei 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:15",
       "VisTime": "2024-08-14T04:41:16",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 21.6,
-    "AverageTemperature": 18.485666,
+    "SizeInMm2": 21.28,
+    "AverageTemperature": 18.488628,
     "MedianTemperature": 18.47,
-    "TemperatureDev": 0.25368202,
+    "TemperatureDev": 0.25321433,
     "MaxTemperature": 19.07,
-    "MinTemperature": 17.89,
+    "MinTemperature": 17.93,
+    "PixelCount": 532,
     "HeightInMm": 8.8,
     "WidthInMm": 7,
-    "Extent": 0.35064936,
-    "ConvexHullAreaInMm2": 48.320004,
-    "Solidity": 0.44701988,
+    "Extent": 0.34545454,
+    "ConvexHullAreaInMm2": 47.86,
+    "Solidity": 0.44463018,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      150.22545,
-      0.29113173,
-      0.30026507
+      89.69195,
+      0.29325816,
+      0.30088457
     ],
     "HslMedian": [
-      150,
-      0.29454082,
-      0.3156863
+      90,
+      0.29777145,
+      0.31666666
     ],
     "HslMax": [
-      156,
+      96.521736,
       0.65625,
       0.38627452
     ],
     "HslMin": [
-      138.46153,
-      0.107913665,
+      84,
+      0.13846155,
       0.1254902
     ],
     "HslDeviation": [
-      2.6177356,
-      0.07728555,
-      0.059047814
+      2.484699,
+      0.07547222,
+      0.058689818
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -732,49 +760,51 @@
       "ImageIndex": 14,
       "ImageName": "Fei 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:39",
       "VisTime": "2024-08-14T04:41:39",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 28.84,
-    "AverageTemperature": 18.380125,
+    "SizeInMm2": 28.520002,
+    "AverageTemperature": 18.381922,
     "MedianTemperature": 18.37,
-    "TemperatureDev": 0.24744101,
+    "TemperatureDev": 0.24735199,
     "MaxTemperature": 18.98,
     "MinTemperature": 17.78,
+    "PixelCount": 713,
     "HeightInMm": 9.400001,
     "WidthInMm": 11.8,
-    "Extent": 0.2600072,
-    "ConvexHullAreaInMm2": 69.88,
-    "Solidity": 0.4127075,
+    "Extent": 0.25712225,
+    "ConvexHullAreaInMm2": 69.700005,
+    "Solidity": 0.40918222,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.01427,
-      0.3207204,
-      0.29369342
+      92.936584,
+      0.32133567,
+      0.2947969
     ],
     "HslMedian": [
-      147.39131,
-      0.325,
+      92.5,
+      0.32596686,
       0.30588236
     ],
     "HslMax": [
-      151.57895,
-      0.7241379,
+      100,
+      0.6363636,
       0.37843138
     ],
     "HslMin": [
-      137.14287,
-      0.114754096,
-      0.11372549
+      88.42105,
+      0.13580246,
+      0.13333334
     ],
     "HslDeviation": [
-      2.0682821,
-      0.075762704,
-      0.05977806
+      1.9984486,
+      0.07199683,
+      0.058911074
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -784,49 +814,51 @@
       "ImageIndex": 15,
       "ImageName": "Ge 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 19.28,
-    "AverageTemperature": 20.021889,
+    "SizeInMm2": 19.32,
+    "AverageTemperature": 20.041159,
     "MedianTemperature": 20.02,
-    "TemperatureDev": 0.25517622,
-    "MaxTemperature": 20.71,
+    "TemperatureDev": 0.29264608,
+    "MaxTemperature": 21.29,
     "MinTemperature": 19.5,
-    "HeightInMm": 7.8,
-    "WidthInMm": 6.6,
-    "Extent": 0.37451437,
-    "ConvexHullAreaInMm2": 33.84,
-    "Solidity": 0.56973994,
+    "PixelCount": 483,
+    "HeightInMm": 23.800001,
+    "WidthInMm": 32.4,
+    "Extent": 0.025054466,
+    "ConvexHullAreaInMm2": 329.9,
+    "Solidity": 0.058563203,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.43137,
-      0.32221508,
-      0.32032788
+      93.649895,
+      0.320069,
+      0.3199732
     ],
     "HslMedian": [
-      148,
-      0.3245219,
+      92,
+      0.32222223,
       0.33529413
     ],
     "HslMax": [
-      153.1579,
+      170.76923,
       0.6507937,
       0.4372549
     ],
     "HslMin": [
-      137.64706,
-      0.11627907,
+      86.8421,
+      0.13821138,
       0.12156863
     ],
     "HslDeviation": [
-      2.3633127,
-      0.087819755,
-      0.070518255
+      9.218904,
+      0.08827202,
+      0.07043139
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -836,49 +868,51 @@
       "ImageIndex": 16,
       "ImageName": "Ge 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:39",
       "VisTime": "2024-08-14T04:41:39",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 21.640001,
-    "AverageTemperature": 18.536747,
+    "SizeInMm2": 21.44,
+    "AverageTemperature": 18.540243,
     "MedianTemperature": 18.54,
-    "TemperatureDev": 0.24234024,
+    "TemperatureDev": 0.23904453,
     "MaxTemperature": 19.02,
-    "MinTemperature": 17.9,
+    "MinTemperature": 17.92,
+    "PixelCount": 536,
     "HeightInMm": 9.6,
     "WidthInMm": 5.6,
-    "Extent": 0.40252978,
-    "ConvexHullAreaInMm2": 38.3,
-    "Solidity": 0.56501305,
+    "Extent": 0.39880952,
+    "ConvexHullAreaInMm2": 38.260002,
+    "Solidity": 0.56037635,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      154.00734,
-      0.33076817,
-      0.28010583
+      85.98633,
+      0.33235955,
+      0.28051654
     ],
     "HslMedian": [
-      154.2857,
-      0.34117648,
-      0.29803923
+      85.71429,
+      0.3412469,
+      0.3
     ],
     "HslMax": [
-      157.89473,
+      93,
       0.74285716,
       0.34705883
     ],
     "HslMin": [
-      147,
-      0.1092437,
+      82.10526,
+      0.1411043,
       0.13333334
     ],
     "HslDeviation": [
-      1.6306496,
-      0.09023813,
-      0.054303493
+      1.6242962,
+      0.0888144,
+      0.054189604
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -888,49 +922,51 @@
       "ImageIndex": 17,
       "ImageName": "Ge 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:31",
       "VisTime": "2024-08-14T04:40:31",
       "IrTempInC": 22.24
     },
-    "SizeInMm2": 18.240002,
-    "AverageTemperature": 18.850065,
+    "SizeInMm2": 18.160002,
+    "AverageTemperature": 18.849405,
     "MedianTemperature": 18.87,
-    "TemperatureDev": 0.121897414,
+    "TemperatureDev": 0.122367755,
     "MaxTemperature": 19.06,
     "MinTemperature": 18.44,
+    "PixelCount": 454,
     "HeightInMm": 6.8,
-    "WidthInMm": 7,
-    "Extent": 0.38319328,
-    "ConvexHullAreaInMm2": 31.7,
-    "Solidity": 0.57539433,
+    "WidthInMm": 7.2000003,
+    "Extent": 0.37091503,
+    "ConvexHullAreaInMm2": 31.560001,
+    "Solidity": 0.5754119,
     "LeafCount": 7,
     "LeafOutOfRange": false,
     "HslAverage": [
-      150.06917,
-      0.29286203,
-      0.27937737
+      89.931366,
+      0.29277655,
+      0.27969682
     ],
     "HslMedian": [
-      150,
+      90,
       0.29179606,
       0.29313725
     ],
     "HslMax": [
-      156,
+      96,
       0.64179105,
       0.35490197
     ],
     "HslMin": [
-      144,
-      0.10967742,
+      84,
+      0.1409396,
       0.1254902
     ],
     "HslDeviation": [
-      1.889491,
-      0.06360904,
-      0.048684776
+      1.8772516,
+      0.061608717,
+      0.048136286
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -940,49 +976,51 @@
       "ImageIndex": 18,
       "ImageName": "Hs 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:15",
       "VisTime": "2024-08-14T04:41:16",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 27.800001,
-    "AverageTemperature": 18.553612,
+    "SizeInMm2": 27.2,
+    "AverageTemperature": 18.54947,
     "MedianTemperature": 18.61,
-    "TemperatureDev": 0.3765803,
+    "TemperatureDev": 0.37614185,
     "MaxTemperature": 19.37,
     "MinTemperature": 17.7,
+    "PixelCount": 680,
     "HeightInMm": 5.4,
     "WidthInMm": 11.6,
-    "Extent": 0.44380587,
-    "ConvexHullAreaInMm2": 44.120003,
-    "Solidity": 0.6300997,
+    "Extent": 0.43422732,
+    "ConvexHullAreaInMm2": 44.04,
+    "Solidity": 0.61762035,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.90929,
-      0.32797956,
-      0.30313444
+      92.01184,
+      0.33032906,
+      0.30501154
     ],
     "HslMedian": [
-      148.18182,
-      0.33695653,
+      91.81818,
+      0.33714285,
       0.3254902
     ],
     "HslMax": [
-      152.57143,
+      98.70968,
       0.62857145,
       0.39215687
     ],
     "HslMin": [
-      138,
-      0.11627907,
+      87.42857,
+      0.14018692,
       0.12941177
     ],
     "HslDeviation": [
-      1.939077,
-      0.07667411,
-      0.06791269
+      1.8400105,
+      0.074289896,
+      0.06655997
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -992,49 +1030,51 @@
       "ImageIndex": 19,
       "ImageName": "Hs 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 29.12,
-    "AverageTemperature": 20.063215,
+    "SizeInMm2": 28.880003,
+    "AverageTemperature": 20.059778,
     "MedianTemperature": 20.1,
-    "TemperatureDev": 0.30894828,
+    "TemperatureDev": 0.31712914,
     "MaxTemperature": 20.73,
     "MinTemperature": 18.93,
+    "PixelCount": 722,
     "HeightInMm": 9.2,
     "WidthInMm": 12.6,
-    "Extent": 0.25120774,
-    "ConvexHullAreaInMm2": 70.28,
-    "Solidity": 0.41434264,
+    "Extent": 0.24913734,
+    "ConvexHullAreaInMm2": 70.98,
+    "Solidity": 0.40687516,
     "LeafCount": 9,
     "LeafOutOfRange": false,
     "HslAverage": [
-      149.80003,
-      0.33346197,
-      0.29755712
+      90.19862,
+      0.33441958,
+      0.29883224
     ],
     "HslMedian": [
-      150,
-      0.3452381,
-      0.3156863
+      90,
+      0.34642535,
+      0.31764707
     ],
     "HslMax": [
-      161.53847,
+      97.5,
       0.6969697,
       0.37058824
     ],
     "HslMin": [
-      142.5,
-      0.12149533,
+      84,
+      0.13661203,
       0.1254902
     ],
     "HslDeviation": [
-      1.8493578,
-      0.08065721,
-      0.050546203
+      1.7536476,
+      0.079930976,
+      0.049334165
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1044,49 +1084,51 @@
       "ImageIndex": 20,
       "ImageName": "Hs 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 30.6,
-    "AverageTemperature": 19.004576,
+    "SizeInMm2": 30.36,
+    "AverageTemperature": 19.00618,
     "MedianTemperature": 19.02,
-    "TemperatureDev": 0.21980318,
+    "TemperatureDev": 0.2191537,
     "MaxTemperature": 19.45,
     "MinTemperature": 18.45,
+    "PixelCount": 759,
     "HeightInMm": 7.6,
     "WidthInMm": 13,
-    "Extent": 0.3097166,
+    "Extent": 0.30728745,
     "ConvexHullAreaInMm2": 69.36001,
-    "Solidity": 0.44117647,
+    "Solidity": 0.43771628,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      153.13748,
-      0.34679878,
-      0.26364988
+      86.850685,
+      0.34674773,
+      0.26430807
     ],
     "HslMedian": [
-      153.33333,
+      86.55737,
       0.35947713,
       0.27058825
     ],
     "HslMax": [
-      158.82353,
+      96.66667,
       0.86440676,
       0.3392157
     ],
     "HslMin": [
-      143.33333,
-      0.129771,
-      0.10980392
+      81.17647,
+      0.136,
+      0.115686275
     ],
     "HslDeviation": [
-      1.8780146,
-      0.08916478,
-      0.048323087
+      1.8626214,
+      0.08705404,
+      0.047660075
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1096,49 +1138,51 @@
       "ImageIndex": 21,
       "ImageName": "Kondara 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 40.600002,
-    "AverageTemperature": 18.792542,
+    "SizeInMm2": 40.24,
+    "AverageTemperature": 18.795687,
     "MedianTemperature": 18.73,
-    "TemperatureDev": 0.26779196,
+    "TemperatureDev": 0.26673988,
     "MaxTemperature": 19.37,
     "MinTemperature": 18.29,
+    "PixelCount": 1006,
     "HeightInMm": 9.6,
     "WidthInMm": 10.6,
-    "Extent": 0.398978,
-    "ConvexHullAreaInMm2": 73.920006,
-    "Solidity": 0.54924244,
+    "Extent": 0.39544025,
+    "ConvexHullAreaInMm2": 73.6,
+    "Solidity": 0.5467391,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      146.27505,
-      0.34076557,
-      0.27584276
+      93.69172,
+      0.34176472,
+      0.27667525
     ],
     "HslMedian": [
-      146.40001,
-      0.34117648,
+      93.6,
+      0.3418538,
       0.28431374
     ],
     "HslMax": [
-      152.72726,
+      102.352936,
       0.7704918,
       0.37254903
     ],
     "HslMin": [
-      132.85713,
-      0.114754096,
+      87.27273,
+      0.14529915,
       0.11960784
     ],
     "HslDeviation": [
-      2.0787501,
-      0.08392044,
-      0.056181937
+      2.0053682,
+      0.08257037,
+      0.055611514
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1148,49 +1192,51 @@
       "ImageIndex": 22,
       "ImageName": "Kondara 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:21",
       "VisTime": "2024-08-14T04:40:21",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 44.920002,
-    "AverageTemperature": 19.572271,
-    "MedianTemperature": 19.36,
-    "TemperatureDev": 0.52303785,
+    "SizeInMm2": 44.680004,
+    "AverageTemperature": 19.571531,
+    "MedianTemperature": 19.35,
+    "TemperatureDev": 0.52354324,
     "MaxTemperature": 20.59,
     "MinTemperature": 18.79,
+    "PixelCount": 1117,
     "HeightInMm": 14.6,
     "WidthInMm": 10.8,
-    "Extent": 0.28488076,
-    "ConvexHullAreaInMm2": 98.1,
-    "Solidity": 0.4579001,
+    "Extent": 0.2833587,
+    "ConvexHullAreaInMm2": 97.82,
+    "Solidity": 0.4567573,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      134.9622,
-      0.28462523,
-      0.29568383
+      105.01909,
+      0.28499955,
+      0.296096
     ],
     "HslMedian": [
-      135,
+      105,
       0.28342247,
-      0.30392158
+      0.30588236
     ],
     "HslMax": [
-      142,
+      117.14285,
       0.51898736,
       0.3882353
     ],
     "HslMin": [
-      120,
-      0.11504425,
+      98,
+      0.13580246,
       0.14117648
     ],
     "HslDeviation": [
-      2.5689404,
-      0.059299394,
-      0.056773372
+      2.5261853,
+      0.05875265,
+      0.056347806
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1200,49 +1246,51 @@
       "ImageIndex": 23,
       "ImageName": "Kondara 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:56",
       "VisTime": "2024-08-14T04:40:56",
       "IrTempInC": 22.64
     },
-    "SizeInMm2": 50.480003,
-    "AverageTemperature": 19.192535,
-    "MedianTemperature": 19.12,
-    "TemperatureDev": 0.42593247,
+    "SizeInMm2": 50.08,
+    "AverageTemperature": 19.194473,
+    "MedianTemperature": 19.13,
+    "TemperatureDev": 0.4265535,
     "MaxTemperature": 20.09,
     "MinTemperature": 18.12,
+    "PixelCount": 1252,
     "HeightInMm": 11.6,
     "WidthInMm": 14.6,
-    "Extent": 0.2980633,
-    "ConvexHullAreaInMm2": 107.82001,
-    "Solidity": 0.46818772,
+    "Extent": 0.29570147,
+    "ConvexHullAreaInMm2": 106.840004,
+    "Solidity": 0.4687383,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      144.41377,
-      0.34860003,
-      0.29419222
+      95.58821,
+      0.34833294,
+      0.29545984
     ],
     "HslMedian": [
-      144.25533,
-      0.34839973,
+      95.75696,
+      0.3480663,
       0.30588236
     ],
     "HslMax": [
-      151.66666,
+      101.53846,
       0.8965517,
       0.40392157
     ],
     "HslMin": [
-      137.64706,
-      0.115384616,
+      88.333336,
+      0.13846155,
       0.11372549
     ],
     "HslDeviation": [
-      1.8746302,
-      0.07618735,
-      0.062338267
+      1.8620986,
+      0.07594286,
+      0.06099629
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1252,49 +1300,51 @@
       "ImageIndex": 24,
       "ImageName": "Lip 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 26.960001,
-    "AverageTemperature": 18.552849,
+    "SizeInMm2": 26.560001,
+    "AverageTemperature": 18.555904,
     "MedianTemperature": 18.53,
-    "TemperatureDev": 0.23186491,
+    "TemperatureDev": 0.23118366,
     "MaxTemperature": 19.13,
     "MinTemperature": 17.95,
+    "PixelCount": 664,
     "HeightInMm": 10.8,
     "WidthInMm": 7.6,
-    "Extent": 0.32846004,
-    "ConvexHullAreaInMm2": 57.940002,
-    "Solidity": 0.46530893,
+    "Extent": 0.32358673,
+    "ConvexHullAreaInMm2": 56.52,
+    "Solidity": 0.46992216,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      151.28902,
-      0.30874264,
-      0.26799035
+      88.749275,
+      0.30995828,
+      0.2688135
     ],
     "HslMedian": [
-      151.36363,
-      0.30674243,
-      0.2764706
+      88.666016,
+      0.30700386,
+      0.2784314
     ],
     "HslMax": [
-      164,
-      0.69491524,
+      97.71429,
+      0.625,
       0.3509804
     ],
     "HslMin": [
-      142.2857,
-      0.114285715,
-      0.115686275
+      76,
+      0.1375,
+      0.1254902
     ],
     "HslDeviation": [
-      2.2214274,
-      0.07674406,
-      0.050877456
+      2.1920218,
+      0.07342254,
+      0.05015904
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1304,49 +1354,51 @@
       "ImageIndex": 25,
       "ImageName": "Lip 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:39",
       "VisTime": "2024-08-14T04:41:39",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 35.760002,
-    "AverageTemperature": 18.406778,
+    "SizeInMm2": 35,
+    "AverageTemperature": 18.412,
     "MedianTemperature": 18.42,
-    "TemperatureDev": 0.3308729,
+    "TemperatureDev": 0.32941473,
     "MaxTemperature": 19.13,
     "MinTemperature": 17.62,
+    "PixelCount": 875,
     "HeightInMm": 9,
     "WidthInMm": 12,
-    "Extent": 0.3311111,
-    "ConvexHullAreaInMm2": 80.240005,
-    "Solidity": 0.445663,
+    "Extent": 0.32407406,
+    "ConvexHullAreaInMm2": 79.200005,
+    "Solidity": 0.44191918,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      148.93633,
-      0.3240989,
-      0.3027416
+      91.02636,
+      0.3268207,
+      0.304493
     ],
     "HslMedian": [
-      149.14285,
-      0.32867134,
+      90.810814,
+      0.32934132,
       0.32156864
     ],
     "HslMax": [
-      156,
+      102.352936,
       0.89285713,
       0.41960785
     ],
     "HslMin": [
-      132.85713,
-      0.116564415,
+      84,
+      0.13761468,
       0.10980392
     ],
     "HslDeviation": [
-      1.9233981,
-      0.07521535,
-      0.059439402
+      1.8124795,
+      0.07113882,
+      0.058139544
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1356,49 +1408,51 @@
       "ImageIndex": 26,
       "ImageName": "Lip 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:47",
       "VisTime": "2024-08-14T04:40:48",
       "IrTempInC": 22.54
     },
-    "SizeInMm2": 28.680002,
-    "AverageTemperature": 19.307783,
+    "SizeInMm2": 28.6,
+    "AverageTemperature": 19.308615,
     "MedianTemperature": 19.29,
-    "TemperatureDev": 0.21485743,
+    "TemperatureDev": 0.21445765,
     "MaxTemperature": 19.87,
-    "MinTemperature": 18.69,
+    "MinTemperature": 18.68,
+    "PixelCount": 715,
     "HeightInMm": 10.400001,
     "WidthInMm": 8.2,
-    "Extent": 0.33630395,
+    "Extent": 0.33536586,
     "ConvexHullAreaInMm2": 53.560005,
-    "Solidity": 0.53547424,
-    "LeafCount": 5,
+    "Solidity": 0.5339806,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      145.09476,
-      0.31664148,
-      0.27694917
+      94.89365,
+      0.31687954,
+      0.27705473
     ],
     "HslMedian": [
-      145.38461,
+      94.57627,
       0.31843576,
       0.29215688
     ],
     "HslMax": [
-      150,
+      106.15385,
       0.7586207,
       0.35490197
     ],
     "HslMin": [
-      135.78947,
-      0.12328767,
+      90,
+      0.13793103,
       0.11372549
     ],
     "HslDeviation": [
-      2.0894485,
-      0.07136461,
-      0.049847968
+      2.0818524,
+      0.07104371,
+      0.04976624
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1408,49 +1462,51 @@
       "ImageIndex": 27,
       "ImageName": "Mt 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:01",
       "VisTime": "2024-08-14T04:40:02",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 18.76,
-    "AverageTemperature": 19.256887,
+    "SizeInMm2": 18.36,
+    "AverageTemperature": 19.259935,
     "MedianTemperature": 19.28,
-    "TemperatureDev": 0.14067046,
+    "TemperatureDev": 0.1398949,
     "MaxTemperature": 19.54,
     "MinTemperature": 18.93,
+    "PixelCount": 459,
     "HeightInMm": 6.6,
     "WidthInMm": 9.2,
-    "Extent": 0.30895916,
-    "ConvexHullAreaInMm2": 42.34,
-    "Solidity": 0.44307983,
+    "Extent": 0.30237153,
+    "ConvexHullAreaInMm2": 42.06,
+    "Solidity": 0.43651927,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      146.04474,
-      0.2726635,
-      0.25914964
+      93.96528,
+      0.27469024,
+      0.26006237
     ],
     "HslMedian": [
-      146.40001,
-      0.27741936,
-      0.2647059
+      93.6,
+      0.278481,
+      0.26666668
     ],
     "HslMax": [
-      152.14285,
+      105.882355,
       0.54545456,
       0.35686275
     ],
     "HslMin": [
-      134.11765,
-      0.11304348,
+      87.85715,
+      0.14049587,
       0.12941177
     ],
     "HslDeviation": [
-      2.867676,
-      0.06775999,
-      0.04629336
+      2.8535967,
+      0.06565704,
+      0.04561511
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1460,49 +1516,51 @@
       "ImageIndex": 28,
       "ImageName": "Mt 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:24",
       "VisTime": "2024-08-14T04:41:25",
       "IrTempInC": 23.39
     },
-    "SizeInMm2": 32.24,
-    "AverageTemperature": 17.61062,
+    "SizeInMm2": 31.76,
+    "AverageTemperature": 17.611637,
     "MedianTemperature": 17.59,
-    "TemperatureDev": 0.19784603,
+    "TemperatureDev": 0.19863096,
     "MaxTemperature": 18.19,
-    "MinTemperature": 17.17,
+    "MinTemperature": 17.2,
+    "PixelCount": 794,
     "HeightInMm": 11.400001,
-    "WidthInMm": 8.400001,
-    "Extent": 0.33667502,
-    "ConvexHullAreaInMm2": 72.64001,
-    "Solidity": 0.4438326,
+    "WidthInMm": 8.2,
+    "Extent": 0.3397518,
+    "ConvexHullAreaInMm2": 70.68,
+    "Solidity": 0.44934916,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      148.1326,
-      0.31526023,
-      0.28300005
+      91.86674,
+      0.31652874,
+      0.28458786
     ],
     "HslMedian": [
-      148.23529,
-      0.31578946,
-      0.3
+      91.76471,
+      0.31661296,
+      0.3019608
     ],
     "HslMax": [
-      153,
+      105,
       0.7419355,
       0.4
     ],
     "HslMin": [
-      135,
+      87,
       0.14838709,
       0.12156863
     ],
     "HslDeviation": [
-      1.4601061,
-      0.0729664,
-      0.06534337
+      1.4514319,
+      0.07230443,
+      0.06448037
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1512,49 +1570,51 @@
       "ImageIndex": 29,
       "ImageName": "Mt 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:47",
       "VisTime": "2024-08-14T04:40:48",
       "IrTempInC": 22.54
     },
-    "SizeInMm2": 29.24,
-    "AverageTemperature": 19.103325,
-    "MedianTemperature": 19.07,
-    "TemperatureDev": 0.21861592,
-    "MaxTemperature": 19.65,
+    "SizeInMm2": 28.800001,
+    "AverageTemperature": 19.135027,
+    "MedianTemperature": 19.09,
+    "TemperatureDev": 0.29987267,
+    "MaxTemperature": 20.7,
     "MinTemperature": 18.65,
-    "HeightInMm": 10.8,
-    "WidthInMm": 8.2,
-    "Extent": 0.33017164,
-    "ConvexHullAreaInMm2": 70.82,
-    "Solidity": 0.4128777,
-    "LeafCount": 5,
+    "PixelCount": 720,
+    "HeightInMm": 26.2,
+    "WidthInMm": 20.4,
+    "Extent": 0.05388415,
+    "ConvexHullAreaInMm2": 253.16002,
+    "Solidity": 0.11376205,
+    "LeafCount": 10,
     "LeafOutOfRange": false,
     "HslAverage": [
-      144.11133,
-      0.31852219,
-      0.27902687
+      97.54665,
+      0.31719223,
+      0.28026417
     ],
     "HslMedian": [
-      144,
+      96,
       0.3181818,
-      0.2901961
+      0.2911765
     ],
     "HslMax": [
-      150,
-      0.61290324,
+      184.2857,
+      0.6056338,
       0.37843138
     ],
     "HslMin": [
-      136,
-      0.10967742,
-      0.12156863
+      90.96774,
+      0.13461539,
+      0.13137256
     ],
     "HslDeviation": [
-      1.6825367,
-      0.071879745,
-      0.05688668
+      11.4072275,
+      0.07241126,
+      0.055615593
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1564,49 +1624,51 @@
       "ImageIndex": 30,
       "ImageName": "Nd 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 17.44,
-    "AverageTemperature": 19.674976,
+    "SizeInMm2": 16.880001,
+    "AverageTemperature": 19.676256,
     "MedianTemperature": 19.73,
-    "TemperatureDev": 0.2511683,
+    "TemperatureDev": 0.2538578,
     "MaxTemperature": 20.04,
     "MinTemperature": 19,
-    "HeightInMm": 8.8,
+    "PixelCount": 422,
+    "HeightInMm": 8.6,
     "WidthInMm": 5,
-    "Extent": 0.39636365,
-    "ConvexHullAreaInMm2": 28.280003,
-    "Solidity": 0.6166902,
+    "Extent": 0.39255813,
+    "ConvexHullAreaInMm2": 27.580002,
+    "Solidity": 0.6120377,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      149.01173,
-      0.30354336,
-      0.23613511
+      91.029465,
+      0.306336,
+      0.23728278
     ],
     "HslMedian": [
-      149.23077,
-      0.30973452,
+      90.769226,
+      0.31273854,
       0.2372549
     ],
     "HslMax": [
-      158.57143,
+      100,
       0.5890411,
       0.31960785
     ],
     "HslMin": [
-      138.75,
-      0.10948905,
-      0.12745099
+      83.33333,
+      0.13636364,
+      0.13333334
     ],
     "HslDeviation": [
-      2.5151272,
-      0.083845764,
-      0.03992355
+      2.3902004,
+      0.0805404,
+      0.03923542
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1616,49 +1678,51 @@
       "ImageIndex": 31,
       "ImageName": "Nd 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 17,
-    "AverageTemperature": 18.574352,
-    "MedianTemperature": 18.61,
-    "TemperatureDev": 0.23164706,
+    "SizeInMm2": 16.840002,
+    "AverageTemperature": 18.57817,
+    "MedianTemperature": 18.62,
+    "TemperatureDev": 0.23014247,
     "MaxTemperature": 19.03,
     "MinTemperature": 18.07,
+    "PixelCount": 421,
     "HeightInMm": 8.2,
-    "WidthInMm": 8.2,
-    "Extent": 0.2528257,
-    "ConvexHullAreaInMm2": 40.280003,
-    "Solidity": 0.42204568,
+    "WidthInMm": 8.400001,
+    "Extent": 0.24448316,
+    "ConvexHullAreaInMm2": 40.04,
+    "Solidity": 0.42057943,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      149.14175,
-      0.3072502,
-      0.24639447
+      90.79797,
+      0.30856213,
+      0.2465372
     ],
     "HslMedian": [
-      150,
-      0.31944445,
+      90,
+      0.32110092,
       0.24509804
     ],
     "HslMax": [
-      156,
+      101.739136,
       0.62666667,
       0.33137256
     ],
     "HslMin": [
-      138.26086,
-      0.123809524,
+      84,
+      0.14285715,
       0.12352941
     ],
     "HslDeviation": [
-      2.8531702,
-      0.08149591,
-      0.039455235
+      2.8065226,
+      0.080038555,
+      0.039171208
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1668,49 +1732,51 @@
       "ImageIndex": 32,
       "ImageName": "Nd 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:56",
       "VisTime": "2024-08-14T04:40:56",
       "IrTempInC": 22.64
     },
-    "SizeInMm2": 13.4400015,
-    "AverageTemperature": 19.21003,
-    "MedianTemperature": 19.27,
-    "TemperatureDev": 0.22831479,
+    "SizeInMm2": 12.840001,
+    "AverageTemperature": 19.213364,
+    "MedianTemperature": 19.28,
+    "TemperatureDev": 0.23068066,
     "MaxTemperature": 19.52,
     "MinTemperature": 18.62,
+    "PixelCount": 321,
     "HeightInMm": 4.6,
-    "WidthInMm": 7,
-    "Extent": 0.4173913,
-    "ConvexHullAreaInMm2": 21.800001,
-    "Solidity": 0.6165138,
+    "WidthInMm": 7.2000003,
+    "Extent": 0.38768116,
+    "ConvexHullAreaInMm2": 21.76,
+    "Solidity": 0.5900735,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      145.03215,
-      0.29754484,
-      0.28246382
+      95.01694,
+      0.29887655,
+      0.28469247
     ],
     "HslMedian": [
-      145.7143,
-      0.2915476,
-      0.28333336
+      94.28571,
+      0.29166666,
+      0.28431374
     ],
     "HslMax": [
-      151.03448,
-      0.69491524,
+      101.739136,
+      0.6,
       0.38039216
     ],
     "HslMin": [
-      138.26086,
-      0.12396694,
-      0.115686275
+      88.965515,
+      0.13636364,
+      0.12745099
     ],
     "HslDeviation": [
-      2.3746529,
-      0.09499008,
-      0.059852686
+      2.3850205,
+      0.09079518,
+      0.05809106
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1720,49 +1786,51 @@
       "ImageIndex": 33,
       "ImageName": "No 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:39",
       "VisTime": "2024-08-14T04:41:39",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 17.32,
-    "AverageTemperature": 18.255474,
-    "MedianTemperature": 18.26,
-    "TemperatureDev": 0.20212802,
+    "SizeInMm2": 17.2,
+    "AverageTemperature": 18.256395,
+    "MedianTemperature": 18.265,
+    "TemperatureDev": 0.2025197,
     "MaxTemperature": 18.72,
     "MinTemperature": 17.76,
-    "HeightInMm": 6.4,
-    "WidthInMm": 7.2000003,
-    "Extent": 0.37586805,
-    "ConvexHullAreaInMm2": 29.320002,
-    "Solidity": 0.59072304,
+    "PixelCount": 430,
+    "HeightInMm": 16,
+    "WidthInMm": 9.400001,
+    "Extent": 0.1143617,
+    "ConvexHullAreaInMm2": 29.980001,
+    "Solidity": 0.5737158,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.37907,
-      0.31367704,
-      0.2842775
+      92.56371,
+      0.3147326,
+      0.28463748
     ],
     "HslMedian": [
-      147.77777,
-      0.30769232,
+      92.22222,
+      0.30901763,
       0.3
     ],
     "HslMax": [
-      152.43243,
+      105,
       0.7586207,
       0.37254903
     ],
     "HslMin": [
-      135,
-      0.12087912,
+      68.57143,
+      0.136,
       0.11372549
     ],
     "HslDeviation": [
-      2.2046142,
-      0.09907254,
-      0.060822345
+      2.5125656,
+      0.09837678,
+      0.060595687
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1772,49 +1840,51 @@
       "ImageIndex": 34,
       "ImageName": "No 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:07",
       "VisTime": "2024-08-14T04:41:07",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 18.52,
-    "AverageTemperature": 18.869007,
+    "SizeInMm2": 17.840002,
+    "AverageTemperature": 18.873901,
     "MedianTemperature": 18.87,
-    "TemperatureDev": 0.13536401,
+    "TemperatureDev": 0.13371556,
     "MaxTemperature": 19.27,
     "MinTemperature": 18.53,
-    "HeightInMm": 7,
+    "PixelCount": 446,
+    "HeightInMm": 7.2000003,
     "WidthInMm": 8,
-    "Extent": 0.3307143,
-    "ConvexHullAreaInMm2": 36.84,
-    "Solidity": 0.50271446,
-    "LeafCount": 5,
+    "Extent": 0.30972221,
+    "ConvexHullAreaInMm2": 37.2,
+    "Solidity": 0.47956988,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.80737,
-      0.28777808,
-      0.32308897
+      92.18683,
+      0.28894642,
+      0.325732
     ],
     "HslMedian": [
-      148.0851,
-      0.2923077,
+      91.914894,
+      0.2928735,
       0.3509804
     ],
     "HslMax": [
-      156,
+      99.47369,
       0.6231884,
       0.41568628
     ],
     "HslMin": [
-      140.52632,
-      0.11,
+      85.00001,
+      0.13513513,
       0.13529412
     ],
     "HslDeviation": [
-      2.1508386,
-      0.07740079,
-      0.07434751
+      2.0648277,
+      0.07359117,
+      0.0716723
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1824,49 +1894,51 @@
       "ImageIndex": 35,
       "ImageName": "No 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:01",
       "VisTime": "2024-08-14T04:40:02",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 14.240001,
-    "AverageTemperature": 19.231377,
-    "MedianTemperature": 19.24,
-    "TemperatureDev": 0.21005769,
+    "SizeInMm2": 14.040001,
+    "AverageTemperature": 19.232906,
+    "MedianTemperature": 19.25,
+    "TemperatureDev": 0.2108458,
     "MaxTemperature": 19.64,
     "MinTemperature": 18.88,
+    "PixelCount": 351,
     "HeightInMm": 7.2000003,
     "WidthInMm": 4,
-    "Extent": 0.49444443,
-    "ConvexHullAreaInMm2": 19.960001,
-    "Solidity": 0.7134268,
+    "Extent": 0.4875,
+    "ConvexHullAreaInMm2": 19.660002,
+    "Solidity": 0.7141404,
     "LeafCount": 3,
     "LeafOutOfRange": false,
     "HslAverage": [
-      143.30765,
-      0.2983295,
-      0.2650694
+      96.5267,
+      0.30109376,
+      0.26499638
     ],
     "HslMedian": [
-      143.75,
-      0.310102,
+      96,
+      0.3108108,
       0.26862746
     ],
     "HslMax": [
-      148.63637,
+      105.882355,
       0.58441556,
       0.33333334
     ],
     "HslMin": [
-      132.85713,
-      0.11111111,
+      91.36363,
+      0.13513513,
       0.13529412
     ],
     "HslDeviation": [
-      2.58251,
-      0.087804325,
-      0.052201405
+      2.3513787,
+      0.08557966,
+      0.052162822
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1876,49 +1948,51 @@
       "ImageIndex": 36,
       "ImageName": "Oy 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:11",
       "VisTime": "2024-08-14T04:40:11",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 28.880003,
-    "AverageTemperature": 19.282923,
+    "SizeInMm2": 27.84,
+    "AverageTemperature": 19.28408,
     "MedianTemperature": 19.28,
-    "TemperatureDev": 0.18289655,
+    "TemperatureDev": 0.17936194,
     "MaxTemperature": 19.77,
     "MinTemperature": 18.72,
-    "HeightInMm": 10.400001,
+    "PixelCount": 696,
+    "HeightInMm": 10.2,
     "WidthInMm": 6.2000003,
-    "Extent": 0.44789082,
-    "ConvexHullAreaInMm2": 44.820004,
-    "Solidity": 0.6443552,
+    "Extent": 0.44022772,
+    "ConvexHullAreaInMm2": 44.08,
+    "Solidity": 0.6315789,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      137.0931,
-      0.28307897,
-      0.29656455
+      102.7221,
+      0.2846895,
+      0.29939994
     ],
     "HslMedian": [
-      137.77779,
+      102.16216,
       0.2849741,
-      0.3
+      0.3019608
     ],
     "HslMax": [
-      142.5,
+      116,
       0.6721311,
       0.39019608
     ],
     "HslMin": [
-      124,
-      0.10948905,
+      97.5,
+      0.13513513,
       0.11960784
     ],
     "HslDeviation": [
-      3.047723,
-      0.06541271,
-      0.06455191
+      2.813793,
+      0.060545888,
+      0.062851615
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1928,49 +2002,51 @@
       "ImageIndex": 37,
       "ImageName": "Oy 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:21",
       "VisTime": "2024-08-14T04:40:21",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 30.2,
-    "AverageTemperature": 19.442463,
+    "SizeInMm2": 29.920002,
+    "AverageTemperature": 19.443476,
     "MedianTemperature": 19.37,
-    "TemperatureDev": 0.19706261,
+    "TemperatureDev": 0.19719478,
     "MaxTemperature": 20.02,
     "MinTemperature": 19.13,
+    "PixelCount": 748,
     "HeightInMm": 7.2000003,
     "WidthInMm": 10.8,
-    "Extent": 0.38837448,
-    "ConvexHullAreaInMm2": 50.52,
-    "Solidity": 0.597783,
+    "Extent": 0.38477367,
+    "ConvexHullAreaInMm2": 50.280003,
+    "Solidity": 0.5950676,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      140.8699,
-      0.2807443,
-      0.27974808
+      99.07558,
+      0.28155443,
+      0.28000945
     ],
     "HslMedian": [
-      141.53847,
-      0.29032257,
+      98.46154,
+      0.29078013,
       0.28235295
     ],
     "HslMax": [
-      145.7143,
-      0.61290324,
+      112,
+      0.6,
       0.3509804
     ],
     "HslMin": [
-      125.99999,
-      0.10869565,
-      0.12156863
+      94.28571,
+      0.136,
+      0.12745099
     ],
     "HslDeviation": [
-      2.618445,
-      0.056642868,
-      0.049608387
+      2.5365267,
+      0.053791016,
+      0.049349293
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -1980,49 +2056,51 @@
       "ImageIndex": 38,
       "ImageName": "Oy 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:56",
       "VisTime": "2024-08-14T04:40:56",
       "IrTempInC": 22.64
     },
-    "SizeInMm2": 35.320004,
-    "AverageTemperature": 19.111462,
+    "SizeInMm2": 34.920002,
+    "AverageTemperature": 19.11283,
     "MedianTemperature": 19.09,
-    "TemperatureDev": 0.1918357,
+    "TemperatureDev": 0.19243756,
     "MaxTemperature": 19.7,
     "MinTemperature": 18.63,
+    "PixelCount": 873,
     "HeightInMm": 7.6,
     "WidthInMm": 12.2,
-    "Extent": 0.38093182,
-    "ConvexHullAreaInMm2": 60.48,
-    "Solidity": 0.5839947,
+    "Extent": 0.37661776,
+    "ConvexHullAreaInMm2": 60.260006,
+    "Solidity": 0.5794889,
     "LeafCount": 8,
     "LeafOutOfRange": false,
     "HslAverage": [
-      148.97705,
-      0.36517715,
-      0.29494148
+      91.02444,
+      0.36524212,
+      0.2957101
     ],
     "HslMedian": [
-      149.03226,
+      90.9375,
       0.37572256,
       0.3156863
     ],
     "HslMax": [
-      153.1579,
+      97.14286,
       0.8214286,
       0.3882353
     ],
     "HslMin": [
-      142.85715,
-      0.11731844,
+      86.8421,
+      0.1368421,
       0.10980392
     ],
     "HslDeviation": [
-      1.4845885,
-      0.08600063,
-      0.05376276
+      1.4770356,
+      0.08227637,
+      0.052395415
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2032,49 +2110,51 @@
       "ImageIndex": 39,
       "ImageName": "P2-23 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:21",
       "VisTime": "2024-08-14T04:40:21",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 13.040001,
-    "AverageTemperature": 19.047392,
-    "MedianTemperature": 19.02,
-    "TemperatureDev": 0.14181219,
+    "SizeInMm2": 12.76,
+    "AverageTemperature": 19.045956,
+    "MedianTemperature": 19.01,
+    "TemperatureDev": 0.14225112,
     "MaxTemperature": 19.45,
     "MinTemperature": 18.79,
+    "PixelCount": 319,
     "HeightInMm": 6.2000003,
     "WidthInMm": 5,
-    "Extent": 0.42064515,
-    "ConvexHullAreaInMm2": 23.44,
-    "Solidity": 0.556314,
+    "Extent": 0.4116129,
+    "ConvexHullAreaInMm2": 23.300001,
+    "Solidity": 0.5476395,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      135.06837,
-      0.24185373,
-      0.27514136
+      104.821,
+      0.24394727,
+      0.2761018
     ],
     "HslMedian": [
-      135.55556,
-      0.2375,
+      104.34783,
+      0.23863636,
       0.27058825
     ],
     "HslMax": [
-      140.52632,
+      114,
       0.40229884,
       0.37843138
     ],
     "HslMin": [
-      124.28571,
-      0.11320755,
+      99.47369,
+      0.13475177,
       0.14901961
     ],
     "HslDeviation": [
-      2.8663929,
-      0.053965777,
-      0.054875232
+      2.7432315,
+      0.052101836,
+      0.054577947
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2084,49 +2164,51 @@
       "ImageIndex": 40,
       "ImageName": "P2-23 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:31",
       "VisTime": "2024-08-14T04:40:31",
       "IrTempInC": 22.24
     },
-    "SizeInMm2": 24.72,
-    "AverageTemperature": 19.010809,
+    "SizeInMm2": 24.12,
+    "AverageTemperature": 19.013384,
     "MedianTemperature": 19.02,
-    "TemperatureDev": 0.101239875,
+    "TemperatureDev": 0.10042283,
     "MaxTemperature": 19.26,
     "MinTemperature": 18.7,
+    "PixelCount": 603,
     "HeightInMm": 8.400001,
     "WidthInMm": 8.2,
-    "Extent": 0.35888502,
-    "ConvexHullAreaInMm2": 45.24,
-    "Solidity": 0.5464191,
+    "Extent": 0.35017422,
+    "ConvexHullAreaInMm2": 45.02,
+    "Solidity": 0.5357619,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      142.6386,
-      0.2790001,
-      0.28346026
+      97.30236,
+      0.2793224,
+      0.28580952
     ],
     "HslMedian": [
-      142.85715,
-      0.28304598,
-      0.29607844
+      97.14286,
+      0.28440368,
+      0.29803923
     ],
     "HslMax": [
-      148.96552,
-      0.49253732,
+      105,
+      0.48051947,
       0.3745098
     ],
     "HslMin": [
-      129.23077,
-      0.10891089,
-      0.13137256
+      91.034485,
+      0.13461539,
+      0.14901961
     ],
     "HslDeviation": [
-      2.160486,
-      0.05941191,
-      0.052593965
+      2.0234523,
+      0.056914147,
+      0.050417688
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2136,49 +2218,51 @@
       "ImageIndex": 41,
       "ImageName": "P2-23 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 23.480001,
-    "AverageTemperature": 19.718807,
-    "MedianTemperature": 19.75,
-    "TemperatureDev": 0.22452512,
+    "SizeInMm2": 22.880001,
+    "AverageTemperature": 19.726994,
+    "MedianTemperature": 19.76,
+    "TemperatureDev": 0.22046767,
     "MaxTemperature": 20.14,
     "MinTemperature": 19.21,
+    "PixelCount": 572,
     "HeightInMm": 7.4,
     "WidthInMm": 7.4,
-    "Extent": 0.42878014,
-    "ConvexHullAreaInMm2": 40.980003,
-    "Solidity": 0.5729624,
+    "Extent": 0.41782323,
+    "ConvexHullAreaInMm2": 40.08,
+    "Solidity": 0.5708583,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      146.01909,
-      0.3119468,
-      0.28099677
+      93.935394,
+      0.3139662,
+      0.2826649
     ],
     "HslMedian": [
-      146.25,
-      0.31460676,
-      0.2901961
+      93.75,
+      0.31618416,
+      0.29215688
     ],
     "HslMax": [
-      152.30771,
+      100,
       0.79310346,
       0.37058824
     ],
     "HslMin": [
-      140,
-      0.11949685,
+      87.69231,
+      0.13725491,
       0.11372549
     ],
     "HslDeviation": [
-      2.0206056,
-      0.07067433,
-      0.05205099
+      1.9807053,
+      0.067168534,
+      0.05055903
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2188,49 +2272,51 @@
       "ImageIndex": 42,
       "ImageName": "Pla 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:39",
       "VisTime": "2024-08-14T04:41:39",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 14.240001,
-    "AverageTemperature": 18.266685,
+    "SizeInMm2": 13.960001,
+    "AverageTemperature": 18.266733,
     "MedianTemperature": 18.27,
-    "TemperatureDev": 0.10926581,
+    "TemperatureDev": 0.11027548,
     "MaxTemperature": 18.51,
     "MinTemperature": 17.88,
+    "PixelCount": 349,
     "HeightInMm": 5.6,
     "WidthInMm": 7.2000003,
-    "Extent": 0.3531746,
-    "ConvexHullAreaInMm2": 29.64,
-    "Solidity": 0.48043185,
+    "Extent": 0.34623015,
+    "ConvexHullAreaInMm2": 29.580002,
+    "Solidity": 0.4719405,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      151.21935,
-      0.26990613,
-      0.2814111
+      88.69332,
+      0.27298957,
+      0.28149897
     ],
     "HslMedian": [
-      151.30434,
-      0.26373628,
+      88.695656,
+      0.26436782,
       0.29607844
     ],
     "HslMax": [
-      155.45454,
+      94.28571,
       0.5,
       0.36666667
     ],
     "HslMin": [
-      141.81819,
-      0.107913665,
+      84.545456,
+      0.13461539,
       0.14705883
     ],
     "HslDeviation": [
-      2.0898576,
-      0.06591663,
-      0.055146012
+      1.973049,
+      0.062829755,
+      0.055443842
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2240,49 +2326,51 @@
       "ImageIndex": 43,
       "ImageName": "Pla 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:24",
       "VisTime": "2024-08-14T04:41:25",
       "IrTempInC": 23.39
     },
-    "SizeInMm2": 20.08,
-    "AverageTemperature": 17.623884,
-    "MedianTemperature": 17.68,
-    "TemperatureDev": 0.2865391,
+    "SizeInMm2": 19.160002,
+    "AverageTemperature": 17.634071,
+    "MedianTemperature": 17.69,
+    "TemperatureDev": 0.2860463,
     "MaxTemperature": 18.25,
     "MinTemperature": 17.12,
+    "PixelCount": 479,
     "HeightInMm": 10,
     "WidthInMm": 6.6,
-    "Extent": 0.30424243,
-    "ConvexHullAreaInMm2": 45.16,
-    "Solidity": 0.44464126,
-    "LeafCount": 4,
+    "Extent": 0.29030302,
+    "ConvexHullAreaInMm2": 44.94,
+    "Solidity": 0.42634624,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      150.2338,
-      0.26747298,
-      0.28332552
+      89.60386,
+      0.2695303,
+      0.28721604
     ],
     "HslMedian": [
-      150.96774,
-      0.2682927,
-      0.3
+      88.965515,
+      0.27388534,
+      0.30392158
     ],
     "HslMax": [
-      161.05263,
+      101.25,
       0.6119403,
       0.3745098
     ],
     "HslMin": [
-      140,
-      0.11724138,
+      78.947365,
+      0.13559322,
       0.13137256
     ],
     "HslDeviation": [
-      2.9137664,
-      0.06609045,
-      0.05849644
+      2.7440832,
+      0.06462447,
+      0.055629697
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2292,49 +2380,51 @@
       "ImageIndex": 44,
       "ImageName": "Pla 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 16.08,
-    "AverageTemperature": 20.091393,
-    "MedianTemperature": 20.11,
-    "TemperatureDev": 0.24161264,
+    "SizeInMm2": 15.72,
+    "AverageTemperature": 20.102392,
+    "MedianTemperature": 20.12,
+    "TemperatureDev": 0.23438488,
     "MaxTemperature": 20.68,
-    "MinTemperature": 19.5,
+    "MinTemperature": 19.52,
+    "PixelCount": 393,
     "HeightInMm": 6.6,
-    "WidthInMm": 9.2,
-    "Extent": 0.26482213,
-    "ConvexHullAreaInMm2": 38.760002,
-    "Solidity": 0.4148607,
+    "WidthInMm": 9.400001,
+    "Extent": 0.25338492,
+    "ConvexHullAreaInMm2": 38.54,
+    "Solidity": 0.4078879,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      145.2308,
-      0.27156073,
-      0.30588236
+      94.683586,
+      0.27620816,
+      0.3062815
     ],
     "HslMedian": [
-      145.45454,
-      0.27456063,
-      0.31960785
+      94.5,
+      0.27683616,
+      0.32352942
     ],
     "HslMax": [
-      152.5,
+      103.63637,
       0.6,
       0.49215686
     ],
     "HslMin": [
-      136.36363,
-      0.10909091,
+      87.69231,
+      0.1368421,
       0.12745099
     ],
     "HslDeviation": [
-      2.3135436,
-      0.07909277,
-      0.066902384
+      2.278406,
+      0.0753677,
+      0.0670306
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2344,49 +2434,51 @@
       "ImageIndex": 45,
       "ImageName": "Pro 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:11",
       "VisTime": "2024-08-14T04:40:11",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 34.24,
-    "AverageTemperature": 19.459684,
-    "MedianTemperature": 19.47,
-    "TemperatureDev": 0.20346248,
+    "SizeInMm2": 33.2,
+    "AverageTemperature": 19.46358,
+    "MedianTemperature": 19.48,
+    "TemperatureDev": 0.20354946,
     "MaxTemperature": 19.95,
     "MinTemperature": 18.85,
-    "HeightInMm": 7.8,
+    "PixelCount": 830,
+    "HeightInMm": 7.6,
     "WidthInMm": 12.8,
-    "Extent": 0.3429487,
-    "ConvexHullAreaInMm2": 62.8,
-    "Solidity": 0.54522294,
-    "LeafCount": 4,
+    "Extent": 0.3412829,
+    "ConvexHullAreaInMm2": 62.260006,
+    "Solidity": 0.53324765,
+    "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      136.87166,
-      0.2890275,
-      0.30942827
+      102.91622,
+      0.29185846,
+      0.31241438
     ],
     "HslMedian": [
-      138,
-      0.30062288,
-      0.32941177
+      101.87363,
+      0.3015873,
+      0.33333334
     ],
     "HslMax": [
-      141.81819,
+      120,
       0.73333335,
       0.40588236
     ],
     "HslMin": [
-      120,
-      0.11111111,
+      98.181816,
+      0.13475177,
       0.11764706
     ],
     "HslDeviation": [
-      3.5943673,
-      0.07280686,
-      0.06484243
+      3.349639,
+      0.07027721,
+      0.062937036
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2396,49 +2488,51 @@
       "ImageIndex": 46,
       "ImageName": "Pro 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:15",
       "VisTime": "2024-08-14T04:41:16",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 31.480001,
-    "AverageTemperature": 18.780394,
-    "MedianTemperature": 18.75,
-    "TemperatureDev": 0.25232586,
+    "SizeInMm2": 31.160002,
+    "AverageTemperature": 18.783659,
+    "MedianTemperature": 18.76,
+    "TemperatureDev": 0.25107133,
     "MaxTemperature": 19.38,
     "MinTemperature": 18.34,
+    "PixelCount": 779,
     "HeightInMm": 11,
     "WidthInMm": 6.8,
-    "Extent": 0.4208556,
-    "ConvexHullAreaInMm2": 49.280003,
-    "Solidity": 0.6387987,
+    "Extent": 0.41657755,
+    "ConvexHullAreaInMm2": 49.22,
+    "Solidity": 0.633076,
     "LeafCount": 3,
     "LeafOutOfRange": false,
     "HslAverage": [
-      151.12222,
-      0.3467934,
-      0.31149814
+      88.87163,
+      0.34696218,
+      0.31296283
     ],
     "HslMedian": [
-      151.30434,
-      0.35416666,
-      0.327451
+      88.695656,
+      0.35433072,
+      0.33137256
     ],
     "HslMax": [
-      158.82353,
+      93.84615,
       0.8245614,
       0.41568628
     ],
     "HslMin": [
-      146.15384,
+      81.17647,
       0.1375,
       0.11176471
     ],
     "HslDeviation": [
-      1.469049,
-      0.083006896,
-      0.064395726
+      1.4672326,
+      0.081448615,
+      0.06295826
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2448,49 +2542,51 @@
       "ImageIndex": 47,
       "ImageName": "Pro 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 27.080002,
-    "AverageTemperature": 20.22867,
+    "SizeInMm2": 26.880003,
+    "AverageTemperature": 20.229836,
     "MedianTemperature": 20.23,
-    "TemperatureDev": 0.18837331,
+    "TemperatureDev": 0.18778901,
     "MaxTemperature": 20.77,
     "MinTemperature": 19.72,
+    "PixelCount": 672,
     "HeightInMm": 8.400001,
     "WidthInMm": 7.8,
-    "Extent": 0.41330892,
+    "Extent": 0.41025642,
     "ConvexHullAreaInMm2": 43.02,
-    "Solidity": 0.62947464,
+    "Solidity": 0.62482566,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      148.59561,
-      0.34330344,
-      0.29117793
+      91.40813,
+      0.34370157,
+      0.2918155
     ],
     "HslMedian": [
-      148.96552,
+      91.034485,
       0.35135135,
       0.3019608
     ],
     "HslMax": [
-      153.75,
+      100.909096,
       0.7704918,
       0.37254903
     ],
     "HslMin": [
-      139.09091,
-      0.11564626,
+      86.25,
+      0.1446541,
       0.11960784
     ],
     "HslDeviation": [
-      2.0464993,
-      0.07813068,
-      0.059090026
+      2.0438364,
+      0.07739783,
+      0.058529098
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2500,49 +2596,51 @@
       "ImageIndex": 48,
       "ImageName": "Sav 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:47",
       "VisTime": "2024-08-14T04:40:48",
       "IrTempInC": 22.54
     },
-    "SizeInMm2": 19.880001,
-    "AverageTemperature": 19.130463,
-    "MedianTemperature": 19.14,
-    "TemperatureDev": 0.14955728,
-    "MaxTemperature": 19.4,
+    "SizeInMm2": 20.36,
+    "AverageTemperature": 19.187172,
+    "MedianTemperature": 19.15,
+    "TemperatureDev": 0.32523504,
+    "MaxTemperature": 21.31,
     "MinTemperature": 18.75,
-    "HeightInMm": 6.6,
-    "WidthInMm": 5.8,
-    "Extent": 0.5193312,
-    "ConvexHullAreaInMm2": 29.520002,
-    "Solidity": 0.6734417,
-    "LeafCount": 4,
+    "PixelCount": 509,
+    "HeightInMm": 37.600002,
+    "WidthInMm": 21,
+    "Extent": 0.025785208,
+    "ConvexHullAreaInMm2": 488.54,
+    "Solidity": 0.041675195,
+    "LeafCount": 14,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.98195,
-      0.3517444,
-      0.32277194
+      94.8796,
+      0.34391722,
+      0.31902617
     ],
     "HslMedian": [
-      148.33334,
-      0.35353535,
-      0.34117648
+      91.71428,
+      0.3478261,
+      0.3372549
     ],
     "HslMax": [
-      152.36842,
-      0.8518519,
+      180,
+      0.7941176,
       0.4372549
     ],
     "HslMin": [
-      138.26086,
-      0.12230216,
-      0.105882354
+      87.63158,
+      0.13461539,
+      0.11176471
     ],
     "HslDeviation": [
-      2.4367495,
-      0.10435711,
-      0.07773818
+      14.950399,
+      0.10576609,
+      0.07932587
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2552,49 +2650,51 @@
       "ImageIndex": 49,
       "ImageName": "Sav 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 24.28,
-    "AverageTemperature": 18.503723,
+    "SizeInMm2": 23.960001,
+    "AverageTemperature": 18.508465,
     "MedianTemperature": 18.53,
-    "TemperatureDev": 0.22811091,
+    "TemperatureDev": 0.22356647,
     "MaxTemperature": 18.93,
     "MinTemperature": 17.78,
+    "PixelCount": 599,
     "HeightInMm": 8.8,
     "WidthInMm": 6.8,
-    "Extent": 0.40574867,
-    "ConvexHullAreaInMm2": 44.920002,
-    "Solidity": 0.5405165,
+    "Extent": 0.40040106,
+    "ConvexHullAreaInMm2": 44.7,
+    "Solidity": 0.5360179,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      149.87685,
-      0.3307623,
-      0.2876894
+      90.09418,
+      0.33111593,
+      0.28901437
     ],
     "HslMedian": [
-      150,
+      90,
       0.34104046,
       0.3019608
     ],
     "HslMax": [
-      155,
+      99.13043,
       0.7704918,
       0.37254903
     ],
     "HslMin": [
-      140,
-      0.125,
-      0.11764706
+      85.00001,
+      0.13868614,
+      0.11960784
     ],
     "HslDeviation": [
-      2.3226457,
-      0.086273745,
-      0.059675008
+      2.2789679,
+      0.084064916,
+      0.058477793
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2604,49 +2704,51 @@
       "ImageIndex": 50,
       "ImageName": "Sav 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 21.72,
-    "AverageTemperature": 19.79628,
+    "SizeInMm2": 21.480001,
+    "AverageTemperature": 19.798399,
     "MedianTemperature": 19.78,
-    "TemperatureDev": 0.18361966,
+    "TemperatureDev": 0.18318324,
     "MaxTemperature": 20.22,
     "MinTemperature": 19.4,
+    "PixelCount": 537,
     "HeightInMm": 8.8,
     "WidthInMm": 6.6,
-    "Extent": 0.37396693,
+    "Extent": 0.36983472,
     "ConvexHullAreaInMm2": 37.58,
-    "Solidity": 0.577967,
+    "Solidity": 0.57158065,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      154.52287,
-      0.3684652,
-      0.29490846
+      85.475784,
+      0.3703378,
+      0.29551977
     ],
     "HslMedian": [
-      154.8387,
-      0.36312848,
+      85.16129,
+      0.36363637,
       0.30784315
     ],
     "HslMax": [
-      164,
+      92.57143,
       0.84375,
       0.38235295
     ],
     "HslMin": [
-      147.42857,
-      0.125,
+      76,
+      0.13513513,
       0.12156863
     ],
     "HslDeviation": [
-      1.8750573,
-      0.10754414,
-      0.06716676
+      1.8453213,
+      0.10612366,
+      0.06679292
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2656,49 +2758,51 @@
       "ImageIndex": 51,
       "ImageName": "Sha 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 31.64,
-    "AverageTemperature": 18.343174,
-    "MedianTemperature": 18.31,
-    "TemperatureDev": 0.23397824,
+    "SizeInMm2": 30.76,
+    "AverageTemperature": 18.346672,
+    "MedianTemperature": 18.32,
+    "TemperatureDev": 0.23394197,
     "MaxTemperature": 18.98,
     "MinTemperature": 17.93,
+    "PixelCount": 769,
     "HeightInMm": 8.400001,
     "WidthInMm": 10.6,
-    "Extent": 0.3553459,
-    "ConvexHullAreaInMm2": 56.260006,
-    "Solidity": 0.5623889,
+    "Extent": 0.3454627,
+    "ConvexHullAreaInMm2": 55.9,
+    "Solidity": 0.55026835,
     "LeafCount": 3,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.47478,
-      0.33404252,
-      0.2699239
+      92.50192,
+      0.33492255,
+      0.2727071
     ],
     "HslMedian": [
-      147.42857,
-      0.33734939,
-      0.28039217
+      92.54237,
+      0.3375796,
+      0.28235295
     ],
     "HslMax": [
-      156,
+      100,
       0.65625,
       0.3647059
     ],
     "HslMin": [
-      140,
+      84,
       0.13513513,
       0.12156863
     ],
     "HslDeviation": [
-      2.1507149,
-      0.075808525,
-      0.05565966
+      2.1408994,
+      0.07460296,
+      0.05366751
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2708,49 +2812,51 @@
       "ImageIndex": 52,
       "ImageName": "Sha 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:47",
       "VisTime": "2024-08-14T04:40:48",
       "IrTempInC": 22.54
     },
-    "SizeInMm2": 38.36,
-    "AverageTemperature": 19.363213,
+    "SizeInMm2": 37.88,
+    "AverageTemperature": 19.365301,
     "MedianTemperature": 19.37,
-    "TemperatureDev": 0.18535629,
+    "TemperatureDev": 0.18494326,
     "MaxTemperature": 19.88,
     "MinTemperature": 18.76,
+    "PixelCount": 947,
     "HeightInMm": 8.2,
     "WidthInMm": 12.8,
-    "Extent": 0.36547256,
+    "Extent": 0.3608994,
     "ConvexHullAreaInMm2": 69.44,
-    "Solidity": 0.55241936,
+    "Solidity": 0.5455069,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      148.46556,
-      0.3449551,
-      0.24900326
+      91.530106,
+      0.34480518,
+      0.25000724
     ],
     "HslMedian": [
-      148.42105,
+      91.57895,
       0.3529412,
       0.25686276
     ],
     "HslMax": [
-      156,
+      98.4,
       0.7419355,
       0.3156863
     ],
     "HslMin": [
-      141.6,
-      0.13385826,
+      84,
+      0.14285715,
       0.115686275
     ],
     "HslDeviation": [
-      1.5595266,
-      0.07161802,
-      0.03686389
+      1.5496902,
+      0.07056417,
+      0.035779923
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2760,49 +2866,51 @@
       "ImageIndex": 53,
       "ImageName": "Sha 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:39",
       "VisTime": "2024-08-14T04:41:39",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 19.76,
-    "AverageTemperature": 18.072773,
+    "SizeInMm2": 19.32,
+    "AverageTemperature": 18.076792,
     "MedianTemperature": 18.1,
-    "TemperatureDev": 0.17137042,
+    "TemperatureDev": 0.17110363,
     "MaxTemperature": 18.45,
     "MinTemperature": 17.61,
+    "PixelCount": 483,
     "HeightInMm": 7,
     "WidthInMm": 6,
-    "Extent": 0.47047618,
-    "ConvexHullAreaInMm2": 31.26,
-    "Solidity": 0.63211775,
+    "Extent": 0.46,
+    "ConvexHullAreaInMm2": 30.76,
+    "Solidity": 0.6280884,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      151.42574,
-      0.3376953,
-      0.23471065
+      88.498886,
+      0.34013373,
+      0.23553364
     ],
     "HslMedian": [
-      151.66666,
-      0.33829057,
+      88.23529,
+      0.33898306,
       0.23921569
     ],
     "HslMax": [
-      157.5,
+      96,
       0.625,
       0.30784315
     ],
     "HslMin": [
-      144,
-      0.13333334,
+      82.5,
+      0.15044248,
       0.1254902
     ],
     "HslDeviation": [
-      2.2677553,
-      0.07325577,
-      0.0356569
+      2.2003388,
+      0.07111177,
+      0.035281464
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2812,49 +2920,51 @@
       "ImageIndex": 54,
       "ImageName": "St 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:56",
       "VisTime": "2024-08-14T04:40:56",
       "IrTempInC": 22.64
     },
-    "SizeInMm2": 39.480003,
-    "AverageTemperature": 19.136454,
+    "SizeInMm2": 39.320004,
+    "AverageTemperature": 19.137344,
     "MedianTemperature": 19.11,
-    "TemperatureDev": 0.4541197,
+    "TemperatureDev": 0.45330903,
     "MaxTemperature": 20.14,
     "MinTemperature": 18.04,
+    "PixelCount": 983,
     "HeightInMm": 13.8,
     "WidthInMm": 8,
-    "Extent": 0.3576087,
-    "ConvexHullAreaInMm2": 76.94,
-    "Solidity": 0.5131271,
+    "Extent": 0.35615942,
+    "ConvexHullAreaInMm2": 76.88,
+    "Solidity": 0.5114464,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      146.68994,
-      0.33654028,
-      0.2837992
+      93.31177,
+      0.33689237,
+      0.28420803
     ],
     "HslMedian": [
-      146.7857,
+      93.21429,
       0.34615386,
       0.29803923
     ],
     "HslMax": [
-      153.10345,
+      101.25,
       0.6969697,
       0.35490197
     ],
     "HslMin": [
-      138.75,
-      0.13207547,
+      86.896545,
+      0.136,
       0.12352941
     ],
     "HslDeviation": [
-      1.7505659,
-      0.07036639,
-      0.049770206
+      1.7505969,
+      0.069573924,
+      0.049387056
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2864,49 +2974,51 @@
       "ImageIndex": 55,
       "ImageName": "St 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:07",
       "VisTime": "2024-08-14T04:41:07",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 28.320002,
-    "AverageTemperature": 18.482035,
+    "SizeInMm2": 27.960001,
+    "AverageTemperature": 18.483734,
     "MedianTemperature": 18.51,
-    "TemperatureDev": 0.25808087,
+    "TemperatureDev": 0.2584712,
     "MaxTemperature": 18.98,
     "MinTemperature": 18,
-    "HeightInMm": 12,
+    "PixelCount": 699,
+    "HeightInMm": 11.8,
     "WidthInMm": 7.2000003,
-    "Extent": 0.32777777,
-    "ConvexHullAreaInMm2": 57.079998,
-    "Solidity": 0.49614576,
+    "Extent": 0.32909605,
+    "ConvexHullAreaInMm2": 56.860004,
+    "Solidity": 0.4917341,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      154.51149,
-      0.32993028,
-      0.2557439
+      85.49759,
+      0.33140317,
+      0.2563887
     ],
     "HslMedian": [
-      154.44444,
-      0.34351146,
-      0.26372552
+      85.55556,
+      0.34513274,
+      0.2647059
     ],
     "HslMax": [
-      163.63637,
+      91.57895,
       0.625,
       0.33137256
     ],
     "HslMin": [
-      148.42105,
-      0.12727273,
+      76.36363,
+      0.14049587,
       0.1254902
     ],
     "HslDeviation": [
-      1.6493044,
-      0.067757525,
-      0.039556615
+      1.6309232,
+      0.06649725,
+      0.039168406
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2916,49 +3028,51 @@
       "ImageIndex": 56,
       "ImageName": "St 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:11",
       "VisTime": "2024-08-14T04:40:11",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 37.120003,
-    "AverageTemperature": 19.16488,
-    "MedianTemperature": 19.13,
-    "TemperatureDev": 0.3393039,
+    "SizeInMm2": 35.84,
+    "AverageTemperature": 19.171785,
+    "MedianTemperature": 19.14,
+    "TemperatureDev": 0.3367239,
     "MaxTemperature": 19.9,
-    "MinTemperature": 18.43,
+    "MinTemperature": 18.46,
+    "PixelCount": 896,
     "HeightInMm": 9,
     "WidthInMm": 13.2,
-    "Extent": 0.31245792,
-    "ConvexHullAreaInMm2": 77.36001,
-    "Solidity": 0.47983453,
+    "Extent": 0.30168352,
+    "ConvexHullAreaInMm2": 76.16,
+    "Solidity": 0.47058824,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      136.46683,
-      0.27546677,
-      0.31346983
+      103.38277,
+      0.27728564,
+      0.31583947
     ],
     "HslMedian": [
-      137.3077,
-      0.28480834,
-      0.32941177
+      102.69231,
+      0.2857143,
+      0.33137256
     ],
     "HslMax": [
-      143.1579,
-      0.69491524,
+      116.666664,
+      0.58208954,
       0.4137255
     ],
     "HslMin": [
-      120,
-      0.107913665,
-      0.115686275
+      96.84211,
+      0.13661203,
+      0.13137256
     ],
     "HslDeviation": [
-      3.440779,
-      0.06719934,
-      0.05721811
+      3.2611039,
+      0.060744096,
+      0.054845292
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -2968,49 +3082,51 @@
       "ImageIndex": 57,
       "ImageName": "Ting 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:56",
       "VisTime": "2024-08-14T04:40:56",
       "IrTempInC": 22.64
     },
-    "SizeInMm2": 21.92,
-    "AverageTemperature": 18.962902,
+    "SizeInMm2": 21.28,
+    "AverageTemperature": 18.965977,
     "MedianTemperature": 18.96,
-    "TemperatureDev": 0.24511755,
+    "TemperatureDev": 0.24476925,
     "MaxTemperature": 19.63,
     "MinTemperature": 18.25,
-    "HeightInMm": 10.2,
+    "PixelCount": 532,
+    "HeightInMm": 10,
     "WidthInMm": 6,
-    "Extent": 0.35816994,
-    "ConvexHullAreaInMm2": 43.36,
-    "Solidity": 0.50553507,
+    "Extent": 0.35466668,
+    "ConvexHullAreaInMm2": 42.960003,
+    "Solidity": 0.49534452,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      145.52213,
-      0.30378288,
-      0.2764348
+      94.435036,
+      0.30343172,
+      0.2792201
     ],
     "HslMedian": [
-      145.7143,
+      94.28571,
       0.3121019,
-      0.29411766
+      0.29607844
     ],
     "HslMax": [
-      150.96774,
+      101.052635,
       0.5652174,
       0.34705883
     ],
     "HslMin": [
-      137.14287,
-      0.12658228,
-      0.12745099
+      89.03226,
+      0.13461539,
+      0.13529412
     ],
     "HslDeviation": [
-      1.8878123,
-      0.065946765,
-      0.05129114
+      1.8224847,
+      0.06410149,
+      0.048770703
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3020,49 +3136,51 @@
       "ImageIndex": 58,
       "ImageName": "Ting 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:31",
       "VisTime": "2024-08-14T04:40:31",
       "IrTempInC": 22.24
     },
-    "SizeInMm2": 17.6,
-    "AverageTemperature": 19.221636,
+    "SizeInMm2": 17.52,
+    "AverageTemperature": 19.240868,
     "MedianTemperature": 19.27,
-    "TemperatureDev": 0.16472168,
-    "MaxTemperature": 19.53,
-    "MinTemperature": 18.79,
-    "HeightInMm": 8,
-    "WidthInMm": 5.8,
-    "Extent": 0.37931034,
-    "ConvexHullAreaInMm2": 31.4,
-    "Solidity": 0.56050956,
-    "LeafCount": 5,
-    "LeafOutOfRange": false,
+    "TemperatureDev": 0.23301513,
+    "MaxTemperature": 21.22,
+    "MinTemperature": 18.8,
+    "PixelCount": 438,
+    "HeightInMm": 30.800001,
+    "WidthInMm": 34,
+    "Extent": 0.016730329,
+    "ConvexHullAreaInMm2": 537.64,
+    "Solidity": 0.03258686,
+    "LeafCount": 8,
+    "LeafOutOfRange": true,
     "HslAverage": [
-      141.20412,
-      0.24617727,
-      0.28734848
+      100.07153,
+      0.24325816,
+      0.28650284
     ],
     "HslMedian": [
-      141.6,
-      0.2388834,
+      98.46154,
+      0.23681772,
       0.30392158
     ],
     "HslMax": [
-      147.85713,
+      180,
       0.5116279,
-      0.38431373
+      0.38039216
     ],
     "HslMin": [
-      130.58823,
-      0.1122449,
-      0.13725491
+      92.14285,
+      0.13461539,
+      0.14313726
     ],
     "HslDeviation": [
-      2.516622,
-      0.07381197,
-      0.06403088
+      10.065067,
+      0.072120175,
+      0.062708095
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3072,49 +3190,51 @@
       "ImageIndex": 59,
       "ImageName": "Ting 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:39",
       "VisTime": "2024-08-14T04:41:39",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 41.08,
-    "AverageTemperature": 18.273155,
+    "SizeInMm2": 40.760002,
+    "AverageTemperature": 18.272778,
     "MedianTemperature": 18.21,
-    "TemperatureDev": 0.28217265,
+    "TemperatureDev": 0.28212297,
     "MaxTemperature": 19.07,
     "MinTemperature": 17.7,
+    "PixelCount": 1019,
     "HeightInMm": 11.6,
     "WidthInMm": 12.6,
-    "Extent": 0.28106186,
-    "ConvexHullAreaInMm2": 86.5,
-    "Solidity": 0.4749133,
+    "Extent": 0.27887246,
+    "ConvexHullAreaInMm2": 85.8,
+    "Solidity": 0.4750583,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      145.804,
-      0.32423177,
-      0.2868301
+      94.17479,
+      0.32514545,
+      0.28678635
     ],
     "HslMedian": [
-      145.88235,
+      94.117645,
       0.33333334,
-      0.29607844
+      0.29803923
     ],
     "HslMax": [
-      152.57143,
+      106.15385,
       0.5882353,
-      0.5803922
+      0.5470588
     ],
     "HslMin": [
-      133.84615,
-      0.11363637,
+      87.42857,
+      0.13513513,
       0.12941177
     ],
     "HslDeviation": [
-      1.889308,
-      0.06268507,
-      0.06490597
+      1.8707863,
+      0.06094859,
+      0.06359611
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3124,49 +3244,51 @@
       "ImageIndex": 60,
       "ImageName": "Ts 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:39",
       "VisTime": "2024-08-14T04:41:39",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 31.080002,
-    "AverageTemperature": 18.271622,
+    "SizeInMm2": 30.76,
+    "AverageTemperature": 18.27481,
     "MedianTemperature": 18.22,
-    "TemperatureDev": 0.35029563,
+    "TemperatureDev": 0.34990433,
     "MaxTemperature": 19.02,
     "MinTemperature": 17.55,
+    "PixelCount": 769,
     "HeightInMm": 10.400001,
     "WidthInMm": 10.6,
-    "Extent": 0.28193033,
-    "ConvexHullAreaInMm2": 71.08,
-    "Solidity": 0.4372538,
+    "Extent": 0.27902758,
+    "ConvexHullAreaInMm2": 71.32,
+    "Solidity": 0.43129557,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      148.60068,
-      0.31224492,
-      0.29045853
+      91.38757,
+      0.31297067,
+      0.2909406
     ],
     "HslMedian": [
-      148.52458,
+      91.42857,
       0.33333334,
       0.3137255
     ],
     "HslMax": [
-      160,
+      100,
       0.6507937,
       0.3764706
     ],
     "HslMin": [
-      140,
-      0.12195122,
+      79.99999,
+      0.13609467,
       0.12352941
     ],
     "HslDeviation": [
-      2.131597,
-      0.08281689,
-      0.06048716
+      2.119238,
+      0.08099472,
+      0.05991104
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3176,49 +3298,51 @@
       "ImageIndex": 61,
       "ImageName": "Ts 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:56",
       "VisTime": "2024-08-14T04:40:56",
       "IrTempInC": 22.64
     },
-    "SizeInMm2": 36.56,
-    "AverageTemperature": 19.35126,
-    "MedianTemperature": 19.35,
-    "TemperatureDev": 0.25951827,
-    "MaxTemperature": 20.01,
+    "SizeInMm2": 36.120003,
+    "AverageTemperature": 19.355526,
+    "MedianTemperature": 19.36,
+    "TemperatureDev": 0.25910214,
+    "MaxTemperature": 20.12,
     "MinTemperature": 18.47,
-    "HeightInMm": 13.8,
-    "WidthInMm": 8.400001,
-    "Extent": 0.31538993,
-    "ConvexHullAreaInMm2": 76.240005,
-    "Solidity": 0.4795383,
+    "PixelCount": 903,
+    "HeightInMm": 36.2,
+    "WidthInMm": 8.8,
+    "Extent": 0.11338523,
+    "ConvexHullAreaInMm2": 76.54,
+    "Solidity": 0.47191012,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.54884,
-      0.33853924,
-      0.3037435
+      92.399704,
+      0.3400358,
+      0.30469024
     ],
     "HslMedian": [
-      147.82608,
-      0.358835,
-      0.327451
+      92.17391,
+      0.35911602,
+      0.32941177
     ],
     "HslMax": [
-      156.52173,
+      100.71429,
       0.7586207,
       0.38431373
     ],
     "HslMin": [
-      137.14287,
-      0.12,
+      77.14285,
+      0.13461539,
       0.11372549
     ],
     "HslDeviation": [
-      2.037293,
-      0.08673273,
-      0.0638294
+      2.034362,
+      0.0849987,
+      0.06314355
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3228,49 +3352,51 @@
       "ImageIndex": 62,
       "ImageName": "Ts 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 28.280003,
-    "AverageTemperature": 19.930014,
+    "SizeInMm2": 28.080002,
+    "AverageTemperature": 19.931068,
     "MedianTemperature": 19.95,
-    "TemperatureDev": 0.20291476,
+    "TemperatureDev": 0.20305115,
     "MaxTemperature": 20.35,
     "MinTemperature": 19.34,
+    "PixelCount": 702,
     "HeightInMm": 8.400001,
     "WidthInMm": 8,
-    "Extent": 0.42083332,
+    "Extent": 0.41785714,
     "ConvexHullAreaInMm2": 44.980003,
-    "Solidity": 0.62872386,
+    "Solidity": 0.6242775,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      149.99617,
-      0.35584113,
-      0.26680258
+      90.01385,
+      0.35570264,
+      0.2673901
     ],
     "HslMedian": [
-      150,
-      0.35766423,
+      90,
+      0.3577312,
       0.27058825
     ],
     "HslMax": [
-      157.5,
-      0.78571427,
+      100,
+      0.78125,
       0.35882354
     ],
     "HslMin": [
-      140,
-      0.12883435,
-      0.10980392
+      84,
+      0.13821138,
+      0.115686275
     ],
     "HslDeviation": [
-      1.540257,
-      0.09045153,
-      0.054374047
+      1.5152037,
+      0.087626,
+      0.05373548
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3280,49 +3406,51 @@
       "ImageIndex": 63,
       "ImageName": "Uk 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:47",
       "VisTime": "2024-08-14T04:40:48",
       "IrTempInC": 22.54
     },
-    "SizeInMm2": 25.08,
-    "AverageTemperature": 19.206524,
+    "SizeInMm2": 24.72,
+    "AverageTemperature": 19.208656,
     "MedianTemperature": 19.2,
-    "TemperatureDev": 0.20103326,
+    "TemperatureDev": 0.20045328,
     "MaxTemperature": 19.62,
     "MinTemperature": 18.77,
+    "PixelCount": 618,
     "HeightInMm": 10.6,
     "WidthInMm": 9.8,
-    "Extent": 0.24143243,
-    "ConvexHullAreaInMm2": 70.26,
-    "Solidity": 0.35695985,
+    "Extent": 0.23796688,
+    "ConvexHullAreaInMm2": 70.8,
+    "Solidity": 0.34915254,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      148.2021,
-      0.28205812,
-      0.2634081
+      91.819046,
+      0.28288502,
+      0.26472494
     ],
     "HslMedian": [
-      148.23529,
-      0.2952381,
+      91.83673,
+      0.29671335,
       0.26862746
     ],
     "HslMax": [
-      157.14285,
+      99.23077,
       0.57575756,
       0.34117648
     ],
     "HslMin": [
-      138.75,
-      0.10869565,
+      83.33333,
+      0.13669065,
       0.12941177
     ],
     "HslDeviation": [
-      2.2821984,
-      0.06597497,
-      0.040100746
+      2.1818912,
+      0.06458764,
+      0.039129607
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3332,49 +3460,51 @@
       "ImageIndex": 64,
       "ImageName": "Uk 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:07",
       "VisTime": "2024-08-14T04:41:07",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 26.039999,
-    "AverageTemperature": 18.742088,
+    "SizeInMm2": 25.32,
+    "AverageTemperature": 18.746178,
     "MedianTemperature": 18.7,
-    "TemperatureDev": 0.31773284,
+    "TemperatureDev": 0.31627607,
     "MaxTemperature": 19.37,
     "MinTemperature": 18.21,
+    "PixelCount": 633,
     "HeightInMm": 13.6,
     "WidthInMm": 7,
-    "Extent": 0.2735294,
-    "ConvexHullAreaInMm2": 63.74,
-    "Solidity": 0.40853468,
+    "Extent": 0.2659664,
+    "ConvexHullAreaInMm2": 63.5,
+    "Solidity": 0.39874014,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      146.2226,
-      0.29758346,
-      0.29668385
+      93.73451,
+      0.2994763,
+      0.2985906
     ],
     "HslMedian": [
-      146.25,
-      0.30526316,
+      93.75,
+      0.30666667,
       0.32156864
     ],
     "HslMax": [
-      151.875,
+      103.333336,
       0.6451613,
       0.3882353
     ],
     "HslMin": [
-      136,
-      0.114503816,
+      88.125,
+      0.13475177,
       0.12156863
     ],
     "HslDeviation": [
-      2.2655308,
-      0.068802655,
-      0.062986955
+      2.199715,
+      0.065573215,
+      0.06218923
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3384,49 +3514,51 @@
       "ImageIndex": 65,
       "ImageName": "Uk 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:49",
       "VisTime": "2024-08-14T04:41:50",
       "IrTempInC": 23.82
     },
-    "SizeInMm2": 39,
-    "AverageTemperature": 18.469528,
+    "SizeInMm2": 38.120003,
+    "AverageTemperature": 18.472319,
     "MedianTemperature": 18.46,
-    "TemperatureDev": 0.24437544,
+    "TemperatureDev": 0.24597359,
     "MaxTemperature": 19.17,
     "MinTemperature": 17.95,
-    "HeightInMm": 16,
+    "PixelCount": 953,
+    "HeightInMm": 16.2,
     "WidthInMm": 9.400001,
-    "Extent": 0.25930852,
-    "ConvexHullAreaInMm2": 101.86001,
-    "Solidity": 0.38287845,
+    "Extent": 0.25032833,
+    "ConvexHullAreaInMm2": 100.520004,
+    "Solidity": 0.37922803,
     "LeafCount": 6,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.9815,
-      0.3082768,
-      0.30784917
+      92.0885,
+      0.30949998,
+      0.31018868
     ],
     "HslMedian": [
-      147.6923,
-      0.32222223,
-      0.3254902
+      92.38095,
+      0.32240438,
+      0.327451
     ],
     "HslMax": [
-      158.57143,
+      98.181816,
       0.6923077,
       0.53137255
     ],
     "HslMin": [
-      141.81819,
-      0.10869565,
+      83.07693,
+      0.13513513,
       0.12745099
     ],
     "HslDeviation": [
-      2.4080732,
-      0.06951705,
-      0.064262725
+      2.324041,
+      0.066870324,
+      0.06228136
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3436,49 +3568,51 @@
       "ImageIndex": 66,
       "ImageName": "Wa 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:39:53",
       "VisTime": "2024-08-14T04:39:53",
       "IrTempInC": 21.87
     },
-    "SizeInMm2": 30.480001,
-    "AverageTemperature": 20.233334,
+    "SizeInMm2": 30.160002,
+    "AverageTemperature": 20.237772,
     "MedianTemperature": 20.29,
-    "TemperatureDev": 0.27812916,
-    "MaxTemperature": 20.85,
-    "MinTemperature": 19.55,
-    "HeightInMm": 12,
-    "WidthInMm": 6.8,
-    "Extent": 0.3735294,
-    "ConvexHullAreaInMm2": 55.360004,
-    "Solidity": 0.55057806,
+    "TemperatureDev": 0.27805945,
+    "MaxTemperature": 21.1,
+    "MinTemperature": 19.56,
+    "PixelCount": 754,
+    "HeightInMm": 23.800001,
+    "WidthInMm": 16.6,
+    "Extent": 0.07633897,
+    "ConvexHullAreaInMm2": 56.579998,
+    "Solidity": 0.53305054,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      146.76526,
-      0.31484532,
-      0.26909578
+      93.32014,
+      0.316164,
+      0.2692178
     ],
     "HslMedian": [
-      146.80852,
-      0.3245033,
-      0.27549022
+      93.19148,
+      0.32484075,
+      0.2764706
     ],
     "HslMax": [
-      156,
+      156.92308,
       0.63076925,
       0.35490197
     ],
     "HslMin": [
-      139.5,
-      0.11940298,
-      0.12156863
+      84,
+      0.13907285,
+      0.12745099
     ],
     "HslDeviation": [
-      1.9547414,
-      0.06575874,
-      0.04307947
+      3.0324476,
+      0.062697366,
+      0.042819217
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3488,49 +3622,51 @@
       "ImageIndex": 67,
       "ImageName": "Wa 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:24",
       "VisTime": "2024-08-14T04:41:25",
       "IrTempInC": 23.39
     },
-    "SizeInMm2": 36.08,
-    "AverageTemperature": 17.833603,
+    "SizeInMm2": 35,
+    "AverageTemperature": 17.835966,
     "MedianTemperature": 17.82,
-    "TemperatureDev": 0.29600894,
+    "TemperatureDev": 0.29783309,
     "MaxTemperature": 18.45,
     "MinTemperature": 17.29,
+    "PixelCount": 875,
     "HeightInMm": 6.8,
-    "WidthInMm": 13.6,
-    "Extent": 0.39013842,
-    "ConvexHullAreaInMm2": 64.5,
-    "Solidity": 0.5593798,
+    "WidthInMm": 13.400001,
+    "Extent": 0.38410887,
+    "ConvexHullAreaInMm2": 63.72,
+    "Solidity": 0.5492781,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      151.33054,
-      0.3459847,
-      0.25639972
+      88.70735,
+      0.34769836,
+      0.2591059
     ],
     "HslMedian": [
-      151.2,
-      0.35172415,
+      88.8,
+      0.35238096,
       0.26862746
     ],
     "HslMax": [
-      161.53847,
+      93.84615,
       0.7586207,
       0.3254902
     ],
     "HslMin": [
-      146.15384,
-      0.12,
+      83.22581,
+      0.13846155,
       0.11372549
     ],
     "HslDeviation": [
-      1.5016261,
-      0.07815275,
-      0.043622
+      1.4385173,
+      0.074915186,
+      0.041109666
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3540,49 +3676,51 @@
       "ImageIndex": 68,
       "ImageName": "Wa 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:31",
       "VisTime": "2024-08-14T04:40:31",
       "IrTempInC": 22.24
     },
-    "SizeInMm2": 35.24,
-    "AverageTemperature": 18.88554,
-    "MedianTemperature": 18.95,
-    "TemperatureDev": 0.32071212,
-    "MaxTemperature": 19.6,
+    "SizeInMm2": 39,
+    "AverageTemperature": 19.040564,
+    "MedianTemperature": 18.98,
+    "TemperatureDev": 0.554247,
+    "MaxTemperature": 20.63,
     "MinTemperature": 18.27,
-    "HeightInMm": 11.6,
-    "WidthInMm": 7.8,
-    "Extent": 0.38947833,
-    "ConvexHullAreaInMm2": 59.38,
-    "Solidity": 0.5934658,
-    "LeafCount": 5,
+    "PixelCount": 975,
+    "HeightInMm": 18,
+    "WidthInMm": 32.600002,
+    "Extent": 0.06646217,
+    "ConvexHullAreaInMm2": 365.88,
+    "Solidity": 0.10659233,
+    "LeafCount": 28,
     "LeafOutOfRange": false,
     "HslAverage": [
-      141.44676,
-      0.31529167,
-      0.28137589
+      106.90837,
+      0.29824233,
+      0.27111715
     ],
     "HslMedian": [
-      141.6,
-      0.31578946,
-      0.28431374
+      98.82353,
+      0.30769232,
+      0.27450982
     ],
     "HslMax": [
-      147.85713,
+      184.61539,
       0.6825397,
-      0.5156863
+      0.46078432
     ],
     "HslMin": [
-      132,
-      0.116071425,
+      92.5,
+      0.13461539,
       0.12352941
     ],
     "HslDeviation": [
-      2.294525,
-      0.06877011,
-      0.06392671
+      24.793686,
+      0.08251107,
+      0.065668635
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3592,49 +3730,51 @@
       "ImageIndex": 69,
       "ImageName": "Ws 1",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:41:15",
       "VisTime": "2024-08-14T04:41:16",
       "IrTempInC": 23.04
     },
-    "SizeInMm2": 44.24,
-    "AverageTemperature": 18.571972,
-    "MedianTemperature": 18.6,
-    "TemperatureDev": 0.31811252,
+    "SizeInMm2": 43.52,
+    "AverageTemperature": 18.57762,
+    "MedianTemperature": 18.61,
+    "TemperatureDev": 0.31634974,
     "MaxTemperature": 19.38,
     "MinTemperature": 17.94,
+    "PixelCount": 1088,
     "HeightInMm": 11.6,
     "WidthInMm": 9,
-    "Extent": 0.42375478,
-    "ConvexHullAreaInMm2": 70.96001,
-    "Solidity": 0.6234498,
+    "Extent": 0.41685823,
+    "ConvexHullAreaInMm2": 70.38,
+    "Solidity": 0.6183575,
     "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      147.60376,
-      0.36558545,
-      0.281814
+      92.38474,
+      0.36548612,
+      0.28371
     ],
     "HslMedian": [
-      147.6923,
-      0.37422568,
-      0.3019608
+      92.30769,
+      0.375,
+      0.30392158
     ],
     "HslMax": [
-      152.30771,
-      0.7241379,
+      101.25,
+      0.71014494,
       0.3745098
     ],
     "HslMin": [
-      138.75,
+      87.69231,
       0.14285715,
-      0.11372549
+      0.12156863
     ],
     "HslDeviation": [
-      1.8533273,
-      0.083295695,
-      0.058454458
+      1.8444356,
+      0.081952356,
+      0.056818105
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3644,49 +3784,51 @@
       "ImageIndex": 70,
       "ImageName": "Ws 2",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:11",
       "VisTime": "2024-08-14T04:40:11",
       "IrTempInC": 22.29
     },
-    "SizeInMm2": 36.280003,
-    "AverageTemperature": 19.352348,
+    "SizeInMm2": 35.680004,
+    "AverageTemperature": 19.353935,
     "MedianTemperature": 19.37,
-    "TemperatureDev": 0.3005304,
+    "TemperatureDev": 0.30053106,
     "MaxTemperature": 20,
     "MinTemperature": 18.73,
+    "PixelCount": 892,
     "HeightInMm": 8.8,
     "WidthInMm": 8.8,
-    "Extent": 0.46849173,
-    "ConvexHullAreaInMm2": 56.960003,
-    "Solidity": 0.6369382,
-    "LeafCount": 7,
+    "Extent": 0.4607438,
+    "ConvexHullAreaInMm2": 56.820004,
+    "Solidity": 0.6279479,
+    "LeafCount": 5,
     "LeafOutOfRange": false,
     "HslAverage": [
-      136.23087,
-      0.2933285,
-      0.29097217
+      103.66888,
+      0.29481733,
+      0.291515
     ],
     "HslMedian": [
-      136.8,
-      0.2923077,
-      0.3
+      103.1579,
+      0.29376543,
+      0.3019608
     ],
     "HslMax": [
-      142.17392,
+      120,
       0.704918,
       0.38627452
     ],
     "HslMin": [
-      120,
-      0.10909091,
-      0.115686275
+      97.82609,
+      0.13548388,
+      0.11960784
     ],
     "HslDeviation": [
-      3.0260584,
-      0.070397764,
-      0.053319745
+      2.882736,
+      0.06729019,
+      0.052416235
     ],
     "NoImage": false,
     "DeviceTemperatures": null
@@ -3696,49 +3838,51 @@
       "ImageIndex": 71,
       "ImageName": "Ws 3",
       "ImageComment": "",
+      "MotorPosition": 0,
       "HasIr": false,
       "HasVis": false,
       "IrTime": "2024-08-14T04:40:47",
       "VisTime": "2024-08-14T04:40:48",
       "IrTempInC": 22.54
     },
-    "SizeInMm2": 29.2,
-    "AverageTemperature": 19.154686,
+    "SizeInMm2": 28.6,
+    "AverageTemperature": 19.155552,
     "MedianTemperature": 19.12,
-    "TemperatureDev": 0.21313442,
+    "TemperatureDev": 0.21237604,
     "MaxTemperature": 19.7,
     "MinTemperature": 18.79,
+    "PixelCount": 715,
     "HeightInMm": 9.400001,
     "WidthInMm": 7.2000003,
-    "Extent": 0.43144208,
-    "ConvexHullAreaInMm2": 45.8,
-    "Solidity": 0.6375546,
+    "Extent": 0.42257684,
+    "ConvexHullAreaInMm2": 45.54,
+    "Solidity": 0.62801933,
     "LeafCount": 4,
     "LeafOutOfRange": false,
     "HslAverage": [
-      146.47006,
-      0.31510073,
-      0.27504432
+      93.514046,
+      0.31532967,
+      0.27682436
     ],
     "HslMedian": [
-      146.66667,
-      0.31898147,
-      0.28627452
+      93.333336,
+      0.31944445,
+      0.2882353
     ],
     "HslMax": [
-      152.30771,
-      0.61290324,
+      99,
+      0.5833333,
       0.35490197
     ],
     "HslMin": [
-      141,
-      0.11811024,
-      0.12156863
+      88.42105,
+      0.13939394,
+      0.1392157
     ],
     "HslDeviation": [
-      1.5315125,
-      0.065105826,
-      0.049897213
+      1.4825763,
+      0.06078848,
+      0.04835545
     ],
     "NoImage": false,
     "DeviceTemperatures": null
