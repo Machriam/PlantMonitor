@@ -187,6 +187,7 @@
     }
     function updateMarkers() {
         const times = Array.from($_virtualImageFilterByTime);
+        if (_chartData.length == 0 || _chart == undefined) return;
         _chart.setOption({
             series: _chartData.map((s, i) => {
                 s.markPoint.data =

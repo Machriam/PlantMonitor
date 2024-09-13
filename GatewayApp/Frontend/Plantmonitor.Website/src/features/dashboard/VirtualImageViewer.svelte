@@ -24,8 +24,8 @@
                     return;
                 }
                 _filteredVirtualImages = Array.from(value)
-                    .map((v) => new Date(v))
-                    .toSorted((a, b) => a.orderByDescending(b));
+                    .toSorted((a, b) => b - a)
+                    .map((x) => new Date(x));
             })
         );
         _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
