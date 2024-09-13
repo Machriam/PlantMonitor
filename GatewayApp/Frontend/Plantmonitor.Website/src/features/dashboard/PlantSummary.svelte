@@ -114,7 +114,7 @@
         let currentlyHoveredTimes: Date[] = [];
         _chart.getZr().on("click", (params) => {
             _virtualImageFilterByTime.update((x) => {
-                currentlyHoveredTimes.map((t) => x.add(Math.round(t.getTime() / 1000)));
+                currentlyHoveredTimes.map((t) => x.add(Math.round(t.getTime())));
                 return x;
             });
         });

@@ -10,17 +10,16 @@
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/Download";
     import {_virtualImageFilterByTime} from "./DashboardContext";
-    import { getNearestElements } from "./GetNearestElements";
     import type {Unsubscriber} from "svelte/motion";
     let _photoTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _virtualImages: VirtualImageInfo[] = [];
     let _selectedImage: VirtualImageInfo | undefined;
     let _virtualImage: string | undefined;
-    let _currentImageIndex = 0;
+    let _currentDateIndex = 0;
     let _scrollSkip = 1;
     let _currentDownloadStatus = "";
-    let _filteredVirtualImages: VirtualImageInfo[] = [];
+    let _filteredVirtualImages: Date[] = [];
     let _unsubscriber: Unsubscriber[] = [];
     let _downloadInfo: DownloadInfo[] = [];
 
@@ -31,14 +30,10 @@
         _unsubscriber.push(
             _virtualImageFilterByTime.subscribe((value) => {
                 if (value.size == 0) {
-                    _filteredVirtualImages = _virtualImages;
+                    _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
                     return;
                 }
-                _filteredVirtualImages = getNearestElements(
-                    Array.from(value).map((v) => new Date(v)),
-                    _virtualImages,
-                    (vi) => vi.creationDate
-                );
+                _filteredVirtualImages = Array.from(value).map((v) => new Date(v));
             })
         );
         _selectedTour = _photoTours.length > 0 ? _photoTours[0] : undefined;
@@ -51,17 +46,22 @@
     async function updateVirtualImage(tourId: number) {
         const dashboardClient = new DashboardClient();
         _virtualImage = undefined;
-        if (_virtualImages.length > _currentImageIndex && _currentImageIndex >= 0) {
-            _selectedImage = _virtualImages[_currentImageIndex];
+        if (_filteredVirtualImages.length > _currentDateIndex && _currentDateIndex >= 0) {
+            _selectedImage = _virtualImages
+                .map((vi) => ({
+                    diff: Math.abs(vi.creationDate.getTime() - _filteredVirtualImages[_currentDateIndex].getTime()),
+                    image: vi
+                }))
+                .reduce((prev, curr) => (prev.diff < curr.diff ? prev : curr)).image;
             _virtualImage = await dashboardClient.virtualImage(_selectedImage.name, tourId);
         }
     }
     async function nextImage(event: WheelEvent) {
         if (_selectedTour == undefined) return;
-        _currentImageIndex =
+        _currentDateIndex =
             event.deltaY < 0
-                ? Math.max(0, _currentImageIndex - _scrollSkip)
-                : Math.min(_virtualImages.length - 1, _currentImageIndex + _scrollSkip);
+                ? Math.max(0, _currentDateIndex - _scrollSkip)
+                : Math.min(_filteredVirtualImages.length - 1, _currentDateIndex + _scrollSkip);
         await updateVirtualImage(_selectedTour.id);
     }
     async function selectedTourChanged(newTour: PhotoTourInfo) {
@@ -70,7 +70,8 @@
         _virtualImages = (await dashboardClient.virtualImageList(_selectedTour.id)).toSorted((a, b) =>
             a.creationDate.orderByDescending(b.creationDate)
         );
-        _currentImageIndex = 0;
+        _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
+        _currentDateIndex = 0;
         await updateVirtualImage(_selectedTour.id);
         updateDownloadStatus();
     }
@@ -123,11 +124,9 @@
     </div>
     <div on:wheel={nextImage} class="p-0" style="height: 70vh; width:80vw">
         <div style="align-items:center" class="col-md-12 row mt-2">
-            {#if _virtualImages.length > 0}
-                <div class="col-md-3">{_virtualImages[_currentImageIndex].creationDate.toLocaleString()}</div>
-            {/if}
+            <div class="col-md-3">{_selectedImage?.creationDate.toLocaleString()}</div>
             <div class="col-md-3">
-                Index: {Math.min(_currentImageIndex + 1, _virtualImages.length)} of {_virtualImages.length}
+                Index: {Math.min(_currentDateIndex + 1, _filteredVirtualImages.length)} of {_filteredVirtualImages.length}
             </div>
             <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show every nth image"></NumberInput>
             <div class="col-md-1"></div>
