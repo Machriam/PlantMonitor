@@ -64,10 +64,11 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
     public void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IEnvironmentConfiguration configuration)
     {
         logger.LogInformation("Running virtual image creation");
+        var tripsToSkipArray = s_tripsToSkip.ToArray();
         var currentTrip = dataContext.PhotoTourTrips
             .Include(ttp => ttp.PhotoTourFkNavigation)
+            .Where(apt => apt.VirtualPicturePath == null && !tripsToSkipArray.Contains(apt.Id))
             .OrderByDescending(apt => apt.PhotoTourFk)
-            .Where(apt => apt.VirtualPicturePath == null && !s_tripsToSkip.Contains(apt.Id))
             .FirstOrDefault();
         if (currentTrip == null)
         {
@@ -85,8 +86,8 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             .ToList();
         if (extractionTemplates.Count == 0)
         {
-            logger.LogWarning("No extraction templates defined for tour {tour}. Exiting", currentTrip.PhotoTourFkNavigation.Name);
-            s_tripsToSkip.Add(currentTrip.Id);
+            logger.LogWarning("No extraction templates defined for tour {tour}. Exiting trip {trip}", currentTrip.PhotoTourFkNavigation.Name, currentTrip.Id);
+            foreach (var trip in dataContext.PhotoTourTrips.Where(ptt => ptt.PhotoTourFk == currentTrip.PhotoTourFk)) s_tripsToSkip.Add(trip.Id);
             return;
         }
         var plantsOfTour = dataContext.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == currentTrip.PhotoTourFk).ToList();
