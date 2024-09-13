@@ -38,7 +38,6 @@
     {/each}
     <div class="col-md-3"></div>
     <div class="col-md-2">Filtered Indices: {_filteredIndices}</div>
-    <button disabled={_selectedTab == SelectedDashboardTab.virtualPhotoViewer} class="col-md-1 btn btn-dark">Add Range</button>
     <button on:click={clearFilter} class="col-md-1 btn btn-danger">Clear</button>
 </div>
 <hr class="col-md-12" />

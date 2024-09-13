@@ -23,7 +23,23 @@
     let _selectedPlants: string[] = [];
     let _selectedDescriptors: DescriptorInfo[] = [];
     let _chart: echarts.ECharts;
-    let _chartData: {name: string; yAxisIndex: number; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
+    let _chartData: {
+        name: string;
+        yAxisIndex: number;
+        type: string;
+        showSymbol: boolean;
+        markPoint: {
+            data: {
+                coord: (number | Date)[];
+                y: string;
+                symbol: string;
+                symbolSize: number;
+                symbolRotate: number;
+                itemStyle: {color: string};
+            }[];
+        };
+        data: (number | Date)[][];
+    }[] = [];
     let _descriptorBySeries: Map<string, DescriptorInfo> = new Map();
     let _unsubscriber: Unsubscriber[] = [];
     const _graphId = Math.random().toString(36).substring(7);
@@ -74,6 +90,7 @@
 
     onMount(async () => {
         _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
+        _unsubscriber.push(_virtualImageFilterByTime.subscribe(() => updateMarkers()));
     });
     onDestroy(() => {
         _unsubscriber.forEach((u) => u());
@@ -107,6 +124,7 @@
                     name: descriptor.name + " " + plant,
                     type: "line",
                     yAxisIndex: j,
+                    markPoint: {data: []},
                     showSymbol: false,
                     data: data
                 });
@@ -116,7 +134,8 @@
         let currentlyHoveredTimes: Date[] = [];
         _chart.getZr().on("click", (params) => {
             _virtualImageFilterByTime.update((x) => {
-                currentlyHoveredTimes.map((t) => x.add(Math.round(t.getTime())));
+                currentlyHoveredTimes.map((t) => x.add(t.getTime()));
+                updateMarkers();
                 return x;
             });
         });
@@ -164,6 +183,27 @@
             type: "takeGlobalCursor",
             key: "dataZoomSelect",
             dataZoomSelectActive: true
+        });
+    }
+    function updateMarkers() {
+        const times = Array.from($_virtualImageFilterByTime);
+        _chart.setOption({
+            series: _chartData.map((s, i) => {
+                s.markPoint.data =
+                    i != 0
+                        ? []
+                        : s.data
+                              .filter((d) => times.find((t) => t == (d[0] as Date).getTime()) != undefined)
+                              .map((d) => ({
+                                  coord: d,
+                                  y: "10%",
+                                  symbol: "arrow",
+                                  symbolSize: 10,
+                                  symbolRotate: 180,
+                                  itemStyle: {color: "black"}
+                              }));
+                return s;
+            })
         });
     }
     async function selectedTourChanged(newTour: PhotoTourInfo | null) {
