@@ -1,6 +1,6 @@
 <script lang="ts">
     import * as echarts from "echarts";
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {
         AutomaticPhotoTourClient,
         DashboardClient,
@@ -9,7 +9,8 @@
         VirtualImageSummary
     } from "~/services/GatewayAppApi";
     import {Download} from "~/types/Download";
-    import {_virtualImageFilterByTime} from "./DashboardContext";
+    import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import type {Unsubscriber} from "svelte/store";
     class DescriptorInfo {
         name: string;
         unit: string;
@@ -17,14 +18,14 @@
         tooltipFormatter: (value: number) => string;
         getDescriptor: (descriptor: PlantImageDescriptors) => number;
     }
-    let _photoTours: PhotoTourInfo[] = [];
-    let _selectedTour: PhotoTourInfo | undefined;
+    let _selectedTour: PhotoTourInfo | null = null;
     let _virtualImageSummaries: VirtualImageSummary[] = [];
     let _selectedPlants: string[] = [];
     let _selectedDescriptors: DescriptorInfo[] = [];
     let _chart: echarts.ECharts;
     let _chartData: {name: string; yAxisIndex: number; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
     let _descriptorBySeries: Map<string, DescriptorInfo> = new Map();
+    let _unsubscriber: Unsubscriber[] = [];
     const _graphId = Math.random().toString(36).substring(7);
     let _descriptorsFor: DescriptorInfo[] = [
         {
@@ -72,9 +73,10 @@
     ];
 
     onMount(async () => {
-        const automaticPhototourClient = new AutomaticPhotoTourClient();
-        _photoTours = await automaticPhototourClient.getPhotoTours();
-        _photoTours = _photoTours.toSorted((a, b) => (a.lastEvent > b.lastEvent ? -1 : 1));
+        _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
+    });
+    onDestroy(() => {
+        _unsubscriber.forEach((u) => u());
     });
 
     function updateChart() {
@@ -164,13 +166,14 @@
             dataZoomSelectActive: true
         });
     }
-    async function selectedTourChanged(newTour: PhotoTourInfo) {
+    async function selectedTourChanged(newTour: PhotoTourInfo | null) {
         _selectedTour = newTour;
+        if (newTour == null) return;
         const dashboardClient = new DashboardClient();
         _virtualImageSummaries = await dashboardClient.summaryForTour(newTour.id);
     }
     async function downloadSummaryData() {
-        if (_selectedTour == undefined) return;
+        if (_selectedTour == null) return;
         const dashboardClient = new DashboardClient();
         const url = await dashboardClient.createPhotoSummaryExport(_selectedTour.id);
         Download.downloadFromUrl(dashboardClient.getBaseUrl("", "") + url);
@@ -195,21 +198,16 @@
 </script>
 
 <div class="col-md-12 row mt-2">
-    <div style="width: 60vw;overflow-x:auto " class="d-flex flex-row rowm-3 mb-2">
-        {#each _photoTours as tour}
-            <button
-                on:click={async () => await selectedTourChanged(tour)}
-                class="btn btn-dark {tour.name == _selectedTour?.name ? 'opacity-100' : 'opacity-50'}">{tour.name}</button>
-        {/each}
-    </div>
-    <div style="align-items: center;" class="col-md-3 row mb-2">
-        <div class="col-md-6">Summary Count: {_virtualImageSummaries.length}</div>
-        <button disabled={_selectedTour == undefined} on:click={downloadSummaryData} class="btn btn-primary col-md-6"
+    <slot />
+    <div style="align-items: center;" class="col-md-7 row mb-2">
+        <div class="col-md-7"></div>
+        <button disabled={_selectedTour == null} on:click={downloadSummaryData} class="btn btn-primary col-md-2"
             >Download Data</button>
+        <div class="col-md-3">Summary Count: {_virtualImageSummaries.length}</div>
     </div>
     {#if _virtualImageSummaries.length > 0}
         <div class="col-md-10 d-flex flex-column">
-            <div style="height: 80vh; width:100%" id={_graphId}></div>
+            <div style="height: 80vh;" id={_graphId}></div>
         </div>
         <div class="col-md-1 d-flex flex-column border-start" style="height: 70vh;overflow-y:auto">
             {#each _descriptorsFor as descriptor}

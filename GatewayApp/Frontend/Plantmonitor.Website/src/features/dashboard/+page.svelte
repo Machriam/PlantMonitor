@@ -3,15 +3,20 @@
     import {SelectedDashboardTab, DasboardTabDescriptions} from "./SelectedDashboardTab";
     import VirtualImageViewer from "./VirtualImageViewer.svelte";
     import PlantSummary from "./PlantSummary.svelte";
-    import {_virtualImageFilterByTime} from "./DashboardContext";
+    import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import {onMount} from "svelte";
+    import {AutomaticPhotoTourClient, PhotoTourInfo} from "~/services/GatewayAppApi";
     let _filteredIndices = 0;
     let _selectedTab: SelectedDashboardTab = SelectedDashboardTab.plantSummary;
-    onMount(() => {
+    let _photoTours: PhotoTourInfo[] = [];
+    onMount(async () => {
         $_virtualImageFilterByTime = new Set();
         _virtualImageFilterByTime.subscribe((value) => {
             _filteredIndices = value.size;
         });
+        const automaticPhototourClient = new AutomaticPhotoTourClient();
+        _photoTours = await automaticPhototourClient.getPhotoTours();
+        _photoTours = _photoTours.toSorted((a, b) => a.lastEvent.orderByDescending(b.lastEvent));
     });
     function clearFilter() {
         _virtualImageFilterByTime.update((x) => {
@@ -38,8 +43,26 @@
 </div>
 <hr class="col-md-12" />
 <div style="display: {_selectedTab == SelectedDashboardTab.virtualPhotoViewer ? 'unset' : 'none'}">
-    <VirtualImageViewer></VirtualImageViewer>
+    <VirtualImageViewer>
+        <div style="overflow-x:auto " class="d-flex flex-row rowm-3 col-md-5">
+            {#each _photoTours as tour}
+                <button
+                    on:click={async () => _selectedTourChanged.update(() => tour)}
+                    class="btn btn-dark {tour == $_selectedTourChanged ? 'opacity-100' : 'opacity-50'}"
+                    >{tour.name}</button>
+            {/each}
+        </div>
+    </VirtualImageViewer>
 </div>
 <div style="display: {_selectedTab == SelectedDashboardTab.plantSummary ? 'unset' : 'none'}">
-    <PlantSummary></PlantSummary>
+    <PlantSummary>
+        <div style="overflow-x:auto " class="d-flex flex-row rowm-3 col-md-5">
+            {#each _photoTours as tour}
+                <button
+                    on:click={async () => _selectedTourChanged.update(() => tour)}
+                    class="btn btn-dark {tour == $_selectedTourChanged ? 'opacity-100' : 'opacity-50'}"
+                    >{tour.name}</button>
+            {/each}
+        </div>
+    </PlantSummary>
 </div>
