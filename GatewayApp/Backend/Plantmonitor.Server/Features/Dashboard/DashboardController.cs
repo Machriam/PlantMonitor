@@ -16,16 +16,16 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     private const double InverseGigabyte = 1d / (1024d * 1024d * 1024d);
     private static readonly ConcurrentDictionary<string, DownloadInfo> s_fileReadyToDownload = new();
     public record struct DownloadInfo(long PhotoTourId, string Path, double CurrentSize, double SizeToDownloadInGb, bool ReadyToDownload);
-
     public record struct TemperatureSummaryData(string Device, IEnumerable<TemperatureDatum> Data);
+    public record struct VirtualImageInfo(string Name, DateTime CreationDate);
     public record struct TemperatureDatum(DateTime Time, float Temperature, float Deviation);
 
     [HttpGet("virtualimagelist")]
-    public IEnumerable<string> VirtualImageList(long photoTourId)
+    public IEnumerable<VirtualImageInfo> VirtualImageList(long photoTourId)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         return Directory.EnumerateFiles(configuration.VirtualImagePath(photoTour.Name, photoTour.Id))
-            .Select(f => Path.GetFileName(f));
+            .Select(f => new VirtualImageInfo(Path.GetFileName(f), PhotoTourTrip.DateFromVirtualImage(f)));
     }
 
     [HttpGet("fullsummaryinformation")]

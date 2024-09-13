@@ -27,8 +27,20 @@ interface Uint8Array {
     toInt32(): number;
     toInt64(): bigint;
 }
+interface Date {
+    orderByDescending(b: Date): number;
+    orderBy(b: Date): number;
+}
 interface Promise<T> {
     try(): Promise<{ result: T, error: unknown, hasError: boolean }>;
+}
+
+
+Date.prototype.orderByDescending = function (a: Date, b: Date): number {
+    return a > b ? 1 : -1;
+}
+Date.prototype.orderBy = function (a: Date, b: Date): number {
+    return a > b ? -1 : 1;
 }
 
 Uint8Array.prototype.toInt32 = function (this: Uint8Array): number {

@@ -33,13 +33,13 @@
     {/each}
     <div class="col-md-3"></div>
     <div class="col-md-2">Filtered Indices: {_filteredIndices}</div>
-    <button class="col-md-1 btn btn-dark">Add Range</button>
+    <button disabled={_selectedTab == SelectedDashboardTab.virtualPhotoViewer} class="col-md-1 btn btn-dark">Add Range</button>
     <button on:click={clearFilter} class="col-md-1 btn btn-danger">Clear</button>
 </div>
 <hr class="col-md-12" />
-{#if _selectedTab == SelectedDashboardTab.virtualPhotoViewer}
+<div style="display: {_selectedTab == SelectedDashboardTab.virtualPhotoViewer ? 'unset' : 'none'}">
     <VirtualImageViewer></VirtualImageViewer>
-{/if}
-{#if _selectedTab == SelectedDashboardTab.plantSummary}
+</div>
+<div style="display: {_selectedTab == SelectedDashboardTab.plantSummary ? 'unset' : 'none'}">
     <PlantSummary></PlantSummary>
-{/if}
+</div>

@@ -1882,7 +1882,7 @@ export class DeviceConfigurationClient extends GatewayAppApiBase implements IDev
 
 export interface IDashboardClient {
 
-    virtualImageList(photoTourId?: number | undefined): Promise<string[]>;
+    virtualImageList(photoTourId?: number | undefined): Promise<VirtualImageInfo[]>;
 
     summaryForTour(photoTourId?: number | undefined): Promise<VirtualImageSummary[]>;
 
@@ -1910,7 +1910,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         this.baseUrl = this.getBaseUrl("", baseUrl);
     }
 
-    virtualImageList(photoTourId?: number | undefined): Promise<string[]> {
+    virtualImageList(photoTourId?: number | undefined): Promise<VirtualImageInfo[]> {
         let url_ = this.baseUrl + "/api/Dashboard/virtualimagelist?";
         if (photoTourId === null)
             throw new Error("The parameter 'photoTourId' cannot be null.");
@@ -1932,7 +1932,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         });
     }
 
-    protected processVirtualImageList(response: Response): Promise<string[]> {
+    protected processVirtualImageList(response: Response): Promise<VirtualImageInfo[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -1942,7 +1942,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
                 for (let item of resultData200)
-                    result200!.push(item);
+                    result200!.push(VirtualImageInfo.fromJS(item));
             }
             else {
                 result200 = <any>null;
@@ -1954,7 +1954,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<string[]>(null as any);
+        return Promise.resolve<VirtualImageInfo[]>(null as any);
     }
 
     summaryForTour(photoTourId?: number | undefined): Promise<VirtualImageSummary[]> {
@@ -4735,6 +4735,53 @@ export interface IDeviceHealthState {
     health: DeviceHealth;
     retryTimes: number;
     ip: string;
+}
+
+export class VirtualImageInfo implements IVirtualImageInfo {
+    name!: string;
+    creationDate!: Date;
+
+    constructor(data?: IVirtualImageInfo) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["Name"];
+            this.creationDate = _data["CreationDate"] ? new Date(_data["CreationDate"].toString()) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): VirtualImageInfo {
+        data = typeof data === 'object' ? data : {};
+        let result = new VirtualImageInfo();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["Name"] = this.name;
+        data["CreationDate"] = this.creationDate ? this.creationDate.toISOString() : <any>undefined;
+        return data;
+    }
+
+    clone(): VirtualImageInfo {
+        const json = this.toJSON();
+        let result = new VirtualImageInfo();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IVirtualImageInfo {
+    name: string;
+    creationDate: Date;
 }
 
 export class VirtualImageSummary implements IVirtualImageSummary {
