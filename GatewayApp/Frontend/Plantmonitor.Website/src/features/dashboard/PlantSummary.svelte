@@ -154,6 +154,7 @@
                 });
             }
         }
+        _chart.clear();
         if (_chartData.length == 0) return;
 
         _chart.setOption({
