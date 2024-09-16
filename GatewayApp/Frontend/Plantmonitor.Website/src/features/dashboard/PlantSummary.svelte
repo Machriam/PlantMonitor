@@ -44,6 +44,8 @@
     }[] = [];
     let _descriptorBySeries: Map<string, DescriptorInfo> = new Map();
     let _unsubscriber: Unsubscriber[] = [];
+    let _minAbsoluteTime: number = 0;
+    let _maxAbsoluteTime: number = 0;
     const _graphId = Math.random().toString(36).substring(7);
     let _descriptorsFor: DescriptorInfo[] = [
         {
@@ -107,15 +109,27 @@
             });
         });
         chart.on("datazoom", (e) => {
-            if (Object.getOwnPropertyNames(e).find((x) => x == "start") != undefined) {
-                const zoom = e as {start: number; end: number};
+            const zoom = e as {
+                batch: {
+                    startValue: number | undefined;
+                    endValue: number | undefined;
+                    start: number | undefined;
+                    end: number | undefined;
+                }[];
+                start: number | undefined;
+                end: number | undefined;
+            };
+            if (zoom.start != undefined && zoom.end != undefined) {
                 _lastDataZoom.start = zoom.start;
                 _lastDataZoom.end = zoom.end;
                 return;
             }
-            const zoom = e as {batch: {start: number; end: number}[]};
-            _lastDataZoom.start = zoom.batch[0].start;
-            _lastDataZoom.end = zoom.batch[0].end;
+            if (zoom.batch.length == 0) return;
+            _lastDataZoom.start = zoom.batch[0].start ?? 0;
+            _lastDataZoom.end = zoom.batch[0].end ?? 100;
+            if (zoom.batch[0].startValue == undefined || zoom.batch[0].endValue == undefined) return;
+            _lastDataZoom.start = ((zoom.batch[0].startValue - _minAbsoluteTime) / (_maxAbsoluteTime - _minAbsoluteTime)) * 100;
+            _lastDataZoom.end = ((zoom.batch[0].endValue - _minAbsoluteTime) / (_maxAbsoluteTime - _minAbsoluteTime)) * 100;
         });
         return chart;
     }
@@ -156,7 +170,9 @@
         }
         _chart.clear();
         if (_chartData.length == 0) return;
-
+        const times = _chartData.flatMap((cd) => cd.data.map((d) => (d[0] as Date).getTime()));
+        _minAbsoluteTime = Math.min(...times);
+        _maxAbsoluteTime = Math.max(...times);
         _chart.setOption({
             series: _chartData,
             legend: {left: "left"},
