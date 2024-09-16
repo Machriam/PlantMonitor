@@ -22,7 +22,9 @@
     let _virtualImageSummaries: VirtualImageSummary[] = [];
     let _selectedPlants: string[] = [];
     let _selectedDescriptors: DescriptorInfo[] = [];
-    let _chart: echarts.ECharts;
+    let _chart: echarts.ECharts | undefined;
+    let _lastDataZoom: {start: number; end: number} = {start: 0, end: 100};
+    let _currentlyHoveredTimes: Date[] = [];
     let _chartData: {
         name: string;
         yAxisIndex: number;
@@ -95,10 +97,32 @@
     onDestroy(() => {
         _unsubscriber.forEach((u) => u());
     });
+    function initChart() {
+        const chart = echarts.init(document.getElementById(_graphId));
+        chart.getZr().on("click", () => {
+            _virtualImageFilterByTime.update((x) => {
+                _currentlyHoveredTimes.map((t) => x.add(t.getTime()));
+                updateMarkers();
+                return x;
+            });
+        });
+        chart.on("datazoom", (e) => {
+            if (Object.getOwnPropertyNames(e).find((x) => x == "start") != undefined) {
+                const zoom = e as {start: number; end: number};
+                _lastDataZoom.start = zoom.start;
+                _lastDataZoom.end = zoom.end;
+                return;
+            }
+            const zoom = e as {batch: {start: number; end: number}[]};
+            _lastDataZoom.start = zoom.batch[0].start;
+            _lastDataZoom.end = zoom.batch[0].end;
+        });
+        return chart;
+    }
 
     function updateChart() {
         if (_virtualImageSummaries.length == 0) return;
-        _chart ??= echarts.init(document.getElementById(_graphId));
+        _chart ??= initChart();
         const filteredSummaries = _virtualImageSummaries.filter((x) =>
             _selectedPlants.reduce(
                 (a, p) => a && x.imageDescriptors.plantDescriptors.find((pd) => pd.plant.imageName == p) != undefined,
@@ -130,15 +154,8 @@
                 });
             }
         }
-        _chart.clear();
-        let currentlyHoveredTimes: Date[] = [];
-        _chart.getZr().on("click", (params) => {
-            _virtualImageFilterByTime.update((x) => {
-                currentlyHoveredTimes.map((t) => x.add(t.getTime()));
-                updateMarkers();
-                return x;
-            });
-        });
+        if (_chartData.length == 0) return;
+
         _chart.setOption({
             series: _chartData,
             legend: {left: "left"},
@@ -147,7 +164,7 @@
                 trigger: "axis",
                 axisPointer: {animation: false},
                 formatter: function (params: {seriesName: string; value: [Date, number]}[], x: any) {
-                    currentlyHoveredTimes = params.map((p) => p.value[0]);
+                    _currentlyHoveredTimes = params.map((p) => p.value[0]);
                     return (
                         params
                             .map((p, i) => ({
@@ -173,7 +190,7 @@
                 }
             },
             dataZoom: [
-                {show: true, realtime: true, xAxisIndex: [0, 1]},
+                {show: true, realtime: true, xAxisIndex: [0, 1], start: _lastDataZoom.start, end: _lastDataZoom.end},
                 {type: "inside", realtime: true, xAxisIndex: [0, 1]}
             ],
             xAxis: {type: "time"},
@@ -184,6 +201,7 @@
             key: "dataZoomSelect",
             dataZoomSelectActive: true
         });
+        updateMarkers();
     }
     function updateMarkers() {
         const times = Array.from($_virtualImageFilterByTime);
@@ -212,6 +230,11 @@
         if (newTour == null) return;
         const dashboardClient = new DashboardClient();
         _virtualImageSummaries = await dashboardClient.summaryForTour(newTour.id);
+        _chart?.dispose();
+        _chart = undefined;
+        _selectedPlants = [];
+        _selectedDescriptors = [];
+        $_virtualImageFilterByTime = new Set();
     }
     async function downloadSummaryData() {
         if (_selectedTour == null) return;
