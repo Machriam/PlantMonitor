@@ -43,24 +43,24 @@
 <hr class="col-md-12" />
 <div style="display: {_selectedTab == SelectedDashboardTab.virtualPhotoViewer ? 'unset' : 'none'}">
     <VirtualImageViewer>
-        <div style="overflow-x:auto " class="d-flex flex-row rowm-3 col-md-5">
+        <div style="overflow-x:auto;white-space:nowrap" class="d-flex flex-row rowm-3 col-md-5">
             {#each _photoTours as tour}
                 <button
                     on:click={async () => _selectedTourChanged.update(() => tour)}
-                    class="btn btn-dark {tour == $_selectedTourChanged ? 'opacity-100' : 'opacity-50'}"
-                    >{tour.name}</button>
+                    style="height:40px"
+                    class="btn btn-dark {tour == $_selectedTourChanged ? 'opacity-100' : 'opacity-50'}">{tour.name}</button>
             {/each}
         </div>
     </VirtualImageViewer>
 </div>
 <div style="display: {_selectedTab == SelectedDashboardTab.plantSummary ? 'unset' : 'none'}">
     <PlantSummary>
-        <div style="overflow-x:auto " class="d-flex flex-row rowm-3 col-md-5">
+        <div style="overflow-x:auto;white-space:nowrap" class="d-flex flex-row rowm-3 col-md-5">
             {#each _photoTours as tour}
                 <button
                     on:click={async () => _selectedTourChanged.update(() => tour)}
-                    class="btn btn-dark {tour == $_selectedTourChanged ? 'opacity-100' : 'opacity-50'}"
-                    >{tour.name}</button>
+                    style="height:40px"
+                    class="btn btn-dark {tour == $_selectedTourChanged ? 'opacity-100' : 'opacity-50'}">{tour.name}</button>
             {/each}
         </div>
     </PlantSummary>

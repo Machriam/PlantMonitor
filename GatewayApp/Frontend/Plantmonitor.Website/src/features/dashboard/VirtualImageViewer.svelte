@@ -115,21 +115,11 @@
     <slot />
     <div class="col-md-7">
         <div style="align-items:center" class="col-md-12 row mt-2">
-            <div class="col-md-3">
-                <div>{_selectedImage?.creationDate.toLocaleString()}</div>
-                <Checkbox
-                    class="mt-3"
-                    label="Segmentation"
-                    valueHasChanged={() => {
-                        if (_selectedTour == undefined) return;
-                        updateVirtualImage(_selectedTour?.id);
-                    }}
-                    bind:value={_showSegmentedImage}></Checkbox>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-3">{_selectedImage?.creationDate.toLocaleString()}</div>
+            <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show nth image"></NumberInput>
+            <div class="col-md-2">
                 Index: {Math.min(_currentDateIndex + 1, _filteredVirtualImages.length)} of {_filteredVirtualImages.length}
             </div>
-            <NumberInput class="col-md-3" bind:value={_scrollSkip} label="Show every nth image"></NumberInput>
             <div class="col-md-3 p-0 row ms-2">
                 <button class="btn btn-primary col-md-9" on:click={downloadTourData}>{_currentDownloadStatus}</button>
                 {#if _currentDownloadStatus.includes("ready")}
@@ -137,6 +127,14 @@
                     <button class="btn btn-danger col-md-2" on:click={DeletePackedData}>X</button>
                 {/if}
             </div>
+            <Checkbox
+                class="col-md-2"
+                label="Segmentation"
+                valueHasChanged={() => {
+                    if (_selectedTour == undefined) return;
+                    updateVirtualImage(_selectedTour?.id);
+                }}
+                bind:value={_showSegmentedImage}></Checkbox>
         </div>
     </div>
     <div on:wheel={nextImage} class="p-0">
