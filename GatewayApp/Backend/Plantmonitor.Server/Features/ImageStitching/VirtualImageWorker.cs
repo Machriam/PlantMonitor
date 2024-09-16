@@ -22,6 +22,7 @@ public interface IVirtualImageWorker
 public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentConfiguration configuration,
     ILogger<VirtualImageWorker> logger) : IHostedService, IVirtualImageWorker
 {
+    private static readonly HashSet<long> s_tripsToSkip = [];
     private static int s_imageCalculationTimeout = 10;
     private const int MaxImageCalculationTimeout = 60;
     private const int MinImageCalculationTimeout = 1;
@@ -32,12 +33,15 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
     {
         using var scope = scopeFactory.CreateScope();
         var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
+        var tripsToRecalculate = new HashSet<long>();
         foreach (var trip in dataContext.PhotoTourTrips.Where(ptt => ptt.PhotoTourFk == photoTourId))
         {
+            tripsToRecalculate.Add(trip.Id);
             if (Path.Exists(trip.VirtualPicturePath)) File.Delete(trip.VirtualPicturePath);
             trip.VirtualPicturePath = null;
         }
         dataContext.SaveChanges();
+        s_tripsToSkip.RemoveWhere(tripsToRecalculate.Contains);
     }
 
     private void CreateVirtualImage()
@@ -60,44 +64,37 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
     public void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IEnvironmentConfiguration configuration)
     {
         logger.LogInformation("Running virtual image creation");
-        var photoTourTrip = dataContext.PhotoTourTrips
+        var tripsToSkipArray = s_tripsToSkip.ToArray();
+        var currentTrip = dataContext.PhotoTourTrips
             .Include(ttp => ttp.PhotoTourFkNavigation)
+            .Where(apt => apt.VirtualPicturePath == null && !tripsToSkipArray.Contains(apt.Id))
             .OrderByDescending(apt => apt.PhotoTourFk)
-            .Where(apt => apt.VirtualPicturePath == null)
             .FirstOrDefault();
-        if (photoTourTrip == null)
+        if (currentTrip == null)
         {
             s_imageCalculationTimeout = Math.Max(s_imageCalculationTimeout * 2, MaxImageCalculationTimeout);
             logger.LogInformation("No trips to process for virtual image creation. Exiting");
             return;
         }
         s_imageCalculationTimeout = MinImageCalculationTimeout;
-        logger.LogInformation("Processing Tour {tour}", photoTourTrip.PhotoTourFkNavigation.Name);
+        logger.LogInformation("Processing Tour {tour}", currentTrip.PhotoTourFkNavigation.Name);
         var extractionTemplates = dataContext.PlantExtractionTemplates
             .Include(pet => pet.PhotoTripFkNavigation)
             .Include(pet => pet.PhotoTourPlantFkNavigation)
-            .Where(pet => pet.PhotoTripFkNavigation.PhotoTourFk == photoTourTrip.PhotoTourFk)
+            .Where(pet => pet.PhotoTripFkNavigation.PhotoTourFk == currentTrip.PhotoTourFk)
             .OrderByDescending(pet => pet.PhotoTripFkNavigation.Timestamp)
             .ToList();
         if (extractionTemplates.Count == 0)
         {
-            logger.LogWarning("No extraction templates defined for tour {tour}. Exiting", photoTourTrip.PhotoTourFkNavigation.Name);
+            logger.LogWarning("No extraction templates defined for tour {tour}. Exiting trip {trip}", currentTrip.PhotoTourFkNavigation.Name, currentTrip.Id);
+            foreach (var trip in dataContext.PhotoTourTrips.Where(ptt => ptt.PhotoTourFk == currentTrip.PhotoTourFk)) s_tripsToSkip.Add(trip.Id);
             return;
         }
-        var currentTrip = dataContext.PhotoTourTrips
-            .Where(ptt => ptt.VirtualPicturePath == null && ptt.PhotoTourFk == photoTourTrip.PhotoTourFk)
-            .OrderBy(ptt => ptt.Timestamp)
-            .FirstOrDefault();
-        if (currentTrip == null)
-        {
-            logger.LogInformation("No trip to process found");
-            return;
-        }
-        var plantsOfTour = dataContext.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == photoTourTrip.PhotoTourFk).ToList();
-        var virtualImageFolder = configuration.VirtualImagePath(photoTourTrip.PhotoTourFkNavigation.Name, photoTourTrip.PhotoTourFk);
+        var plantsOfTour = dataContext.PhotoTourPlants.Where(ptp => ptp.PhotoTourFk == currentTrip.PhotoTourFk).ToList();
+        var virtualImageFolder = configuration.VirtualImagePath(currentTrip.PhotoTourFkNavigation.Name, currentTrip.PhotoTourFk);
 
         var virtualImageFile = currentTrip.VirtualImageFileName(virtualImageFolder);
-        logger.LogInformation("Processing virtual image {image} of tour {tour}", virtualImageFile, photoTourTrip.PhotoTourFkNavigation.Name);
+        logger.LogInformation("Processing virtual image {image} of tour {tour}", virtualImageFile, currentTrip.PhotoTourFkNavigation.Name);
         var virtualImageList = new List<PhotoStitcher.PhotoStitchData>();
         foreach (var plant in plantsOfTour
             .Select(pot => (Number: pot.Name.ExtractNumbersFromString(out var cleanText), CleanText: cleanText, Plant: pot))
@@ -143,9 +140,9 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         logger.LogInformation("Stitching virtual image together");
         var maxHeight = virtualImageList.Select(v => v.VisImage?.Height ?? 10).OrderByDescending(h => h).FirstOrDefault();
         var maxWidth = virtualImageList.Select(v => v.VisImage?.Width ?? 10).OrderByDescending(h => h).FirstOrDefault();
-        var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight, photoTourTrip.PhotoTourFkNavigation.PixelSizeInMm);
+        var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight, currentTrip.PhotoTourFkNavigation.PixelSizeInMm);
         logger.LogInformation("Fetching additional metadata");
-        var fullMetaDataTable = AddAdditionalMetaData(dataContext, currentTrip, photoTourTrip.PhotoTourFkNavigation, virtualImage.MetaData);
+        var fullMetaDataTable = AddAdditionalMetaData(dataContext, currentTrip, currentTrip.PhotoTourFkNavigation, virtualImage.MetaData);
 
         var fileBaseName = Path.GetFileNameWithoutExtension(virtualImageFile);
         logger.LogInformation("Storing virtual image {image}", virtualImageFile);

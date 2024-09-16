@@ -2,30 +2,32 @@
 using System.IO.Compression;
 using System.Text;
 using System.Text.Unicode;
+using Emgu.CV;
 using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Server.Features.ImageStitching;
 
 namespace Plantmonitor.Server.Features.Dashboard;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration, IWebHostEnvironment webHost)
+public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration, IWebHostEnvironment webHost, IPhotoTourSummaryWorker photoTourSummary)
 {
     private const double InverseGigabyte = 1d / (1024d * 1024d * 1024d);
     private static readonly ConcurrentDictionary<string, DownloadInfo> s_fileReadyToDownload = new();
     public record struct DownloadInfo(long PhotoTourId, string Path, double CurrentSize, double SizeToDownloadInGb, bool ReadyToDownload);
-
     public record struct TemperatureSummaryData(string Device, IEnumerable<TemperatureDatum> Data);
+    public record struct VirtualImageInfo(string Name, DateTime CreationDate);
     public record struct TemperatureDatum(DateTime Time, float Temperature, float Deviation);
 
     [HttpGet("virtualimagelist")]
-    public IEnumerable<string> VirtualImageList(long photoTourId)
+    public IEnumerable<VirtualImageInfo> VirtualImageList(long photoTourId)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         return Directory.EnumerateFiles(configuration.VirtualImagePath(photoTour.Name, photoTour.Id))
-            .Select(f => Path.GetFileName(f));
+            .Select(f => new VirtualImageInfo(Path.GetFileName(f), PhotoTourTrip.DateFromVirtualImage(f)));
     }
 
     [HttpGet("fullsummaryinformation")]
@@ -93,6 +95,24 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         using var zip = ZipFile.Open(Path.Combine(folder, Path.GetFileName(name)), ZipArchiveMode.Read);
         var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
         return visPicture.Open().ConvertToArray();
+    }
+
+    [HttpGet("segmentedimage")]
+    public byte[] SegmentedImage(string name, long photoTourId)
+    {
+        var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
+        var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
+        using var zip = ZipFile.Open(Path.Combine(folder, Path.GetFileName(name)), ZipArchiveMode.Read);
+        var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
+        var tempPng = Path.Combine(Directory.CreateTempSubdirectory().FullName, "temp.png");
+        var tempMask = Path.Combine(Directory.CreateTempSubdirectory().FullName, "tempMask.png");
+        File.WriteAllBytes(tempPng, visPicture.Open().ConvertToArray());
+        var visMat = CvInvoke.Imread(tempPng);
+        var mask = photoTourSummary.GetPlantMask(visMat);
+        visMat.Dispose();
+        CvInvoke.Imwrite(tempMask, mask);
+        mask.Dispose();
+        return File.ReadAllBytes(tempMask);
     }
 
     [HttpGet("statusofdownloadtourdata")]

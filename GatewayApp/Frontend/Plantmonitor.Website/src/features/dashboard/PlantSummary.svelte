@@ -1,6 +1,6 @@
 <script lang="ts">
     import * as echarts from "echarts";
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import {
         AutomaticPhotoTourClient,
         DashboardClient,
@@ -9,6 +9,8 @@
         VirtualImageSummary
     } from "~/services/GatewayAppApi";
     import {Download} from "~/types/Download";
+    import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import type {Unsubscriber} from "svelte/store";
     class DescriptorInfo {
         name: string;
         unit: string;
@@ -16,14 +18,32 @@
         tooltipFormatter: (value: number) => string;
         getDescriptor: (descriptor: PlantImageDescriptors) => number;
     }
-    let _photoTours: PhotoTourInfo[] = [];
-    let _selectedTour: PhotoTourInfo | undefined;
+    let _selectedTour: PhotoTourInfo | null = null;
     let _virtualImageSummaries: VirtualImageSummary[] = [];
     let _selectedPlants: string[] = [];
     let _selectedDescriptors: DescriptorInfo[] = [];
-    let _chart: echarts.ECharts;
-    let _chartData: {name: string; yAxisIndex: number; type: string; showSymbol: boolean; data: (number | Date)[][]}[] = [];
+    let _chart: echarts.ECharts | undefined;
+    let _lastDataZoom: {start: number; end: number} = {start: 0, end: 100};
+    let _currentlyHoveredTimes: Date[] = [];
+    let _chartData: {
+        name: string;
+        yAxisIndex: number;
+        type: string;
+        showSymbol: boolean;
+        markPoint: {
+            data: {
+                coord: (number | Date)[];
+                y: string;
+                symbol: string;
+                symbolSize: number;
+                symbolRotate: number;
+                itemStyle: {color: string};
+            }[];
+        };
+        data: (number | Date)[][];
+    }[] = [];
     let _descriptorBySeries: Map<string, DescriptorInfo> = new Map();
+    let _unsubscriber: Unsubscriber[] = [];
     const _graphId = Math.random().toString(36).substring(7);
     let _descriptorsFor: DescriptorInfo[] = [
         {
@@ -71,14 +91,38 @@
     ];
 
     onMount(async () => {
-        const automaticPhototourClient = new AutomaticPhotoTourClient();
-        _photoTours = await automaticPhototourClient.getPhotoTours();
-        _photoTours = _photoTours.toSorted((a, b) => (a.lastEvent > b.lastEvent ? -1 : 1));
+        _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
+        _unsubscriber.push(_virtualImageFilterByTime.subscribe(() => updateMarkers()));
     });
+    onDestroy(() => {
+        _unsubscriber.forEach((u) => u());
+    });
+    function initChart() {
+        const chart = echarts.init(document.getElementById(_graphId));
+        chart.getZr().on("click", () => {
+            _virtualImageFilterByTime.update((x) => {
+                _currentlyHoveredTimes.map((t) => x.add(t.getTime()));
+                updateMarkers();
+                return x;
+            });
+        });
+        chart.on("datazoom", (e) => {
+            if (Object.getOwnPropertyNames(e).find((x) => x == "start") != undefined) {
+                const zoom = e as {start: number; end: number};
+                _lastDataZoom.start = zoom.start;
+                _lastDataZoom.end = zoom.end;
+                return;
+            }
+            const zoom = e as {batch: {start: number; end: number}[]};
+            _lastDataZoom.start = zoom.batch[0].start;
+            _lastDataZoom.end = zoom.batch[0].end;
+        });
+        return chart;
+    }
 
     function updateChart() {
         if (_virtualImageSummaries.length == 0) return;
-        _chart ??= echarts.init(document.getElementById(_graphId));
+        _chart ??= initChart();
         const filteredSummaries = _virtualImageSummaries.filter((x) =>
             _selectedPlants.reduce(
                 (a, p) => a && x.imageDescriptors.plantDescriptors.find((pd) => pd.plant.imageName == p) != undefined,
@@ -104,12 +148,14 @@
                     name: descriptor.name + " " + plant,
                     type: "line",
                     yAxisIndex: j,
+                    markPoint: {data: []},
                     showSymbol: false,
                     data: data
                 });
             }
         }
-        _chart.clear();
+        if (_chartData.length == 0) return;
+
         _chart.setOption({
             series: _chartData,
             legend: {left: "left"},
@@ -118,6 +164,7 @@
                 trigger: "axis",
                 axisPointer: {animation: false},
                 formatter: function (params: {seriesName: string; value: [Date, number]}[], x: any) {
+                    _currentlyHoveredTimes = params.map((p) => p.value[0]);
                     return (
                         params
                             .map((p, i) => ({
@@ -135,22 +182,62 @@
                     );
                 }
             },
-            toolbox: {feature: {dataZoom: {yAxisIndex: "none"}, restore: {}, saveAsImage: {}}},
+            toolbox: {
+                feature: {
+                    dataZoom: {yAxisIndex: "none"},
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
             dataZoom: [
-                {show: true, realtime: true, xAxisIndex: [0, 1]},
+                {show: true, realtime: true, xAxisIndex: [0, 1], start: _lastDataZoom.start, end: _lastDataZoom.end},
                 {type: "inside", realtime: true, xAxisIndex: [0, 1]}
             ],
             xAxis: {type: "time"},
             yAxis: _selectedDescriptors.map((d) => ({type: "value", name: d.name + " in " + d.unit}))
         });
+        _chart.dispatchAction({
+            type: "takeGlobalCursor",
+            key: "dataZoomSelect",
+            dataZoomSelectActive: true
+        });
+        updateMarkers();
     }
-    async function selectedTourChanged(newTour: PhotoTourInfo) {
+    function updateMarkers() {
+        const times = Array.from($_virtualImageFilterByTime);
+        if (_chartData.length == 0 || _chart == undefined) return;
+        _chart.setOption({
+            series: _chartData.map((s, i) => {
+                s.markPoint.data =
+                    i != 0
+                        ? []
+                        : s.data
+                              .filter((d) => times.find((t) => t == (d[0] as Date).getTime()) != undefined)
+                              .map((d) => ({
+                                  coord: d,
+                                  y: "10%",
+                                  symbol: "arrow",
+                                  symbolSize: 10,
+                                  symbolRotate: 180,
+                                  itemStyle: {color: "black"}
+                              }));
+                return s;
+            })
+        });
+    }
+    async function selectedTourChanged(newTour: PhotoTourInfo | null) {
         _selectedTour = newTour;
+        if (newTour == null) return;
         const dashboardClient = new DashboardClient();
         _virtualImageSummaries = await dashboardClient.summaryForTour(newTour.id);
+        _chart?.dispose();
+        _chart = undefined;
+        _selectedPlants = [];
+        _selectedDescriptors = [];
+        $_virtualImageFilterByTime = new Set();
     }
     async function downloadSummaryData() {
-        if (_selectedTour == undefined) return;
+        if (_selectedTour == null) return;
         const dashboardClient = new DashboardClient();
         const url = await dashboardClient.createPhotoSummaryExport(_selectedTour.id);
         Download.downloadFromUrl(dashboardClient.getBaseUrl("", "") + url);
@@ -175,21 +262,16 @@
 </script>
 
 <div class="col-md-12 row mt-2">
-    <div style="width: 60vw;overflow-x:auto " class="d-flex flex-row rowm-3 mb-2">
-        {#each _photoTours as tour}
-            <button
-                on:click={async () => await selectedTourChanged(tour)}
-                class="btn btn-dark {tour.name == _selectedTour?.name ? 'opacity-100' : 'opacity-50'}">{tour.name}</button>
-        {/each}
-    </div>
-    <div style="align-items: center;" class="col-md-3 row mb-2">
-        <div class="col-md-6">Summary Count: {_virtualImageSummaries.length}</div>
-        <button disabled={_selectedTour == undefined} on:click={downloadSummaryData} class="btn btn-primary col-md-6"
+    <slot />
+    <div style="align-items: center;" class="col-md-7 row mb-2">
+        <div class="col-md-7"></div>
+        <button disabled={_selectedTour == null} on:click={downloadSummaryData} class="btn btn-primary col-md-2"
             >Download Data</button>
+        <div class="col-md-3">Summary Count: {_virtualImageSummaries.length}</div>
     </div>
     {#if _virtualImageSummaries.length > 0}
         <div class="col-md-10 d-flex flex-column">
-            <div style="height: 80vh; width:100%" id={_graphId}></div>
+            <div style="height: 80vh;" id={_graphId}></div>
         </div>
         <div class="col-md-1 d-flex flex-column border-start" style="height: 70vh;overflow-y:auto">
             {#each _descriptorsFor as descriptor}

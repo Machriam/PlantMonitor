@@ -19,7 +19,7 @@
                 on:select={(x) => ($selectedDevice = x.detail)}
                 class="col-md-12 d-flex flex-row"></DeviceSelection>
         </div>
-        <article class="content px-4">
+        <article style="width:87vw" class="content px-4">
             <slot />
         </article>
     </main>

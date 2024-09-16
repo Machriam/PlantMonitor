@@ -1,47 +1,74 @@
 <script lang="ts">
-    import {onMount} from "svelte";
-    import {AutomaticPhotoTourClient, DashboardClient, DownloadInfo, PhotoTourInfo} from "~/services/GatewayAppApi";
+    import {onDestroy, onMount} from "svelte";
+    import {DashboardClient, DownloadInfo, PhotoTourInfo, VirtualImageInfo} from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/Download";
-    let _photoTours: PhotoTourInfo[] = [];
-    let _selectedTour: PhotoTourInfo | undefined;
-    let _virtualImages: string[] = [];
-    let _selectedImage: string | undefined;
+    import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import type {Unsubscriber} from "svelte/motion";
+    import Checkbox from "../reuseableComponents/Checkbox.svelte";
+    let _selectedTour: PhotoTourInfo | undefined | null;
+    let _virtualImages: VirtualImageInfo[] = [];
+    let _selectedImage: VirtualImageInfo | undefined;
     let _virtualImage: string | undefined;
-    let _currentImageIndex = 0;
+    let _currentDateIndex = 0;
     let _scrollSkip = 1;
     let _currentDownloadStatus = "";
+    let _filteredVirtualImages: Date[] = [];
+    let _unsubscriber: Unsubscriber[] = [];
     let _downloadInfo: DownloadInfo[] = [];
+    let _showSegmentedImage: boolean = false;
 
     onMount(async () => {
-        const automaticPhototourClient = new AutomaticPhotoTourClient();
-        _photoTours = await automaticPhototourClient.getPhotoTours();
-        _photoTours = _photoTours.toSorted((a, b) => (a.lastEvent > b.lastEvent ? -1 : 1));
-        _selectedTour = _photoTours.length > 0 ? _photoTours[0] : undefined;
+        _unsubscriber.push(
+            _virtualImageFilterByTime.subscribe((value) => {
+                if (value.size == 0) {
+                    _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
+                    return;
+                }
+                _filteredVirtualImages = Array.from(value)
+                    .toSorted((a, b) => b - a)
+                    .map((x) => new Date(x));
+            })
+        );
+        _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
         if (_selectedTour == undefined) return;
         selectedTourChanged(_selectedTour);
+    });
+    onDestroy(() => {
+        _unsubscriber.forEach((u) => u());
     });
     async function updateVirtualImage(tourId: number) {
         const dashboardClient = new DashboardClient();
         _virtualImage = undefined;
-        if (_virtualImages.length > _currentImageIndex && _currentImageIndex >= 0) {
-            _selectedImage = _virtualImages[_currentImageIndex];
-            _virtualImage = await dashboardClient.virtualImage(_selectedImage, tourId);
+        if (_filteredVirtualImages.length > _currentDateIndex && _currentDateIndex >= 0) {
+            _selectedImage = _virtualImages
+                .map((vi) => ({
+                    diff: Math.abs(vi.creationDate.getTime() - _filteredVirtualImages[_currentDateIndex].getTime()),
+                    image: vi
+                }))
+                .reduce((prev, curr) => (prev.diff < curr.diff ? prev : curr)).image;
+            _virtualImage = _showSegmentedImage
+                ? await dashboardClient.segmentedImage(_selectedImage.name, tourId)
+                : await dashboardClient.virtualImage(_selectedImage.name, tourId);
         }
     }
     async function nextImage(event: WheelEvent) {
         if (_selectedTour == undefined) return;
-        _currentImageIndex =
+        _currentDateIndex =
             event.deltaY < 0
-                ? Math.max(0, _currentImageIndex - _scrollSkip)
-                : Math.min(_virtualImages.length - 1, _currentImageIndex + _scrollSkip);
+                ? Math.max(0, _currentDateIndex - _scrollSkip)
+                : Math.min(_filteredVirtualImages.length - 1, _currentDateIndex + _scrollSkip);
         await updateVirtualImage(_selectedTour.id);
     }
-    async function selectedTourChanged(newTour: PhotoTourInfo) {
+    async function selectedTourChanged(newTour: PhotoTourInfo | null) {
+        if (newTour == null) return;
         _selectedTour = newTour;
         const dashboardClient = new DashboardClient();
-        _virtualImages = (await dashboardClient.virtualImageList(_selectedTour.id)).toSorted().toReversed();
-        _currentImageIndex = 0;
+        _virtualImages = (await dashboardClient.virtualImageList(_selectedTour.id)).toSorted((a, b) =>
+            a.creationDate.orderByDescending(b.creationDate)
+        );
+        _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
+        _currentDateIndex = 0;
         await updateVirtualImage(_selectedTour.id);
         updateDownloadStatus();
     }
@@ -85,31 +112,34 @@
 </script>
 
 <div class="col-md-12 row mt-2">
-    <div style="width: 80vw;overflow-x:auto " class="d-flex flex-row rowm-3">
-        {#each _photoTours as tour}
-            <button
-                on:click={async () => await selectedTourChanged(tour)}
-                class="btn btn-dark {tour.name == _selectedTour?.name ? 'opacity-100' : 'opacity-50'}">{tour.name}</button>
-        {/each}
-    </div>
-    <div on:wheel={nextImage} class="p-0" style="height: 80vh; width:80vw">
+    <slot />
+    <div class="col-md-7">
         <div style="align-items:center" class="col-md-12 row mt-2">
-            <div class="col-md-3">{_virtualImages[_currentImageIndex]}</div>
-            <div class="col-md-3">
-                Index: {Math.min(_currentImageIndex + 1, _virtualImages.length)} of {_virtualImages.length}
+            <div class="col-md-3">{_selectedImage?.creationDate.toLocaleString()}</div>
+            <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show nth image"></NumberInput>
+            <div class="col-md-2">
+                Index: {Math.min(_currentDateIndex + 1, _filteredVirtualImages.length)} of {_filteredVirtualImages.length}
             </div>
-            <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show every nth image"></NumberInput>
-            <div class="col-md-1"></div>
-            <div class="col-md-3 p-0 row">
+            <div class="col-md-3 p-0 row ms-2">
                 <button class="btn btn-primary col-md-9" on:click={downloadTourData}>{_currentDownloadStatus}</button>
                 {#if _currentDownloadStatus.includes("ready")}
                     <div class="col-md-1"></div>
                     <button class="btn btn-danger col-md-2" on:click={DeletePackedData}>X</button>
                 {/if}
             </div>
+            <Checkbox
+                class="col-md-2"
+                label="Segmentation"
+                valueHasChanged={() => {
+                    if (_selectedTour == undefined) return;
+                    updateVirtualImage(_selectedTour?.id);
+                }}
+                bind:value={_showSegmentedImage}></Checkbox>
         </div>
+    </div>
+    <div on:wheel={nextImage} class="p-0">
         {#if _virtualImage != undefined}
-            <img style="max-width: 100%;max-height:100%" alt="Stitched Result" src="data:image/png;base64,{_virtualImage}" />
+            <img style="max-width: 100%;max-height:74vh" alt="Stitched Result" src="data:image/png;base64,{_virtualImage}" />
         {/if}
     </div>
 </div>
