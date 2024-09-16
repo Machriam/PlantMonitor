@@ -1892,6 +1892,8 @@ export interface IDashboardClient {
 
     virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string>;
 
+    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string>;
+
     statusOfDownloadTourData(): Promise<DownloadInfo[]>;
 
     deleteTourData(photoTourId?: number | undefined): Promise<void>;
@@ -2119,6 +2121,51 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
     }
 
     protected processVirtualImage(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string> {
+        let url_ = this.baseUrl + "/api/Dashboard/segmentedimage?";
+        if (name === null)
+            throw new Error("The parameter 'name' cannot be null.");
+        else if (name !== undefined)
+            url_ += "name=" + encodeURIComponent("" + name) + "&";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processSegmentedImage(_response));
+        });
+    }
+
+    protected processSegmentedImage(response: Response): Promise<string> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

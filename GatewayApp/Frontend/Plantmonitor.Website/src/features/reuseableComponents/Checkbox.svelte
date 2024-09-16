@@ -3,6 +3,8 @@
     export let value = false;
     export let label = "";
     const guid = crypto.randomUUID();
+    export let valueHasChanged: (newValue: boolean) => void = () => {};
+    $: if (valueHasChanged) valueHasChanged(value);
 </script>
 
 <div class="{$$restProps.class || ''} row ms-1 form-switch">

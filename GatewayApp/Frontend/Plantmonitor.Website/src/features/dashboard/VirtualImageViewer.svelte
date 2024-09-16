@@ -5,6 +5,7 @@
     import {Download} from "~/types/Download";
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/motion";
+    import Checkbox from "../reuseableComponents/Checkbox.svelte";
     let _selectedTour: PhotoTourInfo | undefined | null;
     let _virtualImages: VirtualImageInfo[] = [];
     let _selectedImage: VirtualImageInfo | undefined;
@@ -15,6 +16,7 @@
     let _filteredVirtualImages: Date[] = [];
     let _unsubscriber: Unsubscriber[] = [];
     let _downloadInfo: DownloadInfo[] = [];
+    let _showSegmentedImage: boolean = false;
 
     onMount(async () => {
         _unsubscriber.push(
@@ -45,7 +47,9 @@
                     image: vi
                 }))
                 .reduce((prev, curr) => (prev.diff < curr.diff ? prev : curr)).image;
-            _virtualImage = await dashboardClient.virtualImage(_selectedImage.name, tourId);
+            _virtualImage = _showSegmentedImage
+                ? await dashboardClient.segmentedImage(_selectedImage.name, tourId)
+                : await dashboardClient.virtualImage(_selectedImage.name, tourId);
         }
     }
     async function nextImage(event: WheelEvent) {
@@ -111,7 +115,17 @@
     <slot />
     <div class="col-md-7">
         <div style="align-items:center" class="col-md-12 row mt-2">
-            <div class="col-md-3">{_selectedImage?.creationDate.toLocaleString()}</div>
+            <div class="col-md-3">
+                <div>{_selectedImage?.creationDate.toLocaleString()}</div>
+                <Checkbox
+                    class="mt-3"
+                    label="Segmentation"
+                    valueHasChanged={() => {
+                        if (_selectedTour == undefined) return;
+                        updateVirtualImage(_selectedTour?.id);
+                    }}
+                    bind:value={_showSegmentedImage}></Checkbox>
+            </div>
             <div class="col-md-3">
                 Index: {Math.min(_currentDateIndex + 1, _filteredVirtualImages.length)} of {_filteredVirtualImages.length}
             </div>

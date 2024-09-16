@@ -2,16 +2,18 @@
 using System.IO.Compression;
 using System.Text;
 using System.Text.Unicode;
+using Emgu.CV;
 using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Server.Features.ImageStitching;
 
 namespace Plantmonitor.Server.Features.Dashboard;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration, IWebHostEnvironment webHost)
+public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration, IWebHostEnvironment webHost, IPhotoTourSummaryWorker photoTourSummary)
 {
     private const double InverseGigabyte = 1d / (1024d * 1024d * 1024d);
     private static readonly ConcurrentDictionary<string, DownloadInfo> s_fileReadyToDownload = new();
@@ -93,6 +95,24 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         using var zip = ZipFile.Open(Path.Combine(folder, Path.GetFileName(name)), ZipArchiveMode.Read);
         var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
         return visPicture.Open().ConvertToArray();
+    }
+
+    [HttpGet("segmentedimage")]
+    public byte[] SegmentedImage(string name, long photoTourId)
+    {
+        var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
+        var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
+        using var zip = ZipFile.Open(Path.Combine(folder, Path.GetFileName(name)), ZipArchiveMode.Read);
+        var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
+        var tempPng = Path.Combine(Directory.CreateTempSubdirectory().FullName, "temp.png");
+        var tempMask = Path.Combine(Directory.CreateTempSubdirectory().FullName, "tempMask.png");
+        File.WriteAllBytes(tempPng, visPicture.Open().ConvertToArray());
+        var visMat = CvInvoke.Imread(tempPng);
+        var mask = photoTourSummary.GetPlantMask(visMat);
+        visMat.Dispose();
+        CvInvoke.Imwrite(tempMask, mask);
+        mask.Dispose();
+        return File.ReadAllBytes(tempMask);
     }
 
     [HttpGet("statusofdownloadtourdata")]

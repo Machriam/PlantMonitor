@@ -13,6 +13,8 @@ namespace Plantmonitor.Server.Features.Dashboard;
 
 public interface IPhotoTourSummaryWorker
 {
+    Mat GetPlantMask(Mat visMat);
+
     void RecalculateSummaries(long photoTourId);
 }
 
