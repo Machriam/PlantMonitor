@@ -11,9 +11,14 @@ using Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 namespace Plantmonitor.Server.Features.Dashboard;
 
+public record struct PlantMaskParameter(double HLow, double HHigh, double SLow, double SHigh, double LLow, double LHigh, bool UseOtsu, int OpeningIterations)
+{
+    public static PlantMaskParameter GetDefault() => new(40d, 130d, 5d, 100d, 20d, 100d, true, 2);
+}
+
 public interface IPhotoTourSummaryWorker
 {
-    Mat GetPlantMask(Mat visMat);
+    Mat GetPlantMask(Mat visMat, PlantMaskParameter parameter);
 
     void RecalculateSummaries(long photoTourId);
 }
@@ -165,7 +170,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     public PhotoSummaryResult ProcessImage(string image)
     {
         var (visMat, rawIrMat, metaData) = GetDataFromZip(image);
-        var mask = GetPlantMask(visMat);
+        var mask = GetPlantMask(visMat, new());
         var borderMask = SubImageBorderMask(visMat);
         var borderMaskData = borderMask.GetData(true);
         var maskData = mask.GetData(true);
@@ -268,15 +273,15 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         return mask;
     }
 
-    public Mat GetPlantMask(Mat visMat)
+    public Mat GetPlantMask(Mat visMat, PlantMaskParameter parameter)
     {
         var hsvMat = new Mat();
         var mask = new Mat();
         CvInvoke.CvtColor(visMat, hsvMat, ColorConversion.Bgr2Hsv);
-        SegmentHsvColorSpace(hsvMat, mask);
-        MorphologicalOpening(mask);
-        OtsuTresholdingOnSaturationChannel(hsvMat, mask);
-        MorphologicalOpening(mask);
+        SegmentHsvColorSpace(hsvMat, mask, parameter);
+        MorphologicalOpening(mask, parameter);
+        if (parameter.UseOtsu) OtsuTresholdingOnSaturationChannel(hsvMat, mask);
+        MorphologicalOpening(mask, parameter);
         hsvMat.Dispose();
         return mask;
     }
@@ -291,18 +296,18 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         foreach (var channel in hsvChannels) channel.Dispose();
     }
 
-    private static void MorphologicalOpening(Mat mask)
+    private static void MorphologicalOpening(Mat mask, PlantMaskParameter parameter)
     {
         var element = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
-        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), 2, BorderType.Constant, new MCvScalar(0));
-        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), 2, BorderType.Constant, new MCvScalar(0));
+        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0));
+        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0));
         element.Dispose();
     }
 
-    private static void SegmentHsvColorSpace(Mat hsvMat, Mat mask)
+    private static void SegmentHsvColorSpace(Mat hsvMat, Mat mask, PlantMaskParameter parameter)
     {
-        var lowGreen = new ScalarArray(new MCvScalar(40d / 360d * 255d, 5d / 100d * 255d, 20d / 100d * 255d));
-        var highGreen = new ScalarArray(new MCvScalar(130d / 360d * 255d, 100d / 100d * 255d, 100d / 100d * 255d));
+        var lowGreen = new ScalarArray(new MCvScalar(parameter.HLow / 360d * 255d, parameter.SLow / 100d * 255d, parameter.LLow / 100d * 255d));
+        var highGreen = new ScalarArray(new MCvScalar(parameter.HHigh / 360d * 255d, parameter.SHigh / 100d * 255d, parameter.LHigh / 100d * 255d));
         CvInvoke.InRange(hsvMat, lowGreen, highGreen, mask);
         lowGreen.Dispose();
         highGreen.Dispose();

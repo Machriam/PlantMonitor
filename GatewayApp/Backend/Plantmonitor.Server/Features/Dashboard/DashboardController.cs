@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Unicode;
 using Emgu.CV;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
@@ -99,8 +100,26 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         return visPicture.Open().ConvertToArray();
     }
 
-    [HttpGet("segmentedimage")]
-    public byte[]? SegmentedImage(string name, long photoTourId)
+    [HttpGet("plantmaskparameter")]
+    public PlantMaskParameter PlantMaskParameterFor(DateTime? virtualImageTime, long? photoTourId)
+    {
+        if (virtualImageTime == null || photoTourId == null) return PlantMaskParameter.GetDefault();
+        var photoTour = context.AutomaticPhotoTours
+            .Include(apt => apt.PhotoTourTrips)
+            .First(apt => apt.Id == photoTourId);
+        var timeText = virtualImageTime.Value.ToString(PhotoTourTrip.TimestampFormat);
+        var tripByTime = photoTour.PhotoTourTrips
+            .Select(ptt => new { Trip = ptt, Time = PhotoTourTrip.DateFromVirtualImage(ptt.VirtualPicturePath ?? "") })
+            .OrderBy(ptt => ptt.Time)
+            .ToList();
+        var trip = tripByTime.Find(ptt => ptt.Time == virtualImageTime);
+        if (trip == null) return PlantMaskParameter.GetDefault();
+        var maskParameter = tripByTime.Last(t => t.Time <= trip.Time);
+        return PlantMaskParameter.GetDefault();
+    }
+
+    [HttpPost("segmentedimage")]
+    public byte[]? SegmentedImage(string name, long photoTourId, [FromBody] PlantMaskParameter? parameter = null)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
@@ -112,7 +131,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var tempMask = Path.Combine(Directory.CreateTempSubdirectory().FullName, "tempMask.png");
         File.WriteAllBytes(tempPng, visPicture.Open().ConvertToArray());
         var visMat = CvInvoke.Imread(tempPng);
-        var mask = photoTourSummary.GetPlantMask(visMat);
+        var mask = photoTourSummary.GetPlantMask(visMat, parameter ?? PlantMaskParameter.GetDefault());
         visMat.Dispose();
         CvInvoke.Imwrite(tempMask, mask);
         mask.Dispose();

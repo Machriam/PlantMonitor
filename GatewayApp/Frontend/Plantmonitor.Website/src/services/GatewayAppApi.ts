@@ -1892,7 +1892,9 @@ export interface IDashboardClient {
 
     virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null>;
 
-    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null>;
+    plantMaskParameterFor(virtualImageTime?: Date | null | undefined, photoTourId?: number | null | undefined): Promise<PlantMaskParameter>;
+
+    segmentedImage(name?: string | undefined, photoTourId?: number | undefined, parameter?: PlantMaskParameter | undefined): Promise<string | null>;
 
     statusOfDownloadTourData(): Promise<DownloadInfo[]>;
 
@@ -2139,7 +2141,47 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         return Promise.resolve<string | null>(null as any);
     }
 
-    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null> {
+    plantMaskParameterFor(virtualImageTime?: Date | null | undefined, photoTourId?: number | null | undefined): Promise<PlantMaskParameter> {
+        let url_ = this.baseUrl + "/api/Dashboard/plantmaskparameter?";
+        if (virtualImageTime !== undefined && virtualImageTime !== null)
+            url_ += "virtualImageTime=" + encodeURIComponent(virtualImageTime ? "" + virtualImageTime.toISOString() : "") + "&";
+        if (photoTourId !== undefined && photoTourId !== null)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processPlantMaskParameterFor(_response));
+        });
+    }
+
+    protected processPlantMaskParameterFor(response: Response): Promise<PlantMaskParameter> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = PlantMaskParameter.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<PlantMaskParameter>(null as any);
+    }
+
+    segmentedImage(name?: string | undefined, photoTourId?: number | undefined, parameter?: PlantMaskParameter | undefined): Promise<string | null> {
         let url_ = this.baseUrl + "/api/Dashboard/segmentedimage?";
         if (name === null)
             throw new Error("The parameter 'name' cannot be null.");
@@ -2151,9 +2193,13 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
+        const content_ = JSON.stringify(parameter);
+
         let options_: RequestInit = {
-            method: "GET",
+            body: content_,
+            method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -5382,6 +5428,77 @@ export interface ITemperatureDatum {
     time: Date;
     temperature: number;
     deviation: number;
+}
+
+export class PlantMaskParameter implements IPlantMaskParameter {
+    hLow!: number;
+    hHigh!: number;
+    sLow!: number;
+    sHigh!: number;
+    lLow!: number;
+    lHigh!: number;
+    useOtsu!: boolean;
+    openingIterations!: number;
+
+    constructor(data?: IPlantMaskParameter) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.hLow = _data["HLow"];
+            this.hHigh = _data["HHigh"];
+            this.sLow = _data["SLow"];
+            this.sHigh = _data["SHigh"];
+            this.lLow = _data["LLow"];
+            this.lHigh = _data["LHigh"];
+            this.useOtsu = _data["UseOtsu"];
+            this.openingIterations = _data["OpeningIterations"];
+        }
+    }
+
+    static fromJS(data: any): PlantMaskParameter {
+        data = typeof data === 'object' ? data : {};
+        let result = new PlantMaskParameter();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["HLow"] = this.hLow;
+        data["HHigh"] = this.hHigh;
+        data["SLow"] = this.sLow;
+        data["SHigh"] = this.sHigh;
+        data["LLow"] = this.lLow;
+        data["LHigh"] = this.lHigh;
+        data["UseOtsu"] = this.useOtsu;
+        data["OpeningIterations"] = this.openingIterations;
+        return data;
+    }
+
+    clone(): PlantMaskParameter {
+        const json = this.toJSON();
+        let result = new PlantMaskParameter();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface IPlantMaskParameter {
+    hLow: number;
+    hHigh: number;
+    sLow: number;
+    sHigh: number;
+    lLow: number;
+    lHigh: number;
+    useOtsu: boolean;
+    openingIterations: number;
 }
 
 export class DownloadInfo implements IDownloadInfo {

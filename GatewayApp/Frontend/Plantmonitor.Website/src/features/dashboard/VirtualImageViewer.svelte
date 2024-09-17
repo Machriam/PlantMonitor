@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onDestroy, onMount} from "svelte";
-    import {DashboardClient, DownloadInfo, PhotoTourInfo, VirtualImageInfo} from "~/services/GatewayAppApi";
+    import {DashboardClient, DownloadInfo, PhotoTourInfo, PlantMaskParameter, VirtualImageInfo} from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/Download";
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
@@ -16,6 +16,7 @@
     let _filteredVirtualImages: Date[] = [];
     let _unsubscriber: Unsubscriber[] = [];
     let _downloadInfo: DownloadInfo[] = [];
+    let _segmentationParameter: PlantMaskParameter | undefined;
     let _showSegmentedImage: boolean = false;
     let _imageCache = new Map<string, {image: string; added: Date}>();
 
@@ -49,7 +50,12 @@
                     image: vi
                 }))
                 .reduce((prev, curr) => (prev.diff < curr.diff ? prev : curr)).image;
-            const cacheKey = JSON.stringify({name: _selectedImage.name, segmented: _showSegmentedImage, photoTourId: tourId});
+            const cacheKey = JSON.stringify({
+                name: _selectedImage.name,
+                segmented: _showSegmentedImage,
+                photoTourId: tourId,
+                parameter: _showSegmentedImage ? _segmentationParameter : ""
+            });
             const cachedImage = _imageCache.get(cacheKey);
             if (cachedImage != undefined) {
                 _virtualImage = cachedImage.image;
@@ -57,7 +63,7 @@
                 return;
             }
             _virtualImage = _showSegmentedImage
-                ? (await dashboardClient.segmentedImage(_selectedImage.name, tourId)) ?? undefined
+                ? (await dashboardClient.segmentedImage(_selectedImage.name, tourId, _segmentationParameter)) ?? undefined
                 : (await dashboardClient.virtualImage(_selectedImage.name, tourId)) ?? undefined;
             if (_imageCache.size >= 30) {
                 const entryToRemove = _imageCache.entries().reduce((prev, curr) => {
@@ -77,6 +83,9 @@
                 ? Math.max(0, (_currentDateIndex ?? 0) - _scrollSkip)
                 : Math.min(_filteredVirtualImages.length - 1, (_currentDateIndex ?? 0) + _scrollSkip);
         await updateVirtualImage(_selectedTour.id);
+        if (_selectedImage == undefined) return;
+        const dashboardClient = new DashboardClient();
+        _segmentationParameter = await dashboardClient.plantMaskParameterFor(_selectedImage.creationDate, _selectedTour.id);
     }
     async function selectedTourChanged(newTour: PhotoTourInfo | null) {
         if (newTour == null) return;
@@ -88,6 +97,7 @@
         _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
         _currentDateIndex = _virtualImages.length == 0 ? undefined : _virtualImages.length - 1;
         await updateVirtualImage(_selectedTour.id);
+        _segmentationParameter = await dashboardClient.plantMaskParameterFor();
         updateDownloadStatus();
     }
     async function updateDownloadStatus() {
@@ -157,13 +167,53 @@
                 bind:value={_showSegmentedImage}></Checkbox>
         </div>
     </div>
-    <div style="min-height: 500px;" on:wheel={nextImage} class="p-0">
+    <div style="min-height: 500px;flex-direction: row;flex:content;display:flex" on:wheel={nextImage} class="p-0">
         {#if _virtualImage == ""}
             <div></div>
+            <div style="flex:auto;width:1000px"></div>
         {:else if _virtualImage != undefined}
-            <img style="max-width: 100%;max-height:74vh" alt="Stitched Result" src="data:image/png;base64,{_virtualImage}" />
+            <img style="max-width: 85%;max-height:79vh" alt="Stitched Result" src="data:image/png;base64,{_virtualImage}" />
+            <div style="flex:auto;"></div>
         {:else}
             <div>Scroll to change image</div>
+            <div style="flex:auto;width:1000px"></div>
         {/if}
+        <div class="d-flex flex-column colm-3" style="width: 15%;">
+            {#if _segmentationParameter != undefined && _showSegmentedImage && _selectedTour != undefined && _selectedTour != null}
+                {@const tourId = _selectedTour.id}
+                <NumberInput
+                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    label="Low Hue"
+                    bind:value={_segmentationParameter.hLow}></NumberInput>
+                <NumberInput
+                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    label="High Hue"
+                    bind:value={_segmentationParameter.hHigh}></NumberInput>
+                <NumberInput
+                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    label="Low Saturation"
+                    bind:value={_segmentationParameter.sLow}></NumberInput>
+                <NumberInput
+                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    label="High Saturation"
+                    bind:value={_segmentationParameter.sHigh}></NumberInput>
+                <NumberInput
+                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    label="Low Lumination"
+                    bind:value={_segmentationParameter.lLow}></NumberInput>
+                <NumberInput
+                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    label="High Lumination"
+                    bind:value={_segmentationParameter.lHigh}></NumberInput>
+                <NumberInput
+                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    label="Opening Iterations"
+                    bind:value={_segmentationParameter.openingIterations}></NumberInput>
+                <Checkbox
+                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    label="Otsu Thresholding"
+                    bind:value={_segmentationParameter.useOtsu}></Checkbox>
+            {/if}
+        </div>
     </div>
 </div>

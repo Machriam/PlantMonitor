@@ -97,8 +97,8 @@ public class PhotoTourSummaryWorkerTests
         var sut = CreatePhotoTourSummaryWorker();
         var zipData2 = sut.GetDataFromZip(testZip2);
         var zipData1 = sut.GetDataFromZip(testZip1);
-        var result2 = sut.GetPlantMask(zipData2.VisImage);
-        var result1 = sut.GetPlantMask(zipData1.VisImage);
+        var result2 = sut.GetPlantMask(zipData2.VisImage, new());
+        var result1 = sut.GetPlantMask(zipData1.VisImage, new());
         result2.ShowImage("Heat Stress During");
         result1.ShowImage("Heat Stress Before");
     }
@@ -127,7 +127,7 @@ public class PhotoTourSummaryWorkerTests
         var sut = CreatePhotoTourSummaryWorker();
         var zipData = sut.GetDataFromZip(testZip);
         var result = sut.SubImageBorderMask(zipData.VisImage);
-        var plantMask = sut.GetPlantMask(zipData.VisImage);
+        var plantMask = sut.GetPlantMask(zipData.VisImage, new());
         result.ShowImage("PlantMask", 200);
         zipData.VisImage.ShowImage("Vis Original", 200);
         zipData.VisImage.Dispose();
@@ -144,7 +144,7 @@ public class PhotoTourSummaryWorkerTests
         {
             var zipData = sut.GetDataFromZip(file);
             var fileName = Path.GetFileNameWithoutExtension(file);
-            var plantMask = sut.GetPlantMask(zipData.VisImage);
+            var plantMask = sut.GetPlantMask(zipData.VisImage, new());
             plantMask.ShowImage("PlantMask " + fileName, 200);
             zipData.VisImage.ShowImage("VisOriginal " + fileName, 200);
             zipData.VisImage.Dispose();
@@ -159,7 +159,7 @@ public class PhotoTourSummaryWorkerTests
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
         var zipData = sut.GetDataFromZip(testZip);
-        var result = sut.GetPlantMask(zipData.VisImage);
+        var result = sut.GetPlantMask(zipData.VisImage, new());
         result.ShowImage("PlantMask", 200);
         zipData.VisImage.ShowImage("Vis Original", 200);
         zipData.VisImage.Dispose();
