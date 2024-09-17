@@ -88,21 +88,25 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     }
 
     [HttpGet("virtualimage")]
-    public byte[] VirtualImage(string name, long photoTourId)
+    public byte[]? VirtualImage(string name, long photoTourId)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
-        using var zip = ZipFile.Open(Path.Combine(folder, Path.GetFileName(name)), ZipArchiveMode.Read);
+        var zipFile = Path.Combine(folder, Path.GetFileName(name));
+        if (!Path.Exists(zipFile)) return null;
+        using var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
         var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
         return visPicture.Open().ConvertToArray();
     }
 
     [HttpGet("segmentedimage")]
-    public byte[] SegmentedImage(string name, long photoTourId)
+    public byte[]? SegmentedImage(string name, long photoTourId)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
-        using var zip = ZipFile.Open(Path.Combine(folder, Path.GetFileName(name)), ZipArchiveMode.Read);
+        var zipFile = Path.Combine(folder, Path.GetFileName(name));
+        if (!Path.Exists(zipFile)) return null;
+        using var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
         var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
         var tempPng = Path.Combine(Directory.CreateTempSubdirectory().FullName, "temp.png");
         var tempMask = Path.Combine(Directory.CreateTempSubdirectory().FullName, "tempMask.png");

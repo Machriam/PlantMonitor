@@ -5,10 +5,13 @@
     import PlantSummary from "./PlantSummary.svelte";
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import {onMount} from "svelte";
-    import {AutomaticPhotoTourClient, PhotoTourInfo} from "~/services/GatewayAppApi";
+    import {AutomaticPhotoTourClient, PhotoTourInfo, VirtualImageInfo} from "~/services/GatewayAppApi";
     let _filteredIndices = 0;
     let _selectedTab: SelectedDashboardTab = SelectedDashboardTab.plantSummary;
     let _photoTours: PhotoTourInfo[] = [];
+    let _selectedImage: VirtualImageInfo | undefined;
+    let _virtualImage: string | undefined;
+    let _currentDateIndex: number | undefined;
     onMount(async () => {
         $_virtualImageFilterByTime = new Set();
         _virtualImageFilterByTime.subscribe((value) => {
@@ -24,6 +27,23 @@
             return x;
         });
     }
+    function removeSelectedImageFromFilter() {
+        _virtualImageFilterByTime.update((vi) => {
+            if (_selectedImage == undefined || vi.size == 0) return vi;
+            const selectedTime = _selectedImage.creationDate.getTime() ?? 0;
+            const timeToRemove = Array.from(vi)
+                .map((x) => ({
+                    diff: Math.abs(x - selectedTime),
+                    time: x
+                }))
+                .toSorted((a, b) => a.diff - b.diff)[0];
+            vi.delete(timeToRemove.time);
+            return vi;
+        });
+        _selectedImage = undefined;
+        _virtualImage = undefined;
+        _currentDateIndex = undefined;
+    }
 </script>
 
 <svelte:head><title>Dashboard</title></svelte:head>
@@ -36,13 +56,16 @@
             class="btn btn-dark col-md-2 {_selectedTab == value ? 'opacity-100' : 'opacity-50'}"
             >{DasboardTabDescriptions.get(value)}</button>
     {/each}
-    <div class="col-md-3"></div>
+    <div class="col-md-2"></div>
     <div class="col-md-2">Filtered Indices: {_filteredIndices}</div>
     <button on:click={clearFilter} class="col-md-1 btn btn-danger">Clear</button>
+    {#if _filteredIndices > 0 && _currentDateIndex != undefined}
+        <button on:click={removeSelectedImageFromFilter} class="col-md-2 btn btn-danger">Remove {_currentDateIndex + 1}</button>
+    {/if}
 </div>
 <hr class="col-md-12" />
 <div style="display: {_selectedTab == SelectedDashboardTab.virtualPhotoViewer ? 'unset' : 'none'}">
-    <VirtualImageViewer>
+    <VirtualImageViewer bind:_selectedImage bind:_virtualImage bind:_currentDateIndex>
         <div style="overflow-x:auto;white-space:nowrap" class="d-flex flex-row rowm-3 col-md-5">
             {#each _photoTours as tour}
                 <button
