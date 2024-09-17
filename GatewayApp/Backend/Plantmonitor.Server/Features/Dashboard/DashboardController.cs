@@ -27,10 +27,8 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     public IEnumerable<VirtualImageInfo> VirtualImageList(long photoTourId)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
-        var result = Directory.EnumerateFiles(configuration.VirtualImagePath(photoTour.Name, photoTour.Id))
-            .Select(f => new VirtualImageInfo(Path.GetFileName(f), PhotoTourTrip.DateFromVirtualImage(f)))
-            .ToList();
-        return result;
+        return Directory.EnumerateFiles(configuration.VirtualImagePath(photoTour.Name, photoTour.Id))
+            .Select(f => new VirtualImageInfo(Path.GetFileName(f), PhotoTourTrip.DateFromVirtualImage(f)));
     }
 
     [HttpGet("fullsummaryinformation")]

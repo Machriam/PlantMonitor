@@ -102,10 +102,9 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                 .Where(ptt => ptt.SegmentationTemplateJson != null)
                 .OrderBy(ptt => ptt.VirtualPicturePath)
                 .ToList();
-            var currentDate = context.PhotoTourTrips
-                .FirstOrDefault(ptt => ptt.VirtualPicturePath == nextImage.Key)?.Timestamp;
+            var tripTime = PhotoTourTrip.DateFromVirtualImage(nextImage.Key);
             var segmentationTemplate = templatedTrips
-                .LastOrDefault(tt => tt.Timestamp <= currentDate)?
+                .LastOrDefault(tt => tt.Timestamp <= tripTime)?
                 .SegmentationTemplateJson ?? SegmentationTemplate.GetDefault();
             logger.LogInformation("Using template {image}", segmentationTemplate.AsJson());
             var pixelSummary = ProcessImage(nextImage.Key, segmentationTemplate);
