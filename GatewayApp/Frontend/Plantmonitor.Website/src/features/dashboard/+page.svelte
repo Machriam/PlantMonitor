@@ -39,6 +39,7 @@
     <div class="col-md-3"></div>
     <div class="col-md-2">Filtered Indices: {_filteredIndices}</div>
     <button on:click={clearFilter} class="col-md-1 btn btn-danger">Clear</button>
+    <button on:click={clearFilter} class="col-md-1 btn btn-danger">Remove selected</button>
 </div>
 <hr class="col-md-12" />
 <div style="display: {_selectedTab == SelectedDashboardTab.virtualPhotoViewer ? 'unset' : 'none'}">

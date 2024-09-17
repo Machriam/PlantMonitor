@@ -137,7 +137,7 @@
                 bind:value={_showSegmentedImage}></Checkbox>
         </div>
     </div>
-    <div on:wheel={nextImage} class="p-0">
+    <div style="min-height: 500px;" on:wheel={nextImage} class="p-0">
         {#if _virtualImage != undefined}
             <img style="max-width: 100%;max-height:74vh" alt="Stitched Result" src="data:image/png;base64,{_virtualImage}" />
         {/if}
