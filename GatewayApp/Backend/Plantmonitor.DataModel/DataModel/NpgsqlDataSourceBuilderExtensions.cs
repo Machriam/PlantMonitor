@@ -10,13 +10,16 @@ public class DateTimeConverter : JsonConverter<DateTime>
     public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var text = reader.GetString();
-        if (text == null) return DateTime.MinValue;
-        return DateTime.Parse(text);
+        if (string.IsNullOrEmpty(text)) return DateTime.MinValue;
+        return text[^1] == 'Z' ?
+            DateTime.Parse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal) :
+            DateTime.Parse(text);
     }
 
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(DateTime.SpecifyKind(value, DateTimeKind.Utc));
+        var textValue = DateTime.SpecifyKind(value, DateTimeKind.Utc).ToString("o", CultureInfo.InvariantCulture);
+        writer.WriteStringValue(textValue);
     }
 }
 

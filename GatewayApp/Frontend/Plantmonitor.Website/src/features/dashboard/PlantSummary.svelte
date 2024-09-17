@@ -195,7 +195,8 @@
                                     `<span class=\"col-md-4\">${x.descriptor?.tooltipFormatter(x.value.value[1])}</span>` +
                                     "</span>"
                             )
-                            .join("") + params[0].value[0].toLocaleString()
+                            .join("") +
+                        params[0].value[0].toLocaleString()
                     );
                 }
             },
@@ -247,6 +248,9 @@
         if (newTour == null) return;
         const dashboardClient = new DashboardClient();
         _virtualImageSummaries = await dashboardClient.summaryForTour(newTour.id);
+        _virtualImageSummaries = _virtualImageSummaries.toSorted(
+            (a, b) => a.imageDescriptors.tripStart.getTime() - b.imageDescriptors.tripStart.getTime()
+        );
         _chart?.dispose();
         _chart = undefined;
         _selectedPlants = [];

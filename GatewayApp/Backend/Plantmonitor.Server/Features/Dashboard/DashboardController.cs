@@ -107,14 +107,11 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var photoTour = context.AutomaticPhotoTours
             .Include(apt => apt.PhotoTourTrips)
             .First(apt => apt.Id == photoTourId);
-        var timeText = virtualImageTime.Value.ToString(PhotoTourTrip.TimestampFormat);
         var tripByTime = photoTour.PhotoTourTrips
-            .Select(ptt => new { Trip = ptt, Time = ptt.Timestamp })
-            .OrderBy(ptt => ptt.Time)
+            .Where(ptt => ptt.SegmentationTemplateJson != null)
+            .OrderBy(ptt => ptt.Timestamp)
             .ToList();
-        var trip = tripByTime.Find(ptt => ptt.Time == virtualImageTime);
-        if (trip == null) return SegmentationTemplate.GetDefault();
-        var result = tripByTime.LastOrDefault(t => t.Time <= trip.Time && t.Trip.SegmentationTemplateJson != null)?.Trip;
+        var result = tripByTime.LastOrDefault(t => t.Timestamp <= virtualImageTime);
         return result?.SegmentationTemplateJson ?? SegmentationTemplate.GetDefault();
     }
 
@@ -126,7 +123,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
             .First(apt => apt.Id == photoTourId);
         var trip = photoTour.PhotoTourTrips
             .First(ptt => ptt.Timestamp == virtualImageTime);
-        trip.SegmentationTemplateJson = parameter;
+        trip.SegmentationTemplateJson = parameter == SegmentationTemplate.GetDefault() ? null : parameter;
         context.SaveChanges();
     }
 
