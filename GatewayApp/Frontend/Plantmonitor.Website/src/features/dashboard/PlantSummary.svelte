@@ -11,6 +11,7 @@
     import {Download} from "~/types/Download";
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/store";
+    import {Pipe} from "~/types/Pipe";
     class DescriptorInfo {
         name: string;
         unit: string;
@@ -195,8 +196,7 @@
                                     `<span class=\"col-md-4\">${x.descriptor?.tooltipFormatter(x.value.value[1])}</span>` +
                                     "</span>"
                             )
-                            .join("") +
-                        params[0].value[0].toLocaleString()
+                            .join("") + new Pipe().forDate(params[0].value[0]).formatDate()
                     );
                 }
             },
