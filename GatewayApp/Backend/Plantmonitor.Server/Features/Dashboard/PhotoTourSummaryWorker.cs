@@ -11,14 +11,9 @@ using Plantmonitor.Server.Features.AutomaticPhotoTour;
 
 namespace Plantmonitor.Server.Features.Dashboard;
 
-public record struct PlantMaskParameter(double HLow, double HHigh, double SLow, double SHigh, double LLow, double LHigh, bool UseOtsu, int OpeningIterations)
-{
-    public static PlantMaskParameter GetDefault() => new(40d, 130d, 5d, 100d, 20d, 100d, true, 2);
-}
-
 public interface IPhotoTourSummaryWorker
 {
-    Mat GetPlantMask(Mat visMat, PlantMaskParameter parameter);
+    Mat GetPlantMask(Mat visMat, SegmentationTemplate parameter);
 
     void RecalculateSummaries(long photoTourId);
 }
@@ -103,7 +98,17 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         Action action = () =>
         {
             logger.LogInformation("Processing virtual image {image}", nextImage.Key);
-            var pixelSummary = ProcessImage(nextImage.Key);
+            var templatedTrips = context.PhotoTourTrips
+                .Where(ptt => ptt.SegmentationTemplateJson != null)
+                .OrderBy(ptt => ptt.VirtualPicturePath)
+                .ToList();
+            var currentDate = context.PhotoTourTrips
+                .FirstOrDefault(ptt => ptt.VirtualPicturePath == nextImage.Key)?.Timestamp;
+            var segmentationTemplate = templatedTrips
+                .LastOrDefault(tt => tt.Timestamp <= currentDate)?
+                .SegmentationTemplateJson ?? SegmentationTemplate.GetDefault();
+            logger.LogInformation("Using template {image}", segmentationTemplate.AsJson());
+            var pixelSummary = ProcessImage(nextImage.Key, segmentationTemplate);
             var imageResults = pixelSummary.GetResults();
             RemoveExistingSummary(logger, context, nextImage);
             context.VirtualImageSummaries.Add(new VirtualImageSummary()
@@ -167,10 +172,10 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         }
     }
 
-    public PhotoSummaryResult ProcessImage(string image)
+    public PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate)
     {
         var (visMat, rawIrMat, metaData) = GetDataFromZip(image);
-        var mask = GetPlantMask(visMat, new());
+        var mask = GetPlantMask(visMat, segmentationTemplate);
         var borderMask = SubImageBorderMask(visMat);
         var borderMaskData = borderMask.GetData(true);
         var maskData = mask.GetData(true);
@@ -273,7 +278,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         return mask;
     }
 
-    public Mat GetPlantMask(Mat visMat, PlantMaskParameter parameter)
+    public Mat GetPlantMask(Mat visMat, SegmentationTemplate parameter)
     {
         var hsvMat = new Mat();
         var mask = new Mat();
@@ -296,7 +301,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         foreach (var channel in hsvChannels) channel.Dispose();
     }
 
-    private static void MorphologicalOpening(Mat mask, PlantMaskParameter parameter)
+    private static void MorphologicalOpening(Mat mask, SegmentationTemplate parameter)
     {
         var element = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
         CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0));
@@ -304,7 +309,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         element.Dispose();
     }
 
-    private static void SegmentHsvColorSpace(Mat hsvMat, Mat mask, PlantMaskParameter parameter)
+    private static void SegmentHsvColorSpace(Mat hsvMat, Mat mask, SegmentationTemplate parameter)
     {
         var lowGreen = new ScalarArray(new MCvScalar(parameter.HLow / 360d * 255d, parameter.SLow / 100d * 255d, parameter.LLow / 100d * 255d));
         var highGreen = new ScalarArray(new MCvScalar(parameter.HHigh / 360d * 255d, parameter.SHigh / 100d * 255d, parameter.LHigh / 100d * 255d));

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing.Constraints;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.Dashboard;
 using Plantmonitor.Server.Features.DeviceConfiguration;
@@ -36,7 +37,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/SmallPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        var result = sut.ProcessImage(testZip);
+        var result = sut.ProcessImage(testZip, SegmentationTemplate.GetDefault());
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
         File.WriteAllText(s_testZipFolder + "/SmallPlantsTestResult.json", imageDescriptors.AsJson(writeIndented: true));
         var expectedLeafCount = File.ReadAllText(s_testZipFolder + "/CorrectLeafCount_SmallPlantsTestResult.json").FromJson<List<PhotoSummaryResult.ImageResult>>() ?? new();
@@ -53,7 +54,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/EmptyImage.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        var result = sut.ProcessImage(testZip);
+        var result = sut.ProcessImage(testZip, SegmentationTemplate.GetDefault());
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
         imageDescriptors.Count().Should().Be(0);
         var photoTrip = result.GetPhotoTripData;
@@ -71,7 +72,7 @@ public class PhotoTourSummaryWorkerTests
         var testZip = s_testZipFolder + "/LeafOutOfRange.zip";
         var expectedData = File.ReadAllText(s_testZipFolder + "/LeafOutOfRange_Expected.txt");
         var sut = CreatePhotoTourSummaryWorker();
-        var result = sut.ProcessImage(testZip);
+        var result = sut.ProcessImage(testZip, SegmentationTemplate.GetDefault());
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
         var leafsOutOfRange = imageDescriptors
             .Where(id => id.LeafOutOfRange)
@@ -85,7 +86,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/6_6_NotInDictionaryTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        var result = sut.ProcessImage(testZip);
+        var result = sut.ProcessImage(testZip, SegmentationTemplate.GetDefault());
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
     }
 
@@ -97,8 +98,8 @@ public class PhotoTourSummaryWorkerTests
         var sut = CreatePhotoTourSummaryWorker();
         var zipData2 = sut.GetDataFromZip(testZip2);
         var zipData1 = sut.GetDataFromZip(testZip1);
-        var result2 = sut.GetPlantMask(zipData2.VisImage, new());
-        var result1 = sut.GetPlantMask(zipData1.VisImage, new());
+        var result2 = sut.GetPlantMask(zipData2.VisImage, SegmentationTemplate.GetDefault());
+        var result1 = sut.GetPlantMask(zipData1.VisImage, SegmentationTemplate.GetDefault());
         result2.ShowImage("Heat Stress During");
         result1.ShowImage("Heat Stress Before");
     }
@@ -108,7 +109,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        var result = sut.ProcessImage(testZip);
+        var result = sut.ProcessImage(testZip, SegmentationTemplate.GetDefault());
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
         File.WriteAllText(s_testZipFolder + "/BigPlantsTestResult.json", imageDescriptors.AsJson(writeIndented: true));
         var expectedLeafCount = File.ReadAllText(s_testZipFolder + "/CorrectLeafCount_BigPlantsTestResult.json").FromJson<List<PhotoSummaryResult.ImageResult>>() ?? new();
@@ -127,7 +128,7 @@ public class PhotoTourSummaryWorkerTests
         var sut = CreatePhotoTourSummaryWorker();
         var zipData = sut.GetDataFromZip(testZip);
         var result = sut.SubImageBorderMask(zipData.VisImage);
-        var plantMask = sut.GetPlantMask(zipData.VisImage, new());
+        var plantMask = sut.GetPlantMask(zipData.VisImage, SegmentationTemplate.GetDefault());
         result.ShowImage("PlantMask", 200);
         zipData.VisImage.ShowImage("Vis Original", 200);
         zipData.VisImage.Dispose();
@@ -144,7 +145,7 @@ public class PhotoTourSummaryWorkerTests
         {
             var zipData = sut.GetDataFromZip(file);
             var fileName = Path.GetFileNameWithoutExtension(file);
-            var plantMask = sut.GetPlantMask(zipData.VisImage, new());
+            var plantMask = sut.GetPlantMask(zipData.VisImage, SegmentationTemplate.GetDefault());
             plantMask.ShowImage("PlantMask " + fileName, 200);
             zipData.VisImage.ShowImage("VisOriginal " + fileName, 200);
             zipData.VisImage.Dispose();
@@ -159,7 +160,7 @@ public class PhotoTourSummaryWorkerTests
         var testZip = s_testZipFolder + "/BigPlantsTest.zip";
         var sut = CreatePhotoTourSummaryWorker();
         var zipData = sut.GetDataFromZip(testZip);
-        var result = sut.GetPlantMask(zipData.VisImage, new());
+        var result = sut.GetPlantMask(zipData.VisImage, SegmentationTemplate.GetDefault());
         result.ShowImage("PlantMask", 200);
         zipData.VisImage.ShowImage("Vis Original", 200);
         zipData.VisImage.Dispose();

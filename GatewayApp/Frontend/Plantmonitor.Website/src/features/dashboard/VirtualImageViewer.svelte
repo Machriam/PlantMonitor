@@ -1,6 +1,6 @@
 <script lang="ts">
     import {onDestroy, onMount} from "svelte";
-    import {DashboardClient, DownloadInfo, PhotoTourInfo, PlantMaskParameter, VirtualImageInfo} from "~/services/GatewayAppApi";
+    import {DashboardClient, DownloadInfo, PhotoTourInfo, SegmentationTemplate, VirtualImageInfo} from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/Download";
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
@@ -16,7 +16,7 @@
     let _filteredVirtualImages: Date[] = [];
     let _unsubscriber: Unsubscriber[] = [];
     let _downloadInfo: DownloadInfo[] = [];
-    let _segmentationParameter: PlantMaskParameter | undefined;
+    let _segmentationParameter: SegmentationTemplate | undefined;
     let _showSegmentedImage: boolean = false;
     let _imageCache = new Map<string, {image: string; added: Date}>();
 
@@ -137,6 +137,11 @@
         if (info?.readyToDownload) return `Download ready (${info.sizeToDownloadInGb.toFixed(2)} GB)`;
         return `Compressing Status: ${info.currentSize.toFixed(2)}/${info.sizeToDownloadInGb.toFixed(2)} GB`;
     }
+    async function UpdateSegmentation() {
+        if (_selectedImage == undefined || _selectedTour == undefined || _segmentationParameter == undefined) return;
+        const dashboardClient = new DashboardClient();
+        dashboardClient.storeCustomSegmentation(_segmentationParameter, _selectedImage.creationDate, _selectedTour.id);
+    }
 </script>
 
 <div class="col-md-12 row mt-2">
@@ -213,6 +218,7 @@
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="Otsu Thresholding"
                     bind:value={_segmentationParameter.useOtsu}></Checkbox>
+                <button on:click={UpdateSegmentation} class="btn btn-primary">Update Segmentation</button>
             {/if}
         </div>
     </div>

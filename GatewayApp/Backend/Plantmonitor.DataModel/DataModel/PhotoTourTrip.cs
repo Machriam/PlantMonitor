@@ -17,6 +17,8 @@ public partial class PhotoTourTrip
 
     public string? VirtualPicturePath { get; set; }
 
+    public string? SegmentationTemplate { get; set; }
+
     public virtual AutomaticPhotoTour PhotoTourFkNavigation { get; set; } = null!;
 
     public virtual ICollection<PlantExtractionTemplate> PlantExtractionTemplates { get; set; } = new List<PlantExtractionTemplate>();
