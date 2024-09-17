@@ -1890,9 +1890,9 @@ export interface IDashboardClient {
 
     temperatureSummary(photoTourId?: number | undefined): Promise<TemperatureSummaryData[]>;
 
-    virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string>;
+    virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null>;
 
-    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string>;
+    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null>;
 
     statusOfDownloadTourData(): Promise<DownloadInfo[]>;
 
@@ -2094,7 +2094,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         return Promise.resolve<TemperatureSummaryData[]>(null as any);
     }
 
-    virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string> {
+    virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null> {
         let url_ = this.baseUrl + "/api/Dashboard/virtualimage?";
         if (name === null)
             throw new Error("The parameter 'name' cannot be null.");
@@ -2120,7 +2120,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         });
     }
 
-    protected processVirtualImage(response: Response): Promise<string> {
+    protected processVirtualImage(response: Response): Promise<string | null> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2136,10 +2136,10 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<string>(null as any);
+        return Promise.resolve<string | null>(null as any);
     }
 
-    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string> {
+    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null> {
         let url_ = this.baseUrl + "/api/Dashboard/segmentedimage?";
         if (name === null)
             throw new Error("The parameter 'name' cannot be null.");
@@ -2165,7 +2165,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         });
     }
 
-    protected processSegmentedImage(response: Response): Promise<string> {
+    protected processSegmentedImage(response: Response): Promise<string | null> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2181,7 +2181,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<string>(null as any);
+        return Promise.resolve<string | null>(null as any);
     }
 
     statusOfDownloadTourData(): Promise<DownloadInfo[]> {

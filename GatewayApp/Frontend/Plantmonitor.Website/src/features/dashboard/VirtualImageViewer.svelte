@@ -57,8 +57,8 @@
                 return;
             }
             _virtualImage = _showSegmentedImage
-                ? await dashboardClient.segmentedImage(_selectedImage.name, tourId)
-                : await dashboardClient.virtualImage(_selectedImage.name, tourId);
+                ? (await dashboardClient.segmentedImage(_selectedImage.name, tourId)) ?? undefined
+                : (await dashboardClient.virtualImage(_selectedImage.name, tourId)) ?? undefined;
             if (_imageCache.size >= 30) {
                 const entryToRemove = _imageCache.entries().reduce((prev, curr) => {
                     if (prev[1].added.getTime() < curr[1].added.getTime()) return prev;
@@ -66,7 +66,8 @@
                 })[0];
                 _imageCache.delete(entryToRemove);
             }
-            _imageCache.set(cacheKey, {image: _virtualImage, added: new Date()});
+            if (_virtualImage != undefined && _virtualImage.length > 0)
+                _imageCache.set(cacheKey, {image: _virtualImage, added: new Date()});
         }
     }
     async function nextImage(event: WheelEvent) {
