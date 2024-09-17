@@ -17,6 +17,7 @@
     let _unsubscriber: Unsubscriber[] = [];
     let _downloadInfo: DownloadInfo[] = [];
     let _showSegmentedImage: boolean = false;
+    let _imageCache = new Map<string, {image: string; added: Date}>();
 
     onMount(async () => {
         _unsubscriber.push(
@@ -48,9 +49,24 @@
                     image: vi
                 }))
                 .reduce((prev, curr) => (prev.diff < curr.diff ? prev : curr)).image;
+            const cacheKey = JSON.stringify({name: _selectedImage.name, segmented: _showSegmentedImage, photoTourId: tourId});
+            const cachedImage = _imageCache.get(cacheKey);
+            if (cachedImage != undefined) {
+                _virtualImage = cachedImage.image;
+                _imageCache.set(cacheKey, {image: cachedImage.image, added: new Date()});
+                return;
+            }
             _virtualImage = _showSegmentedImage
                 ? await dashboardClient.segmentedImage(_selectedImage.name, tourId)
                 : await dashboardClient.virtualImage(_selectedImage.name, tourId);
+            if (_imageCache.size >= 30) {
+                const entryToRemove = _imageCache.entries().reduce((prev, curr) => {
+                    if (prev[1].added.getTime() < curr[1].added.getTime()) return prev;
+                    return curr;
+                })[0];
+                _imageCache.delete(entryToRemove);
+            }
+            _imageCache.set(cacheKey, {image: _virtualImage, added: new Date()});
         }
     }
     async function nextImage(event: WheelEvent) {
