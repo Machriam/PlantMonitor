@@ -52,7 +52,12 @@ var dataSource = dataSourceBuilder.Configure().Build();
 builder.Services.AddDbContext<IDataContext, DataContext>(
     options => options.UseNpgsql(dataSource, npg => npg.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
 
-builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.Converters.Add(new DateTimeConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR().AddMessagePackProtocol();

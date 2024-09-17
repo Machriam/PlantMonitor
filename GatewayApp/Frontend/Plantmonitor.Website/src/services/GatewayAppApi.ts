@@ -1892,7 +1892,11 @@ export interface IDashboardClient {
 
     virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null>;
 
-    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null>;
+    plantMaskParameterFor(virtualImageTime?: Date | null | undefined, photoTourId?: number | null | undefined): Promise<SegmentationTemplate>;
+
+    storeCustomSegmentation(parameter: SegmentationTemplate, virtualImageTime?: Date | undefined, photoTourId?: number | undefined): Promise<void>;
+
+    segmentedImage(name?: string | undefined, photoTourId?: number | undefined, parameter?: SegmentationTemplate | undefined): Promise<string>;
 
     statusOfDownloadTourData(): Promise<DownloadInfo[]>;
 
@@ -2139,15 +2143,11 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         return Promise.resolve<string | null>(null as any);
     }
 
-    segmentedImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null> {
-        let url_ = this.baseUrl + "/api/Dashboard/segmentedimage?";
-        if (name === null)
-            throw new Error("The parameter 'name' cannot be null.");
-        else if (name !== undefined)
-            url_ += "name=" + encodeURIComponent("" + name) + "&";
-        if (photoTourId === null)
-            throw new Error("The parameter 'photoTourId' cannot be null.");
-        else if (photoTourId !== undefined)
+    plantMaskParameterFor(virtualImageTime?: Date | null | undefined, photoTourId?: number | null | undefined): Promise<SegmentationTemplate> {
+        let url_ = this.baseUrl + "/api/Dashboard/plantmaskparameter?";
+        if (virtualImageTime !== undefined && virtualImageTime !== null)
+            url_ += "virtualImageTime=" + encodeURIComponent(virtualImageTime ? "" + virtualImageTime.toISOString() : "") + "&";
+        if (photoTourId !== undefined && photoTourId !== null)
             url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -2161,11 +2161,103 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         return this.transformOptions(options_).then(transformedOptions_ => {
             return this.http.fetch(url_, transformedOptions_);
         }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processPlantMaskParameterFor(_response));
+        });
+    }
+
+    protected processPlantMaskParameterFor(response: Response): Promise<SegmentationTemplate> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SegmentationTemplate.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SegmentationTemplate>(null as any);
+    }
+
+    storeCustomSegmentation(parameter: SegmentationTemplate, virtualImageTime?: Date | undefined, photoTourId?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Dashboard/storecustomsegmentation?";
+        if (virtualImageTime === null)
+            throw new Error("The parameter 'virtualImageTime' cannot be null.");
+        else if (virtualImageTime !== undefined)
+            url_ += "virtualImageTime=" + encodeURIComponent(virtualImageTime ? "" + virtualImageTime.toISOString() : "") + "&";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(parameter);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processStoreCustomSegmentation(_response));
+        });
+    }
+
+    protected processStoreCustomSegmentation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    segmentedImage(name?: string | undefined, photoTourId?: number | undefined, parameter?: SegmentationTemplate | undefined): Promise<string> {
+        let url_ = this.baseUrl + "/api/Dashboard/segmentedimage?";
+        if (name === null)
+            throw new Error("The parameter 'name' cannot be null.");
+        else if (name !== undefined)
+            url_ += "name=" + encodeURIComponent("" + name) + "&";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(parameter);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
             return this.transformResult(url_, _response, (_response: Response) => this.processSegmentedImage(_response));
         });
     }
 
-    protected processSegmentedImage(response: Response): Promise<string | null> {
+    protected processSegmentedImage(response: Response): Promise<string> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -2181,7 +2273,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<string | null>(null as any);
+        return Promise.resolve<string>(null as any);
     }
 
     statusOfDownloadTourData(): Promise<DownloadInfo[]> {
@@ -3279,8 +3371,10 @@ export class PhotoTourTrip implements IPhotoTourTrip {
     visDataFolder!: string;
     timestamp!: Date;
     virtualPicturePath!: string | undefined;
+    segmentationTemplate!: string | undefined;
     photoTourFkNavigation!: AutomaticPhotoTour;
     plantExtractionTemplates!: PlantExtractionTemplate[];
+    segmentationTemplateJson!: SegmentationTemplate | undefined;
 
     constructor(data?: IPhotoTourTrip) {
         if (data) {
@@ -3299,12 +3393,14 @@ export class PhotoTourTrip implements IPhotoTourTrip {
             this.visDataFolder = _data["VisDataFolder"];
             this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
             this.virtualPicturePath = _data["VirtualPicturePath"];
+            this.segmentationTemplate = _data["SegmentationTemplate"];
             this.photoTourFkNavigation = _data["PhotoTourFkNavigation"] ? AutomaticPhotoTour.fromJS(_data["PhotoTourFkNavigation"]) : <any>undefined;
             if (Array.isArray(_data["PlantExtractionTemplates"])) {
                 this.plantExtractionTemplates = [] as any;
                 for (let item of _data["PlantExtractionTemplates"])
                     this.plantExtractionTemplates!.push(PlantExtractionTemplate.fromJS(item));
             }
+            this.segmentationTemplateJson = _data["SegmentationTemplateJson"] ? SegmentationTemplate.fromJS(_data["SegmentationTemplateJson"]) : <any>undefined;
         }
     }
 
@@ -3323,12 +3419,14 @@ export class PhotoTourTrip implements IPhotoTourTrip {
         data["VisDataFolder"] = this.visDataFolder;
         data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
         data["VirtualPicturePath"] = this.virtualPicturePath;
+        data["SegmentationTemplate"] = this.segmentationTemplate;
         data["PhotoTourFkNavigation"] = this.photoTourFkNavigation ? this.photoTourFkNavigation.toJSON() : <any>undefined;
         if (Array.isArray(this.plantExtractionTemplates)) {
             data["PlantExtractionTemplates"] = [];
             for (let item of this.plantExtractionTemplates)
                 data["PlantExtractionTemplates"].push(item.toJSON());
         }
+        data["SegmentationTemplateJson"] = this.segmentationTemplateJson ? this.segmentationTemplateJson.toJSON() : <any>undefined;
         return data;
     }
 
@@ -3347,8 +3445,81 @@ export interface IPhotoTourTrip {
     visDataFolder: string;
     timestamp: Date;
     virtualPicturePath: string | undefined;
+    segmentationTemplate: string | undefined;
     photoTourFkNavigation: AutomaticPhotoTour;
     plantExtractionTemplates: PlantExtractionTemplate[];
+    segmentationTemplateJson: SegmentationTemplate | undefined;
+}
+
+export class SegmentationTemplate implements ISegmentationTemplate {
+    hLow!: number;
+    hHigh!: number;
+    sLow!: number;
+    sHigh!: number;
+    lLow!: number;
+    lHigh!: number;
+    useOtsu!: boolean;
+    openingIterations!: number;
+
+    constructor(data?: ISegmentationTemplate) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.hLow = _data["HLow"];
+            this.hHigh = _data["HHigh"];
+            this.sLow = _data["SLow"];
+            this.sHigh = _data["SHigh"];
+            this.lLow = _data["LLow"];
+            this.lHigh = _data["LHigh"];
+            this.useOtsu = _data["UseOtsu"];
+            this.openingIterations = _data["OpeningIterations"];
+        }
+    }
+
+    static fromJS(data: any): SegmentationTemplate {
+        data = typeof data === 'object' ? data : {};
+        let result = new SegmentationTemplate();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["HLow"] = this.hLow;
+        data["HHigh"] = this.hHigh;
+        data["SLow"] = this.sLow;
+        data["SHigh"] = this.sHigh;
+        data["LLow"] = this.lLow;
+        data["LHigh"] = this.lHigh;
+        data["UseOtsu"] = this.useOtsu;
+        data["OpeningIterations"] = this.openingIterations;
+        return data;
+    }
+
+    clone(): SegmentationTemplate {
+        const json = this.toJSON();
+        let result = new SegmentationTemplate();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ISegmentationTemplate {
+    hLow: number;
+    hHigh: number;
+    sLow: number;
+    sHigh: number;
+    lLow: number;
+    lHigh: number;
+    useOtsu: boolean;
+    openingIterations: number;
 }
 
 export class TemperatureMeasurementValue implements ITemperatureMeasurementValue {

@@ -218,6 +218,9 @@ public partial class DataContext : DbContext, IDataContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.IrDataFolder).HasColumnName("ir_data_folder");
             entity.Property(e => e.PhotoTourFk).HasColumnName("photo_tour_fk");
+            entity.Property(e => e.SegmentationTemplate)
+                .HasColumnType("jsonb")
+                .HasColumnName("segmentation_template");
             entity.Property(e => e.Timestamp)
                 .HasDefaultValueSql("now()")
                 .HasColumnName("timestamp");

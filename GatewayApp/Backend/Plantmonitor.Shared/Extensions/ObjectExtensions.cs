@@ -2,6 +2,11 @@
 
 public static class ObjectExtensions
 {
+    public static TOut Pipe<TIn, TOut>(this TIn param, Func<TIn, TOut> pipe)
+    {
+        return pipe(param);
+    }
+
     public static async void RunInBackground(this Task task, Action<Exception> exceptionHandler)
     {
         try

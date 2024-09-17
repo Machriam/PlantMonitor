@@ -4,6 +4,8 @@
     export let label = "";
     export let step = 1;
     const guid = crypto.randomUUID();
+    export let valueHasChanged: (newValue: number) => void = () => {};
+    $: if (valueHasChanged) valueHasChanged(value);
 </script>
 
 <div class="{$$restProps.class || ''} form-floating">

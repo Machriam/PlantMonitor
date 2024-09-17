@@ -4,19 +4,19 @@ Width	Height	ImageWidth	ImageHeight	SizeOfPixelInMm	LeftPadding	TopPadding	Image
 
 ImageMetaData
 ImageIndex	ImageName	ImageComment	MotorPosition	HasIr	HasVis	IrTime	VisTime	IrTempInC
-1	Plant 1	Comment 1	-111	True	False	2024-12-30 12:50:50	2025-01-01 12:50:50	0.85 °C	
-2	Plant 2	Comment 2	-111	True	False	2024-12-29 12:50:50	2025-01-02 12:50:50	1.85 °C	
-3	Plant 3	Comment 3	-111	True	False	2024-12-28 12:50:50	2025-01-03 12:50:50	2.85 °C	
-4	Plant 4	Comment 4	-111	True	False	2024-12-27 12:50:50	2025-01-04 12:50:50	3.85 °C	
-5	Plant 5	Comment 5	-111	True	False	2024-12-26 12:50:50	2025-01-05 12:50:50	4.85 °C	
-6	Plant 6	Comment 6	-111	True	False	2024-12-25 12:50:50	2025-01-06 12:50:50	5.85 °C	
-7	Plant 7	Comment 7	-111	True	False	2024-12-24 12:50:50	2025-01-07 12:50:50	6.85 °C	
-8	Plant 8	Comment 8	-111	True	False	2024-12-23 12:50:50	2025-01-08 12:50:50	7.85 °C	
-9	Plant 9	Comment 9	-111	True	False	2024-12-22 12:50:50	2025-01-09 12:50:50	8.85 °C	
-10	Plant 10	Comment 10	-111	True	False	2024-12-21 12:50:50	2025-01-10 12:50:50	9.85 °C	
+1	Plant 1	Comment 1	-111	True	False	2024-12-30 12:50:50:000	2025-01-01 12:50:50:000	0.85 °C	
+2	Plant 2	Comment 2	-111	True	False	2024-12-29 12:50:50:000	2025-01-02 12:50:50:000	1.85 °C	
+3	Plant 3	Comment 3	-111	True	False	2024-12-28 12:50:50:000	2025-01-03 12:50:50:000	2.85 °C	
+4	Plant 4	Comment 4	-111	True	False	2024-12-27 12:50:50:000	2025-01-04 12:50:50:000	3.85 °C	
+5	Plant 5	Comment 5	-111	True	False	2024-12-26 12:50:50:000	2025-01-05 12:50:50:000	4.85 °C	
+6	Plant 6	Comment 6	-111	True	False	2024-12-25 12:50:50:000	2025-01-06 12:50:50:000	5.85 °C	
+7	Plant 7	Comment 7	-111	True	False	2024-12-24 12:50:50:000	2025-01-07 12:50:50:000	6.85 °C	
+8	Plant 8	Comment 8	-111	True	False	2024-12-23 12:50:50:000	2025-01-08 12:50:50:000	7.85 °C	
+9	Plant 9	Comment 9	-111	True	False	2024-12-22 12:50:50:000	2025-01-09 12:50:50:000	8.85 °C	
+10	Plant 10	Comment 10	-111	True	False	2024-12-21 12:50:50:000	2025-01-10 12:50:50:000	9.85 °C	
 
 
 TimeInfos
 StartTime	EndTime	TripName	PhotoTripId	PhotoTourId
-2024-12-31 12:40:50	2024-12-31 13:00:50	Trip	2	1	
+2024-12-31 12:40:50:000	2024-12-31 13:00:50:000	Trip	2	1	
 

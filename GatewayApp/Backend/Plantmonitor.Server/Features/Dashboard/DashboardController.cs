@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Unicode;
 using Emgu.CV;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
@@ -99,8 +100,35 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         return visPicture.Open().ConvertToArray();
     }
 
-    [HttpGet("segmentedimage")]
-    public byte[]? SegmentedImage(string name, long photoTourId)
+    [HttpGet("plantmaskparameter")]
+    public SegmentationTemplate PlantMaskParameterFor(DateTime? virtualImageTime, long? photoTourId)
+    {
+        if (virtualImageTime == null || photoTourId == null) return SegmentationTemplate.GetDefault();
+        var photoTour = context.AutomaticPhotoTours
+            .Include(apt => apt.PhotoTourTrips)
+            .First(apt => apt.Id == photoTourId);
+        var tripByTime = photoTour.PhotoTourTrips
+            .Where(ptt => ptt.SegmentationTemplateJson != null)
+            .OrderBy(ptt => ptt.Timestamp)
+            .ToList();
+        var result = tripByTime.LastOrDefault(t => t.Timestamp <= virtualImageTime);
+        return result?.SegmentationTemplateJson ?? SegmentationTemplate.GetDefault();
+    }
+
+    [HttpPost("storecustomsegmentation")]
+    public void StoreCustomSegmentation([FromBody] SegmentationTemplate parameter, DateTime virtualImageTime, long photoTourId)
+    {
+        var photoTour = context.AutomaticPhotoTours
+            .Include(apt => apt.PhotoTourTrips)
+            .First(apt => apt.Id == photoTourId);
+        var trip = photoTour.PhotoTourTrips
+            .First(ptt => ptt.Timestamp == virtualImageTime);
+        trip.SegmentationTemplateJson = parameter == SegmentationTemplate.GetDefault() ? null : parameter;
+        context.SaveChanges();
+    }
+
+    [HttpPost("segmentedimage")]
+    public byte[]? SegmentedImage(string name, long photoTourId, [FromBody] SegmentationTemplate? parameter = null)
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
@@ -112,7 +140,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var tempMask = Path.Combine(Directory.CreateTempSubdirectory().FullName, "tempMask.png");
         File.WriteAllBytes(tempPng, visPicture.Open().ConvertToArray());
         var visMat = CvInvoke.Imread(tempPng);
-        var mask = photoTourSummary.GetPlantMask(visMat);
+        var mask = photoTourSummary.GetPlantMask(visMat, parameter ?? SegmentationTemplate.GetDefault());
         visMat.Dispose();
         CvInvoke.Imwrite(tempMask, mask);
         mask.Dispose();

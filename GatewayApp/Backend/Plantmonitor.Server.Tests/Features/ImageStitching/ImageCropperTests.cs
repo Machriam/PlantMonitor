@@ -97,10 +97,10 @@ public class ImageCropperTests
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
         var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
         var irMat = sut.MatFromFile(irFile, out _);
-        sut.ApplyIrColorMap(irMat);
-        sut.Resize(irMat, 640);
-        irMat.ShowImage("CroppedIR");
-        irMat.Dispose();
+        sut.ApplyIrColorMap(irMat!);
+        sut.Resize(irMat!, 640);
+        irMat!.ShowImage("CroppedIR");
+        irMat!.Dispose();
     }
 
     [Fact]
@@ -110,13 +110,13 @@ public class ImageCropperTests
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
         var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
         var irMat = sut.MatFromFile(irFile, out _);
-        var resultMat = sut.CreateRawIr(irMat);
+        var resultMat = sut.CreateRawIr(irMat!);
         var resizeMat = resultMat.Clone();
         sut.Resize(resizeMat, 640);
         resizeMat.ShowImage("CroppedIR", 100);
         resultMat.Dispose();
         resizeMat.Dispose();
-        irMat.Dispose();
+        irMat!.Dispose();
     }
 
     [Fact]

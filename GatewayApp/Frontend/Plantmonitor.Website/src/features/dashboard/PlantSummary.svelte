@@ -11,6 +11,7 @@
     import {Download} from "~/types/Download";
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/store";
+    import {Pipe} from "~/types/Pipe";
     class DescriptorInfo {
         name: string;
         unit: string;
@@ -195,7 +196,7 @@
                                     `<span class=\"col-md-4\">${x.descriptor?.tooltipFormatter(x.value.value[1])}</span>` +
                                     "</span>"
                             )
-                            .join("") + params[0].value[0].toLocaleString()
+                            .join("") + new Pipe().forDate(params[0].value[0]).formatDate()
                     );
                 }
             },
@@ -247,6 +248,9 @@
         if (newTour == null) return;
         const dashboardClient = new DashboardClient();
         _virtualImageSummaries = await dashboardClient.summaryForTour(newTour.id);
+        _virtualImageSummaries = _virtualImageSummaries.toSorted(
+            (a, b) => a.imageDescriptors.tripStart.getTime() - b.imageDescriptors.tripStart.getTime()
+        );
         _chart?.dispose();
         _chart = undefined;
         _selectedPlants = [];

@@ -1,4 +1,3 @@
-
 interface String {
     isEmpty(): boolean;
     asBase64(): string;
@@ -71,7 +70,6 @@ Array.prototype.groupBy = function (this: Array<T>, selector: (x: T) => K): Map<
     }
     return result;
 }
-
 
 Number.prototype.kelvinToCelsius = function (this: number): number {
     return (this - 27315) / 100;

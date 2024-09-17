@@ -28,7 +28,7 @@ public interface ITsvFormattable
 public record struct VirtualImageMetaDataModel()
 {
     private static readonly string s_minDateString = DateTime.MinValue.ToString(DateFormat, CultureInfo.InvariantCulture);
-    private const string DateFormat = "yyyy-MM-dd HH:mm:ss";
+    private const string DateFormat = "yyyy-MM-dd HH:mm:ss:fff";
     public class ImageDimensions : ITsvFormattable
     {
         public ImageDimensions() { }
