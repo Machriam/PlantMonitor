@@ -6,6 +6,7 @@
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import {onMount} from "svelte";
     import {AutomaticPhotoTourClient, PhotoTourInfo, VirtualImageInfo} from "~/services/GatewayAppApi";
+    import {pipe} from "~/types/Pipe";
     let _filteredIndices = 0;
     let _selectedTab: SelectedDashboardTab = SelectedDashboardTab.plantSummary;
     let _photoTours: PhotoTourInfo[] = [];
@@ -19,7 +20,10 @@
         });
         const automaticPhototourClient = new AutomaticPhotoTourClient();
         _photoTours = await automaticPhototourClient.getPhotoTours();
-        _photoTours = _photoTours.toSorted((a, b) => a.lastEvent.orderByDescending(b.lastEvent));
+        _photoTours = pipe(_photoTours)
+            .apply((x) => x.filter((pt) => pt.tripCount > 0))
+            .orderByDescending((pt) => pt.tripCount)
+            .toArray();
     });
     function clearFilter() {
         _virtualImageFilterByTime.update((x) => {

@@ -2,16 +2,16 @@
     import * as echarts from "echarts";
     import {onDestroy, onMount} from "svelte";
     import {
-        AutomaticPhotoTourClient,
         DashboardClient,
         PhotoTourInfo,
         PlantImageDescriptors,
+        SegmentationParameter,
         VirtualImageSummary
     } from "~/services/GatewayAppApi";
     import {Download} from "~/types/Download";
-    import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import {_segmentationChanged, _selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/store";
-    import {Pipe} from "~/types/Pipe";
+    import {pipe} from "~/types/Pipe";
     class DescriptorInfo {
         name: string;
         unit: string;
@@ -25,12 +25,22 @@
     let _selectedDescriptors: DescriptorInfo[] = [];
     let _chart: echarts.ECharts | undefined;
     let _lastDataZoom: {start: number; end: number} = {start: 0, end: 100};
+    export let _segmentationParameter: SegmentationParameter[] = [];
     let _currentlyHoveredTimes: Date[] = [];
     let _chartData: {
         name: string;
         yAxisIndex: number;
         type: string;
         showSymbol: boolean;
+        markLine: {
+            data: {
+                symbol: string;
+                name: string;
+                xAxis: Date;
+                yAxis: number | string;
+                itemStyle: {color: string};
+            }[][];
+        };
         markPoint: {
             data: {
                 coord: (number | Date)[];
@@ -96,6 +106,14 @@
     onMount(async () => {
         _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
         _unsubscriber.push(_virtualImageFilterByTime.subscribe(() => updateMarkers()));
+        _unsubscriber.push(
+            _segmentationChanged.subscribe((x) => {
+                debugger;
+                if (_selectedTour == undefined) return;
+                _segmentationParameter = x;
+                updateMarkers();
+            })
+        );
     });
     onDestroy(() => {
         _unsubscriber.forEach((u) => u());
@@ -164,6 +182,7 @@
                     type: "line",
                     yAxisIndex: j,
                     markPoint: {data: []},
+                    markLine: {data: []},
                     showSymbol: false,
                     data: data
                 });
@@ -196,7 +215,7 @@
                                     `<span class=\"col-md-4\">${x.descriptor?.tooltipFormatter(x.value.value[1])}</span>` +
                                     "</span>"
                             )
-                            .join("") + new Pipe().forDate(params[0].value[0]).formatDate()
+                            .join("") + pipe(params[0].value[0]).formatDate()
                     );
                 }
             },
@@ -239,6 +258,25 @@
                                   symbolRotate: 180,
                                   itemStyle: {color: "black"}
                               }));
+                s.markLine.data =
+                    _segmentationParameter.length <= 1
+                        ? []
+                        : _segmentationParameter.map((sp) => [
+                              {
+                                  symbol: "none",
+                                  name: sp.template.name,
+                                  xAxis: sp.tripTime,
+                                  yAxis: 0,
+                                  itemStyle: {color: "black"}
+                              },
+                              {
+                                  symbol: "none",
+                                  name: sp.template.name,
+                                  xAxis: sp.tripTime,
+                                  yAxis: "max",
+                                  itemStyle: {color: "black"}
+                              }
+                          ]);
                 return s;
             })
         });
@@ -247,6 +285,7 @@
         _selectedTour = newTour;
         if (newTour == null) return;
         const dashboardClient = new DashboardClient();
+        _segmentationParameter = await dashboardClient.plantMaskParameterFor(newTour.id);
         _virtualImageSummaries = await dashboardClient.summaryForTour(newTour.id);
         _virtualImageSummaries = _virtualImageSummaries.toSorted(
             (a, b) => a.imageDescriptors.tripStart.getTime() - b.imageDescriptors.tripStart.getTime()

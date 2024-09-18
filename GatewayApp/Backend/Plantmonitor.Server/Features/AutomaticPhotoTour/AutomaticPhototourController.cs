@@ -13,7 +13,8 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     public record struct TemperatureMeasurementInfo(string Guid, string Comment);
     public record struct AutomaticTourStartInfo(float IntervallInMinutes, long MovementPlan, TemperatureMeasurementInfo[] TemperatureMeasureDevice,
         string Comment, string Name, string DeviceGuid, bool ShouldUseIR, float PixelSizeInMm);
-    public record struct PhotoTourInfo(string Name, bool Finished, long Id, DateTime FirstEvent, DateTime LastEvent, float IntervallInMinutes, string Comment, float PixelSizeInMm);
+    public record struct PhotoTourInfo(string Name, bool Finished, long Id, DateTime FirstEvent, DateTime LastEvent,
+        float IntervallInMinutes, string Comment, float PixelSizeInMm, int TripCount);
 
     [HttpPost("updatephototour")]
     public void UpdatePhotoTour(long id, float newIntervallInMinutes, float pixelSizeInMm)
@@ -68,9 +69,11 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     public IEnumerable<PhotoTourInfo> GetPhotoTours()
     {
         return context.AutomaticPhotoTours
+            .Include(apt => apt.PhotoTourTrips)
             .Include(apt => apt.PhotoTourEvents)
             .Select(apt => new PhotoTourInfo(apt.Name, apt.Finished, apt.Id, apt.PhotoTourEvents.Select(pte => pte.Timestamp).OrderBy(t => t).FirstOrDefault(),
-            apt.PhotoTourEvents.Select(pte => pte.Timestamp).OrderByDescending(t => t).FirstOrDefault(), apt.IntervallInMinutes, apt.Comment, apt.PixelSizeInMm));
+            apt.PhotoTourEvents.Select(pte => pte.Timestamp).OrderByDescending(t => t).FirstOrDefault(), apt.IntervallInMinutes, apt.Comment,
+            apt.PixelSizeInMm, apt.PhotoTourTrips.Count));
     }
 
     [HttpPost("startphototour")]

@@ -1,6 +1,7 @@
 import type { Mat } from "mirada/dist/src/types/opencv/Mat";
 import { printError } from "./CvUtils";
 import { ColormapTypes, OptionalCvFunctions } from "~/types/mirada";
+import { pipe } from "~/types/Pipe";
 export const IrScalingHeight = 480;
 export const IrScalingWidth = 640;
 export const IrHeight = 120;
@@ -102,7 +103,7 @@ export class CvInterop {
                     if (y > IrScalingHeight) y = IrScalingHeight;
                     if (x > IrScalingWidth) x = IrScalingWidth;
                     if (source.length < IrWidth * IrHeight) return -9999;
-                    const result = source[Math.floor(x / 4) + Math.floor(y / 4) * 160].kelvinToCelsius();
+                    const result = pipe(source[Math.floor(x / 4) + Math.floor(y / 4) * 160]).kelvinToCelsius();
                     return result;
                 }
             };
@@ -127,7 +128,7 @@ export class CvInterop {
     }
     displayVideoBuilder(imageElement: HTMLImageElement) {
         const videoUpdater = async function (value: Blob) {
-            const image = await value.asBase64Url();
+            const image = (await pipe(value).asBase64Url()).valueOf();
             if (image.length < 100) return;
             imageElement.src = image;
         }

@@ -1892,7 +1892,7 @@ export interface IDashboardClient {
 
     virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null>;
 
-    plantMaskParameterFor(virtualImageTime?: Date | null | undefined, photoTourId?: number | null | undefined): Promise<SegmentationTemplate>;
+    plantMaskParameterFor(photoTourId?: number | null | undefined): Promise<SegmentationParameter[]>;
 
     storeCustomSegmentation(parameter: SegmentationTemplate, virtualImageTime?: Date | undefined, photoTourId?: number | undefined): Promise<void>;
 
@@ -2143,10 +2143,8 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         return Promise.resolve<string | null>(null as any);
     }
 
-    plantMaskParameterFor(virtualImageTime?: Date | null | undefined, photoTourId?: number | null | undefined): Promise<SegmentationTemplate> {
+    plantMaskParameterFor(photoTourId?: number | null | undefined): Promise<SegmentationParameter[]> {
         let url_ = this.baseUrl + "/api/Dashboard/plantmaskparameter?";
-        if (virtualImageTime !== undefined && virtualImageTime !== null)
-            url_ += "virtualImageTime=" + encodeURIComponent(virtualImageTime ? "" + virtualImageTime.toISOString() : "") + "&";
         if (photoTourId !== undefined && photoTourId !== null)
             url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
         url_ = url_.replace(/[?&]$/, "");
@@ -2165,14 +2163,21 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
         });
     }
 
-    protected processPlantMaskParameterFor(response: Response): Promise<SegmentationTemplate> {
+    protected processPlantMaskParameterFor(response: Response): Promise<SegmentationParameter[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = SegmentationTemplate.fromJS(resultData200);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(SegmentationParameter.fromJS(item));
+            }
+            else {
+                result200 = <any>null;
+            }
             return result200;
             });
         } else if (status !== 200 && status !== 204) {
@@ -2180,7 +2185,7 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<SegmentationTemplate>(null as any);
+        return Promise.resolve<SegmentationParameter[]>(null as any);
     }
 
     storeCustomSegmentation(parameter: SegmentationTemplate, virtualImageTime?: Date | undefined, photoTourId?: number | undefined): Promise<void> {
@@ -3452,6 +3457,7 @@ export interface IPhotoTourTrip {
 }
 
 export class SegmentationTemplate implements ISegmentationTemplate {
+    name!: string;
     hLow!: number;
     hHigh!: number;
     sLow!: number;
@@ -3472,6 +3478,7 @@ export class SegmentationTemplate implements ISegmentationTemplate {
 
     init(_data?: any) {
         if (_data) {
+            this.name = _data["Name"];
             this.hLow = _data["HLow"];
             this.hHigh = _data["HHigh"];
             this.sLow = _data["SLow"];
@@ -3492,6 +3499,7 @@ export class SegmentationTemplate implements ISegmentationTemplate {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
+        data["Name"] = this.name;
         data["HLow"] = this.hLow;
         data["HHigh"] = this.hHigh;
         data["SLow"] = this.sLow;
@@ -3512,6 +3520,7 @@ export class SegmentationTemplate implements ISegmentationTemplate {
 }
 
 export interface ISegmentationTemplate {
+    name: string;
     hLow: number;
     hHigh: number;
     sLow: number;
@@ -5555,6 +5564,53 @@ export interface ITemperatureDatum {
     deviation: number;
 }
 
+export class SegmentationParameter implements ISegmentationParameter {
+    tripTime!: Date;
+    template!: SegmentationTemplate;
+
+    constructor(data?: ISegmentationParameter) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.tripTime = _data["TripTime"] ? new Date(_data["TripTime"].toString()) : <any>undefined;
+            this.template = _data["Template"] ? SegmentationTemplate.fromJS(_data["Template"]) : <any>undefined;
+        }
+    }
+
+    static fromJS(data: any): SegmentationParameter {
+        data = typeof data === 'object' ? data : {};
+        let result = new SegmentationParameter();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["TripTime"] = this.tripTime ? this.tripTime.toISOString() : <any>undefined;
+        data["Template"] = this.template ? this.template.toJSON() : <any>undefined;
+        return data;
+    }
+
+    clone(): SegmentationParameter {
+        const json = this.toJSON();
+        let result = new SegmentationParameter();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ISegmentationParameter {
+    tripTime: Date;
+    template: SegmentationTemplate;
+}
+
 export class DownloadInfo implements IDownloadInfo {
     photoTourId!: number;
     path!: string;
@@ -5674,6 +5730,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
     intervallInMinutes!: number;
     comment!: string;
     pixelSizeInMm!: number;
+    tripCount!: number;
 
     constructor(data?: IPhotoTourInfo) {
         if (data) {
@@ -5694,6 +5751,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
             this.intervallInMinutes = _data["IntervallInMinutes"];
             this.comment = _data["Comment"];
             this.pixelSizeInMm = _data["PixelSizeInMm"];
+            this.tripCount = _data["TripCount"];
         }
     }
 
@@ -5714,6 +5772,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
         data["IntervallInMinutes"] = this.intervallInMinutes;
         data["Comment"] = this.comment;
         data["PixelSizeInMm"] = this.pixelSizeInMm;
+        data["TripCount"] = this.tripCount;
         return data;
     }
 
@@ -5734,6 +5793,7 @@ export interface IPhotoTourInfo {
     intervallInMinutes: number;
     comment: string;
     pixelSizeInMm: number;
+    tripCount: number;
 }
 
 export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {

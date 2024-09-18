@@ -18,6 +18,7 @@
     import type {Unsubscriber} from "svelte/motion";
     import {selectedDevice} from "../store";
     import {Task} from "~/types/Task";
+    import {pipe} from "~/types/Pipe";
 
     export let deviceId: string;
     export let irSeries: string;
@@ -81,7 +82,7 @@
         visConnection.start(async (step, date, image, temperature) => {
             let dataUrl = "";
             let pixelConverter = undefined;
-            dataUrl = await image.asBase64Url();
+            dataUrl = (await pipe(image).asBase64Url()).valueOf();
             const thumbnail = await resizeBase64Img(dataUrl, 100, 100);
             _images.push({
                 imageUrl: dataUrl,
@@ -157,7 +158,7 @@
             context.textAlign = "center";
             const textMeasurement = context.measureText(_cutPolygon.position);
             const height = textMeasurement.fontBoundingBoxAscent + textMeasurement.fontBoundingBoxDescent;
-            if (!_cutPolygon.position.isEmpty()) context.strokeText(_cutPolygon.position, midX, midY - height);
+            if (!pipe(_cutPolygon.position).isEmpty()) context.strokeText(_cutPolygon.position, midX, midY - height);
             context.strokeText(_cutPolygon.name, midX, midY);
         }
     }

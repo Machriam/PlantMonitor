@@ -22,6 +22,7 @@
     import PictureStreamer from "../deviceProgramming/PictureStreamer.svelte";
     import Select from "../reuseableComponents/Select.svelte";
     import {formatHealthState} from "~/services/healthStateExtensions";
+    import {pipe} from "~/types/Pipe";
 
     let configurationData: {ipFrom: string; ipTo: string; userName: string; userPassword: string} = {
         ipFrom: "",
@@ -58,7 +59,7 @@
         if (ip == undefined) return;
         webSshLink = "";
         await Task.delay(100);
-        webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}`;
+        webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${pipe(webSshCredentials.password ?? "").asBase64()}`;
     }
     async function configureDevice(ip: string | undefined): Promise<void> {
         if (ip == undefined) return;
@@ -72,13 +73,15 @@
             `sudo apt-get install -y git;` +
             `git clone https://github.com/Machriam/PlantMonitor.git;cd PlantMonitor;git reset --hard;git pull; sudo chmod -R 755 *;cd PlantMonitorControl/Install;./install.sh;` +
             `exec bash;'`;
-        webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${webSshCredentials.password?.asBase64()}&command=${command.urlEncoded()}`;
+        webSshLink = `${webSshCredentials.protocol}://${location.hostname}:${webSshCredentials.port}/?hostname=${ip}&username=${webSshCredentials.user}&password=${pipe(webSshCredentials.password ?? "").asBase64()}&command=${pipe(command).urlEncoded()}`;
     }
     async function showPreviewImage(ip: string | undefined) {
         if (ip == undefined) return;
         const deviceClient = new DeviceClient();
         await deviceClient.killCamera(ip, CameraType.Vis);
-        previewImage = {dataUrl: await (await deviceClient.previewImage(ip, CameraType.Vis)).data.asBase64Url()};
+        previewImage = {
+            dataUrl: (await pipe((await deviceClient.previewImage(ip, CameraType.Vis)).data).asBase64Url()).valueOf()
+        };
     }
     async function calibrateExposure(ip: string | undefined) {
         if (ip == undefined) return;
@@ -153,7 +156,7 @@
         );
         const outletClient = new PowerOutletClient();
         for (let i = 0; i < switchDevices.length; i++) {
-            await outletClient.disablePrompts().switchOutlet(switchDevices[i].ip, code).try();
+            await pipe(outletClient.disablePrompts().switchOutlet(switchDevices[i].ip, code)).try();
             await Task.delay(200);
         }
     }
@@ -165,7 +168,7 @@
             const outletDevices = devices.filter((d) => d.health?.deviceId != undefined);
             for (let i = 0; i < outletDevices.length; i++) {
                 const deviceId = outletDevices[i].health.deviceId!;
-                const {result, error, hasError} = await outletClient.powerOutletForDevice(deviceId).try();
+                const {result, error, hasError} = await pipe(outletClient.powerOutletForDevice(deviceId)).try();
                 if (hasError) {
                     console.log(error);
                     outletByDevice[deviceId] = null;
@@ -287,15 +290,15 @@
         {/if}
     </div>
     <div class="col-md-6">
-        {#if !previewImage.dataUrl?.isEmpty()}
+        {#if !pipe(previewImage.dataUrl ?? "").isEmpty()}
             <img alt="preview" src={previewImage.dataUrl} />
         {/if}
         <PictureStreamer bind:this={pictureStreamer}></PictureStreamer>
         <div class="col-md-12" style="height:80vh;">
-            {#if !webSshLink.isEmpty()}
+            {#if !pipe(webSshLink).isEmpty()}
                 <iframe style="height: 100%;width:100%" title="Web SSH" src={webSshLink}></iframe>
             {/if}
-            {#if !logData.isEmpty()}
+            {#if !pipe(logData).isEmpty()}
                 <textarea style="height: 100%; width:100%">{logData.split("\n").toReversed().join("\n")}</textarea>
             {/if}
         </div>

@@ -16,6 +16,7 @@
     import * as echarts from "echarts";
     import TextInput from "../reuseableComponents/TextInput.svelte";
     import {DeviceStreaming} from "~/services/DeviceStreaming";
+    import {pipe} from "~/types/Pipe";
 
     let _connection: HubConnection | undefined;
     let _temperatureMeasurementById: Map<number, TemperatureMeasurement> = new Map();
@@ -130,8 +131,8 @@
 
     async function getMeasurements() {
         const temperatureClient = new TemperatureClient();
-        _temperatureMeasurementById = (await temperatureClient.measurements()).toDictionary((x) => x.id);
-        _runningMeasurementByIp = (await temperatureClient.getRunningMeasurements()).groupBy((x) => x.ip);
+        _temperatureMeasurementById = pipe(await temperatureClient.measurements()).toDictionary((x) => x.id);
+        _runningMeasurementByIp = pipe(await temperatureClient.getRunningMeasurements()).groupBy((x) => x.ip);
     }
 
     async function startMeasurement() {
@@ -206,7 +207,7 @@
     {/each}
     <div class="col-md-12 mt-2"></div>
     <button
-        disabled={_devices.length == 0 || _devices.filter((d) => d.comment.isEmpty()).length > 0}
+        disabled={_devices.length == 0 || _devices.filter((d) => pipe(d.comment).isEmpty()).length > 0}
         on:click={startMeasurement}
         class="btn btn-primary col-md-2">Start Measurement</button>
     <div class="col-md-12 row">

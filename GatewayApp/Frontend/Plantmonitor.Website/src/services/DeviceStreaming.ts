@@ -4,6 +4,7 @@ import * as signalRProtocols from "@microsoft/signalr-protocol-msgpack";
 import { Constants } from "~/Constants";
 import { CameraType, StreamingMetaData, TemperatureStreamData } from "./GatewayAppApi";
 import type { IRetryPolicy } from "@microsoft/signalr";
+import { pipe } from "~/types/Pipe";
 
 export interface IReplayedPicture {
     Timestamp: Date;
@@ -129,7 +130,7 @@ export class DeviceStreaming {
                     next: async (x) => {
                         const payload = x as IReplayedPicture;
                         const blob = new Blob([payload.PictureData], { type: "image/jpeg" });
-                        await callback(payload.Steps, payload.Timestamp, blob, payload.TemperatureInK.kelvinToCelsius());
+                        await callback(payload.Steps, payload.Timestamp, blob, pipe(payload.TemperatureInK).kelvinToCelsius());
                     },
                     complete: () => console.log("complete"),
                     error: (x) => console.log(x)

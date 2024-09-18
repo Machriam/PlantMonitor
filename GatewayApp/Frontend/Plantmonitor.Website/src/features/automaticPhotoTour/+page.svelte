@@ -18,6 +18,7 @@
     import {isValid} from "./AutomaticTourStartInfoExtensions";
     import {calculateMoveTo} from "~/services/movementPointExtensions";
     import Checkbox from "../reuseableComponents/Checkbox.svelte";
+    import {pipe} from "~/types/Pipe";
 
     onDestroy(() => {});
     let _movementPlan: DeviceMovement | undefined;
@@ -83,7 +84,7 @@
         if (_selectedPhotoTour == undefined) return;
         const photoTourClient = new AutomaticPhotoTourClient();
         _selectedPhotoTour.finished = !_selectedPhotoTour.finished;
-        const result = await photoTourClient.pausePhotoTour(_selectedPhotoTour.id, _selectedPhotoTour.finished).try();
+        const result = await pipe(photoTourClient.pausePhotoTour(_selectedPhotoTour.id, _selectedPhotoTour.finished)).try();
         if (result.hasError) _selectedPhotoTour.finished = !_selectedPhotoTour.finished;
         _existingPhototours = _existingPhototours;
     }

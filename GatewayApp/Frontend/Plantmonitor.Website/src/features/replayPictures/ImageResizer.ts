@@ -1,3 +1,4 @@
+import { pipe } from "~/types/Pipe";
 import { Task } from "~/types/Task";
 
 export function resizeBase64Img(base64: string, width: number, height: number): Promise<string> {
@@ -89,10 +90,10 @@ export function drawImageOnCanvas(base64: string, canvas: HTMLCanvasElement): Pr
             const image = new Image();
             image.onload = async () => {
                 let counter = 0;
-                let decodeResult = image.decode().try();
+                let decodeResult = pipe(image.decode()).try();
                 while ((await decodeResult).hasError && counter < 100) {
                     counter++;
-                    decodeResult = image.decode().try();
+                    decodeResult = pipe(image.decode()).try();
                     await Task.delay(10);
                 }
                 const ratio = canvas.offsetWidth / image.width;
