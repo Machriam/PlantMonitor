@@ -46,6 +46,33 @@ class PromiseExtensions<T> {
 
 class ArrayExtensions<T> {
     constructor(private array: Array<T>) { }
+    private sortingFunctions: ((a: T, b: T) => number)[] = [];
+    orderBy(selector: (x: T) => number): this {
+        this.sortingFunctions = [(a, b) => selector(a) - selector(b)];
+        return this;
+    }
+    orderByDescending(selector: (x: T) => number): this {
+        this.sortingFunctions = [(a, b) => selector(b) - selector(a)];
+        return this;
+    }
+    thenBy(selector: (x: T) => number): this {
+        this.sortingFunctions.push((a, b) => selector(a) - selector(b));
+        return this;
+    }
+    thenByDescending(selector: (x: T) => number): this {
+        this.sortingFunctions.push((a, b) => selector(b) - selector(a));
+        return this;
+    }
+    collect(): ArrayExtensions<T> {
+        return pipe(this.array.sort((a, b) => {
+            for (const sortingFunction of this.sortingFunctions) {
+                const result = sortingFunction(a, b);
+                if (result !== 0) return result;
+            }
+            return 0;
+        }));
+    }
+
     mean(selector: (x: T) => number) {
         if (this.array.length == 0) return pipe(0);
         return pipe(this.array.reduce((a, x) => a += selector(x), 0) / this.array.length);
@@ -66,10 +93,10 @@ class ArrayExtensions<T> {
         }
         return result;
     }
-    apply(arg: (x: Array<T>) => Array<T>): ArrayExtensions<T> {
+    apply<K>(arg: (x: Array<T>) => Array<K>): ArrayExtensions<K> {
         return new ArrayExtensions(arg(this.array));
     }
-    valueOf(): Array<T> { return this.array; }
+    toArray(): Array<T> { return this.sortingFunctions.length > 0 ? this.collect().toArray() : this.array; }
 }
 
 class Uint8Extensions extends Apply<Uint8Array> {
@@ -137,7 +164,8 @@ export function pipe(x: Blob): BlobExtensions;
 export function pipe(x: Uint8Array): Uint8Extensions;
 export function pipe<T>(x: Promise<T>): PromiseExtensions<T>;
 export function pipe<T>(x: Array<T>): ArrayExtensions<T>;
-export function pipe<T>(x: PipePrimitives | Promise<T> | Array<T>): PipeExtensions | PromiseExtensions<T> | ArrayExtensions<T> {
+export function pipe<T>(x: Set<T>): ArrayExtensions<T>;
+export function pipe<T>(x: PipePrimitives | Promise<T> | Array<T> | Set<T>): PipeExtensions | PromiseExtensions<T> | ArrayExtensions<T> {
     const type = typeof x;
     x instanceof Date
     switch (type) {
@@ -149,6 +177,7 @@ export function pipe<T>(x: PipePrimitives | Promise<T> | Array<T>): PipeExtensio
             if (x instanceof Uint8Array) return new Uint8Extensions(x as Uint8Array);
             if (x instanceof Promise) return new PromiseExtensions(x as Promise<T>);
             if (x instanceof Array) return new ArrayExtensions(x as Array<T>);
+            if (x instanceof Set) return new ArrayExtensions(Array.from(x as Set<T>));
             throw new Error("Invalid type");
         }
         default: throw new Error("Invalid type");

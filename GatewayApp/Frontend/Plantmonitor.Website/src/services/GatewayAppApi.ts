@@ -5674,6 +5674,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
     intervallInMinutes!: number;
     comment!: string;
     pixelSizeInMm!: number;
+    tripCount!: number;
 
     constructor(data?: IPhotoTourInfo) {
         if (data) {
@@ -5694,6 +5695,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
             this.intervallInMinutes = _data["IntervallInMinutes"];
             this.comment = _data["Comment"];
             this.pixelSizeInMm = _data["PixelSizeInMm"];
+            this.tripCount = _data["TripCount"];
         }
     }
 
@@ -5714,6 +5716,7 @@ export class PhotoTourInfo implements IPhotoTourInfo {
         data["IntervallInMinutes"] = this.intervallInMinutes;
         data["Comment"] = this.comment;
         data["PixelSizeInMm"] = this.pixelSizeInMm;
+        data["TripCount"] = this.tripCount;
         return data;
     }
 
@@ -5734,6 +5737,7 @@ export interface IPhotoTourInfo {
     intervallInMinutes: number;
     comment: string;
     pixelSizeInMm: number;
+    tripCount: number;
 }
 
 export class AutomaticTourStartInfo implements IAutomaticTourStartInfo {

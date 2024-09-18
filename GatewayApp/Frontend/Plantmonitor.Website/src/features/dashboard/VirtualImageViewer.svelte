@@ -6,6 +6,7 @@
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/motion";
     import Checkbox from "../reuseableComponents/Checkbox.svelte";
+    import {pipe} from "~/types/Pipe";
     let _selectedTour: PhotoTourInfo | undefined | null;
     let _virtualImages: VirtualImageInfo[] = [];
     export let _selectedImage: VirtualImageInfo | undefined;
@@ -27,9 +28,10 @@
                     _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
                     return;
                 }
-                _filteredVirtualImages = Array.from(value)
-                    .toSorted((a, b) => a - b)
-                    .map((x) => new Date(x));
+                _filteredVirtualImages = pipe(value)
+                    .orderBy((v) => v)
+                    .apply((v) => v.map((x) => new Date(x)))
+                    .toArray();
                 if (_currentDateIndex == undefined || _currentDateIndex >= _filteredVirtualImages.length) _currentDateIndex = 0;
             })
         );
@@ -91,9 +93,9 @@
         if (newTour == null) return;
         _selectedTour = newTour;
         const dashboardClient = new DashboardClient();
-        _virtualImages = (await dashboardClient.virtualImageList(_selectedTour.id)).toSorted((a, b) =>
-            a.creationDate.orderBy(b.creationDate)
-        );
+        _virtualImages = pipe(await dashboardClient.virtualImageList(_selectedTour.id))
+            .orderBy((vi) => vi.creationDate.getTime())
+            .toArray();
         _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
         _currentDateIndex = _virtualImages.length == 0 ? undefined : _virtualImages.length - 1;
         await updateVirtualImage(_selectedTour.id);
