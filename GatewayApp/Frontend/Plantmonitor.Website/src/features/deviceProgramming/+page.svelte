@@ -51,7 +51,9 @@
         selectedDeviceData = device;
         const client = new MovementProgrammingClient();
         movementPlan = await client.getPlan(device.health?.deviceId);
-        const newFocus = pipe(movementPlan?.movementPlan?.stepPoints.mean((x) => x.focusInCentimeter)).roundTo(1);
+        const newFocus = pipe(movementPlan?.movementPlan?.stepPoints)
+            .mean((x) => x.focusInCentimeter)
+            .roundTo(1);
         const deviceClient = new DeviceClient();
         currentPosition = await deviceClient.currentPosition(selectedDeviceData.ip);
         defaultFocus = newFocus <= 0 ? defaultFocus : newFocus;

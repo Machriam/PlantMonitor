@@ -38,6 +38,38 @@ class PromiseExtensions<T> {
             return { result: null, error: ex, hasError: true };
         }
     }
+    apply(arg: (x: Promise<T>) => Promise<T>): PromiseExtensions<T> {
+        return new PromiseExtensions(arg(this.x));
+    }
+    valueOf(): Promise<T> { return this.x; }
+}
+
+class ArrayExtensions<T> {
+    constructor(private array: Array<T>) { }
+    mean(selector: (x: T) => number) {
+        if (this.array.length == 0) return pipe(0);
+        return pipe(this.array.reduce((a, x) => a += selector(x), 0) / this.array.length);
+    }
+    toDictionary<K extends PropertyKey>(selector: (x: T) => K): Map<K, T> {
+        if (this.array.length == 0) return new Map();
+        return new Map(this.array.map(x => [selector(x), x]));
+    }
+
+    groupBy<K extends PropertyKey>(selector: (x: T) => K): Map<K, T[]> {
+        if (this.array.length == 0) return new Map();
+        const grouping = Object.groupBy(this.array, x => selector(x));
+        const result = new Map<K, T[]>();
+        for (let i = 0; i < this.array.length; i++) {
+            const key = selector(this.array[i])
+            if (result.has(key)) continue;
+            result.set(key, grouping[key] ?? []);
+        }
+        return result;
+    }
+    apply(arg: (x: Array<T>) => Array<T>): ArrayExtensions<T> {
+        return new ArrayExtensions(arg(this.array));
+    }
+    valueOf(): Array<T> { return this.array; }
 }
 
 class Uint8Extensions extends Apply<Uint8Array> {
@@ -104,7 +136,8 @@ export function pipe(x: Date): DateExtensions;
 export function pipe(x: Blob): BlobExtensions;
 export function pipe(x: Uint8Array): Uint8Extensions;
 export function pipe<T>(x: Promise<T>): PromiseExtensions<T>;
-export function pipe<T>(x: PipePrimitives | Promise<T>): PipeExtensions | PromiseExtensions<T> {
+export function pipe<T>(x: Array<T>): ArrayExtensions<T>;
+export function pipe<T>(x: PipePrimitives | Promise<T> | Array<T>): PipeExtensions | PromiseExtensions<T> | ArrayExtensions<T> {
     const type = typeof x;
     x instanceof Date
     switch (type) {
@@ -115,6 +148,7 @@ export function pipe<T>(x: PipePrimitives | Promise<T>): PipeExtensions | Promis
             if (x instanceof Blob) return new BlobExtensions(x as Blob);
             if (x instanceof Uint8Array) return new Uint8Extensions(x as Uint8Array);
             if (x instanceof Promise) return new PromiseExtensions(x as Promise<T>);
+            if (x instanceof Array) return new ArrayExtensions(x as Array<T>);
             throw new Error("Invalid type");
         }
         default: throw new Error("Invalid type");

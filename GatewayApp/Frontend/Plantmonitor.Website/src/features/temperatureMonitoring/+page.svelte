@@ -131,8 +131,8 @@
 
     async function getMeasurements() {
         const temperatureClient = new TemperatureClient();
-        _temperatureMeasurementById = (await temperatureClient.measurements()).toDictionary((x) => x.id);
-        _runningMeasurementByIp = (await temperatureClient.getRunningMeasurements()).groupBy((x) => x.ip);
+        _temperatureMeasurementById = pipe(await temperatureClient.measurements()).toDictionary((x) => x.id);
+        _runningMeasurementByIp = pipe(await temperatureClient.getRunningMeasurements()).groupBy((x) => x.ip);
     }
 
     async function startMeasurement() {

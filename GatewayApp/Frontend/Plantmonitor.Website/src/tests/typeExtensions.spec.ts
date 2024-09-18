@@ -40,41 +40,41 @@ describe("Uint8Array to Int32 should work", () => {
 
 describe("Mean should work", () => {
     test("with Objects", () => {
-        const result = [new Test("test", 2), new Test("test2", 5), new Test("test3", 5)].mean(x => x.Number);
+        const result = pipe([new Test("test", 2), new Test("test2", 5), new Test("test3", 5)]).mean(x => x.Number).valueOf();
         expect(result).equal(4);
     });
     test("with empty Array", () => {
-        const result = [].mean(x => x);
+        const result = pipe([]).mean(x => x).valueOf();
         expect(result).equal(0);
     });
 });
 
 describe("toDictionary should work", () => {
     test("with Objects", () => {
-        const result = [new Test("test", 2), new Test("test2", 5), new Test("test3", 6)].toDictionary(x => x.Number);
+        const result = pipe([new Test("test", 2), new Test("test2", 5), new Test("test3", 6)]).toDictionary(x => x.Number);
         expect(JSON.stringify(Object.fromEntries(result.entries()))).equal('{"2":{"String":"test","Number":2},"5":{"String":"test2","Number":5},"6":{"String":"test3","Number":6}}');
     });
     test("with Duplicate Keys", () => {
-        const result = [new Test("test", 2), new Test("test2", 5), new Test("test3", 5)].toDictionary(x => x.Number);
+        const result = pipe([new Test("test", 2), new Test("test2", 5), new Test("test3", 5)]).toDictionary(x => x.Number);
         expect(JSON.stringify(Object.fromEntries(result.entries()))).equal('{"2":{"String":"test","Number":2},"5":{"String":"test3","Number":5}}');
     });
     test("with empty Array", () => {
-        const result = [].toDictionary(x => x);
+        const result = pipe([]).toDictionary(x => x);
         expect(JSON.stringify(Object.fromEntries(result.entries()))).equal("{}");
     });
 });
 
 describe("groupBy should work", () => {
     test("with Objects", () => {
-        const result = [new Test("test", 2), new Test("test2", 5), new Test("test3", 6)].groupBy(x => x.Number);
+        const result = pipe([new Test("test", 2), new Test("test2", 5), new Test("test3", 6)]).groupBy(x => x.Number);
         expect(JSON.stringify(Object.fromEntries(result.entries()))).equal('{"2":[{"String":"test","Number":2}],"5":[{"String":"test2","Number":5}],"6":[{"String":"test3","Number":6}]}');
     });
     test("with Duplicate Keys", () => {
-        const result = [new Test("test", 2), new Test("test2", 5), new Test("test3", 5)].groupBy(x => x.Number);
+        const result = pipe([new Test("test", 2), new Test("test2", 5), new Test("test3", 5)]).groupBy(x => x.Number);
         expect(JSON.stringify(Object.fromEntries(result.entries()))).equal('{"2":[{"String":"test","Number":2}],"5":[{"String":"test2","Number":5},{"String":"test3","Number":5}]}');
     });
     test("with empty Array", () => {
-        const result = [].groupBy(x => x);
+        const result = pipe([]).groupBy(x => x);
         expect(JSON.stringify(Object.fromEntries(result.entries()))).equal("{}");
     });
 });
