@@ -73,7 +73,7 @@
     async function move(steps: number) {
         if (selectedDeviceData?.ip == undefined) return false;
         const client = new DeviceClient();
-        const result = await client.move(selectedDeviceData.ip, steps, 1000, 4000, 400).try();
+        const result = await pipe(client.move(selectedDeviceData.ip, steps, 1000, 4000, 400)).try();
         if (result.hasError) return false;
         currentPosition = await client.currentPosition(selectedDeviceData.ip);
         return true;

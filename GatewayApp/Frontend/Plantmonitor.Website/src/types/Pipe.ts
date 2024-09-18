@@ -27,6 +27,18 @@ class Apply<T extends PipePrimitives> {
         return this.applyArg;
     }
 }
+class PromiseExtensions<T> {
+    constructor(private x: Promise<T>) { }
+    async try(): Promise<{ result: T | null, error: unknown, hasError: boolean }> {
+        try {
+            const result = await this.x;
+            return { result, error: {}, hasError: false };
+        }
+        catch (ex) {
+            return { result: null, error: ex, hasError: true };
+        }
+    }
+}
 
 class Uint8Extensions extends Apply<Uint8Array> {
     constructor(private x: Uint8Array) { super(x); }
@@ -91,7 +103,8 @@ export function pipe(x: number): NumberExtensions;
 export function pipe(x: Date): DateExtensions;
 export function pipe(x: Blob): BlobExtensions;
 export function pipe(x: Uint8Array): Uint8Extensions;
-export function pipe(x: PipePrimitives): PipeExtensions {
+export function pipe<T>(x: Promise<T>): PromiseExtensions<T>;
+export function pipe<T>(x: PipePrimitives | Promise<T>): PipeExtensions | PromiseExtensions<T> {
     const type = typeof x;
     x instanceof Date
     switch (type) {
@@ -101,6 +114,7 @@ export function pipe(x: PipePrimitives): PipeExtensions {
             if (x instanceof Date) return new DateExtensions(x as Date);
             if (x instanceof Blob) return new BlobExtensions(x as Blob);
             if (x instanceof Uint8Array) return new Uint8Extensions(x as Uint8Array);
+            if (x instanceof Promise) return new PromiseExtensions(x as Promise<T>);
             throw new Error("Invalid type");
         }
         default: throw new Error("Invalid type");

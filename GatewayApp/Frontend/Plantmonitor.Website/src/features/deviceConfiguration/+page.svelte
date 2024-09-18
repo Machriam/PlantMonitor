@@ -156,7 +156,7 @@
         );
         const outletClient = new PowerOutletClient();
         for (let i = 0; i < switchDevices.length; i++) {
-            await outletClient.disablePrompts().switchOutlet(switchDevices[i].ip, code).try();
+            await pipe(outletClient.disablePrompts().switchOutlet(switchDevices[i].ip, code)).try();
             await Task.delay(200);
         }
     }
@@ -168,7 +168,7 @@
             const outletDevices = devices.filter((d) => d.health?.deviceId != undefined);
             for (let i = 0; i < outletDevices.length; i++) {
                 const deviceId = outletDevices[i].health.deviceId!;
-                const {result, error, hasError} = await outletClient.powerOutletForDevice(deviceId).try();
+                const {result, error, hasError} = await pipe(outletClient.powerOutletForDevice(deviceId)).try();
                 if (hasError) {
                     console.log(error);
                     outletByDevice[deviceId] = null;

@@ -3,10 +3,6 @@ interface Array<T> {
     toDictionary(selector: (x: T) => K): Map<K, T>;
     groupBy(this: Array<T>, selector: (x: T) => K): Map<K, T[]>;
 }
-interface Promise<T> {
-    try(): Promise<{ result: T, error: unknown, hasError: boolean }>;
-}
-
 Array.prototype.mean = function (this: Array<T>, selector: (x: T) => number) {
     if (this.length == 0) return 0;
     return this.reduce((a, x) => a += selector(x), 0) / this.length;
@@ -28,15 +24,6 @@ Array.prototype.groupBy = function (this: Array<T>, selector: (x: T) => K): Map<
     return result;
 }
 
-Promise.prototype.try = async function (this: Promise<T>): Promise<{ result: T, error: unknown, hasError: boolean }> {
-    try {
-        const result = await this;
-        return { result, error: {}, hasError: false };
-    }
-    catch (ex) {
-        return { result: {}, error: ex, hasError: true };
-    }
-}
 interface Performance extends Performance {
     memory?: {
         /** The maximum size of the heap, in bytes, that is available to the context. */
