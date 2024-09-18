@@ -22,6 +22,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     public record struct TemperatureSummaryData(string Device, IEnumerable<TemperatureDatum> Data);
     public record struct VirtualImageInfo(string Name, DateTime CreationDate);
     public record struct TemperatureDatum(DateTime Time, float Temperature, float Deviation);
+    public record struct SegmentationParameter(DateTime TripTime, SegmentationTemplate Template);
 
     [HttpGet("virtualimagelist")]
     public IEnumerable<VirtualImageInfo> VirtualImageList(long photoTourId)
@@ -101,18 +102,19 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     }
 
     [HttpGet("plantmaskparameter")]
-    public SegmentationTemplate PlantMaskParameterFor(DateTime? virtualImageTime, long? photoTourId)
+    public IEnumerable<SegmentationParameter> PlantMaskParameterFor(long? photoTourId)
     {
-        if (virtualImageTime == null || photoTourId == null) return SegmentationTemplate.GetDefault();
+        var defaultEntry = new SegmentationParameter(DateTime.MinValue, SegmentationTemplate.GetDefault());
+        if (photoTourId == null) return [defaultEntry];
         var photoTour = context.AutomaticPhotoTours
             .Include(apt => apt.PhotoTourTrips)
             .First(apt => apt.Id == photoTourId);
-        var tripByTime = photoTour.PhotoTourTrips
+        return photoTour.PhotoTourTrips
             .Where(ptt => ptt.SegmentationTemplateJson != null)
             .OrderBy(ptt => ptt.Timestamp)
-            .ToList();
-        var result = tripByTime.LastOrDefault(t => t.Timestamp <= virtualImageTime);
-        return result?.SegmentationTemplateJson ?? SegmentationTemplate.GetDefault();
+            .Select(ptt => new SegmentationParameter(ptt.Timestamp, ptt.SegmentationTemplateJson!))
+            .ToList()
+            .Push(defaultEntry) ?? [defaultEntry];
     }
 
     [HttpPost("storecustomsegmentation")]
@@ -121,6 +123,8 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var photoTour = context.AutomaticPhotoTours
             .Include(apt => apt.PhotoTourTrips)
             .First(apt => apt.Id == photoTourId);
+        if (photoTour.PhotoTourTrips.Any(ptt => ptt.SegmentationTemplateJson?.Name == parameter.Name && parameter.Name != SegmentationTemplate.GetDefault().Name))
+            throw new Exception("Name already taken");
         var trip = photoTour.PhotoTourTrips
             .First(ptt => ptt.Timestamp == virtualImageTime);
         trip.SegmentationTemplateJson = parameter == SegmentationTemplate.GetDefault() ? null : parameter;

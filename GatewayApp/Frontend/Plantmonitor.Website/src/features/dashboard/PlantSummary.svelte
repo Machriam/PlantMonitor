@@ -5,6 +5,7 @@
         DashboardClient,
         PhotoTourInfo,
         PlantImageDescriptors,
+        SegmentationParameter,
         VirtualImageSummary
     } from "~/services/GatewayAppApi";
     import {Download} from "~/types/Download";
@@ -24,12 +25,22 @@
     let _selectedDescriptors: DescriptorInfo[] = [];
     let _chart: echarts.ECharts | undefined;
     let _lastDataZoom: {start: number; end: number} = {start: 0, end: 100};
+    export let _segmentationParameter: SegmentationParameter[] = [];
     let _currentlyHoveredTimes: Date[] = [];
     let _chartData: {
         name: string;
         yAxisIndex: number;
         type: string;
         showSymbol: boolean;
+        markLine: {
+            data: {
+                symbol: string;
+                name: string;
+                xAxis: Date;
+                yAxis: number | string;
+                itemStyle: {color: string};
+            }[][];
+        };
         markPoint: {
             data: {
                 coord: (number | Date)[];
@@ -163,6 +174,7 @@
                     type: "line",
                     yAxisIndex: j,
                     markPoint: {data: []},
+                    markLine: {data: []},
                     showSymbol: false,
                     data: data
                 });
@@ -238,6 +250,25 @@
                                   symbolRotate: 180,
                                   itemStyle: {color: "black"}
                               }));
+                s.markLine.data =
+                    _segmentationParameter.length <= 1
+                        ? []
+                        : _segmentationParameter.map((sp) => [
+                              {
+                                  symbol: "none",
+                                  name: sp.template.name,
+                                  xAxis: sp.tripTime,
+                                  yAxis: 0,
+                                  itemStyle: {color: "black"}
+                              },
+                              {
+                                  symbol: "none",
+                                  name: sp.template.name,
+                                  xAxis: sp.tripTime,
+                                  yAxis: "max",
+                                  itemStyle: {color: "black"}
+                              }
+                          ]);
                 return s;
             })
         });
@@ -246,6 +277,7 @@
         _selectedTour = newTour;
         if (newTour == null) return;
         const dashboardClient = new DashboardClient();
+        _segmentationParameter = await dashboardClient.plantMaskParameterFor(newTour.id);
         _virtualImageSummaries = await dashboardClient.summaryForTour(newTour.id);
         _virtualImageSummaries = _virtualImageSummaries.toSorted(
             (a, b) => a.imageDescriptors.tripStart.getTime() - b.imageDescriptors.tripStart.getTime()

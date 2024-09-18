@@ -1,12 +1,20 @@
 <script lang="ts">
     import {onDestroy, onMount} from "svelte";
-    import {DashboardClient, DownloadInfo, PhotoTourInfo, SegmentationTemplate, VirtualImageInfo} from "~/services/GatewayAppApi";
+    import {
+        DashboardClient,
+        DownloadInfo,
+        PhotoTourInfo,
+        SegmentationParameter,
+        SegmentationTemplate,
+        VirtualImageInfo
+    } from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/Download";
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/motion";
     import Checkbox from "../reuseableComponents/Checkbox.svelte";
     import {pipe} from "~/types/Pipe";
+    import TextInput from "../reuseableComponents/TextInput.svelte";
     let _selectedTour: PhotoTourInfo | undefined | null;
     let _virtualImages: VirtualImageInfo[] = [];
     export let _selectedImage: VirtualImageInfo | undefined;
@@ -17,7 +25,8 @@
     let _filteredVirtualImages: Date[] = [];
     let _unsubscriber: Unsubscriber[] = [];
     let _downloadInfo: DownloadInfo[] = [];
-    let _segmentationParameter: SegmentationTemplate | undefined;
+    export let _segmentationParameter: SegmentationParameter[] = [];
+    let _selectedSegmentation: SegmentationTemplate | undefined;
     let _showSegmentedImage: boolean = false;
     let _imageCache = new Map<string, {image: string; added: Date}>();
 
@@ -65,7 +74,7 @@
                 return;
             }
             _virtualImage = _showSegmentedImage
-                ? (await dashboardClient.segmentedImage(_selectedImage.name, tourId, _segmentationParameter)) ?? undefined
+                ? (await dashboardClient.segmentedImage(_selectedImage.name, tourId, _selectedSegmentation)) ?? undefined
                 : (await dashboardClient.virtualImage(_selectedImage.name, tourId)) ?? undefined;
             if (_imageCache.size >= 30) {
                 const entryToRemove = _imageCache.entries().reduce((prev, curr) => {
@@ -86,8 +95,6 @@
                 : Math.min(_filteredVirtualImages.length - 1, (_currentDateIndex ?? 0) + _scrollSkip);
         await updateVirtualImage(_selectedTour.id);
         if (_selectedImage == undefined) return;
-        const dashboardClient = new DashboardClient();
-        _segmentationParameter = await dashboardClient.plantMaskParameterFor(_selectedImage.creationDate, _selectedTour.id);
     }
     async function selectedTourChanged(newTour: PhotoTourInfo | null) {
         if (newTour == null) return;
@@ -99,7 +106,8 @@
         _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
         _currentDateIndex = _virtualImages.length == 0 ? undefined : _virtualImages.length - 1;
         await updateVirtualImage(_selectedTour.id);
-        _segmentationParameter = await dashboardClient.plantMaskParameterFor();
+        _segmentationParameter = await dashboardClient.plantMaskParameterFor(_selectedTour.id);
+        _selectedSegmentation = _segmentationParameter.find((sp) => pipe(sp.template).isDefault())?.template;
         updateDownloadStatus();
     }
     async function updateDownloadStatus() {
@@ -140,9 +148,9 @@
         return `Compressing Status: ${info.currentSize.toFixed(2)}/${info.sizeToDownloadInGb.toFixed(2)} GB`;
     }
     async function UpdateSegmentation() {
-        if (_selectedImage == undefined || _selectedTour == undefined || _segmentationParameter == undefined) return;
+        if (_selectedImage == undefined || _selectedTour == undefined || _selectedSegmentation == undefined) return;
         const dashboardClient = new DashboardClient();
-        dashboardClient.storeCustomSegmentation(_segmentationParameter, _selectedImage.creationDate, _selectedTour.id);
+        dashboardClient.storeCustomSegmentation(_selectedSegmentation, _selectedImage.creationDate, _selectedTour.id);
     }
 </script>
 
@@ -174,52 +182,57 @@
                 bind:value={_showSegmentedImage}></Checkbox>
         </div>
     </div>
-    <div style="min-height: 500px;flex-direction: row;flex:content;display:flex" on:wheel={nextImage} class="p-0">
+    <div style="min-height: 500px;flex-direction: row;flex:content;display:flex" class="p-0">
         {#if _virtualImage == ""}
             <div></div>
-            <div style="flex:auto;width:1000px"></div>
+            <div on:wheel={nextImage} style="flex:auto;width:1000px"></div>
         {:else if _virtualImage != undefined}
-            <img style="max-width: 85%;max-height:79vh" alt="Stitched Result" src="data:image/png;base64,{_virtualImage}" />
+            <img
+                on:wheel={nextImage}
+                style="max-width: 85%;max-height:79vh"
+                alt="Stitched Result"
+                src="data:image/png;base64,{_virtualImage}" />
             <div style="flex:auto;"></div>
         {:else}
-            <div>Scroll to change image</div>
-            <div style="flex:auto;width:1000px"></div>
+            <div on:wheel={nextImage}>Scroll to change image</div>
+            <div on:wheel={nextImage} style="flex:auto;width:1000px"></div>
         {/if}
-        <div class="d-flex flex-column colm-3" style="width: 15%;">
-            {#if _segmentationParameter != undefined && _showSegmentedImage && _selectedTour != undefined && _selectedTour != null}
+        <div class="d-flex flex-column colm-3" style="width: 15%">
+            {#if _selectedSegmentation != undefined && _showSegmentedImage && _selectedTour != undefined && _selectedTour != null}
                 {@const tourId = _selectedTour.id}
+                <TextInput bind:value={_selectedSegmentation.name} label="Segmentation Name"></TextInput>
                 <NumberInput
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="Low Hue"
-                    bind:value={_segmentationParameter.hLow}></NumberInput>
+                    bind:value={_selectedSegmentation.hLow}></NumberInput>
                 <NumberInput
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="High Hue"
-                    bind:value={_segmentationParameter.hHigh}></NumberInput>
+                    bind:value={_selectedSegmentation.hHigh}></NumberInput>
                 <NumberInput
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="Low Saturation"
-                    bind:value={_segmentationParameter.sLow}></NumberInput>
+                    bind:value={_selectedSegmentation.sLow}></NumberInput>
                 <NumberInput
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="High Saturation"
-                    bind:value={_segmentationParameter.sHigh}></NumberInput>
+                    bind:value={_selectedSegmentation.sHigh}></NumberInput>
                 <NumberInput
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="Low Lumination"
-                    bind:value={_segmentationParameter.lLow}></NumberInput>
+                    bind:value={_selectedSegmentation.lLow}></NumberInput>
                 <NumberInput
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="High Lumination"
-                    bind:value={_segmentationParameter.lHigh}></NumberInput>
+                    bind:value={_selectedSegmentation.lHigh}></NumberInput>
                 <NumberInput
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="Opening Iterations"
-                    bind:value={_segmentationParameter.openingIterations}></NumberInput>
+                    bind:value={_selectedSegmentation.openingIterations}></NumberInput>
                 <Checkbox
                     valueHasChanged={() => updateVirtualImage(tourId)}
                     label="Otsu Thresholding"
-                    bind:value={_segmentationParameter.useOtsu}></Checkbox>
+                    bind:value={_selectedSegmentation.useOtsu}></Checkbox>
                 <button on:click={UpdateSegmentation} class="btn btn-primary">Update Segmentation</button>
             {/if}
         </div>

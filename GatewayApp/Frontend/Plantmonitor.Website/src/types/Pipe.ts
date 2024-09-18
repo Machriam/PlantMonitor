@@ -1,3 +1,5 @@
+import { SegmentationTemplate } from "~/services/GatewayAppApi";
+
 type PipePrimitives = number | string | Date | Blob | Uint8Array;
 type PipeExtensions = StringExtensions | NumberExtensions | DateExtensions | BlobExtensions | Uint8Extensions;
 
@@ -144,9 +146,7 @@ class StringExtensions extends Apply<string> {
     valueOf(): string { return this.x; }
 }
 class NumberExtensions extends Apply<number> {
-    constructor(private x: number) {
-        super(x);
-    }
+    constructor(private x: number) { super(x); }
     isSuccessStatusCode() {
         return this.x == 200 || this.x == 204;
     }
@@ -157,15 +157,25 @@ class NumberExtensions extends Apply<number> {
         return +this.x.toFixed(decimalPlaces);
     }
 }
+
+class SegmentationTemplateExtensions {
+    constructor(private x: SegmentationTemplate) { }
+
+    isDefault() {
+        return this.x.name == "Default";
+    }
+}
+
 export function pipe(x: string): StringExtensions;
 export function pipe(x: number): NumberExtensions;
 export function pipe(x: Date): DateExtensions;
 export function pipe(x: Blob): BlobExtensions;
 export function pipe(x: Uint8Array): Uint8Extensions;
+export function pipe(x: SegmentationTemplate): SegmentationTemplateExtensions;
 export function pipe<T>(x: Promise<T>): PromiseExtensions<T>;
 export function pipe<T>(x: Array<T>): ArrayExtensions<T>;
 export function pipe<T>(x: Set<T>): ArrayExtensions<T>;
-export function pipe<T>(x: PipePrimitives | Promise<T> | Array<T> | Set<T>): PipeExtensions | PromiseExtensions<T> | ArrayExtensions<T> {
+export function pipe<T>(x: PipePrimitives | Promise<T> | Array<T> | Set<T> | SegmentationTemplate): PipeExtensions | PromiseExtensions<T> | ArrayExtensions<T> | SegmentationTemplateExtensions {
     const type = typeof x;
     x instanceof Date
     switch (type) {
@@ -178,6 +188,7 @@ export function pipe<T>(x: PipePrimitives | Promise<T> | Array<T> | Set<T>): Pip
             if (x instanceof Promise) return new PromiseExtensions(x as Promise<T>);
             if (x instanceof Array) return new ArrayExtensions(x as Array<T>);
             if (x instanceof Set) return new ArrayExtensions(Array.from(x as Set<T>));
+            if (x instanceof SegmentationTemplate) return new SegmentationTemplateExtensions(x);
             throw new Error("Invalid type");
         }
         default: throw new Error("Invalid type");

@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using static System.Net.Mime.MediaTypeNames;
+﻿using System.Globalization;
 
 namespace Plantmonitor.DataModel.DataModel;
-public record class SegmentationTemplate(double HLow, double HHigh, double SLow, double SHigh, double LLow, double LHigh, bool UseOtsu, int OpeningIterations)
+public record class SegmentationTemplate(string Name, double HLow, double HHigh, double SLow, double SHigh,
+    double LLow, double LHigh, bool UseOtsu, int OpeningIterations)
 {
-    public static SegmentationTemplate GetDefault() => new(40d, 130d, 5d, 100d, 20d, 100d, true, 2);
+    public static SegmentationTemplate GetDefault() => new("Default", 40d, 130d, 5d, 100d, 20d, 100d, true, 2);
 }
 
 public partial class PhotoTourTrip
