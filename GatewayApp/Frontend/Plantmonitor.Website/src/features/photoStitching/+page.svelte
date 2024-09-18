@@ -21,6 +21,7 @@
     import type {ImageToCut} from "./ImageToCut";
     import IrFineAdjustment from "./IrFineAdjustment.svelte";
     import {selectedDevice} from "../store";
+    import {pipe} from "~/types/Pipe";
     let _availableTours: PhotoTourInfo[] = [];
     let _selectedTour: PhotoTourInfo | undefined;
     let _pictureTrips: PictureTripData[] = [];
@@ -160,8 +161,8 @@
                 _extractionTemplates={_extractionTemplatesOfTrip}
                 _selectedPhotoTrip={_selectedTrip}
                 deviceId={_selectedTrip.deviceId}
-                visSeries={_selectedTrip.visData.folderName.getFileName()}
-                irSeries={_selectedTrip.irData.folderName.getFileName()}></ImageCutter>
+                visSeries={pipe(_selectedTrip.visData.folderName).getFileName()}
+                irSeries={pipe(_selectedTrip.irData.folderName).getFileName()}></ImageCutter>
         {/if}
     </div>
     <div class="col-md-2">
@@ -197,7 +198,7 @@
                         <div
                             style="align-self: center;"
                             class={template?.motorPosition == _selectedImage?.stepCount ? "fw-bold" : ""}>
-                            {plant.name} - {plant.position?.isEmpty() ? "No QR" : plant.position}
+                            {plant.name} - {pipe(plant.position ?? "").isEmpty() ? "No Pos." : plant.position}
                         </div>
                         <div style="align-self: center;">{plant.comment}</div>
                     </button>

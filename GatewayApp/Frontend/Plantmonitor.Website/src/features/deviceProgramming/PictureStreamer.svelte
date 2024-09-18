@@ -8,6 +8,7 @@
     import {Download} from "~/types/Download";
     import {GatewayAppApiBase} from "~/services/GatewayAppApiBase";
     import {Enum} from "~/types/Enum";
+    import {pipe} from "~/types/Pipe";
 
     let _canvasId = crypto.randomUUID();
     const _cvInterop = new CvInterop();
@@ -43,7 +44,7 @@
             currentPosition = step;
             _currentTime = date;
             if (type == CameraType.IR) {
-                _temperature = temperatureInK.kelvinToCelsius();
+                _temperature = pipe(temperatureInK).kelvinToCelsius();
                 const convertedImage =
                     data.size == _irImageBytes ? _cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer())) : {};
                 _pixelConverter = convertedImage.pixelConverter;
@@ -51,9 +52,9 @@
                 updateTooltip();
             } else {
                 _pixelConverter = undefined;
-                image.src = await data.asBase64Url();
+                image.src = (await pipe(data).asBase64Url()).valueOf();
             }
-            if (!image.src.isEmpty()) firstImageReceived = true;
+            if (!pipe(image.src).isEmpty()) firstImageReceived = true;
         });
     };
     export const customPhotoStream = function (ip: string, type: CameraType, focusInMeter: number) {
@@ -77,7 +78,7 @@
             }
             if (cameraType == CameraType[CameraType.IR]) {
                 _customPhotoStreamProgress.irZipProgress = `${zippedImages}/${totalImages}`;
-                _temperature = temperatureInK.kelvinToCelsius();
+                _temperature = pipe(temperatureInK).kelvinToCelsius();
             } else {
                 _customPhotoStreamProgress.visZipProgress = `${zippedImages}/${totalImages}`;
             }
@@ -102,7 +103,7 @@
             currentPosition = step;
             _currentTime = date;
             if (type == CameraType.IR) {
-                _temperature = temperatureInK.kelvinToCelsius();
+                _temperature = pipe(temperatureInK).kelvinToCelsius();
                 const convertedImage =
                     data.size == _irImageBytes ? _cvInterop.thermalDataToImage(new Uint32Array(await data.arrayBuffer())) : {};
                 _pixelConverter = convertedImage.pixelConverter;
@@ -110,9 +111,9 @@
                 updateTooltip();
             } else {
                 _pixelConverter = undefined;
-                image.src = await data.asBase64Url();
+                image.src = (await pipe(data).asBase64Url()).valueOf();
             }
-            if (!image.src.isEmpty()) firstImageReceived = true;
+            if (!pipe(image.src).isEmpty()) firstImageReceived = true;
         });
     };
     export const stopStreaming = function () {

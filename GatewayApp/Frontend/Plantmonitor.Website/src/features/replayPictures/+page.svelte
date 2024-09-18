@@ -7,6 +7,7 @@
     import {selectedDevice} from "../store";
     import {type IIrCameraOffset, PictureClient, IrCameraOffset} from "~/services/GatewayAppApi";
     import {onDestroy} from "svelte";
+    import {pipe} from "~/types/Pipe";
     let getLeftSelectedImage: () => ReplayedImage | undefined;
     let getRightSelectedImage: () => ReplayedImage | undefined;
     let imageOffsetCalculator: ImageOffsetCalculator | undefined;
@@ -23,7 +24,7 @@
         imageOffsetCalculator?.visOpacity(opacity);
     })();
     async function StoreAlignment() {
-        if ($selectedDevice?.ip.isEmpty()) return;
+        if (pipe($selectedDevice?.ip ?? "").isEmpty()) return;
         const pictureClient = new PictureClient();
         const newOffset: IIrCameraOffset = {left: leftOffset, top: topOffset};
         pictureClient.updateIrOffset(new IrCameraOffset(newOffset), $selectedDevice?.ip);
@@ -64,9 +65,7 @@
         <NumberInput class="col-md-2" bind:value={topOffset} label="Top Offset"></NumberInput>
         <NumberInput step={0.1} class="col-md-2" bind:value={opacity} label="Opacity"></NumberInput>
         <div class="col-md-4"></div>
-        <button
-            disabled={$selectedDevice == undefined || $selectedDevice.ip.isEmpty()}
-            on:click={StoreAlignment}
-            class="btn btn-primary col-md-2">Store Alignment</button>
+        <button disabled={pipe($selectedDevice?.ip ?? "").isEmpty()} on:click={StoreAlignment} class="btn btn-primary col-md-2"
+            >Store Alignment</button>
     </div>
 {/if}

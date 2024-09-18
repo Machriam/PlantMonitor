@@ -1,11 +1,12 @@
 import { ApiException } from "./GatewayAppApi";
 import { dev } from "$app/environment";
 import { Constants } from "../Constants";
+import { pipe } from "~/types/Pipe";
 export class GatewayAppApiBase {
     noPrompt = false;
     getBaseUrl(_: string, defaultUrl: string | undefined): string {
         const url = dev ? Constants.developmentUrl : `https://${location.hostname}`;
-        return defaultUrl?.isEmpty() ?? true ? url : defaultUrl!;
+        return pipe(defaultUrl ?? "").isEmpty() ? url : defaultUrl!;
     }
     transformOptions(options: RequestInit): Promise<RequestInit> {
         return Promise.resolve(options);
@@ -16,7 +17,7 @@ export class GatewayAppApiBase {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     transformResult(url_: string, _response: Response, defaultFunction: (_response: Response) => Promise<any>) {
-        if (_response.status.isSuccessStatusCode()) return defaultFunction(_response);
+        if (pipe(_response.status).isSuccessStatusCode()) return defaultFunction(_response);
         return (async () => {
             const text = await _response.text()
             const formattedText = `${new Date().toISOString()}\n${text.replaceAll("\\n", "\n").replaceAll("\"", "")}`;

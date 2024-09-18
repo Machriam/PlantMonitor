@@ -19,6 +19,7 @@
     import {Task} from "~/types/Task";
     import {selectedDevice} from "../store";
     import PictureStreamer from "./PictureStreamer.svelte";
+    import {pipe} from "~/types/Pipe";
 
     let previewEnabled = false;
     let isCustomPhotoStream = false;
@@ -50,7 +51,7 @@
         selectedDeviceData = device;
         const client = new MovementProgrammingClient();
         movementPlan = await client.getPlan(device.health?.deviceId);
-        const newFocus = movementPlan?.movementPlan?.stepPoints.mean((x) => x.focusInCentimeter).roundTo(1);
+        const newFocus = pipe(movementPlan?.movementPlan?.stepPoints.mean((x) => x.focusInCentimeter)).roundTo(1);
         const deviceClient = new DeviceClient();
         currentPosition = await deviceClient.currentPosition(selectedDeviceData.ip);
         defaultFocus = newFocus <= 0 ? defaultFocus : newFocus;

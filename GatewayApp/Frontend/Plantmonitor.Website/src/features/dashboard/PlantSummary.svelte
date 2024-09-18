@@ -2,7 +2,6 @@
     import * as echarts from "echarts";
     import {onDestroy, onMount} from "svelte";
     import {
-        AutomaticPhotoTourClient,
         DashboardClient,
         PhotoTourInfo,
         PlantImageDescriptors,
@@ -11,7 +10,7 @@
     import {Download} from "~/types/Download";
     import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/store";
-    import {Pipe} from "~/types/Pipe";
+    import {pipe} from "~/types/Pipe";
     class DescriptorInfo {
         name: string;
         unit: string;
@@ -196,7 +195,7 @@
                                     `<span class=\"col-md-4\">${x.descriptor?.tooltipFormatter(x.value.value[1])}</span>` +
                                     "</span>"
                             )
-                            .join("") + new Pipe().forDate(params[0].value[0]).formatDate()
+                            .join("") + pipe(params[0].value[0]).formatDate()
                     );
                 }
             },

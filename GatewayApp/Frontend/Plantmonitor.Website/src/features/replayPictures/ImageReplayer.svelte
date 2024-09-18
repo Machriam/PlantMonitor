@@ -9,6 +9,7 @@
     import Select from "../reuseableComponents/Select.svelte";
     import {resizeBase64Img} from "./ImageResizer";
     import type {ReplayedImage} from "./ReplayedImage";
+    import {pipe} from "~/types/Pipe";
 
     let pictureSeries: PictureSeriesData[] = [];
     export const getSelectedImage = () => selectedImage;
@@ -57,7 +58,7 @@
                 pixelConverter = convertedImage.pixelConverter;
                 dataUrl = convertedImage.dataUrl ?? "";
             } else {
-                dataUrl = await image.asBase64Url();
+                dataUrl = (await pipe(image).asBase64Url()).valueOf();
             }
             const thumbnail = await resizeBase64Img(dataUrl, 100, 100);
             images.push({

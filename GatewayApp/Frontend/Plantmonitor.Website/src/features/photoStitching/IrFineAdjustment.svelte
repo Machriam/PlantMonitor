@@ -12,6 +12,7 @@
     import {Task} from "~/types/Task";
     import {onMount} from "svelte";
     import type {Unsubscriber} from "svelte/motion";
+    import {pipe} from "~/types/Pipe";
     export let _selectedTrip: PictureTripData | undefined;
     export let _extractionTemplates: PlantExtractionTemplateModel[] = [];
     let _imageCropPreview: ImageCropPreview | undefined | null;
@@ -106,7 +107,7 @@
 
 <div style="height:80vh" class="col-md-12 d-flex flex-column">
     {#if $selectedPhotoTourPlantInfo?.length != undefined && $selectedPhotoTourPlantInfo.length > 0}
-        {@const position = $selectedPhotoTourPlantInfo[0].position?.isEmpty()
+        {@const position = pipe($selectedPhotoTourPlantInfo[0].position ?? "").isEmpty()
             ? ""
             : "- " + $selectedPhotoTourPlantInfo[0].position}
         <h4>Fine IR adjustment for {$selectedPhotoTourPlantInfo[0].name} {$selectedPhotoTourPlantInfo[0].comment} {position}</h4>
