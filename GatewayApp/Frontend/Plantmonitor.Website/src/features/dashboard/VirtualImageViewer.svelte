@@ -10,7 +10,7 @@
     } from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/Download";
-    import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import {_segmentationChanged, _selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/motion";
     import Checkbox from "../reuseableComponents/Checkbox.svelte";
     import {pipe} from "~/types/Pipe";
@@ -64,7 +64,7 @@
                 name: _selectedImage.name,
                 segmented: _showSegmentedImage,
                 photoTourId: tourId,
-                parameter: _showSegmentedImage ? _segmentationParameter : ""
+                parameter: _showSegmentedImage ? _selectedSegmentation : ""
             });
             _virtualImage = "";
             const cachedImage = _imageCache.get(cacheKey);
@@ -151,7 +151,9 @@
     async function UpdateSegmentation() {
         if (_selectedImage == undefined || _selectedTour == undefined || _selectedSegmentation == undefined) return;
         const dashboardClient = new DashboardClient();
-        dashboardClient.storeCustomSegmentation(_selectedSegmentation, _selectedImage.creationDate, _selectedTour.id);
+        await dashboardClient.storeCustomSegmentation(_selectedSegmentation, _selectedImage.creationDate, _selectedTour.id);
+        _segmentationParameter = await dashboardClient.plantMaskParameterFor(_selectedTour.id);
+        _segmentationChanged.update((_) => _segmentationParameter);
     }
 </script>
 
@@ -235,6 +237,19 @@
                     label="Otsu Thresholding"
                     bind:value={_selectedSegmentation.useOtsu}></Checkbox>
                 <button on:click={UpdateSegmentation} class="btn btn-primary">Update Segmentation</button>
+                <div class="rowm-2" style="height:10vh;overflow-y:auto">
+                    {#each _segmentationParameter as sp}
+                        <button
+                            on:click={async () => {
+                                _selectedSegmentation = sp.template;
+                                await updateVirtualImage(tourId);
+                            }}
+                            disabled={sp.template == _selectedSegmentation}
+                            class="btn btn-dark">
+                            {sp.template.name}
+                        </button>
+                    {/each}
+                </div>
             {/if}
         </div>
     </div>

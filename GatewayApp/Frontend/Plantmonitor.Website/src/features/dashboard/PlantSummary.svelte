@@ -9,7 +9,7 @@
         VirtualImageSummary
     } from "~/services/GatewayAppApi";
     import {Download} from "~/types/Download";
-    import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import {_segmentationChanged, _selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import type {Unsubscriber} from "svelte/store";
     import {pipe} from "~/types/Pipe";
     class DescriptorInfo {
@@ -106,6 +106,14 @@
     onMount(async () => {
         _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
         _unsubscriber.push(_virtualImageFilterByTime.subscribe(() => updateMarkers()));
+        _unsubscriber.push(
+            _segmentationChanged.subscribe((x) => {
+                debugger;
+                if (_selectedTour == undefined) return;
+                _segmentationParameter = x;
+                updateMarkers();
+            })
+        );
     });
     onDestroy(() => {
         _unsubscriber.forEach((u) => u());
