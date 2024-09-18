@@ -20,6 +20,7 @@
     export let _selectedImage: VirtualImageInfo | undefined;
     export let _virtualImage: string | undefined;
     export let _currentDateIndex: number | undefined = 0;
+    let _dashboardClient = new DashboardClient();
     let _scrollSkip = 1;
     let _currentDownloadStatus = "";
     let _filteredVirtualImages: Date[] = [];
@@ -52,8 +53,6 @@
         _unsubscriber.forEach((u) => u());
     });
     async function updateVirtualImage(tourId: number) {
-        const dashboardClient = new DashboardClient();
-        _virtualImage = "";
         if (_currentDateIndex != undefined && _filteredVirtualImages.length > _currentDateIndex && _currentDateIndex >= 0) {
             _selectedImage = _virtualImages
                 .map((vi) => ({
@@ -67,15 +66,17 @@
                 photoTourId: tourId,
                 parameter: _showSegmentedImage ? _segmentationParameter : ""
             });
+            _virtualImage = "";
             const cachedImage = _imageCache.get(cacheKey);
             if (cachedImage != undefined) {
                 _virtualImage = cachedImage.image;
                 _imageCache.set(cacheKey, {image: cachedImage.image, added: new Date()});
                 return;
             }
+            if (!_dashboardClient.tryRegisterRunning(cacheKey)) return;
             _virtualImage = _showSegmentedImage
-                ? (await dashboardClient.segmentedImage(_selectedImage.name, tourId, _selectedSegmentation)) ?? undefined
-                : (await dashboardClient.virtualImage(_selectedImage.name, tourId)) ?? undefined;
+                ? (await _dashboardClient.segmentedImage(_selectedImage.name, tourId, _selectedSegmentation)) ?? undefined
+                : (await _dashboardClient.virtualImage(_selectedImage.name, tourId)) ?? undefined;
             if (_imageCache.size >= 30) {
                 const entryToRemove = _imageCache.entries().reduce((prev, curr) => {
                     if (prev[1].added.getTime() < curr[1].added.getTime()) return prev;
