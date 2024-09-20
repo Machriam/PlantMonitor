@@ -108,7 +108,6 @@
         _unsubscriber.push(_virtualImageFilterByTime.subscribe(() => updateMarkers()));
         _unsubscriber.push(
             _segmentationChanged.subscribe((x) => {
-                debugger;
                 if (_selectedTour == undefined) return;
                 _segmentationParameter = x;
                 updateMarkers();

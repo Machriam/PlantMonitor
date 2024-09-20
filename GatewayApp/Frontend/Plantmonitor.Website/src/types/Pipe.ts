@@ -66,13 +66,15 @@ class ArrayExtensions<T> {
         return this;
     }
     collect(): ArrayExtensions<T> {
-        return pipe(this.array.sort((a, b) => {
+        const result = pipe(this.array.sort((a, b) => {
             for (const sortingFunction of this.sortingFunctions) {
                 const result = sortingFunction(a, b);
                 if (result !== 0) return result;
             }
             return 0;
         }));
+        this.sortingFunctions = [];
+        return result;
     }
 
     mean(selector: (x: T) => number) {
@@ -96,6 +98,7 @@ class ArrayExtensions<T> {
         return result;
     }
     apply<K>(arg: (x: Array<T>) => Array<K>): ArrayExtensions<K> {
+        if (this.sortingFunctions.length > 0) return new ArrayExtensions(arg(this.toArray()));
         return new ArrayExtensions(arg(this.array));
     }
     toArray(): Array<T> { return this.sortingFunctions.length > 0 ? this.collect().toArray() : this.array; }

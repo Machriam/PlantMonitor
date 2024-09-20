@@ -52,11 +52,12 @@
     onDestroy(() => {
         _unsubscriber.forEach((u) => u());
     });
-    async function updateVirtualImage(tourId: number) {
+    async function updateVirtualImage(tourId: number, updateSegmentation: boolean) {
         if (_currentDateIndex != undefined && _filteredVirtualImages.length > _currentDateIndex && _currentDateIndex >= 0) {
+            const virtualImageTime = _filteredVirtualImages[_currentDateIndex!].getTime();
             _selectedImage = _virtualImages
                 .map((vi) => ({
-                    diff: Math.abs(vi.creationDate.getTime() - _filteredVirtualImages[_currentDateIndex!].getTime()),
+                    diff: Math.abs(vi.creationDate.getTime() - virtualImageTime),
                     image: vi
                 }))
                 .reduce((prev, curr) => (prev.diff < curr.diff ? prev : curr)).image;
@@ -67,6 +68,7 @@
                 parameter: _showSegmentedImage ? _selectedSegmentation : ""
             });
             _virtualImage = "";
+            if (updateSegmentation) findCorrespondingSegmentation(virtualImageTime);
             const cachedImage = _imageCache.get(cacheKey);
             if (cachedImage != undefined) {
                 _virtualImage = cachedImage.image;
@@ -88,13 +90,19 @@
                 _imageCache.set(cacheKey, {image: _virtualImage, added: new Date()});
         }
     }
+    function findCorrespondingSegmentation(virtualImageTime: number) {
+        _selectedSegmentation =
+            _segmentationParameter.findLast((sp) => sp.tripTime <= new Date(virtualImageTime))?.template ??
+            (_segmentationParameter.length > 0 ? _segmentationParameter[0].template : undefined);
+    }
+
     async function nextImage(event: WheelEvent) {
         if (_selectedTour == undefined) return;
         _currentDateIndex =
             event.deltaY < 0
                 ? Math.max(0, (_currentDateIndex ?? 0) - _scrollSkip)
                 : Math.min(_filteredVirtualImages.length - 1, (_currentDateIndex ?? 0) + _scrollSkip);
-        await updateVirtualImage(_selectedTour.id);
+        await updateVirtualImage(_selectedTour.id, true);
         if (_selectedImage == undefined) return;
     }
     async function selectedTourChanged(newTour: PhotoTourInfo | null) {
@@ -106,15 +114,23 @@
             .toArray();
         _filteredVirtualImages = _virtualImages.map((vi) => vi.creationDate);
         _currentDateIndex = _virtualImages.length == 0 ? undefined : _virtualImages.length - 1;
-        await updateVirtualImage(_selectedTour.id);
-        _segmentationParameter = await dashboardClient.plantMaskParameterFor(_selectedTour.id);
-        _selectedSegmentation = _segmentationParameter.find((sp) => pipe(sp.template).isDefault())?.template;
+        await getSegmentationParameter();
+        await updateVirtualImage(_selectedTour.id, true);
         updateDownloadStatus();
     }
+    async function getSegmentationParameter() {
+        if (_selectedTour == undefined) return;
+        const dashboardClient = new DashboardClient();
+        _segmentationParameter = await dashboardClient.plantMaskParameterFor(_selectedTour.id);
+        _segmentationParameter = pipe(_segmentationParameter)
+            .orderBy((sp) => sp.tripTime.getTime())
+            .toArray();
+    }
+
     async function updateDownloadStatus() {
         const dashboardClient = new DashboardClient();
         _downloadInfo = await dashboardClient.statusOfDownloadTourData();
-        _currentDownloadStatus = DownloadMessage();
+        _currentDownloadStatus = downloadMessage();
     }
 
     async function downloadTourData() {
@@ -129,31 +145,32 @@
             const tourData = await dashboardClient.requestDownloadTourData(_selectedTour?.id);
             _downloadInfo = _downloadInfo.filter((di) => di.photoTourId == _selectedTour?.id);
             _downloadInfo.push(tourData);
-            _currentDownloadStatus = DownloadMessage();
+            _currentDownloadStatus = downloadMessage();
             return;
         }
         await updateDownloadStatus();
     }
-    async function DeletePackedData() {
+    async function deletePackedData() {
         const dashboardClient = new DashboardClient();
         if (_selectedTour == undefined) return;
         await dashboardClient.deleteTourData(_selectedTour.id);
         updateDownloadStatus();
     }
 
-    function DownloadMessage() {
+    function downloadMessage() {
         if (_selectedTour == undefined) return "";
         const info = _downloadInfo.find((di) => di.photoTourId == _selectedTour!.id);
         if (info == undefined) return "Download Raw Data";
         if (info?.readyToDownload) return `Download ready (${info.sizeToDownloadInGb.toFixed(2)} GB)`;
         return `Compressing Status: ${info.currentSize.toFixed(2)}/${info.sizeToDownloadInGb.toFixed(2)} GB`;
     }
-    async function UpdateSegmentation() {
+    async function updateSegmentation() {
         if (_selectedImage == undefined || _selectedTour == undefined || _selectedSegmentation == undefined) return;
         const dashboardClient = new DashboardClient();
         await dashboardClient.storeCustomSegmentation(_selectedSegmentation, _selectedImage.creationDate, _selectedTour.id);
-        _segmentationParameter = await dashboardClient.plantMaskParameterFor(_selectedTour.id);
+        await getSegmentationParameter();
         _segmentationChanged.update((_) => _segmentationParameter);
+        await updateVirtualImage(_selectedTour.id, true);
     }
 </script>
 
@@ -172,7 +189,7 @@
                 <button class="btn btn-primary col-md-9" on:click={downloadTourData}>{_currentDownloadStatus}</button>
                 {#if _currentDownloadStatus.includes("ready")}
                     <div class="col-md-1"></div>
-                    <button class="btn btn-danger col-md-2" on:click={DeletePackedData}>X</button>
+                    <button class="btn btn-danger col-md-2" on:click={deletePackedData}>X</button>
                 {/if}
             </div>
             <Checkbox
@@ -180,7 +197,7 @@
                 label="Segmentation"
                 valueHasChanged={() => {
                     if (_selectedTour == undefined) return;
-                    updateVirtualImage(_selectedTour?.id);
+                    updateVirtualImage(_selectedTour?.id, true);
                 }}
                 bind:value={_showSegmentedImage}></Checkbox>
         </div>
@@ -205,44 +222,44 @@
                 {@const tourId = _selectedTour.id}
                 <TextInput bind:value={_selectedSegmentation.name} label="Segmentation Name"></TextInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    valueHasChanged={() => updateVirtualImage(tourId, false)}
                     label="Low Hue"
                     bind:value={_selectedSegmentation.hLow}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    valueHasChanged={() => updateVirtualImage(tourId, false)}
                     label="High Hue"
                     bind:value={_selectedSegmentation.hHigh}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    valueHasChanged={() => updateVirtualImage(tourId, false)}
                     label="Low Saturation"
                     bind:value={_selectedSegmentation.sLow}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    valueHasChanged={() => updateVirtualImage(tourId, false)}
                     label="High Saturation"
                     bind:value={_selectedSegmentation.sHigh}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    valueHasChanged={() => updateVirtualImage(tourId, false)}
                     label="Low Lumination"
                     bind:value={_selectedSegmentation.lLow}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    valueHasChanged={() => updateVirtualImage(tourId, false)}
                     label="High Lumination"
                     bind:value={_selectedSegmentation.lHigh}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    valueHasChanged={() => updateVirtualImage(tourId, false)}
                     label="Opening Iterations"
                     bind:value={_selectedSegmentation.openingIterations}></NumberInput>
                 <Checkbox
-                    valueHasChanged={() => updateVirtualImage(tourId)}
+                    valueHasChanged={() => updateVirtualImage(tourId, false)}
                     label="Otsu Thresholding"
                     bind:value={_selectedSegmentation.useOtsu}></Checkbox>
-                <button on:click={UpdateSegmentation} class="btn btn-primary">Update Segmentation</button>
+                <button on:click={updateSegmentation} class="btn btn-primary">Update Segmentation</button>
                 <div class="rowm-2" style="height:10vh;overflow-y:auto">
                     {#each _segmentationParameter as sp}
                         <button
                             on:click={async () => {
                                 _selectedSegmentation = sp.template;
-                                await updateVirtualImage(tourId);
+                                await updateVirtualImage(tourId, false);
                             }}
                             disabled={sp.template == _selectedSegmentation}
                             class="btn btn-dark">
