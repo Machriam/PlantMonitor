@@ -1,10 +1,16 @@
-﻿using FluentAssertions;
+﻿using System.IO.Compression;
+using System.Text;
+using Emgu.CV;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NpgsqlTypes;
 using NSubstitute;
+using Plantmonitor.DataModel.DataModel;
+using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.ImageStitching;
 using Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests;
+using Plantmonitor.Shared.Extensions;
 
 namespace Plantmonitor.Server.Tests.Features.ImageStitching;
 
@@ -51,6 +57,24 @@ public class PhotoStitcherTests
         var sut = CreatePhotoStitcher();
         var result = sut.CalculateImagesPerRow(length, width, height);
         result.Should().Be(expected);
+    }
+
+    [Fact]
+    public void GetSubImages_Shouldwork()
+    {
+        var smallPlants = Path.Combine(Directory.GetCurrentDirectory().GetApplicationRootGitPath()!, "PlantMonitorControl.Tests", "TestData", "PhotoTourSummaryTest", "SmallPlantsTest.zip");
+        using var zip = ZipFile.Open(smallPlants, ZipArchiveMode.Read);
+        var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix)).Open().ConvertToArray();
+        var tempImageFile = Path.Combine(Directory.CreateTempSubdirectory().FullName, "tempimage.png");
+        File.WriteAllBytes(tempImageFile, visPicture);
+        var metaDataTsv = zip.Entries
+            .First(e => e.Name.Contains(PhotoTourTrip.MetaDataPrefix))
+            .Open()
+            .ConvertToArray()
+            .Pipe(Encoding.UTF8.GetString);
+        var mat = CvInvoke.Imread(tempImageFile);
+        var sut = CreatePhotoStitcher();
+        sut.GetSubImages(mat, metaDataTsv.Pipe(VirtualImageMetaDataModel.FromTsvFile), [1, 2, 6, 13]);
     }
 
     [Fact]

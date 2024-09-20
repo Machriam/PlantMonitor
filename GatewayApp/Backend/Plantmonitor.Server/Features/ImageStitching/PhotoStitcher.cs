@@ -74,6 +74,11 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         return (visImage, irColorImage, irData, metaData);
     }
 
+    public Mat GetSubImages(Mat image, VirtualImageMetaDataModel metaData, IEnumerable<int> desiredImages)
+    {
+        return image;
+    }
+
     private static Mat ConcatImages(int width, int height, int imagesPerRow, IList<PhotoStitchData> images, Func<PhotoStitchData?, Mat?> selector, out Size finalMatSize)
     {
         finalMatSize = new Size(width, height);
