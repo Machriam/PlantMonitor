@@ -1894,6 +1894,8 @@ export interface IDashboardClient {
 
     plantMaskParameterFor(photoTourId?: number | null | undefined): Promise<SegmentationParameter[]>;
 
+    recalculateImageSummaries(photoTourId?: number | undefined): Promise<void>;
+
     storeCustomSegmentation(parameter: SegmentationTemplate, virtualImageTime?: Date | undefined, photoTourId?: number | undefined): Promise<void>;
 
     segmentedImage(name?: string | undefined, photoTourId?: number | undefined, parameter?: SegmentationTemplate | undefined): Promise<string>;
@@ -2186,6 +2188,42 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
             });
         }
         return Promise.resolve<SegmentationParameter[]>(null as any);
+    }
+
+    recalculateImageSummaries(photoTourId?: number | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/Dashboard/recalculatesummaries?";
+        if (photoTourId === null)
+            throw new Error("The parameter 'photoTourId' cannot be null.");
+        else if (photoTourId !== undefined)
+            url_ += "photoTourId=" + encodeURIComponent("" + photoTourId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processRecalculateImageSummaries(_response));
+        });
+    }
+
+    protected processRecalculateImageSummaries(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     storeCustomSegmentation(parameter: SegmentationTemplate, virtualImageTime?: Date | undefined, photoTourId?: number | undefined): Promise<void> {

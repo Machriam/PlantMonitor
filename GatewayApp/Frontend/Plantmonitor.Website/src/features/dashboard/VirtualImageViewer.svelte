@@ -28,6 +28,7 @@
     let _downloadInfo: DownloadInfo[] = [];
     export let _segmentationParameter: SegmentationParameter[] = [];
     let _selectedSegmentation: SegmentationTemplate | undefined;
+    let _savedSegmentation: SegmentationTemplate | undefined;
     let _showSegmentedImage: boolean = false;
     let _imageCache = new Map<string, {image: string; added: Date}>();
 
@@ -94,6 +95,7 @@
         _selectedSegmentation =
             _segmentationParameter.findLast((sp) => sp.tripTime <= new Date(virtualImageTime))?.template ??
             (_segmentationParameter.length > 0 ? _segmentationParameter[0].template : undefined);
+        _selectedSegmentation = _selectedSegmentation?.clone();
     }
 
     async function nextImage(event: WheelEvent) {
@@ -172,6 +174,10 @@
         _segmentationChanged.update((_) => _segmentationParameter);
         await updateVirtualImage(_selectedTour.id, true);
     }
+    function segmentationParameterChanged() {
+        if (_selectedTour == undefined || _selectedSegmentation == undefined) return;
+        updateVirtualImage(_selectedTour.id, false);
+    }
 </script>
 
 <div class="col-md-12 row mt-2">
@@ -221,48 +227,75 @@
             {#if _selectedSegmentation != undefined && _showSegmentedImage && _selectedTour != undefined && _selectedTour != null}
                 {@const tourId = _selectedTour.id}
                 <TextInput bind:value={_selectedSegmentation.name} label="Segmentation Name"></TextInput>
+                <div class="row">
+                    <NumberInput
+                        class="col-md-6"
+                        valueHasChanged={segmentationParameterChanged}
+                        label="Low Hue"
+                        bind:value={_selectedSegmentation.hLow}></NumberInput>
+                    <NumberInput
+                        class="col-md-6"
+                        valueHasChanged={segmentationParameterChanged}
+                        label="High Hue"
+                        bind:value={_selectedSegmentation.hHigh}></NumberInput>
+                </div>
+                <div class="row">
+                    <NumberInput
+                        class="col-md-6"
+                        valueHasChanged={segmentationParameterChanged}
+                        label="Low Sat."
+                        bind:value={_selectedSegmentation.sLow}></NumberInput>
+                    <NumberInput
+                        class="col-md-6"
+                        valueHasChanged={segmentationParameterChanged}
+                        label="High Sat."
+                        bind:value={_selectedSegmentation.sHigh}></NumberInput>
+                </div>
+                <div class="row">
+                    <NumberInput
+                        class="col-md-6"
+                        valueHasChanged={segmentationParameterChanged}
+                        label="Low Lum."
+                        bind:value={_selectedSegmentation.lLow}></NumberInput>
+                    <NumberInput
+                        class="col-md-6"
+                        valueHasChanged={segmentationParameterChanged}
+                        label="High Lum."
+                        bind:value={_selectedSegmentation.lHigh}></NumberInput>
+                </div>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
-                    label="Low Hue"
-                    bind:value={_selectedSegmentation.hLow}></NumberInput>
-                <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
-                    label="High Hue"
-                    bind:value={_selectedSegmentation.hHigh}></NumberInput>
-                <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
-                    label="Low Saturation"
-                    bind:value={_selectedSegmentation.sLow}></NumberInput>
-                <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
-                    label="High Saturation"
-                    bind:value={_selectedSegmentation.sHigh}></NumberInput>
-                <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
-                    label="Low Lumination"
-                    bind:value={_selectedSegmentation.lLow}></NumberInput>
-                <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
-                    label="High Lumination"
-                    bind:value={_selectedSegmentation.lHigh}></NumberInput>
-                <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    class="col-md-12"
+                    valueHasChanged={segmentationParameterChanged}
                     label="Opening Iterations"
                     bind:value={_selectedSegmentation.openingIterations}></NumberInput>
                 <Checkbox
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="Otsu Thresholding"
                     bind:value={_selectedSegmentation.useOtsu}></Checkbox>
                 <button on:click={updateSegmentation} class="btn btn-primary">Update Segmentation</button>
-                <div class="rowm-2" style="height:10vh;overflow-y:auto">
+                <div class="d-flex flex-column colm-2" style="height:30vh;overflow-y:auto">
+                    <div class="d-flex flex-row justify-content-between">
+                        <button
+                            on:click={async () => {
+                                _selectedSegmentation = _savedSegmentation?.clone();
+                                await updateVirtualImage(tourId, false);
+                            }}
+                            disabled={_savedSegmentation == undefined}
+                            class="col-md-5 btn btn-success">
+                            Restore</button>
+                        <button
+                            on:click={() => (_savedSegmentation = _selectedSegmentation?.clone())}
+                            class="col-md-5 btn btn-success">Save</button>
+                    </div>
                     {#each _segmentationParameter as sp}
                         <button
                             on:click={async () => {
-                                _selectedSegmentation = sp.template;
+                                _selectedSegmentation = sp.template.clone();
                                 await updateVirtualImage(tourId, false);
                             }}
-                            disabled={sp.template == _selectedSegmentation}
-                            class="btn btn-dark">
+                            class="btn btn-dark {JSON.stringify(sp.template) == JSON.stringify(_selectedSegmentation)
+                                ? 'opacity-100'
+                                : 'opacity-50'}">
                             {sp.template.name}
                         </button>
                     {/each}
