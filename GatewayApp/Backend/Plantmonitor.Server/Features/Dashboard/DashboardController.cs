@@ -126,7 +126,8 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         if (photoTour.PhotoTourTrips.Any(ptt => ptt.SegmentationTemplateJson?.Name == parameter.Name && parameter.Name != SegmentationTemplate.GetDefault().Name))
             throw new Exception("Name already taken");
         var trip = photoTour.PhotoTourTrips
-            .First(ptt => ptt.Timestamp == virtualImageTime);
+            .OrderBy(ptt => Math.Abs((ptt.Timestamp - virtualImageTime).TotalMilliseconds))
+            .First();
         trip.SegmentationTemplateJson = parameter == SegmentationTemplate.GetDefault() ? null : parameter;
         context.SaveChanges();
     }
