@@ -29,6 +29,7 @@
     export let _segmentationParameter: SegmentationParameter[] = [];
     let _selectedSegmentation: SegmentationTemplate | undefined;
     let _savedSegmentation: SegmentationTemplate | undefined;
+    let _lockSegmentation = false;
     let _showSegmentedImage: boolean = false;
     let _imageCache = new Map<string, {image: string; added: Date}>();
 
@@ -69,7 +70,7 @@
                 parameter: _showSegmentedImage ? _selectedSegmentation : ""
             });
             _virtualImage = "";
-            if (updateSegmentation) findCorrespondingSegmentation(virtualImageTime);
+            if (updateSegmentation && !_lockSegmentation) findCorrespondingSegmentation(virtualImageTime);
             const cachedImage = _imageCache.get(cacheKey);
             if (cachedImage != undefined) {
                 _virtualImage = cachedImage.image;
@@ -226,6 +227,7 @@
         <div class="d-flex flex-column colm-3" style="width: 15%">
             {#if _selectedSegmentation != undefined && _showSegmentedImage && _selectedTour != undefined && _selectedTour != null}
                 {@const tourId = _selectedTour.id}
+                <Checkbox label="Lock Values" bind:value={_lockSegmentation}></Checkbox>
                 <TextInput bind:value={_selectedSegmentation.name} label="Segmentation Name"></TextInput>
                 <div class="row">
                     <NumberInput
@@ -272,8 +274,7 @@
                     valueHasChanged={segmentationParameterChanged}
                     label="Otsu Thresholding"
                     bind:value={_selectedSegmentation.useOtsu}></Checkbox>
-                <button on:click={updateSegmentation} class="btn btn-primary">Update Segmentation</button>
-                <div class="d-flex flex-column colm-2" style="height:30vh;overflow-y:auto">
+                <div class="d-flex flex-column colm-2" style="height:25vh;overflow-y:auto;overflow-x:hidden">
                     <div class="d-flex flex-row justify-content-between">
                         <button
                             on:click={async () => {
@@ -300,6 +301,8 @@
                         </button>
                     {/each}
                 </div>
+                <hr />
+                <button on:click={updateSegmentation} class="btn btn-primary">Update Segmentation</button>
             {/if}
         </div>
     </div>
