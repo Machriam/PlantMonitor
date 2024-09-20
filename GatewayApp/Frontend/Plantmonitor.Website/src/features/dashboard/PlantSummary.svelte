@@ -37,7 +37,7 @@
                 symbol: string;
                 name: string;
                 xAxis: Date;
-                yAxis: number | string;
+                y: number;
                 itemStyle: {color: string};
             }[][];
         };
@@ -258,21 +258,21 @@
                                   itemStyle: {color: "black"}
                               }));
                 s.markLine.data =
-                    _segmentationParameter.length <= 1
+                    _segmentationParameter.length <= 1 || i > 0
                         ? []
                         : _segmentationParameter.map((sp) => [
                               {
                                   symbol: "none",
                                   name: sp.template.name,
                                   xAxis: sp.tripTime,
-                                  yAxis: 0,
+                                  y: 60,
                                   itemStyle: {color: "black"}
                               },
                               {
                                   symbol: "none",
-                                  name: sp.template.name,
+                                  name: "",
                                   xAxis: sp.tripTime,
-                                  yAxis: "max",
+                                  y: _chart!.getHeight() * 0.91,
                                   itemStyle: {color: "black"}
                               }
                           ]);
