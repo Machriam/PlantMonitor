@@ -94,6 +94,7 @@
         _selectedSegmentation =
             _segmentationParameter.findLast((sp) => sp.tripTime <= new Date(virtualImageTime))?.template ??
             (_segmentationParameter.length > 0 ? _segmentationParameter[0].template : undefined);
+        _selectedSegmentation = _selectedSegmentation?.clone();
     }
 
     async function nextImage(event: WheelEvent) {
@@ -172,6 +173,10 @@
         _segmentationChanged.update((_) => _segmentationParameter);
         await updateVirtualImage(_selectedTour.id, true);
     }
+    function segmentationParameterChanged() {
+        if (_selectedTour == undefined) return;
+        updateVirtualImage(_selectedTour.id, false);
+    }
 </script>
 
 <div class="col-md-12 row mt-2">
@@ -222,35 +227,35 @@
                 {@const tourId = _selectedTour.id}
                 <TextInput bind:value={_selectedSegmentation.name} label="Segmentation Name"></TextInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="Low Hue"
                     bind:value={_selectedSegmentation.hLow}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="High Hue"
                     bind:value={_selectedSegmentation.hHigh}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="Low Saturation"
                     bind:value={_selectedSegmentation.sLow}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="High Saturation"
                     bind:value={_selectedSegmentation.sHigh}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="Low Lumination"
                     bind:value={_selectedSegmentation.lLow}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="High Lumination"
                     bind:value={_selectedSegmentation.lHigh}></NumberInput>
                 <NumberInput
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="Opening Iterations"
                     bind:value={_selectedSegmentation.openingIterations}></NumberInput>
                 <Checkbox
-                    valueHasChanged={() => updateVirtualImage(tourId, false)}
+                    valueHasChanged={segmentationParameterChanged}
                     label="Otsu Thresholding"
                     bind:value={_selectedSegmentation.useOtsu}></Checkbox>
                 <button on:click={updateSegmentation} class="btn btn-primary">Update Segmentation</button>
@@ -258,11 +263,12 @@
                     {#each _segmentationParameter as sp}
                         <button
                             on:click={async () => {
-                                _selectedSegmentation = sp.template;
+                                _selectedSegmentation = sp.template.clone();
                                 await updateVirtualImage(tourId, false);
                             }}
-                            disabled={sp.template == _selectedSegmentation}
-                            class="btn btn-dark">
+                            class="btn btn-dark {JSON.stringify(sp.template) == JSON.stringify(_selectedSegmentation)
+                                ? 'opacity-100'
+                                : 'opacity-50'}">
                             {sp.template.name}
                         </button>
                     {/each}

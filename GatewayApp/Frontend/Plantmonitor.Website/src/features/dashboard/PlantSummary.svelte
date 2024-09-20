@@ -318,14 +318,23 @@
         _selectedPlants = _selectedPlants;
         updateChart();
     }
+    async function recalculateSummary() {
+        if (_selectedTour == undefined) return;
+        const dashboardClient = new DashboardClient();
+        dashboardClient.recalculateImageSummaries(_selectedTour.id);
+    }
 </script>
 
 <div class="col-md-12 row mt-2">
     <slot />
     <div style="align-items: center;" class="col-md-7 row mb-2">
-        <div class="col-md-7"></div>
+        <div class="col-md-2"></div>
+        <button disabled={_selectedTour == null} on:click={recalculateSummary} class="btn btn-primary col-md-3"
+            >Recalculate Summary</button>
+        <div class="col-md-1"></div>
         <button disabled={_selectedTour == null} on:click={downloadSummaryData} class="btn btn-primary col-md-2"
             >Download Data</button>
+        <div class="col-md-1"></div>
         <div class="col-md-3">Summary Count: {_virtualImageSummaries.length}</div>
     </div>
     {#if _virtualImageSummaries.length > 0}

@@ -117,6 +117,12 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
             .Push(defaultEntry) ?? [defaultEntry];
     }
 
+    [HttpPost("recalculatesummaries")]
+    public void RecalculateImageSummaries(long photoTourId)
+    {
+        photoTourSummary.RecalculateSummaries(photoTourId);
+    }
+
     [HttpPost("storecustomsegmentation")]
     public void StoreCustomSegmentation([FromBody] SegmentationTemplate parameter, DateTime virtualImageTime, long photoTourId)
     {
