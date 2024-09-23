@@ -71,6 +71,8 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         else _result[image] = [new(left, top, temperature, pixelColorInRgb, leafOutOfRange)];
     }
 
+    public Dictionary<VirtualImageMetaDataModel.ImageMetaDatum, List<PixelInfo>> GetPixelInfo() => _result;
+
     public void AddDeviceTemperatures(IEnumerable<DeviceTemperatureInfo> deviceTemperatures) =>
         DeviceTemperatures.AddRange(deviceTemperatures.Where(dt => dt.AverageTemperature > 0f));
 
@@ -175,7 +177,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         return element;
     }
 
-    private static Mat CreateSubImage(List<PixelInfo> pixelList)
+    public Mat CreateSubImage(List<PixelInfo> pixelList)
     {
         var pixelByCoordinate = pixelList.ToDictionary(p => (p.Left, p.Top));
         var width = pixelList.Max(p => p.Left) - pixelList.Min(p => p.Left);

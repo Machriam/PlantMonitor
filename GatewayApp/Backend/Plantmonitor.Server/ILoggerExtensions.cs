@@ -1,4 +1,5 @@
-﻿using Plantmonitor.DataModel.DataModel;
+﻿using System.Runtime.CompilerServices;
+using Plantmonitor.DataModel.DataModel;
 
 namespace Plantmonitor.Server;
 

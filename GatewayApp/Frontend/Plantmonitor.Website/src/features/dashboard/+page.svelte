@@ -3,7 +3,7 @@
     import {SelectedDashboardTab, DasboardTabDescriptions} from "./SelectedDashboardTab";
     import VirtualImageViewer from "./VirtualImageViewer.svelte";
     import PlantSummary from "./PlantSummary.svelte";
-    import {_selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import {_onlyShowSelectedPlantsChanged, _selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
     import {onMount} from "svelte";
     import {AutomaticPhotoTourClient, PhotoTourInfo, VirtualImageInfo} from "~/services/GatewayAppApi";
     import {pipe} from "~/types/Pipe";
@@ -25,6 +25,9 @@
             .orderByDescending((pt) => pt.tripCount)
             .toArray();
     });
+    function showOnlySelectedPlants() {
+        $_onlyShowSelectedPlantsChanged = !$_onlyShowSelectedPlantsChanged;
+    }
     function clearFilter() {
         _virtualImageFilterByTime.update((x) => {
             x.clear();
@@ -60,12 +63,13 @@
             class="btn btn-dark col-md-2 {_selectedTab == value ? 'opacity-100' : 'opacity-50'}"
             >{DasboardTabDescriptions.get(value)}</button>
     {/each}
-    <div class="col-md-2"></div>
+    <div class="col-md-1"></div>
     <div class="col-md-2">Filtered Indices: {_filteredIndices}</div>
     <button on:click={clearFilter} class="col-md-1 btn btn-danger">Clear</button>
     {#if _filteredIndices > 0 && _currentDateIndex != undefined}
         <button on:click={removeSelectedImageFromFilter} class="col-md-2 btn btn-danger">Remove {_currentDateIndex + 1}</button>
     {/if}
+    <button on:click={showOnlySelectedPlants} class="col-md-1 btn btn-primary">Selected Plants</button>
 </div>
 <hr class="col-md-12" />
 <div style="display: {_selectedTab == SelectedDashboardTab.virtualPhotoViewer ? 'unset' : 'none'}">

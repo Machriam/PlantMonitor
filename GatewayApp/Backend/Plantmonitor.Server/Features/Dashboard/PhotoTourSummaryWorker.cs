@@ -16,6 +16,8 @@ public interface IPhotoTourSummaryWorker
     Mat GetPlantMask(Mat visMat, SegmentationTemplate parameter);
 
     void RecalculateSummaries(long photoTourId);
+
+    PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate);
 }
 
 public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,

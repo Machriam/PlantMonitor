@@ -9,7 +9,12 @@
         VirtualImageSummary
     } from "~/services/GatewayAppApi";
     import {Download} from "~/types/Download";
-    import {_segmentationChanged, _selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import {
+        _segmentationChanged,
+        _selectedPlantsChanged,
+        _selectedTourChanged,
+        _virtualImageFilterByTime
+    } from "./DashboardContext";
     import type {Unsubscriber} from "svelte/store";
     import {pipe} from "~/types/Pipe";
     class DescriptorInfo {
@@ -317,6 +322,7 @@
         else _selectedPlants.push(plant);
         _selectedPlants = _selectedPlants;
         updateChart();
+        $_selectedPlantsChanged = _selectedPlants;
     }
     async function recalculateSummary() {
         if (_selectedTour == undefined) return;

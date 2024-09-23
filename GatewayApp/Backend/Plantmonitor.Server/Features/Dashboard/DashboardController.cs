@@ -23,6 +23,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     public record struct VirtualImageInfo(string Name, DateTime CreationDate);
     public record struct TemperatureDatum(DateTime Time, float Temperature, float Deviation);
     public record struct SegmentationParameter(DateTime TripTime, SegmentationTemplate Template);
+    public record struct SubImageRequest(string FileName, SegmentationTemplate? Template, IEnumerable<string> PlantNames, long PhotoTourId);
 
     [HttpGet("virtualimagelist")]
     public IEnumerable<VirtualImageInfo> VirtualImageList(long photoTourId)
@@ -66,6 +67,27 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         }
         DeleteFile().RunInBackground(ex => ex.LogError());
         return Path.Combine(IWebHostEnvironmentExtensions.DownloadFolder, Path.GetFileName(downloadFilePath));
+    }
+
+    [HttpPost("subimages")]
+    public byte[] GetSubImages([FromBody] SubImageRequest request)
+    {
+        var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == request.PhotoTourId);
+        var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
+        var zipFile = Path.Combine(folder, Path.GetFileName(request.FileName));
+        if (!Path.Exists(zipFile)) return [];
+        var result = photoTourSummary.ProcessImage(zipFile, request.Template ?? SegmentationTemplate.GetDefault());
+        var pixelInfo = result.GetPixelInfo();
+        var resultList = new List<byte[]>();
+        foreach (var pixel in pixelInfo)
+        {
+            if (!request.PlantNames.Contains(pixel.Key.ImageName)) continue;
+            var subImage = result.CreateSubImage(pixel.Value);
+            var resultImage = subImage.BytesFromMat();
+            resultList.Add(resultImage);
+            subImage.Dispose();
+        }
+        return resultList.First();
     }
 
     [HttpGet("temperaturedata")]
@@ -148,14 +170,13 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         using var zip = ZipFile.Open(zipFile, ZipArchiveMode.Read);
         var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
         var tempPng = Path.Combine(Directory.CreateTempSubdirectory().FullName, "temp.png");
-        var tempMask = Path.Combine(Directory.CreateTempSubdirectory().FullName, "tempMask.png");
         File.WriteAllBytes(tempPng, visPicture.Open().ConvertToArray());
         var visMat = CvInvoke.Imread(tempPng);
         var mask = photoTourSummary.GetPlantMask(visMat, parameter ?? SegmentationTemplate.GetDefault());
         visMat.Dispose();
-        CvInvoke.Imwrite(tempMask, mask);
+        var result = mask.BytesFromMat();
         mask.Dispose();
-        return File.ReadAllBytes(tempMask);
+        return result;
     }
 
     [HttpGet("statusofdownloadtourdata")]

@@ -4,5 +4,7 @@ import type { PhotoTourInfo, SegmentationParameter } from "~/services/GatewayApp
 export const _virtualImageFilterByTime: Writable<Set<number>> = writable(new Set());
 export const _selectedTourChanged: Writable<PhotoTourInfo | null> = writable(null);
 export const _segmentationChanged: Writable<SegmentationParameter[]> = writable([]);
+export const _selectedPlantsChanged: Writable<string[]> = writable([]);
+export const _onlyShowSelectedPlantsChanged: Writable<boolean> = writable(false);
 
 
