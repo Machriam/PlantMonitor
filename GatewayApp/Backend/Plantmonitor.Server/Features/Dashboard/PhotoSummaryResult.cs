@@ -87,6 +87,12 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 continue;
             }
             var subImage = CreateSubImage(pixelList);
+            if (subImage.Width == 0 || subImage.Height == 0)
+            {
+                result.NoImage = true;
+                resultList.Add(result);
+                continue;
+            }
             var grayImage = new Mat();
             CvInvoke.CvtColor(subImage, grayImage, ColorConversion.Rgb2Gray);
             var hslValues = pixelList.ConvertAll(pl => pl.PixelColorInRgb.Rgb2Hsl());

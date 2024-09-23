@@ -108,6 +108,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                 .SegmentationTemplateJson ?? SegmentationTemplate.GetDefault();
             logger.LogInformation("Using template {image}", segmentationTemplate.AsJson());
             var pixelSummary = ProcessImage(nextImage.Key, segmentationTemplate);
+            logger.LogInformation("Calculating Image Descriptors");
             var imageResults = pixelSummary.GetResults();
             RemoveExistingSummary(logger, context, nextImage);
             context.VirtualImageSummaries.Add(new VirtualImageSummary()
@@ -220,6 +221,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         }, () => irTemperatures.Count > 0);
         resultData.AddDeviceTemperatures(deviceTemperatureInfo);
         resultData.AddPhotoTripData(metaData.TimeInfos.TripName, metaData.TimeInfos.StartTime, metaData.TimeInfos.EndTime, metaData.TimeInfos.PhotoTourId, metaData.TimeInfos.PhotoTripId);
+        logger.LogInformation("Read temperature values from Image");
         for (var row = 0; row < mask.Rows; row++)
         {
             for (var col = 0; col < mask.Cols; col++)
@@ -242,6 +244,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         visMat.Dispose();
         rawIrMat.Dispose();
         borderMask.Dispose();
+        logger.LogInformation("Finished reading photo summary results");
         return resultData;
     }
 
@@ -256,15 +259,19 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
             File.WriteAllBytes(path, entry.Open().ConvertToArray());
             files.Add(path);
         }
+        logger.LogInformation("Extracted {files} from {zip} to locations:\n{locations}", files.Count, image,
+            files.Select(f => f + " exists: " + Path.Exists(f)).Concat("\n"));
         zip.Dispose();
         var visMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.VisPrefix)), ImreadModes.Color);
         var rawIrMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.RawIrPrefix)));
         var metaData = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.MetaDataPrefix))));
+        logger.LogInformation("All images were read. ImageInfo vis {vis}, ir {ir}", visMat.Width + "x" + visMat.Height, rawIrMat.Width + "x" + rawIrMat.Height);
         return (visMat, rawIrMat, metaData);
     }
 
     public Mat SubImageBorderMask(Mat visMat)
     {
+        logger.LogInformation("Create Border Mask");
         var mask = new Mat();
         visMat.CopyTo(mask);
         CvInvoke.CvtColor(mask, mask, ColorConversion.Rgb2Gray);
@@ -274,19 +281,29 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         CvInvoke.Threshold(mask, mask, 0d, 255d, ThresholdType.Binary);
         CvInvoke.Canny(mask, mask, 100, 300);
         whiteMask.Dispose();
+        logger.LogInformation("Finished Border Mask Creation");
         return mask;
     }
 
     public Mat GetPlantMask(Mat visMat, SegmentationTemplate parameter)
     {
+        logger.LogInformation("Get Plant Mask");
         var hsvMat = new Mat();
         var mask = new Mat();
         CvInvoke.CvtColor(visMat, hsvMat, ColorConversion.Bgr2Hsv);
+        logger.LogInformation("Segment HSV Color");
         SegmentHsvColorSpace(hsvMat, mask, parameter);
+        logger.LogInformation("Apply first Opening with {parameter}", parameter.AsJson());
         MorphologicalOpening(mask, parameter);
-        if (parameter.UseOtsu) OtsuTresholdingOnSaturationChannel(hsvMat, mask);
+        if (parameter.UseOtsu)
+        {
+            logger.LogInformation("Apply Otsu Thresholding");
+            OtsuTresholdingOnSaturationChannel(hsvMat, mask);
+        }
+        logger.LogInformation("Apply second Opening with {parameter}", parameter.AsJson());
         MorphologicalOpening(mask, parameter);
         hsvMat.Dispose();
+        logger.LogInformation("Plant Mask creation finished");
         return mask;
     }
 
