@@ -256,10 +256,13 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
             File.WriteAllBytes(path, entry.Open().ConvertToArray());
             files.Add(path);
         }
+        logger.LogInformation("Extracted {files} from {zip} to locations:\n{locations}", files.Count, image,
+            files.Select(f => f + " exists: " + Path.Exists(f)).Concat("\n"));
         zip.Dispose();
         var visMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.VisPrefix)), ImreadModes.Color);
         var rawIrMat = CvInvoke.Imread(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.RawIrPrefix)));
         var metaData = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(files.First(f => Path.GetFileName(f).StartsWith(PhotoTourTrip.MetaDataPrefix))));
+        logger.LogInformation("All images were read. ImageInfo vis {vis}, ir {ir}", visMat.Width + "x" + visMat.Height, rawIrMat.Width + "x" + rawIrMat.Height);
         return (visMat, rawIrMat, metaData);
     }
 
