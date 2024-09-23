@@ -5544,6 +5544,7 @@ export class SubImageRequest implements ISubImageRequest {
     template!: SegmentationTemplate | undefined;
     plantNames!: string[];
     photoTourId!: number;
+    showSegmentation!: boolean;
 
     constructor(data?: ISubImageRequest) {
         if (data) {
@@ -5564,6 +5565,7 @@ export class SubImageRequest implements ISubImageRequest {
                     this.plantNames!.push(item);
             }
             this.photoTourId = _data["PhotoTourId"];
+            this.showSegmentation = _data["ShowSegmentation"];
         }
     }
 
@@ -5584,6 +5586,7 @@ export class SubImageRequest implements ISubImageRequest {
                 data["PlantNames"].push(item);
         }
         data["PhotoTourId"] = this.photoTourId;
+        data["ShowSegmentation"] = this.showSegmentation;
         return data;
     }
 
@@ -5600,6 +5603,7 @@ export interface ISubImageRequest {
     template: SegmentationTemplate | undefined;
     plantNames: string[];
     photoTourId: number;
+    showSegmentation: boolean;
 }
 
 export class TemperatureSummaryData implements ITemperatureSummaryData {

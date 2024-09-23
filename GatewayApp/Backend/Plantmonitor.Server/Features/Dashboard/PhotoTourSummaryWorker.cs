@@ -18,6 +18,8 @@ public interface IPhotoTourSummaryWorker
     void RecalculateSummaries(long photoTourId);
 
     PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate);
+
+    PhotoSummaryResult SplitInSubImages(string image, SegmentationTemplate segmentationTemplate);
 }
 
 public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
@@ -172,6 +174,29 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
             context.VirtualImageSummaries.Remove(existingSummary);
             context.SaveChanges();
         }
+    }
+
+    public PhotoSummaryResult SplitInSubImages(string image, SegmentationTemplate segmentationTemplate)
+    {
+        var (visMat, irMat, metaData) = GetDataFromZip(image);
+        var getImage = metaData.BuildCoordinateToImageFunction();
+        var visData = visMat.GetData(true);
+        var resultData = new PhotoSummaryResult(metaData.Dimensions.SizeOfPixelInMm);
+        for (var row = 0; row < visMat.Rows; row++)
+        {
+            for (var col = 0; col < visMat.Cols; col++)
+            {
+                var imageData = getImage((col, row));
+                if (imageData == null) continue;
+                var rValue = (byte)visData.GetValue(row, col, 2)!;
+                var gValue = (byte)visData.GetValue(row, col, 1)!;
+                var bValue = (byte)visData.GetValue(row, col, 0)!;
+                resultData.AddPixelInfo(imageData, col, row, 0f, [rValue, gValue, bValue], false);
+            }
+        }
+        visMat.Dispose();
+        irMat.Dispose();
+        return resultData;
     }
 
     public PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate)

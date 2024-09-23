@@ -96,6 +96,7 @@
                         new SubImageRequest({
                             fileName: _selectedImage.name,
                             photoTourId: tourId,
+                            showSegmentation: _showSegmentedImage,
                             plantNames: _selectedPlants,
                             template: _selectedSegmentation
                         })

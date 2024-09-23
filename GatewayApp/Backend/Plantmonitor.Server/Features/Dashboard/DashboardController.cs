@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.IO.Compression;
-using System.Text;
-using System.Text.Unicode;
 using Emgu.CV;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +12,8 @@ namespace Plantmonitor.Server.Features.Dashboard;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration, IWebHostEnvironment webHost, IPhotoTourSummaryWorker photoTourSummary)
+public class DashboardController(IDataContext context, IEnvironmentConfiguration configuration, IWebHostEnvironment webHost, IPhotoTourSummaryWorker photoTourSummary,
+    IPhotoStitcher stitcher)
 {
     private const double InverseGigabyte = 1d / (1024d * 1024d * 1024d);
     private static readonly ConcurrentDictionary<string, DownloadInfo> s_fileReadyToDownload = new();
@@ -23,7 +22,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     public record struct VirtualImageInfo(string Name, DateTime CreationDate);
     public record struct TemperatureDatum(DateTime Time, float Temperature, float Deviation);
     public record struct SegmentationParameter(DateTime TripTime, SegmentationTemplate Template);
-    public record struct SubImageRequest(string FileName, SegmentationTemplate? Template, IEnumerable<string> PlantNames, long PhotoTourId);
+    public record struct SubImageRequest(string FileName, SegmentationTemplate? Template, IEnumerable<string> PlantNames, long PhotoTourId, bool ShowSegmentation);
 
     [HttpGet("virtualimagelist")]
     public IEnumerable<VirtualImageInfo> VirtualImageList(long photoTourId)
@@ -76,18 +75,28 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
         var zipFile = Path.Combine(folder, Path.GetFileName(request.FileName));
         if (!Path.Exists(zipFile)) return [];
-        var result = photoTourSummary.ProcessImage(zipFile, request.Template ?? SegmentationTemplate.GetDefault());
+        var result = photoTourSummary.SplitInSubImages(zipFile, request.Template ?? SegmentationTemplate.GetDefault());
         var pixelInfo = result.GetPixelInfo();
-        var resultList = new List<byte[]>();
+        var resultList = new List<Mat>();
         foreach (var pixel in pixelInfo)
         {
             if (!request.PlantNames.Contains(pixel.Key.ImageName)) continue;
             var subImage = result.CreateSubImage(pixel.Value);
-            var resultImage = subImage.BytesFromMat();
-            resultList.Add(resultImage);
-            subImage.Dispose();
+            CvInvoke.CvtColor(subImage, subImage, Emgu.CV.CvEnum.ColorConversion.Rgb2Bgr);
+            resultList.Add(subImage);
         }
-        return resultList.First();
+        var resultMat = stitcher.CreateCombinedImage(resultList);
+        if (request.ShowSegmentation)
+        {
+            var mask = photoTourSummary.GetPlantMask(resultMat, request.Template ?? SegmentationTemplate.GetDefault());
+            resultMat.Dispose();
+            var maskBytes = mask.BytesFromMat();
+            mask.Dispose();
+            return maskBytes;
+        }
+        var resultBytes = resultMat.BytesFromMat();
+        resultMat.Dispose();
+        return resultBytes;
     }
 
     [HttpGet("temperaturedata")]
