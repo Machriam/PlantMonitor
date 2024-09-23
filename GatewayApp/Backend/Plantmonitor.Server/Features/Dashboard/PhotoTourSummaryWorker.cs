@@ -19,7 +19,7 @@ public interface IPhotoTourSummaryWorker
 
     PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate);
 
-    PhotoSummaryResult SplitInSubImages(string image, SegmentationTemplate segmentationTemplate);
+    PhotoSummaryResult SplitInSubImages(string image, SegmentationTemplate segmentationTemplate, HashSet<string> desiredPlants);
 }
 
 public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
@@ -176,24 +176,28 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         }
     }
 
-    public PhotoSummaryResult SplitInSubImages(string image, SegmentationTemplate segmentationTemplate)
+    public PhotoSummaryResult SplitInSubImages(string image, SegmentationTemplate segmentationTemplate, HashSet<string> desiredPlants)
     {
         var (visMat, irMat, metaData) = GetDataFromZip(image);
         var getImage = metaData.BuildCoordinateToImageFunction();
         var visData = visMat.GetData(true);
         var resultData = new PhotoSummaryResult(metaData.Dimensions.SizeOfPixelInMm);
+        var pixelByPlant = new Dictionary<string, List<(int Row, int Col)>>();
         for (var row = 0; row < visMat.Rows; row++)
         {
             for (var col = 0; col < visMat.Cols; col++)
             {
                 var imageData = getImage((col, row));
                 if (imageData == null) continue;
-                var rValue = (byte)visData.GetValue(row, col, 2)!;
-                var gValue = (byte)visData.GetValue(row, col, 1)!;
-                var bValue = (byte)visData.GetValue(row, col, 0)!;
-                resultData.AddPixelInfo(imageData, col, row, 0f, [rValue, gValue, bValue], false);
+                if (!desiredPlants.Contains(imageData.ImageName)) continue;
+                if (!pixelByPlant.TryGetValue(imageData.ImageName, out var pixelList)) pixelByPlant.Add(imageData.ImageName, [(row, col)]);
+                else pixelList.Add((row, col));
             }
         }
+        var minRow = pixelByPlant.Select(pp => pp.Value.Min(x => x.Row));
+        var maxRow = pixelByPlant.Select(pp => pp.Value.Max(x => x.Row));
+        var minCol = pixelByPlant.Select(pp => pp.Value.Min(x => x.Col));
+        var maxCol = pixelByPlant.Select(pp => pp.Value.Max(x => x.Col));
         visMat.Dispose();
         irMat.Dispose();
         return resultData;

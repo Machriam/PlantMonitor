@@ -74,13 +74,14 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == request.PhotoTourId);
         var folder = configuration.VirtualImagePath(photoTour.Name, photoTour.Id);
         var zipFile = Path.Combine(folder, Path.GetFileName(request.FileName));
+        var plantSet = request.PlantNames.ToHashSet();
         if (!Path.Exists(zipFile)) return [];
-        var result = photoTourSummary.SplitInSubImages(zipFile, request.Template ?? SegmentationTemplate.GetDefault());
+        var result = photoTourSummary.SplitInSubImages(zipFile, request.Template ?? SegmentationTemplate.GetDefault(), plantSet);
         var pixelInfo = result.GetPixelInfo();
         var resultList = new List<Mat>();
         foreach (var pixel in pixelInfo)
         {
-            if (!request.PlantNames.Contains(pixel.Key.ImageName)) continue;
+            if (!plantSet.Contains(pixel.Key.ImageName)) continue;
             var subImage = result.CreateSubImage(pixel.Value);
             CvInvoke.CvtColor(subImage, subImage, Emgu.CV.CvEnum.ColorConversion.Rgb2Bgr);
             resultList.Add(subImage);

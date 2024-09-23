@@ -276,11 +276,12 @@ public record struct VirtualImageMetaDataModel()
                 index++;
             }
         }
-        var @this = this;
+        var inverseWidth = 1f / Dimensions.Width;
+        var inverseHeight = 1f / Dimensions.Height;
         return (pixel) =>
         {
-            var column = pixel.Left / @this.Dimensions.Width;
-            var row = pixel.Top / @this.Dimensions.Height;
+            var column = (int)(pixel.Left * inverseWidth);
+            var row = (int)(pixel.Top * inverseHeight);
             if (result.TryGetValue((row, column), out var datum)) return datum;
             return null;
         };
