@@ -83,6 +83,10 @@ class ArrayExtensions<T> {
         return result;
     }
 
+    count(selector: (x: T) => boolean): number {
+        return this.array.filter(selector).length;
+    }
+
     mean(selector: (x: T) => number) {
         if (this.array.length == 0) return pipe(0);
         return pipe(this.array.reduce((a, x) => a += selector(x), 0) / this.array.length);

@@ -22,7 +22,8 @@
         unit: string;
         validator: (value: number) => boolean;
         tooltipFormatter: (value: number) => string;
-        getDescriptor: (descriptor: PlantImageDescriptors) => number;
+        getDescriptor: (descriptors: PlantImageDescriptors[]) => number;
+        isGlobal: boolean;
     }
     let _selectedTour: PhotoTourInfo | null = null;
     let _virtualImageSummaries: VirtualImageSummary[] = [];
@@ -65,46 +66,60 @@
     const _graphId = Math.random().toString(36).substring(7);
     let _descriptorsFor: DescriptorInfo[] = [
         {
+            name: "Overlapping Leaves",
+            unit: "count",
+            tooltipFormatter: (value) => value + "",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => pipe(descriptor).count((x) => x.leafOutOfRange),
+            isGlobal: true
+        },
+        {
             name: "Convex Hull",
             unit: "mm²",
             tooltipFormatter: (value) => value.toFixed(1) + " mm²",
             validator: (x) => true,
-            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.convexHullAreaInMm2
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].convexHullAreaInMm2,
+            isGlobal: false
         },
         {
             name: "Approx. Leaf Count",
             unit: "count",
             tooltipFormatter: (value) => value + "",
             validator: (x) => true,
-            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.leafCount
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].leafCount,
+            isGlobal: false
         },
         {
             name: "Plant Size",
             unit: "mm²",
             tooltipFormatter: (value) => value.toFixed(1) + " mm²",
             validator: (x) => true,
-            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.sizeInMm2
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].sizeInMm2,
+            isGlobal: false
         },
         {
             name: "Solidity",
             unit: "%",
             tooltipFormatter: (value) => value.toFixed(1) + "%",
             validator: (x) => true,
-            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.solidity * 100
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].solidity * 100,
+            isGlobal: false
         },
         {
             name: "IR Temperature",
             unit: "°C",
             tooltipFormatter: (value) => value.toFixed(1) + "°C",
             validator: (x) => x > 0,
-            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.averageTemperature
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].averageTemperature,
+            isGlobal: false
         },
         {
             name: "Extent",
             unit: "%",
             tooltipFormatter: (value) => value.toFixed(1) + "%",
             validator: (x) => true,
-            getDescriptor: (descriptor: PlantImageDescriptors) => descriptor.extent * 100
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].extent * 100,
+            isGlobal: false
         }
     ];
 
@@ -172,10 +187,11 @@
             const plant = _selectedPlants[i];
             for (let j = 0; j < _selectedDescriptors.length; j++) {
                 const descriptor = _selectedDescriptors[j];
+                if (descriptor.isGlobal) continue;
                 const data = filteredSummaries
                     .map((x) => {
                         const descriptorValue = x.imageDescriptors.plantDescriptors.find((p) => p.plant.imageName == plant);
-                        const value = descriptor.getDescriptor(descriptorValue!);
+                        const value = descriptor.getDescriptor([descriptorValue!]);
                         if (!descriptor.validator(value)) return [];
                         return [new Date(x.imageDescriptors.tripStart), value];
                     })
@@ -191,6 +207,29 @@
                     data: data
                 });
             }
+        }
+        for (let j = 0; j < _selectedDescriptors.length; j++) {
+            if (!_selectedDescriptors[j].isGlobal) continue;
+            const descriptor = _selectedDescriptors[j];
+            const descriptorName = descriptor.name;
+            _descriptorBySeries.set(descriptorName, descriptor);
+            const data = filteredSummaries
+                .map((x) => {
+                    const descriptorValue = x.imageDescriptors.plantDescriptors;
+                    const value = descriptor.getDescriptor(descriptorValue);
+                    if (!descriptor.validator(value)) return [];
+                    return [new Date(x.imageDescriptors.tripStart), value];
+                })
+                .filter((x) => x.length > 0);
+            _chartData.push({
+                name: descriptorName,
+                type: "line",
+                yAxisIndex: j,
+                markPoint: {data: []},
+                markLine: {data: []},
+                showSymbol: false,
+                data: data
+            });
         }
         _chart.clear();
         if (_chartData.length == 0) return;
@@ -308,10 +347,21 @@
     }
     function toggleDescriptorSelection(descriptor: DescriptorInfo) {
         const index = _selectedDescriptors.findIndex((d) => d.name == descriptor.name);
+        if (descriptor.isGlobal) {
+            if (index >= 0) _selectedDescriptors.splice(index, 1);
+            else _selectedDescriptors.push(descriptor);
+            _selectedDescriptors = _selectedDescriptors;
+            updateChart();
+            return;
+        }
         if (index >= 0) _selectedDescriptors.splice(index, 1);
         else {
             _selectedDescriptors.push(descriptor);
-            if (_selectedDescriptors.length > 2) _selectedDescriptors.shift();
+            const nonGlobalDescriptors = _selectedDescriptors.filter((d) => !d.isGlobal);
+            if (nonGlobalDescriptors.length > 2) {
+                nonGlobalDescriptors.shift();
+                _selectedDescriptors = [..._selectedDescriptors.filter((sd) => sd.isGlobal), ...nonGlobalDescriptors];
+            }
         }
         _selectedDescriptors = _selectedDescriptors;
         updateChart();
@@ -344,6 +394,7 @@
         <div class="col-md-3">Summary Count: {_virtualImageSummaries.length}</div>
     </div>
     {#if _virtualImageSummaries.length > 0}
+        {@const lastGlobalDescriptorIndex = _descriptorsFor.findLastIndex((d) => d.isGlobal)}
         <div class="col-md-10 d-flex flex-column">
             <div style="height: 80vh;" id={_graphId}></div>
         </div>
@@ -356,6 +407,9 @@
                         : ''}">
                     {descriptor.name}
                 </button>
+                {#if _descriptorsFor[lastGlobalDescriptorIndex] == descriptor}
+                    <hr />
+                {/if}
             {/each}
         </div>
         <div class="col-md-1 d-flex flex-column border-start" style="height: 70vh;overflow-y:auto">
