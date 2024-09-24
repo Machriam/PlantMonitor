@@ -120,6 +120,78 @@
             validator: (x) => true,
             getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].extent * 100,
             isGlobal: false
+        },
+        {
+            name: "Hue",
+            unit: "°",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].hslAverage[0],
+            isGlobal: false
+        },
+        {
+            name: "Saturation",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].hslAverage[1] * 100,
+            isGlobal: false
+        },
+        {
+            name: "Lightness",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].hslAverage[2] * 100,
+            isGlobal: false
+        },
+        {
+            name: "Hue-Range",
+            unit: "°",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].hslMax[0] - descriptor[0].hslMin[0],
+            isGlobal: false
+        },
+        {
+            name: "Saturation-Range",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => (descriptor[0].hslMax[1] - descriptor[0].hslMin[1]) * 100,
+            isGlobal: false
+        },
+        {
+            name: "Lightness-Range",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => (descriptor[0].hslMax[2] - descriptor[0].hslMin[2]) * 100,
+            isGlobal: false
+        },
+        {
+            name: "Hue-Deviation",
+            unit: "°",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].hslDeviation[0],
+            isGlobal: false
+        },
+        {
+            name: "Saturation-Deviation",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].hslDeviation[1] * 100,
+            isGlobal: false
+        },
+        {
+            name: "Lightness-Deviation",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1),
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) => descriptor[0].hslDeviation[2] * 100,
+            isGlobal: false
         }
     ];
 

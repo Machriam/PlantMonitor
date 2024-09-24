@@ -54,6 +54,11 @@
         _virtualImage = undefined;
         _currentDateIndex = undefined;
     }
+    async function selectedTourChanged(tour: PhotoTourInfo) {
+        $_selectedPlantsChanged = [];
+        $_onlyShowSelectedPlantsChanged = false;
+        _selectedTourChanged.update(() => tour);
+    }
 </script>
 
 <svelte:head><title>Dashboard</title></svelte:head>
@@ -69,6 +74,7 @@
     <div class="col-md-3" style="align-items: center;">
         <Checkbox
             bind:value={$_onlyShowSelectedPlantsChanged}
+            disabledSelector={() => $_selectedPlantsChanged.length == 0}
             label="Only selected {$_selectedPlantsChanged.length} Plants"
             class="col-md-12"></Checkbox>
         <div class="ms-5">Selected Times: {_filteredIndices}</div>
@@ -96,7 +102,7 @@
         <div style="overflow-x:auto;white-space:nowrap" class="d-flex flex-row rowm-3 col-md-5">
             {#each _photoTours as tour}
                 <button
-                    on:click={async () => _selectedTourChanged.update(() => tour)}
+                    on:click={async () => await selectedTourChanged(tour)}
                     style="height:40px"
                     class="btn btn-dark {tour == $_selectedTourChanged ? 'opacity-100' : 'opacity-50'}">{tour.name}</button>
             {/each}
