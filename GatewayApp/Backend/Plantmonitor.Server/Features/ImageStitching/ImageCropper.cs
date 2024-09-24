@@ -87,17 +87,17 @@ public class ImageCropper() : IImageCropper
     {
         if (irImage == null || irImage.Height == 0 || irImage.Width == 0) return;
         var baselineMat = new Mat(irImage.Rows, irImage.Cols, irImage.Depth, 1);
-        baselineMat.SetTo(new MCvScalar(ZeroDegreeCelsius + 1500));
+        baselineMat.LogCall(x => x.SetTo(new MCvScalar(ZeroDegreeCelsius + 1500)));
         var scaleMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv32F, 1);
-        scaleMat.SetTo(new MCvScalar(1 / 10d));
-        CvInvoke.Subtract(irImage, baselineMat, irImage);
-        irImage.ConvertTo(irImage, DepthType.Cv32F);
-        CvInvoke.Multiply(irImage, scaleMat, irImage, 1, DepthType.Cv32F);
-        irImage.ConvertTo(irImage, DepthType.Cv8U);
+        scaleMat.LogCall(x => x.SetTo(new MCvScalar(1 / 10d)));
+        irImage.LogCall(baselineMat, (x, y) => CvInvoke.Subtract(x, y, x));
+        irImage.LogCall(x => x.ConvertTo(irImage, DepthType.Cv32F));
+        irImage.LogCall(scaleMat, (x, y) => CvInvoke.Multiply(x, y, x, 1, DepthType.Cv32F));
+        irImage.LogCall(x => x.ConvertTo(x, DepthType.Cv8U));
         var inverseMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 1);
-        inverseMat.SetTo(new MCvScalar(255));
-        CvInvoke.Subtract(inverseMat, irImage, irImage);
-        CvInvoke.ApplyColorMap(irImage, irImage, ColorMapType.Rainbow);
+        inverseMat.LogCall(x => x.SetTo(new MCvScalar(255)));
+        inverseMat.LogCall(irImage, (x, y) => CvInvoke.Subtract(x, y, y));
+        irImage.LogCall(x => CvInvoke.ApplyColorMap(x, x, ColorMapType.Rainbow));
         baselineMat.Dispose();
         scaleMat.Dispose();
         inverseMat.Dispose();
