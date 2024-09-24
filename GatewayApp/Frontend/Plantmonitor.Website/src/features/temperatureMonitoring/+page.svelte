@@ -78,8 +78,8 @@
         const xValues = newData.flatMap((d) => d.data.map((x) => x[0] as number));
         const getDataZoom = function () {
             if (!updateDataZoom) return [];
-            const minX = Math.min(...xValues);
-            const maxX = Math.max(...xValues);
+            const minX = pipe(xValues).min((x) => x);
+            const maxX = pipe(xValues).max((x) => x);
             return [
                 {
                     show: true,
