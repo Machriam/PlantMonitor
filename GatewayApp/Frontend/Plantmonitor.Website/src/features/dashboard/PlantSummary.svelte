@@ -74,6 +74,84 @@
             isGlobal: true
         },
         {
+            name: "Avg. Temperature",
+            unit: "°C",
+            tooltipFormatter: (value) => value.toFixed(1) + " °C",
+            validator: (x) => x > 0,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) =>
+                pipe(descriptor)
+                    .apply((x) => x.filter((y) => y.averageTemperature > 0))
+                    .mean((x) => x.averageTemperature)
+                    .valueOf(),
+            isGlobal: true
+        },
+        {
+            name: "Avg. Plant Size",
+            unit: "mm²",
+            tooltipFormatter: (value) => value.toFixed(1) + " mm²",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) =>
+                pipe(descriptor)
+                    .mean((x) => x.sizeInMm2)
+                    .valueOf(),
+            isGlobal: true
+        },
+        {
+            name: "Avg. Plant Solidity",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1) + "%",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) =>
+                pipe(descriptor)
+                    .mean((x) => x.solidity)
+                    .valueOf(),
+            isGlobal: true
+        },
+        {
+            name: "Avg. Plant Extent",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1) + "%",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) =>
+                pipe(descriptor)
+                    .mean((x) => x.extent)
+                    .valueOf(),
+            isGlobal: true
+        },
+        {
+            name: "Avg. Hue",
+            unit: "°",
+            tooltipFormatter: (value) => value.toFixed(1) + "°",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) =>
+                pipe(descriptor)
+                    .mean((x) => x.hslAverage[0])
+                    .valueOf(),
+            isGlobal: true
+        },
+        {
+            name: "Avg. Saturation",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1) + "%",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) =>
+                pipe(descriptor)
+                    .mean((x) => x.hslAverage[1])
+                    .valueOf() * 100,
+            isGlobal: true
+        },
+        {
+            name: "Avg. Lightness",
+            unit: "%",
+            tooltipFormatter: (value) => value.toFixed(1) + " %",
+            validator: (x) => true,
+            getDescriptor: (descriptor: PlantImageDescriptors[]) =>
+                pipe(descriptor)
+                    .mean((x) => x.hslAverage[2])
+                    .valueOf() * 100,
+            isGlobal: true
+        },
+        {
             name: "Convex Hull",
             unit: "mm²",
             tooltipFormatter: (value) => value.toFixed(1) + " mm²",
@@ -419,21 +497,10 @@
     }
     function toggleDescriptorSelection(descriptor: DescriptorInfo) {
         const index = _selectedDescriptors.findIndex((d) => d.name == descriptor.name);
-        if (descriptor.isGlobal) {
-            if (index >= 0) _selectedDescriptors.splice(index, 1);
-            else _selectedDescriptors.push(descriptor);
-            _selectedDescriptors = _selectedDescriptors;
-            updateChart();
-            return;
-        }
         if (index >= 0) _selectedDescriptors.splice(index, 1);
         else {
             _selectedDescriptors.push(descriptor);
-            const nonGlobalDescriptors = _selectedDescriptors.filter((d) => !d.isGlobal);
-            if (nonGlobalDescriptors.length > 2) {
-                nonGlobalDescriptors.shift();
-                _selectedDescriptors = [..._selectedDescriptors.filter((sd) => sd.isGlobal), ...nonGlobalDescriptors];
-            }
+            if (_selectedDescriptors.length > 2) _selectedDescriptors.shift();
         }
         _selectedDescriptors = _selectedDescriptors;
         updateChart();
@@ -468,9 +535,9 @@
     {#if _virtualImageSummaries.length > 0}
         {@const lastGlobalDescriptorIndex = _descriptorsFor.findLastIndex((d) => d.isGlobal)}
         <div class="col-md-10 d-flex flex-column">
-            <div style="height: 80vh;" id={_graphId}></div>
+            <div style="height: 75vh;" id={_graphId}></div>
         </div>
-        <div class="col-md-1 d-flex flex-column border-start" style="height: 70vh;overflow-y:auto">
+        <div class="col-md-1 d-flex flex-column border-start p-0" style="height: 70vh;overflow-y:auto">
             {#each _descriptorsFor as descriptor}
                 <button
                     on:click={() => toggleDescriptorSelection(descriptor)}
@@ -484,7 +551,7 @@
                 {/if}
             {/each}
         </div>
-        <div class="col-md-1 d-flex flex-column border-start" style="height: 70vh;overflow-y:auto">
+        <div class="col-md-1 d-flex flex-column border-start p-0" style="height: 70vh;overflow-y:auto">
             {#each _virtualImageSummaries[0].imageDescriptors.plantDescriptors.map((p) => p.plant.imageName).toSorted() as plant}
                 <button
                     on:click={() => togglePlant(plant)}
