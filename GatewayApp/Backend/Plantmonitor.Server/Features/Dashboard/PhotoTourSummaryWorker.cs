@@ -19,7 +19,7 @@ public interface IPhotoTourSummaryWorker
 
     PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate);
 
-    PhotoSummaryResult SplitInSubImages(string image, SegmentationTemplate segmentationTemplate, HashSet<string> desiredPlants);
+    List<Mat> SplitInSubImages(string image, HashSet<string> desiredPlants);
 }
 
 public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
@@ -176,12 +176,10 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         }
     }
 
-    public PhotoSummaryResult SplitInSubImages(string image, SegmentationTemplate segmentationTemplate, HashSet<string> desiredPlants)
+    public List<Mat> SplitInSubImages(string image, HashSet<string> desiredPlants)
     {
         var (visMat, irMat, metaData) = GetDataFromZip(image);
         var getImage = metaData.BuildCoordinateToImageFunction();
-        var visData = visMat.GetData(true);
-        var resultData = new PhotoSummaryResult(metaData.Dimensions.SizeOfPixelInMm);
         var pixelByPlant = new Dictionary<string, List<(int Row, int Col)>>();
         for (var row = 0; row < visMat.Rows; row++)
         {
@@ -194,13 +192,24 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                 else pixelList.Add((row, col));
             }
         }
-        var minRow = pixelByPlant.Select(pp => pp.Value.Min(x => x.Row));
-        var maxRow = pixelByPlant.Select(pp => pp.Value.Max(x => x.Row));
-        var minCol = pixelByPlant.Select(pp => pp.Value.Min(x => x.Col));
-        var maxCol = pixelByPlant.Select(pp => pp.Value.Max(x => x.Col));
+        var plantBorders = pixelByPlant.Select(pp =>
+        {
+            var minRow = pp.Value.Min(x => x.Row);
+            var maxRow = pp.Value.Max(x => x.Row);
+            var minCol = pp.Value.Min(x => x.Col);
+            var maxCol = pp.Value.Max(x => x.Col);
+            return (PlantName: pp, MinRow: minRow, MaxRow: maxRow, MinCol: minCol, MaxCol: maxCol);
+        }).ToList();
+        var result = new List<Mat>();
+        foreach (var plant in plantBorders)
+        {
+            var roi = new Rectangle(plant.MinCol, plant.MinRow, plant.MaxCol - plant.MinCol, plant.MaxRow - plant.MinRow);
+            if (roi.Width <= 0 || roi.Height <= 0) continue;
+            result.Add(new Mat(visMat, roi));
+        }
         visMat.Dispose();
         irMat.Dispose();
-        return resultData;
+        return result;
     }
 
     public PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate)

@@ -76,16 +76,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var zipFile = Path.Combine(folder, Path.GetFileName(request.FileName));
         var plantSet = request.PlantNames.ToHashSet();
         if (!Path.Exists(zipFile)) return [];
-        var result = photoTourSummary.SplitInSubImages(zipFile, request.Template ?? SegmentationTemplate.GetDefault(), plantSet);
-        var pixelInfo = result.GetPixelInfo();
-        var resultList = new List<Mat>();
-        foreach (var pixel in pixelInfo)
-        {
-            if (!plantSet.Contains(pixel.Key.ImageName)) continue;
-            var subImage = result.CreateSubImage(pixel.Value);
-            CvInvoke.CvtColor(subImage, subImage, Emgu.CV.CvEnum.ColorConversion.Rgb2Bgr);
-            resultList.Add(subImage);
-        }
+        var resultList = photoTourSummary.SplitInSubImages(zipFile, plantSet);
         var resultMat = stitcher.CreateCombinedImage(resultList);
         if (request.ShowSegmentation)
         {
