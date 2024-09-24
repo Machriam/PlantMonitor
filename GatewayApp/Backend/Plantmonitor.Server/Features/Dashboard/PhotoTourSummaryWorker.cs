@@ -77,6 +77,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
             foreach (var file in Directory.EnumerateFiles(folder).OrderBy(f => f).Select(f => new FileInfo(f)))
             {
                 var creationDateText = file.CreationTimeUtc.ToString(FileLookupDate);
+                if ((DateTime.UtcNow - file.CreationTimeUtc).TotalMinutes < 1) continue;
                 if (existingResults.Contains((creationDateText, file.FullName))) continue;
                 s_imagesToProcess.TryAdd(file.FullName, file.CreationTimeUtc);
             }
