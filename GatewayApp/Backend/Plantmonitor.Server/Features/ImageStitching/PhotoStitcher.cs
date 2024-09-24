@@ -12,6 +12,8 @@ public interface IPhotoStitcher
 {
     (Mat VisImage, Mat IrColorImage, Mat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
         int width, int height, float pixelSizeInMm);
+
+    Mat CreateCombinedImage(List<Mat> sameSizeSubImages);
 }
 
 public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
@@ -72,6 +74,43 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
                             im.Item.IrTemperatureInK, im.Item.MotorPosition)).ToArray()
         };
         return (visImage, irColorImage, irData, metaData);
+    }
+
+    public Mat GetSubImages(Mat image, VirtualImageMetaDataModel metaData, IEnumerable<int> desiredImages)
+    {
+        return image;
+    }
+
+    public Mat CreateCombinedImage(List<Mat> sameSizeSubImages)
+    {
+        if (sameSizeSubImages.Count == 0) return new Mat();
+        var imagesPerRow = CalculateImagesPerRow(sameSizeSubImages.Count, sameSizeSubImages[0].Width, sameSizeSubImages[0].Height);
+        var result = new Mat();
+        var horizontalSlices = new List<Mat>();
+        var emptyMat = new Mat(sameSizeSubImages[0].Size, sameSizeSubImages[0].Depth, sameSizeSubImages[0].NumberOfChannels);
+        emptyMat.SetTo(new MCvScalar(0));
+        for (var row = 0; row < (sameSizeSubImages.Count / (float)imagesPerRow); row++)
+        {
+            var concatImages = new List<Mat>();
+            for (var column = 0; column < imagesPerRow; column++)
+            {
+                var index = (row * imagesPerRow) + column;
+                if (sameSizeSubImages.Count <= index)
+                {
+                    concatImages.Add(emptyMat.Clone());
+                    continue;
+                }
+                concatImages.Add(sameSizeSubImages[index]);
+            }
+            var hConcatMat = new Mat();
+            CvInvoke.HConcat([.. concatImages], hConcatMat);
+            horizontalSlices.Add(hConcatMat);
+            foreach (var image in concatImages) image.Dispose();
+        }
+        CvInvoke.VConcat([.. horizontalSlices], result);
+        foreach (var slice in horizontalSlices) slice.Dispose();
+        emptyMat.Dispose();
+        return result;
     }
 
     private static Mat ConcatImages(int width, int height, int imagesPerRow, IList<PhotoStitchData> images, Func<PhotoStitchData?, Mat?> selector, out Size finalMatSize)

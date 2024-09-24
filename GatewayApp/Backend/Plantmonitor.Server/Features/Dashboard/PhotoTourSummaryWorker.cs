@@ -16,6 +16,10 @@ public interface IPhotoTourSummaryWorker
     Mat GetPlantMask(Mat visMat, SegmentationTemplate parameter);
 
     void RecalculateSummaries(long photoTourId);
+
+    PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate);
+
+    List<Mat> SplitInSubImages(string image, HashSet<string> desiredPlants);
 }
 
 public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
@@ -170,6 +174,28 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
             context.VirtualImageSummaries.Remove(existingSummary);
             context.SaveChanges();
         }
+    }
+
+    public List<Mat> SplitInSubImages(string image, HashSet<string> desiredPlants)
+    {
+        var (visMat, irMat, metaData) = GetDataFromZip(image);
+        var plantIndexByName = metaData.ImageMetaData.OrderBy(im => im.ImageIndex)
+            .ToDictionary(im => im.ImageName, im => im.ImageIndex);
+        var width = metaData.Dimensions.Width;
+        var height = metaData.Dimensions.Height;
+        var result = new List<Mat>();
+        foreach (var plant in desiredPlants)
+        {
+            if (!plantIndexByName.TryGetValue(plant, out var index)) continue;
+            var startX = width * (index % metaData.Dimensions.ImagesPerRow);
+            var startY = height * (index / metaData.Dimensions.ImagesPerRow);
+            var roi = new Rectangle(startX, startY, width, height);
+            if (roi.Width <= 0 || roi.Height <= 0) continue;
+            result.Add(new Mat(visMat, roi));
+        }
+        visMat.Dispose();
+        irMat.Dispose();
+        return result;
     }
 
     public PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate)

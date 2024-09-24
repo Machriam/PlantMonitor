@@ -1888,6 +1888,8 @@ export interface IDashboardClient {
 
     createPhotoSummaryExport(photoTourId?: number | undefined): Promise<string>;
 
+    getSubImages(request: SubImageRequest): Promise<string>;
+
     temperatureSummary(photoTourId?: number | undefined): Promise<TemperatureSummaryData[]>;
 
     virtualImage(name?: string | undefined, photoTourId?: number | undefined): Promise<string | null>;
@@ -2035,6 +2037,47 @@ export class DashboardClient extends GatewayAppApiBase implements IDashboardClie
     }
 
     protected processCreatePhotoSummaryExport(response: Response): Promise<string> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+                result200 = resultData200 !== undefined ? resultData200 : <any>null;
+    
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<string>(null as any);
+    }
+
+    getSubImages(request: SubImageRequest): Promise<string> {
+        let url_ = this.baseUrl + "/api/Dashboard/subimages";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.transformOptions(options_).then(transformedOptions_ => {
+            return this.http.fetch(url_, transformedOptions_);
+        }).then((_response: Response) => {
+            return this.transformResult(url_, _response, (_response: Response) => this.processGetSubImages(_response));
+        });
+    }
+
+    protected processGetSubImages(response: Response): Promise<string> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -5494,6 +5537,73 @@ export interface IReferencedPlant {
     irTime: Date;
     visTime: Date;
     irTempInC: number;
+}
+
+export class SubImageRequest implements ISubImageRequest {
+    fileName!: string;
+    template!: SegmentationTemplate | undefined;
+    plantNames!: string[];
+    photoTourId!: number;
+    showSegmentation!: boolean;
+
+    constructor(data?: ISubImageRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (<any>this)[property] = (<any>data)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.fileName = _data["FileName"];
+            this.template = _data["Template"] ? SegmentationTemplate.fromJS(_data["Template"]) : <any>undefined;
+            if (Array.isArray(_data["PlantNames"])) {
+                this.plantNames = [] as any;
+                for (let item of _data["PlantNames"])
+                    this.plantNames!.push(item);
+            }
+            this.photoTourId = _data["PhotoTourId"];
+            this.showSegmentation = _data["ShowSegmentation"];
+        }
+    }
+
+    static fromJS(data: any): SubImageRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new SubImageRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["FileName"] = this.fileName;
+        data["Template"] = this.template ? this.template.toJSON() : <any>undefined;
+        if (Array.isArray(this.plantNames)) {
+            data["PlantNames"] = [];
+            for (let item of this.plantNames)
+                data["PlantNames"].push(item);
+        }
+        data["PhotoTourId"] = this.photoTourId;
+        data["ShowSegmentation"] = this.showSegmentation;
+        return data;
+    }
+
+    clone(): SubImageRequest {
+        const json = this.toJSON();
+        let result = new SubImageRequest();
+        result.init(json);
+        return result;
+    }
+}
+
+export interface ISubImageRequest {
+    fileName: string;
+    template: SegmentationTemplate | undefined;
+    plantNames: string[];
+    photoTourId: number;
+    showSegmentation: boolean;
 }
 
 export class TemperatureSummaryData implements ITemperatureSummaryData {

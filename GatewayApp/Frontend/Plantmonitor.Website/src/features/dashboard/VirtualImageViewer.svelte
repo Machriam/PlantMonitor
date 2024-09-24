@@ -6,11 +6,18 @@
         PhotoTourInfo,
         SegmentationParameter,
         SegmentationTemplate,
+        SubImageRequest,
         VirtualImageInfo
     } from "~/services/GatewayAppApi";
     import NumberInput from "~/features/reuseableComponents/NumberInput.svelte";
     import {Download} from "~/types/Download";
-    import {_segmentationChanged, _selectedTourChanged, _virtualImageFilterByTime} from "./DashboardContext";
+    import {
+        _onlyShowSelectedPlantsChanged,
+        _segmentationChanged,
+        _selectedPlantsChanged,
+        _selectedTourChanged,
+        _virtualImageFilterByTime
+    } from "./DashboardContext";
     import type {Unsubscriber} from "svelte/motion";
     import Checkbox from "../reuseableComponents/Checkbox.svelte";
     import {pipe} from "~/types/Pipe";
@@ -32,6 +39,8 @@
     let _lockSegmentation = false;
     let _showSegmentedImage: boolean = false;
     let _imageCache = new Map<string, {image: string; added: Date}>();
+    let _selectedPlants: string[] = [];
+    let _onlySelectedPlants = false;
 
     onMount(async () => {
         _unsubscriber.push(
@@ -48,6 +57,14 @@
             })
         );
         _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
+        _unsubscriber.push(_selectedPlantsChanged.subscribe((x) => (_selectedPlants = x)));
+        _unsubscriber.push(
+            _onlyShowSelectedPlantsChanged.subscribe(async (x) => {
+                _onlySelectedPlants = x;
+                if (_selectedTour == undefined) return;
+                await updateVirtualImage(_selectedTour.id, false);
+            })
+        );
         if (_selectedTour == undefined) return;
         selectedTourChanged(_selectedTour);
     });
@@ -67,7 +84,8 @@
                 name: _selectedImage.name,
                 segmented: _showSegmentedImage,
                 photoTourId: tourId,
-                parameter: _showSegmentedImage ? _selectedSegmentation : ""
+                parameter: _showSegmentedImage ? _selectedSegmentation : "",
+                plants: _onlySelectedPlants ? _selectedPlants : undefined
             });
             _virtualImage = "";
             if (updateSegmentation && !_lockSegmentation) findCorrespondingSegmentation(virtualImageTime);
@@ -78,9 +96,22 @@
                 return;
             }
             if (!_dashboardClient.tryRegisterRunning(cacheKey)) return;
-            _virtualImage = _showSegmentedImage
-                ? (await _dashboardClient.segmentedImage(_selectedImage.name, tourId, _selectedSegmentation)) ?? undefined
-                : (await _dashboardClient.virtualImage(_selectedImage.name, tourId)) ?? undefined;
+            if (_onlySelectedPlants && _selectedPlants.length > 0) {
+                _virtualImage =
+                    (await _dashboardClient.getSubImages(
+                        new SubImageRequest({
+                            fileName: _selectedImage.name,
+                            photoTourId: tourId,
+                            showSegmentation: _showSegmentedImage,
+                            plantNames: _selectedPlants,
+                            template: _selectedSegmentation
+                        })
+                    )) ?? undefined;
+            } else {
+                _virtualImage = _showSegmentedImage
+                    ? (await _dashboardClient.segmentedImage(_selectedImage.name, tourId, _selectedSegmentation)) ?? undefined
+                    : (await _dashboardClient.virtualImage(_selectedImage.name, tourId)) ?? undefined;
+            }
             if (_imageCache.size >= 30) {
                 const entryToRemove = _imageCache.entries().reduce((prev, curr) => {
                     if (prev[1].added.getTime() < curr[1].added.getTime()) return prev;
