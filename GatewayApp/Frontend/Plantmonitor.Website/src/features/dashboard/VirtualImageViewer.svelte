@@ -240,20 +240,20 @@
                 bind:value={_showSegmentedImage}></Checkbox>
         </div>
     </div>
-    <div style="min-height: 500px;flex-direction: row;flex:content;display:flex" class="p-0">
+    <div style="flex-direction: row;flex:content;display:flex" class="p-0">
         {#if _virtualImage == ""}
             <div></div>
-            <div on:wheel={nextImage} style="flex:auto;width:1000px"></div>
+            <div on:wheel={nextImage} style="flex:auto;width:1000px;height:400px"></div>
         {:else if _virtualImage != undefined}
             <img
                 on:wheel={nextImage}
-                style="max-width: 85%;max-height:79vh"
+                style="max-width: 85%;max-height:75vh;min-height:400px"
                 alt="Stitched Result"
                 src="data:image/png;base64,{_virtualImage}" />
             <div style="flex:auto;"></div>
         {:else}
             <div on:wheel={nextImage}>Scroll to change image</div>
-            <div on:wheel={nextImage} style="flex:auto;width:1000px"></div>
+            <div on:wheel={nextImage} style="flex:auto;width:1000px;height:400px"></div>
         {/if}
         <div class="d-flex flex-column colm-3" style="width: 15%">
             {#if _selectedSegmentation != undefined && _showSegmentedImage && _selectedTour != undefined && _selectedTour != null}
