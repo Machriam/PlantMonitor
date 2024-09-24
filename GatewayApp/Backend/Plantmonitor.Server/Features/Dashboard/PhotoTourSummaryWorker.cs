@@ -179,31 +179,17 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     public List<Mat> SplitInSubImages(string image, HashSet<string> desiredPlants)
     {
         var (visMat, irMat, metaData) = GetDataFromZip(image);
-        var getImage = metaData.BuildCoordinateToImageFunction();
-        var pixelByPlant = new Dictionary<string, List<(int Row, int Col)>>();
-        for (var row = 0; row < visMat.Rows; row++)
-        {
-            for (var col = 0; col < visMat.Cols; col++)
-            {
-                var imageData = getImage((col, row));
-                if (imageData == null) continue;
-                if (!desiredPlants.Contains(imageData.ImageName)) continue;
-                if (!pixelByPlant.TryGetValue(imageData.ImageName, out var pixelList)) pixelByPlant.Add(imageData.ImageName, [(row, col)]);
-                else pixelList.Add((row, col));
-            }
-        }
-        var plantBorders = pixelByPlant.Select(pp =>
-        {
-            var minRow = pp.Value.Min(x => x.Row);
-            var maxRow = pp.Value.Max(x => x.Row);
-            var minCol = pp.Value.Min(x => x.Col);
-            var maxCol = pp.Value.Max(x => x.Col);
-            return (PlantName: pp, MinRow: minRow, MaxRow: maxRow, MinCol: minCol, MaxCol: maxCol);
-        }).ToList();
+        var plantIndexByName = metaData.ImageMetaData.OrderBy(im => im.ImageIndex)
+            .ToDictionary(im => im.ImageName, im => im.ImageIndex);
+        var width = metaData.Dimensions.Width;
+        var height = metaData.Dimensions.Height;
         var result = new List<Mat>();
-        foreach (var plant in plantBorders)
+        foreach (var plant in desiredPlants)
         {
-            var roi = new Rectangle(plant.MinCol, plant.MinRow, plant.MaxCol - plant.MinCol, plant.MaxRow - plant.MinRow);
+            if (!plantIndexByName.TryGetValue(plant, out var index)) continue;
+            var startX = width * (index % metaData.Dimensions.ImagesPerRow);
+            var startY = height * (index / metaData.Dimensions.ImagesPerRow);
+            var roi = new Rectangle(startX, startY, width, height);
             if (roi.Width <= 0 || roi.Height <= 0) continue;
             result.Add(new Mat(visMat, roi));
         }
