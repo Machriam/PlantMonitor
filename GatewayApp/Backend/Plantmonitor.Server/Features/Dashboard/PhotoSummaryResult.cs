@@ -96,7 +96,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 continue;
             }
             var grayImage = new Mat();
-            CvInvoke.CvtColor(subImage, grayImage, ColorConversion.Rgb2Gray);
+            subImage.LogCall(grayImage, (x, y) => CvInvoke.CvtColor(x, y, ColorConversion.Rgb2Gray));
             var hslValues = pixelList.ConvertAll(pl => pl.PixelColorInRgb.Rgb2Hsl());
             result.HslAverage = [hslValues.Average(hsl => hsl[0]), hslValues.Average(hsl => hsl[1]), hslValues.Average(hsl => hsl[2])];
             result.HslMax = [hslValues.Max(hsl => hsl[0]), hslValues.Max(hsl => hsl[1]), hslValues.Max(hsl => hsl[2])];
@@ -125,8 +125,8 @@ public class PhotoSummaryResult(float pixelSizeInMm)
             result.ConvexHullAreaInMm2 = convexHullArea * pixelSizeInMm * pixelSizeInMm;
             result.Solidity = (float)(pixelList.Count / convexHullArea);
             resultList.Add(result);
-            subImage.Dispose();
-            grayImage.Dispose();
+            subImage.LogCall(x => x.Dispose());
+            grayImage.LogCall(x => x.Dispose());
         }
         return resultList;
     }
@@ -134,7 +134,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
     private static float GetConvexHull(Mat grayImage)
     {
         using var contours = new VectorOfVectorOfPoint();
-        CvInvoke.FindContours(grayImage, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+        grayImage.LogCall(x => CvInvoke.FindContours(x, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple));
         var pointArray = new List<Point>();
         for (var i = 0; i < contours.Size; i++)
         {
@@ -151,20 +151,20 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         using var contours = new VectorOfVectorOfPoint();
         var leafCountMat = new Mat();
         var element = LeafStructuringElement();
-        CvInvoke.FindContours(grayImage, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+        grayImage.LogCall(x => CvInvoke.FindContours(x, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple));
         var leafCount = contours.Size;
         var currentLeafCount = leafCount;
         while (currentLeafCount > 0)
         {
             var matToUse = leafCountMat.Cols > 0 ? leafCountMat : grayImage;
-            CvInvoke.Erode(matToUse, leafCountMat, element, new Point(-1, -1), 1, BorderType.Constant, new MCvScalar(0d));
-            CvInvoke.FindContours(leafCountMat, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple);
+            matToUse.LogCall(leafCountMat, element, (x, y, z) => CvInvoke.Erode(x, y, z, new Point(-1, -1), 1, BorderType.Constant, new MCvScalar(0d)));
+            leafCountMat.LogCall(x => CvInvoke.FindContours(x, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple));
             currentLeafCount = contours.Size;
             leafCount = Math.Max(currentLeafCount, leafCount);
         }
 
-        leafCountMat.Dispose();
-        element.Dispose();
+        leafCountMat.LogCall(x => x.Dispose());
+        element.LogCall(x => x.Dispose());
         return leafCount;
     }
 
@@ -173,7 +173,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         const string StructuringElement = "0\t1\t0\n1\t1\t1\n0\t1\t0";
         var byteArray = StructuringElement.Split("\n").Select(l => l.Split("\t")).SelectMany(l => l.Select(c => byte.Parse(c))).ToArray();
         var element = new Mat(5, 5, DepthType.Cv8U, 1);
-        element.SetTo(byteArray);
+        element.LogCall(x => x.SetTo(byteArray));
         return element;
     }
 
@@ -186,7 +186,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         var topOffset = pixelList.Min(p => p.Top);
         var subImageMat = new Mat(height, width, DepthType.Cv8U, 3);
         var subImageData = new byte[height * width * 3];
-        var data = subImageMat.GetData(true);
+        var data = subImageMat.LogCall(x => x.GetData(true));
         var emptyPixel = new byte[] { 0, 0, 0 };
         for (var row = 0; row < subImageMat.Rows; row++)
         {
@@ -200,7 +200,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 for (var i = 0; i < rgb.Length; i++) subImageData[index + i] = rgb[i];
             }
         }
-        subImageMat.SetTo(subImageData);
+        subImageMat.LogCall(x => x.SetTo(subImageData));
         return subImageMat;
     }
 }

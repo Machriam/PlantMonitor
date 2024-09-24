@@ -35,9 +35,9 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
 
         public void Dispose()
         {
-            VisImage?.Dispose();
-            ColoredIrImage?.Dispose();
-            IrImageRawData?.Dispose();
+            VisImage?.LogCall(x => x.Dispose());
+            ColoredIrImage?.LogCall(x => x.Dispose());
+            IrImageRawData?.LogCall(x => x.Dispose());
         }
     }
 
@@ -88,7 +88,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         var result = new Mat();
         var horizontalSlices = new List<Mat>();
         var emptyMat = new Mat(sameSizeSubImages[0].Size, sameSizeSubImages[0].Depth, sameSizeSubImages[0].NumberOfChannels);
-        emptyMat.SetTo(new MCvScalar(0));
+        emptyMat.LogCall(x => x.SetTo(new MCvScalar(0)));
         for (var row = 0; row < (sameSizeSubImages.Count / (float)imagesPerRow); row++)
         {
             var concatImages = new List<Mat>();
@@ -97,19 +97,19 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
                 var index = (row * imagesPerRow) + column;
                 if (sameSizeSubImages.Count <= index)
                 {
-                    concatImages.Add(emptyMat.Clone());
+                    concatImages.Add(emptyMat.LogCall(x => x.Clone()));
                     continue;
                 }
                 concatImages.Add(sameSizeSubImages[index]);
             }
             var hConcatMat = new Mat();
-            CvInvoke.HConcat([.. concatImages], hConcatMat);
+            concatImages.LogCall(hConcatMat, (x, y) => CvInvoke.HConcat([.. x], y));
             horizontalSlices.Add(hConcatMat);
-            foreach (var image in concatImages) image.Dispose();
+            foreach (var image in concatImages) image.LogCall(x => x.Dispose());
         }
-        CvInvoke.VConcat([.. horizontalSlices], result);
-        foreach (var slice in horizontalSlices) slice.Dispose();
-        emptyMat.Dispose();
+        horizontalSlices.LogCall(result, (x, y) => CvInvoke.VConcat([.. x], y));
+        foreach (var slice in horizontalSlices) slice.LogCall(x => x.Dispose());
+        emptyMat.LogCall(x => x.Dispose());
         return result;
     }
 
@@ -122,7 +122,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         var result = new Mat();
         var size = new Size(width, height);
         var emptyMat = new Mat(size, Depth, Channels);
-        emptyMat.SetTo(new MCvScalar(0));
+        emptyMat.LogCall(x => x.SetTo(new MCvScalar(0)));
         var horizontalSlices = new List<Mat>();
         for (var row = 0; row < (length / (float)imagesPerRow); row++)
         {
@@ -132,29 +132,29 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
                 var index = (row * imagesPerRow) + column;
                 Mat mat;
                 var outOfBounds = index >= images.Count || selector(images[index]) == null;
-                if (outOfBounds) mat = emptyMat.Clone();
+                if (outOfBounds) mat = emptyMat.LogCall(x => x.Clone());
                 else mat = selector(images[index])!;
                 var bottomPadding = size.Height - mat.Rows;
                 var rightPadding = size.Width - mat.Cols;
                 var refHeight = size.Height;
                 var textSize = CvInvoke.GetTextSize("test", FontFace.HersheySimplex, 2d, 3, ref refHeight);
-                CvInvoke.CopyMakeBorder(mat, mat, 0, bottomPadding + textSize.Height + WhiteBorderSize, 0, rightPadding, BorderType.Constant, new MCvScalar(0d, 0d, 0d));
-                CvInvoke.CopyMakeBorder(mat, mat, WhiteBorderSize, WhiteBorderSize, WhiteBorderSize, WhiteBorderSize, BorderType.Constant, new MCvScalar(255d, 255d, 255d));
+                mat.LogCall(x => CvInvoke.CopyMakeBorder(x, x, 0, bottomPadding + textSize.Height + WhiteBorderSize, 0, rightPadding, BorderType.Constant, new MCvScalar(0d, 0d, 0d)));
+                mat.LogCall(x => CvInvoke.CopyMakeBorder(x, x, WhiteBorderSize, WhiteBorderSize, WhiteBorderSize, WhiteBorderSize, BorderType.Constant, new MCvScalar(255d, 255d, 255d)));
                 if (index < images.Count)
                 {
-                    CvInvoke.PutText(mat, images[index].Name, new Point(WhiteBorderSize, mat.Height - (WhiteBorderSize * 2)), FontFace.HersheySimplex, 2d, new MCvScalar(255d, 255d, 255d), thickness: 3);
+                    mat.LogCall(x => CvInvoke.PutText(x, images[index].Name, new Point(WhiteBorderSize, mat.Height - (WhiteBorderSize * 2)), FontFace.HersheySimplex, 2d, new MCvScalar(255d, 255d, 255d), thickness: 3));
                 }
                 finalMatSize = new Size(mat.Width, mat.Height);
                 concatImages.Add(mat);
             }
             var hConcatMat = new Mat();
-            CvInvoke.HConcat([.. concatImages], hConcatMat);
+            concatImages.LogCall(hConcatMat, (x, y) => CvInvoke.HConcat([.. x], y));
             horizontalSlices.Add(hConcatMat);
-            foreach (var image in concatImages) image.Dispose();
+            foreach (var image in concatImages) image.LogCall(x => x.Dispose());
         }
-        CvInvoke.VConcat([.. horizontalSlices], result);
-        foreach (var slice in horizontalSlices) slice.Dispose();
-        emptyMat.Dispose();
+        horizontalSlices.LogCall(result, (x, y) => CvInvoke.VConcat([.. x], y));
+        foreach (var slice in horizontalSlices) slice.LogCall(x => x.Dispose());
+        emptyMat.LogCall(x => x.Dispose());
         return result;
     }
 }

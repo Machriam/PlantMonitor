@@ -27,13 +27,13 @@ public class ImageCropper() : IImageCropper
 
     public Mat CreateRawIr(Mat irImage)
     {
-        var data = irImage.GetData(true);
+        var data = irImage.LogCall(x => x.GetData(true));
         var integerMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 1);
-        integerMat.SetTo(new MCvScalar(0));
+        integerMat.LogCall(x => x.SetTo(new MCvScalar(0)));
         var zeroMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 1);
-        zeroMat.SetTo(new MCvScalar(0));
+        zeroMat.LogCall(x => x.SetTo(new MCvScalar(0)));
         var decimalMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 1);
-        decimalMat.SetTo(new MCvScalar(0d));
+        decimalMat.LogCall(x => x.SetTo(new MCvScalar(0d)));
         var integerData = new byte[irImage.Rows * irImage.Cols];
         var decimalData = new byte[irImage.Rows * irImage.Cols];
         var index = 0;
@@ -53,18 +53,18 @@ public class ImageCropper() : IImageCropper
                 index++;
             }
         }
-        integerMat.SetTo(integerData);
-        decimalMat.SetTo(decimalData);
+        integerMat.LogCall(x => x.SetTo(integerData));
+        decimalMat.LogCall(x => x.SetTo(decimalData));
 
         var resultMat = new Mat(irImage.Rows, irImage.Cols, DepthType.Cv8U, 3);
-        resultMat.SetTo(new MCvScalar(0d, 0d, 0d));
-        var decimalRange = decimalMat.GetValueRange();
-        var fullRange = integerMat.GetValueRange();
-        var emptyRange = zeroMat.GetValueRange();
-        CvInvoke.Merge(new VectorOfMat(integerMat, decimalMat, zeroMat), resultMat);
-        integerMat.Dispose();
-        decimalMat.Dispose();
-        zeroMat.Dispose();
+        resultMat.LogCall(x => x.SetTo(new MCvScalar(0d, 0d, 0d)));
+        var decimalRange = decimalMat.LogCall(x => x.GetValueRange());
+        var fullRange = integerMat.LogCall(x => x.GetValueRange());
+        var emptyRange = zeroMat.LogCall(x => x.GetValueRange());
+        integerMat.LogCall(decimalMat, zeroMat, resultMat, (x1, x2, x3, x4) => CvInvoke.Merge(new VectorOfMat(x1, x2, x3), x4));
+        integerMat.LogCall(x => x.Dispose());
+        decimalMat.LogCall(x => x.Dispose());
+        zeroMat.LogCall(x => x.Dispose());
         if (decimalRange.Max > 100)
         {
             Log.Logger.Error("decimal channel was over 100: {from}-{to}", decimalRange.Min, decimalRange.Max);
@@ -98,9 +98,9 @@ public class ImageCropper() : IImageCropper
         inverseMat.LogCall(x => x.SetTo(new MCvScalar(255)));
         inverseMat.LogCall(irImage, (x, y) => CvInvoke.Subtract(x, y, y));
         irImage.LogCall(x => CvInvoke.ApplyColorMap(x, x, ColorMapType.Rainbow));
-        baselineMat.Dispose();
-        scaleMat.Dispose();
-        inverseMat.Dispose();
+        baselineMat.LogCall(x => x.Dispose());
+        scaleMat.LogCall(x => x.Dispose());
+        inverseMat.LogCall(x => x.Dispose());
     }
 
     public Mat? MatFromFile(string filename, out bool isIr)
@@ -111,10 +111,10 @@ public class ImageCropper() : IImageCropper
         var tempArray = File.ReadAllBytes(filename).Chunk(4).Select(b => (int)BitConverter.ToUInt32(b)).ToArray();
         if (tempArray.Length != ImageConstants.IrPixelCount)
         {
-            irMat.Dispose();
+            irMat.LogCall(x => x.Dispose());
             return null;
         }
-        irMat.SetTo(tempArray);
+        irMat.LogCall(x => x.SetTo(tempArray));
         isIr = true;
         return irMat;
     }
@@ -124,8 +124,8 @@ public class ImageCropper() : IImageCropper
         if (mat.Width == 0 || mat.Height == 0) return [];
         var resultFile = Guid.NewGuid().ToString() + ".png";
         var fullPath = Path.Combine(Path.GetTempPath(), resultFile);
-        CvInvoke.Imwrite(fullPath, mat);
-        if (disposeMat) mat.Dispose();
+        mat.LogCall(x => CvInvoke.Imwrite(fullPath, x));
+        if (disposeMat) mat.LogCall(x => x.Dispose());
         var result = File.ReadAllBytes(fullPath);
         File.Delete(fullPath);
         return result;
@@ -134,7 +134,7 @@ public class ImageCropper() : IImageCropper
     public void Resize(Mat mat, int height)
     {
         if (mat.Depth != DepthType.Cv8U) mat.ConvertTo(mat, DepthType.Cv32F);
-        CvInvoke.Resize(mat, mat, new Size((int)(mat.Width * height / (float)mat.Height), height));
+        mat.LogCall(x => CvInvoke.Resize(x, x, new Size((int)(mat.Width * height / (float)mat.Height), height)));
     }
 
     public (Mat VisImage, Mat? IrImage) CropImages(string visImage, string? irImage, NpgsqlPoint[] visPolygon, NpgsqlPoint irOffset, int scalingHeightInPx)
@@ -147,13 +147,13 @@ public class ImageCropper() : IImageCropper
         var visCrop = CutImage(visPolygon, visMat);
         if (irImage.IsEmpty())
         {
-            visMat.Dispose();
+            visMat.LogCall(x => x.Dispose());
             return (visCrop, null);
         }
         var irMat = MatFromFile(irImage!, out _);
         if (irMat == null)
         {
-            visMat.Dispose();
+            visMat.LogCall(x => x.Dispose());
             return (visCrop, null);
         }
         Resize(irMat, scalingHeightInPx);
@@ -162,8 +162,8 @@ public class ImageCropper() : IImageCropper
             .ToArray();
         var irCrop = CutIrImage(irPolygon, irMat);
         irCrop = PadIrToVisSize(irPolygon, visCrop, irCrop);
-        visMat.Dispose();
-        irMat.Dispose();
+        visMat.LogCall(x => x.Dispose());
+        irMat.LogCall(x => x.Dispose());
         return (visCrop, irCrop);
     }
 
@@ -176,7 +176,7 @@ public class ImageCropper() : IImageCropper
         var xPadding = Math.Max(0, padLeftSign * (irCrop.Width - visCrop.Width));
         var yPadding = Math.Max(0, padTopSign * (irCrop.Height - visCrop.Height));
         var resultData = new float[result.Height * result.Width];
-        var irCropData = irCrop.GetData(true);
+        var irCropData = irCrop.LogCall(x => x.GetData(true));
         for (var row = 0; row < irCrop.Rows; row++)
         {
             for (var col = 0; col < irCrop.Cols; col++)
@@ -186,15 +186,17 @@ public class ImageCropper() : IImageCropper
                 resultData[index] = irCropValue ?? 0;
             }
         }
-        result.SetTo(resultData);
-        irCrop.Dispose();
+        result.LogCall(x => x.SetTo(resultData));
+        irCrop.LogCall(x => x.Dispose());
         return result;
     }
 
     private static Mat CutIrImage(NpgsqlPoint[] polygon, Mat mat)
     {
         var roi = CalculateInboundRoi(polygon, mat);
-        return new Mat(mat, roi);
+        var result = mat.LogCall(x => new Mat(x, roi));
+        mat.LogCall(x => x.Dispose());
+        return result;
     }
 
     private static Rectangle CalculateInboundRoi(NpgsqlPoint[] polygon, Mat mat)
@@ -222,14 +224,14 @@ public class ImageCropper() : IImageCropper
         var roi = CalculateInboundRoi(polygon, mat);
         var polygonCrop = new Mat(mat.Rows, mat.Cols, mat.Depth, mat.NumberOfChannels);
         var mask = new Mat(mat.Rows, mat.Cols, DepthType.Cv8U, 1);
-        polygonCrop.SetTo(new MCvScalar(0, 0, 0));
-        mask.SetTo(new MCvScalar(0));
+        polygonCrop.LogCall(x => x.SetTo(new MCvScalar(0, 0, 0)));
+        mask.LogCall(x => x.SetTo(new MCvScalar(0)));
         var cvPolygon = new VectorOfVectorOfPoint(new VectorOfPoint(polygon.Select(p => CalculateSafePoint(p, polygonCrop)).ToArray()));
-        CvInvoke.FillPoly(mask, cvPolygon, new MCvScalar(255));
-        mat.CopyTo(polygonCrop, mask);
-        var result = new Mat(polygonCrop, roi);
-        polygonCrop.Dispose();
-        mask.Dispose();
+        mask.LogCall(x => CvInvoke.FillPoly(x, cvPolygon, new MCvScalar(255)));
+        mat.LogCall(polygonCrop, mask, (x, y, z) => x.CopyTo(y, z));
+        var result = polygonCrop.LogCall(x => new Mat(x, roi));
+        polygonCrop.LogCall(x => x.Dispose());
+        mask.LogCall(x => x.Dispose());
         return result;
     }
 }

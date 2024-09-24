@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.IO.Compression;
-using System.Runtime.InteropServices.Marshalling;
+﻿using System.IO.Compression;
 using Emgu.CV;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
@@ -132,7 +130,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             virtualImageList[^1].IrImageTime = irImage.Formatter.Timestamp;
             virtualImageList[^1].IrTemperatureInK = irImage.Formatter.TemperatureInK;
             if (matResults.IrImage?.Cols == 0 || matResults.IrImage?.Rows == 0) continue;
-            var colorMat = matResults.IrImage?.Clone();
+            var colorMat = matResults.IrImage?.LogCall(x => x.Clone());
             if (matResults.IrImage != null) virtualImageList[^1].IrImageRawData = cropper.CreateRawIr(matResults.IrImage);
             if (colorMat != null) cropper.ApplyIrColorMap(colorMat);
             virtualImageList[^1].ColoredIrImage = colorMat;
@@ -205,7 +203,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
 
     private static void AddMat(string path, Mat mat, ZipArchive zip)
     {
-        CvInvoke.Imwrite(path, mat);
+        mat.LogCall(x => CvInvoke.Imwrite(path, x));
         var fileName = Path.GetFileName(path);
         zip.CreateEntryFromFile(path, fileName);
         File.Delete(path);

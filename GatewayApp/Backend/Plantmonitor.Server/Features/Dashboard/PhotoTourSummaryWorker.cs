@@ -192,7 +192,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
             var startY = height * (index / metaData.Dimensions.ImagesPerRow);
             var roi = new Rectangle(startX, startY, width, height);
             if (roi.Width <= 0 || roi.Height <= 0) continue;
-            result.Add(new Mat(visMat, roi));
+            result.Add(visMat.LogCall(x => new Mat(x, roi)));
         }
         visMat.Dispose();
         irMat.Dispose();
@@ -204,11 +204,11 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         var (visMat, rawIrMat, metaData) = GetDataFromZip(image);
         var mask = GetPlantMask(visMat, segmentationTemplate);
         var borderMask = SubImageBorderMask(visMat);
-        var borderMaskData = borderMask.GetData(true);
-        var maskData = mask.GetData(true);
-        var irData = rawIrMat.GetData(true);
+        var borderMaskData = borderMask.LogCall(x => x.GetData(true));
+        var maskData = mask.LogCall(x => x.GetData(true));
+        var irData = rawIrMat.LogCall(x => x.GetData(true));
         var getImage = metaData.BuildCoordinateToImageFunction();
-        var visData = visMat.GetData(true);
+        var visData = visMat.LogCall(x => x.GetData(true));
         var resultData = new PhotoSummaryResult(metaData.Dimensions.SizeOfPixelInMm);
         var deviceTemperatureInfo = metaData.TemperatureReadings
             .Where(tr => tr.TemperatureInC > 0f)
@@ -267,10 +267,10 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                 resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f), [rValue, gValue, bValue], leafOutOfRange);
             }
         }
-        mask.Dispose();
-        visMat.Dispose();
-        rawIrMat.Dispose();
-        borderMask.Dispose();
+        mask.LogCall(x => x.Dispose());
+        visMat.LogCall(x => x.Dispose());
+        rawIrMat.LogCall(x => x.Dispose());
+        borderMask.LogCall(x => x.Dispose());
         logger.LogInformation("Finished reading photo summary results");
         return resultData;
     }
@@ -300,14 +300,14 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     {
         logger.LogInformation("Create Border Mask");
         var mask = new Mat();
-        visMat.CopyTo(mask);
-        CvInvoke.CvtColor(mask, mask, ColorConversion.Rgb2Gray);
+        visMat.LogCall(x => x.CopyTo(mask));
+        mask.LogCall(x => CvInvoke.CvtColor(x, x, ColorConversion.Rgb2Gray));
         var whiteMask = new Mat();
-        CvInvoke.InRange(mask, new ScalarArray(new MCvScalar(255)), new ScalarArray(new MCvScalar(255)), whiteMask);
-        mask.SetTo(new MCvScalar(0), whiteMask);
-        CvInvoke.Threshold(mask, mask, 0d, 255d, ThresholdType.Binary);
-        CvInvoke.Canny(mask, mask, 100, 300);
-        whiteMask.Dispose();
+        mask.LogCall(whiteMask, (x, y) => CvInvoke.InRange(x, new ScalarArray(new MCvScalar(255)), new ScalarArray(new MCvScalar(255)), y));
+        mask.LogCall(whiteMask, (x, y) => x.SetTo(new MCvScalar(0), y));
+        mask.LogCall(x => CvInvoke.Threshold(x, x, 0d, 255d, ThresholdType.Binary));
+        mask.LogCall(x => CvInvoke.Canny(x, x, 100, 300));
+        whiteMask.LogCall(x => x.Dispose());
         logger.LogInformation("Finished Border Mask Creation");
         return mask;
     }
@@ -317,7 +317,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         logger.LogInformation("Get Plant Mask");
         var hsvMat = new Mat();
         var mask = new Mat();
-        CvInvoke.CvtColor(visMat, hsvMat, ColorConversion.Bgr2Hsv);
+        visMat.LogCall(hsvMat, (x, y) => CvInvoke.CvtColor(x, y, ColorConversion.Bgr2Hsv));
         logger.LogInformation("Segment HSV Color");
         SegmentHsvColorSpace(hsvMat, mask, parameter);
         logger.LogInformation("Apply first Opening with {parameter}", parameter.AsJson());
@@ -329,7 +329,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         }
         logger.LogInformation("Apply second Opening with {parameter}", parameter.AsJson());
         MorphologicalOpening(mask, parameter);
-        hsvMat.Dispose();
+        hsvMat.LogCall(x => x.Dispose());
         logger.LogInformation("Plant Mask creation finished");
         return mask;
     }
@@ -337,26 +337,26 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     private static void OtsuTresholdingOnSaturationChannel(Mat hsvMat, Mat mask)
     {
         var colorMaskedImage = new Mat();
-        CvInvoke.BitwiseAnd(hsvMat, hsvMat, colorMaskedImage, mask);
-        var hsvChannels = colorMaskedImage.Split();
-        CvInvoke.Threshold(hsvChannels[1], mask, 65d, 255d, ThresholdType.Otsu);
-        colorMaskedImage.Dispose();
-        foreach (var channel in hsvChannels) channel.Dispose();
+        hsvMat.LogCall(colorMaskedImage, mask, (x, y, z) => CvInvoke.BitwiseAnd(x, x, y, z));
+        var hsvChannels = colorMaskedImage.LogCall(x => x.Split());
+        hsvChannels[1].LogCall(mask, (x, y) => CvInvoke.Threshold(x, y, 65d, 255d, ThresholdType.Otsu));
+        colorMaskedImage.LogCall(x => x.Dispose());
+        foreach (var channel in hsvChannels) channel.LogCall(x => x.Dispose());
     }
 
     private static void MorphologicalOpening(Mat mask, SegmentationTemplate parameter)
     {
         var element = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1));
-        CvInvoke.Erode(mask, mask, element, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0));
-        CvInvoke.Dilate(mask, mask, element, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0));
-        element.Dispose();
+        mask.LogCall(element, (x, y) => CvInvoke.Erode(x, x, y, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0)));
+        mask.LogCall(element, (x, y) => CvInvoke.Dilate(x, x, y, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0)));
+        element.LogCall(x => x.Dispose());
     }
 
     private static void SegmentHsvColorSpace(Mat hsvMat, Mat mask, SegmentationTemplate parameter)
     {
         var lowGreen = new ScalarArray(new MCvScalar(parameter.HLow / 360d * 255d, parameter.SLow / 100d * 255d, parameter.LLow / 100d * 255d));
         var highGreen = new ScalarArray(new MCvScalar(parameter.HHigh / 360d * 255d, parameter.SHigh / 100d * 255d, parameter.LHigh / 100d * 255d));
-        CvInvoke.InRange(hsvMat, lowGreen, highGreen, mask);
+        hsvMat.LogCall(mask, (x, y) => CvInvoke.InRange(x, lowGreen, highGreen, y));
         lowGreen.Dispose();
         highGreen.Dispose();
     }
