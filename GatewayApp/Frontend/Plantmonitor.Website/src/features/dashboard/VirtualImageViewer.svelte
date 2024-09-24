@@ -58,7 +58,13 @@
         );
         _unsubscriber.push(_selectedTourChanged.subscribe((x) => selectedTourChanged(x)));
         _unsubscriber.push(_selectedPlantsChanged.subscribe((x) => (_selectedPlants = x)));
-        _unsubscriber.push(_onlyShowSelectedPlantsChanged.subscribe((x) => (_onlySelectedPlants = x)));
+        _unsubscriber.push(
+            _onlyShowSelectedPlantsChanged.subscribe(async (x) => {
+                _onlySelectedPlants = x;
+                if (_selectedTour == undefined) return;
+                await updateVirtualImage(_selectedTour.id, false);
+            })
+        );
         if (_selectedTour == undefined) return;
         selectedTourChanged(_selectedTour);
     });
