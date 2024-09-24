@@ -72,7 +72,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             .FirstOrDefault();
         if (currentTrip == null)
         {
-            s_imageCalculationTimeout = Math.Max(s_imageCalculationTimeout * 2, MaxImageCalculationTimeout);
+            s_imageCalculationTimeout = Math.Min(s_imageCalculationTimeout * 2, MaxImageCalculationTimeout);
             logger.LogInformation("No trips to process for virtual image creation. Exiting");
             return;
         }
