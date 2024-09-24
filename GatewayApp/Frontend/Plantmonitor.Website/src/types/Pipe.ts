@@ -65,6 +65,12 @@ class ArrayExtensions<T> {
         this.sortingFunctions.push((a, b) => selector(b) - selector(a));
         return this;
     }
+    max(selector: (x: T) => number): T {
+        return this.array.reduce((a, b) => selector(a) > selector(b) ? a : b);
+    }
+    min(selector: (x: T) => number): T {
+        return this.array.reduce((a, b) => selector(a) < selector(b) ? a : b);
+    }
     collect(): ArrayExtensions<T> {
         const result = pipe(this.array.sort((a, b) => {
             for (const sortingFunction of this.sortingFunctions) {
