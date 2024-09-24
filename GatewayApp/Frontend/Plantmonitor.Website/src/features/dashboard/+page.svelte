@@ -31,9 +31,6 @@
             .orderByDescending((pt) => pt.tripCount)
             .toArray();
     });
-    function showOnlySelectedPlants() {
-        $_onlyShowSelectedPlantsChanged = !$_onlyShowSelectedPlantsChanged;
-    }
     function clearFilter() {
         _virtualImageFilterByTime.update((x) => {
             x.clear();
