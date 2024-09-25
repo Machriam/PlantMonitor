@@ -51,14 +51,11 @@ public class ManagedMat : IManagedMat
         var matInfos = matObjects.Select(m => $"Mat {m.Guid}: {GetSize(m.Mat, m.Disposed)}").Concat(", ");
         Log.Logger.Debug($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber}");
         Log.Logger.Debug($"{matInfos}");
+        if (matObjects.Any(m => m.Disposed)) throw new Exception("Trying to access disposed Mat");
     }
 
     public T Execute<T>(Func<Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
-        if (_disposed)
-        {
-            LogCall(memberName, sourceFilePath, sourceLineNumber, []);
-        }
         LogCall(memberName, sourceFilePath, sourceLineNumber, this);
         return func(_mat);
     }
