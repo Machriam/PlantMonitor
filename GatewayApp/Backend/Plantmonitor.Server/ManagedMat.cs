@@ -11,17 +11,17 @@ public interface IManagedMat : IDisposable
 
     public bool IsDisposed { get; }
 
-    void LogCall(Action<Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
+    void Execute(Action<Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
 
-    void LogCall(IEnumerable<IManagedMat> mats, Action<Mat, IEnumerable<Mat>> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
+    void Execute(IEnumerable<IManagedMat> mats, Action<Mat, IEnumerable<Mat>> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
 
-    void LogCall(IManagedMat mat2, Action<Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
+    void Execute(IManagedMat mat2, Action<Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
 
-    void LogCall(IManagedMat mat2, IManagedMat mat3, Action<Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
+    void Execute(IManagedMat mat2, IManagedMat mat3, Action<Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
 
-    void LogCall(IManagedMat mat2, IManagedMat mat3, IManagedMat mat4, Action<Mat, Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
+    void Execute(IManagedMat mat2, IManagedMat mat3, IManagedMat mat4, Action<Mat, Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
 
-    T LogCall<T>(Func<Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
+    T Execute<T>(Func<Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
 }
 
 public class ManagedMat : IManagedMat
@@ -52,7 +52,7 @@ public class ManagedMat : IManagedMat
         Log.Logger.Debug($"{matInfos}");
     }
 
-    public T LogCall<T>(Func<Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+    public T Execute<T>(Func<Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         if (_disposed)
         {
@@ -62,31 +62,31 @@ public class ManagedMat : IManagedMat
         return func(_mat);
     }
 
-    public void LogCall(Action<Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+    public void Execute(Action<Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this);
         func(_mat);
     }
 
-    public void LogCall(IManagedMat mat2, Action<Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+    public void Execute(IManagedMat mat2, Action<Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this, mat2);
         func(_mat, mat2.Pipe(GetMat));
     }
 
-    public void LogCall(IManagedMat mat2, IManagedMat mat3, Action<Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+    public void Execute(IManagedMat mat2, IManagedMat mat3, Action<Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this, mat2, mat3);
         func(_mat, mat2.Pipe(GetMat), mat3.Pipe(GetMat));
     }
 
-    public void LogCall(IEnumerable<IManagedMat> mats, Action<Mat, IEnumerable<Mat>> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+    public void Execute(IEnumerable<IManagedMat> mats, Action<Mat, IEnumerable<Mat>> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, [.. mats, this]);
         func(_mat, mats.Select(m => m.Pipe(GetMat)));
     }
 
-    public void LogCall(IManagedMat mat2, IManagedMat mat3, IManagedMat mat4, Action<Mat, Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+    public void Execute(IManagedMat mat2, IManagedMat mat3, IManagedMat mat4, Action<Mat, Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this, mat2, mat3, mat4);
         func(_mat, mat2.Pipe(GetMat), mat3.Pipe(GetMat), mat4.Pipe(GetMat));
@@ -95,7 +95,7 @@ public class ManagedMat : IManagedMat
     public byte[] BytesFromMat()
     {
         var tempFile = Path.Combine(Directory.CreateTempSubdirectory().FullName, "temp.png");
-        LogCall(x => CvInvoke.Imwrite(tempFile, x));
+        Execute(x => CvInvoke.Imwrite(tempFile, x));
         return File.ReadAllBytes(tempFile);
     }
 }

@@ -81,13 +81,13 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         if (request.ShowSegmentation)
         {
             var mask = photoTourSummary.GetPlantMask(resultMat, request.Template ?? SegmentationTemplate.GetDefault());
-            resultMat.LogCall(x => x.Dispose());
+            resultMat.Execute(x => x.Dispose());
             var maskBytes = mask.BytesFromMat();
-            mask.LogCall(x => x.Dispose());
+            mask.Execute(x => x.Dispose());
             return maskBytes;
         }
         var resultBytes = resultMat.BytesFromMat();
-        resultMat.LogCall(x => x.Dispose());
+        resultMat.Execute(x => x.Dispose());
         return resultBytes;
     }
 
@@ -174,9 +174,9 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         File.WriteAllBytes(tempPng, visPicture.Open().ConvertToArray());
         var visMat = CvInvoke.Imread(tempPng).AsManaged();
         var mask = photoTourSummary.GetPlantMask(visMat, parameter ?? SegmentationTemplate.GetDefault());
-        visMat.LogCall(x => x.Dispose());
+        visMat.Execute(x => x.Dispose());
         var result = mask.BytesFromMat();
-        mask.LogCall(x => x.Dispose());
+        mask.Execute(x => x.Dispose());
         return result;
     }
 

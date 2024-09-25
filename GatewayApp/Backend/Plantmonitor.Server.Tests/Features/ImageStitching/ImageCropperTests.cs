@@ -59,8 +59,8 @@ public class ImageCropperTests
         var imageFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/Plants.png";
         var result = sut.CropImages(imageFile, "", s_singlePlantBottomMiddlePolygon, new(0, 0), 960);
         result.VisImage.ShowImage("CroppedImage");
-        result.VisImage.LogCall(x => x.Cols).Should().Be(215);
-        result.VisImage.LogCall(x => x.Rows).Should().Be(243);
+        result.VisImage.Execute(x => x.Cols).Should().Be(215);
+        result.VisImage.Execute(x => x.Rows).Should().Be(243);
         result.VisImage.Dispose();
     }
 
@@ -72,8 +72,8 @@ public class ImageCropperTests
         var imageFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/Plants.png";
         var result = sut.CropImages(imageFile, "", s_singlePlantBottomMiddlePolygon, new(0, 0), 960);
         result.VisImage.ShowImage("CroppedImage");
-        result.VisImage.LogCall(x => x.Cols).Should().Be(215);
-        result.VisImage.LogCall(x => x.Rows).Should().Be(243);
+        result.VisImage.Execute(x => x.Cols).Should().Be(215);
+        result.VisImage.Execute(x => x.Rows).Should().Be(243);
         result.VisImage.Dispose();
     }
 
@@ -85,8 +85,8 @@ public class ImageCropperTests
         var imageFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/Plants.png";
         var result = sut.CropImages(imageFile, "", s_singlePlantBottomMiddlePolygon, new(100, 100), 960);
         result.VisImage.ShowImage("CroppedImage");
-        result.VisImage.LogCall(x => x.Cols).Should().Be(215);
-        result.VisImage.LogCall(x => x.Rows).Should().Be(243);
+        result.VisImage.Execute(x => x.Cols).Should().Be(215);
+        result.VisImage.Execute(x => x.Rows).Should().Be(243);
         result.VisImage.Dispose();
     }
 
@@ -111,7 +111,7 @@ public class ImageCropperTests
         var irFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-33-19-047_-6000_29710.rawir";
         var irMat = sut.MatFromFile(irFile, out _);
         var resultMat = sut.CreateRawIr(irMat!);
-        var resizeMat = resultMat.LogCall(x => x.Clone().AsManaged());
+        var resizeMat = resultMat.Execute(x => x.Clone().AsManaged());
         sut.Resize(resizeMat, 640);
         resizeMat.ShowImage("CroppedIR", 100);
         resultMat.Dispose();
@@ -128,8 +128,8 @@ public class ImageCropperTests
         var visFile = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-28_20-26-10-207_-6000_0.jpg";
         var result = sut.CropImages(visFile, irFile, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(-1000, -1000), 960);
         sut.ApplyIrColorMap(result.IrImage!);
-        result.IrImage!.LogCall(x => x.Height).Should().Be(232);
-        result.IrImage!.LogCall(x => x.Width).Should().Be(232);
+        result.IrImage!.Execute(x => x.Height).Should().Be(232);
+        result.IrImage!.Execute(x => x.Width).Should().Be(232);
         result.IrImage!.ShowImage("OutOfRange", 100);
         result.IrImage!.Dispose();
         result.VisImage.Dispose();
@@ -161,8 +161,8 @@ public class ImageCropperTests
         sut.ApplyIrColorMap(result.IrImage!);
         result.IrImage!.ShowImage("CroppedIR");
         result.VisImage.ShowImage("CroppedVis");
-        result.IrImage!.LogCall(x => x.Height).Should().Be(result.VisImage.LogCall(x => x.Height));
-        result.IrImage!.LogCall(x => x.Width).Should().Be(result.VisImage.LogCall(x => x.Width));
+        result.IrImage!.Execute(x => x.Height).Should().Be(result.VisImage.Execute(x => x.Height));
+        result.IrImage!.Execute(x => x.Width).Should().Be(result.VisImage.Execute(x => x.Width));
         result.IrImage!.Dispose();
         result.VisImage.Dispose();
     }
@@ -178,8 +178,8 @@ public class ImageCropperTests
         sut.ApplyIrColorMap(result.IrImage!);
         result.IrImage!.ShowImage("CroppedIR");
         result.VisImage.ShowImage("CroppedVis");
-        result.IrImage!.LogCall(x => x.Height).Should().Be(result.VisImage.LogCall(x => x.Height));
-        result.IrImage!.LogCall(x => x.Width).Should().Be(result.VisImage.LogCall(x => x.Width));
+        result.IrImage!.Execute(x => x.Height).Should().Be(result.VisImage.Execute(x => x.Height));
+        result.IrImage!.Execute(x => x.Width).Should().Be(result.VisImage.Execute(x => x.Width));
         result.IrImage!.Dispose();
         result.VisImage.Dispose();
     }
@@ -195,8 +195,8 @@ public class ImageCropperTests
         sut.ApplyIrColorMap(result.IrImage!);
         result.IrImage!.ShowImage("CroppedIR");
         result.VisImage.ShowImage("CroppedVis");
-        result.IrImage!.LogCall(x => x.Height).Should().Be(result.VisImage.LogCall(x => x.Height));
-        result.IrImage!.LogCall(x => x.Width).Should().Be(result.VisImage.LogCall(x => x.Width));
+        result.IrImage!.Execute(x => x.Height).Should().Be(result.VisImage.Execute(x => x.Height));
+        result.IrImage!.Execute(x => x.Width).Should().Be(result.VisImage.Execute(x => x.Width));
         result.IrImage!.Dispose();
         result.VisImage.Dispose();
     }
@@ -212,8 +212,8 @@ public class ImageCropperTests
         sut.ApplyIrColorMap(result.IrImage!);
         result.IrImage!.ShowImage("CroppedIR");
         result.VisImage.ShowImage("CroppedVis");
-        result.IrImage!.LogCall(x => x.Height).Should().Be(result.VisImage.LogCall(x => x.Height));
-        result.IrImage!.LogCall(x => x.Width).Should().Be(result.VisImage.LogCall(x => x.Width));
+        result.IrImage!.Execute(x => x.Height).Should().Be(result.VisImage.Execute(x => x.Height));
+        result.IrImage!.Execute(x => x.Width).Should().Be(result.VisImage.Execute(x => x.Width));
         result.IrImage!.Dispose();
         result.VisImage.Dispose();
     }
@@ -229,8 +229,8 @@ public class ImageCropperTests
         sut.ApplyIrColorMap(result.IrImage!);
         result.IrImage!.ShowImage("CroppedIR");
         result.VisImage.ShowImage("CroppedVis");
-        result.IrImage!.LogCall(x => x.Height).Should().Be(result.VisImage.LogCall(x => x.Height));
-        result.IrImage!.LogCall(x => x.Width).Should().Be(result.VisImage.LogCall(x => x.Width));
+        result.IrImage!.Execute(x => x.Height).Should().Be(result.VisImage.Execute(x => x.Height));
+        result.IrImage!.Execute(x => x.Width).Should().Be(result.VisImage.Execute(x => x.Width));
         result.IrImage!.Dispose();
         result.VisImage.Dispose();
     }

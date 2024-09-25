@@ -17,7 +17,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             File.WriteAllBytes(resultFile, mat.BytesFromMat());
             if (build.Contains("WIN32UI"))
             {
-                mat.LogCall(x =>
+                mat.Execute(x =>
                 {
                     CvInvoke.Imshow(resultFile, x);
                     CvInvoke.WaitKey(timeout);

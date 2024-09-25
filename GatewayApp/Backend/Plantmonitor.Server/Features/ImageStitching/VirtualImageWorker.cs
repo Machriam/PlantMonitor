@@ -129,15 +129,15 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             if (irImage.Formatter == null || irImage.FileName == null) continue;
             virtualImageList[^1].IrImageTime = irImage.Formatter.Timestamp;
             virtualImageList[^1].IrTemperatureInK = irImage.Formatter.TemperatureInK;
-            if (matResults.IrImage?.LogCall(x => x.Cols) == 0 || matResults.IrImage?.LogCall(x => x.Rows) == 0) continue;
-            var colorMat = matResults.IrImage?.LogCall(x => x.Clone().AsManaged());
+            if (matResults.IrImage?.Execute(x => x.Cols) == 0 || matResults.IrImage?.Execute(x => x.Rows) == 0) continue;
+            var colorMat = matResults.IrImage?.Execute(x => x.Clone().AsManaged());
             if (matResults.IrImage != null) virtualImageList[^1].IrImageRawData = cropper.CreateRawIr(matResults.IrImage);
             if (colorMat != null) cropper.ApplyIrColorMap(colorMat);
             virtualImageList[^1].ColoredIrImage = colorMat;
         }
         logger.LogInformation("Stitching virtual image together");
-        var maxHeight = virtualImageList.Select(v => v.VisImage?.LogCall(x => x.Height) ?? 10).OrderByDescending(h => h).FirstOrDefault();
-        var maxWidth = virtualImageList.Select(v => v.VisImage?.LogCall(x => x.Width) ?? 10).OrderByDescending(h => h).FirstOrDefault();
+        var maxHeight = virtualImageList.Select(v => v.VisImage?.Execute(x => x.Height) ?? 10).OrderByDescending(h => h).FirstOrDefault();
+        var maxWidth = virtualImageList.Select(v => v.VisImage?.Execute(x => x.Width) ?? 10).OrderByDescending(h => h).FirstOrDefault();
         var virtualImage = stitcher.CreateVirtualImage(virtualImageList, maxWidth, maxHeight, currentTrip.PhotoTourFkNavigation.PixelSizeInMm);
         logger.LogInformation("Fetching additional metadata");
         var fullMetaDataTable = AddAdditionalMetaData(dataContext, currentTrip, currentTrip.PhotoTourFkNavigation, virtualImage.MetaData);
@@ -203,7 +203,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
 
     private static void AddMat(string path, IManagedMat mat, ZipArchive zip)
     {
-        mat.LogCall(x => CvInvoke.Imwrite(path, x));
+        mat.Execute(x => CvInvoke.Imwrite(path, x));
         var fileName = Path.GetFileName(path);
         zip.CreateEntryFromFile(path, fileName);
         File.Delete(path);
