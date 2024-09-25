@@ -39,7 +39,7 @@ public class ManagedMat : IManagedMat
     public void Dispose()
     {
         if (_disposed) return;
-        Log.Logger.Debug($"Disposing Mat {_guid}");
+        Log.Logger.Information($"Disposing Mat {_guid}");
         _disposed = true;
         _mat.Dispose();
     }
@@ -49,8 +49,8 @@ public class ManagedMat : IManagedMat
         static string GetSize(Mat mat, bool disposed) => disposed ? "Disposed" : $"{mat.Width}x{mat.Height}";
         var matObjects = mats.Select(m => new { Disposed = ((ManagedMat)m)._disposed, Guid = ((ManagedMat)m)._guid, Mat = m.Pipe(GetMat) });
         var matInfos = matObjects.Select(m => $"Mat {m.Guid}: {GetSize(m.Mat, m.Disposed)}").Concat(", ");
-        Log.Logger.Debug($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber}");
-        Log.Logger.Debug($"{matInfos}");
+        Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber}");
+        Log.Logger.Information($"{matInfos}");
         if (matObjects.Any(m => m.Disposed)) throw new Exception("Trying to access disposed Mat");
     }
 
