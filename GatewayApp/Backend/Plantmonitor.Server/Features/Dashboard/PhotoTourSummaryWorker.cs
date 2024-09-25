@@ -269,10 +269,10 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                 resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f), [rValue, gValue, bValue], leafOutOfRange);
             }
         }
-        mask.Execute(x => x.Dispose());
-        visMat.Execute(x => x.Dispose());
-        rawIrMat.Execute(x => x.Dispose());
-        borderMask.Execute(x => x.Dispose());
+        mask.Dispose();
+        visMat.Dispose();
+        rawIrMat.Dispose();
+        borderMask.Dispose();
         logger.LogInformation("Finished reading photo summary results");
         return resultData;
     }
@@ -309,7 +309,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         mask.Execute(whiteMask, (x, y) => x.SetTo(new MCvScalar(0), y));
         mask.Execute(x => CvInvoke.Threshold(x, x, 0d, 255d, ThresholdType.Binary));
         mask.Execute(x => CvInvoke.Canny(x, x, 100, 300));
-        whiteMask.Execute(x => x.Dispose());
+        whiteMask.Dispose();
         logger.LogInformation("Finished Border Mask Creation");
         return mask;
     }
@@ -331,7 +331,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         }
         logger.LogInformation("Apply second Opening with {parameter}", parameter.AsJson());
         MorphologicalOpening(mask, parameter);
-        hsvMat.Execute(x => x.Dispose());
+        hsvMat.Dispose();
         logger.LogInformation("Plant Mask creation finished");
         return mask;
     }
@@ -342,8 +342,8 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         hsvMat.Execute(colorMaskedImage, mask, (x, y, z) => CvInvoke.BitwiseAnd(x, x, y, z));
         var hsvChannels = colorMaskedImage.Execute(x => x.Split().Select(m => m.AsManaged())).ToArray();
         hsvChannels[1].Execute(mask, (x, y) => CvInvoke.Threshold(x, y, 65d, 255d, ThresholdType.Otsu));
-        colorMaskedImage.Execute(x => x.Dispose());
-        foreach (var channel in hsvChannels) channel.Execute(x => x.Dispose());
+        colorMaskedImage.Dispose();
+        foreach (var channel in hsvChannels) channel.Dispose();
     }
 
     private static void MorphologicalOpening(IManagedMat mask, SegmentationTemplate parameter)
@@ -351,7 +351,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
         var element = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(3, 3), new Point(-1, -1)).AsManaged();
         mask.Execute(element, (x, y) => CvInvoke.Erode(x, x, y, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0)));
         mask.Execute(element, (x, y) => CvInvoke.Dilate(x, x, y, anchor: new Point(-1, -1), parameter.OpeningIterations, BorderType.Constant, new MCvScalar(0)));
-        element.Execute(x => x.Dispose());
+        element.Dispose();
     }
 
     private static void SegmentHsvColorSpace(IManagedMat hsvMat, IManagedMat mask, SegmentationTemplate parameter)

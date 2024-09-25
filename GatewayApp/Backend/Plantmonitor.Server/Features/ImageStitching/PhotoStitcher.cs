@@ -35,9 +35,9 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
 
         public void Dispose()
         {
-            VisImage?.Execute(x => x.Dispose());
-            ColoredIrImage?.Execute(x => x.Dispose());
-            IrImageRawData?.Execute(x => x.Dispose());
+            VisImage?.Dispose();
+            ColoredIrImage?.Dispose();
+            IrImageRawData?.Dispose();
         }
     }
 
@@ -100,11 +100,11 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
             var hConcatMat = new Mat().AsManaged();
             hConcatMat.Execute(concatImages, (x, y) => CvInvoke.HConcat([.. y], x));
             horizontalSlices.Add(hConcatMat);
-            foreach (var image in concatImages) image.Execute(x => x.Dispose());
+            foreach (var image in concatImages) image.Dispose();
         }
         result.Execute(horizontalSlices, (x, y) => CvInvoke.VConcat([.. y], x));
-        foreach (var slice in horizontalSlices) slice.Execute(x => x.Dispose());
-        emptyMat.Execute(x => x.Dispose());
+        foreach (var slice in horizontalSlices) slice.Dispose();
+        emptyMat.Dispose();
         return result;
     }
 
@@ -146,11 +146,11 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
             var hConcatMat = new Mat().AsManaged();
             hConcatMat.Execute(concatImages, (x, y) => CvInvoke.HConcat([.. y], x));
             horizontalSlices.Add(hConcatMat);
-            foreach (var image in concatImages) image.Execute(x => x.Dispose());
+            foreach (var image in concatImages) image.Dispose();
         }
         result.Execute(horizontalSlices, (x, y) => CvInvoke.VConcat([.. y], x));
-        foreach (var slice in horizontalSlices) slice.Execute(x => x.Dispose());
-        emptyMat.Execute(x => x.Dispose());
+        foreach (var slice in horizontalSlices) slice.Dispose();
+        emptyMat.Dispose();
         return result;
     }
 }

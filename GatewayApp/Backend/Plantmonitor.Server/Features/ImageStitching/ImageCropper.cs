@@ -64,9 +64,9 @@ public class ImageCropper() : IImageCropper
         var fullRange = integerMat.Execute(x => x.GetValueRange());
         var emptyRange = zeroMat.Execute(x => x.GetValueRange());
         integerMat.Execute(decimalMat, zeroMat, resultMat, (x1, x2, x3, x4) => CvInvoke.Merge(new VectorOfMat(x1, x2, x3), x4));
-        integerMat.Execute(x => x.Dispose());
-        decimalMat.Execute(x => x.Dispose());
-        zeroMat.Execute(x => x.Dispose());
+        integerMat.Dispose();
+        decimalMat.Dispose();
+        zeroMat.Dispose();
         if (decimalRange.Max > 100)
         {
             Log.Logger.Error("decimal channel was over 100: {from}-{to}", decimalRange.Min, decimalRange.Max);
@@ -103,9 +103,9 @@ public class ImageCropper() : IImageCropper
         inverseMat.Execute(x => x.SetTo(new MCvScalar(255)));
         inverseMat.Execute(irImage, (x, y) => CvInvoke.Subtract(x, y, y));
         irImage.Execute(x => CvInvoke.ApplyColorMap(x, x, ColorMapType.Rainbow));
-        baselineMat.Execute(x => x.Dispose());
-        scaleMat.Execute(x => x.Dispose());
-        inverseMat.Execute(x => x.Dispose());
+        baselineMat.Dispose();
+        scaleMat.Dispose();
+        inverseMat.Dispose();
     }
 
     public IManagedMat? MatFromFile(string filename, out bool isIr)
@@ -116,7 +116,7 @@ public class ImageCropper() : IImageCropper
         var tempArray = File.ReadAllBytes(filename).Chunk(4).Select(b => (int)BitConverter.ToUInt32(b)).ToArray();
         if (tempArray.Length != ImageConstants.IrPixelCount)
         {
-            irMat.Execute(x => x.Dispose());
+            irMat.Dispose();
             return null;
         }
         irMat.Execute(x => x.SetTo(tempArray));
@@ -130,7 +130,7 @@ public class ImageCropper() : IImageCropper
         var resultFile = Guid.NewGuid().ToString() + ".png";
         var fullPath = Path.Combine(Path.GetTempPath(), resultFile);
         mat.Execute(x => CvInvoke.Imwrite(fullPath, x));
-        if (disposeMat) mat.Execute(x => x.Dispose());
+        if (disposeMat) mat.Dispose();
         var result = File.ReadAllBytes(fullPath);
         File.Delete(fullPath);
         return result;
@@ -152,13 +152,13 @@ public class ImageCropper() : IImageCropper
         var visCrop = CutImage(visPolygon, visMat);
         if (irImage.IsEmpty())
         {
-            visMat.Execute(x => x.Dispose());
+            visMat.Dispose();
             return (visCrop, null);
         }
         var irMat = MatFromFile(irImage!, out _);
         if (irMat == null)
         {
-            visMat.Execute(x => x.Dispose());
+            visMat.Dispose();
             return (visCrop, null);
         }
         Resize(irMat, scalingHeightInPx);
@@ -167,8 +167,8 @@ public class ImageCropper() : IImageCropper
             .ToArray();
         var irCrop = CutIrImage(irPolygon, irMat);
         irCrop = PadIrToVisSize(irPolygon, visCrop, irCrop);
-        visMat.Execute(x => x.Dispose());
-        irMat.Execute(x => x.Dispose());
+        visMat.Dispose();
+        irMat.Dispose();
         return (visCrop, irCrop);
     }
 
@@ -196,7 +196,7 @@ public class ImageCropper() : IImageCropper
             }
         }
         result.Execute(x => x.SetTo(resultData));
-        irCrop.Execute(x => x.Dispose());
+        irCrop.Dispose();
         return result;
     }
 
@@ -204,7 +204,7 @@ public class ImageCropper() : IImageCropper
     {
         var roi = CalculateInboundRoi(polygon, mat);
         var result = mat.Execute(x => new Mat(x, roi).AsManaged());
-        mat.Execute(x => x.Dispose());
+        mat.Dispose();
         return result;
     }
 
@@ -243,8 +243,8 @@ public class ImageCropper() : IImageCropper
         mask.Execute(x => CvInvoke.FillPoly(x, cvPolygon, new MCvScalar(255)));
         mat.Execute(polygonCrop, mask, (x, y, z) => x.CopyTo(y, z));
         var result = polygonCrop.Execute(x => new Mat(x, roi).AsManaged());
-        polygonCrop.Execute(x => x.Dispose());
-        mask.Execute(x => x.Dispose());
+        polygonCrop.Dispose();
+        mask.Dispose();
         return result;
     }
 }

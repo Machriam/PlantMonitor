@@ -125,8 +125,8 @@ public class PhotoSummaryResult(float pixelSizeInMm)
             result.ConvexHullAreaInMm2 = convexHullArea * pixelSizeInMm * pixelSizeInMm;
             result.Solidity = (float)(pixelList.Count / convexHullArea);
             resultList.Add(result);
-            subImage.Execute(x => x.Dispose());
-            grayImage.Execute(x => x.Dispose());
+            subImage.Dispose();
+            grayImage.Dispose();
         }
         return resultList;
     }
@@ -163,8 +163,8 @@ public class PhotoSummaryResult(float pixelSizeInMm)
             leafCount = Math.Max(currentLeafCount, leafCount);
         }
 
-        leafCountMat.Execute(x => x.Dispose());
-        element.Execute(x => x.Dispose());
+        leafCountMat.Dispose();
+        element.Dispose();
         return leafCount;
     }
 
