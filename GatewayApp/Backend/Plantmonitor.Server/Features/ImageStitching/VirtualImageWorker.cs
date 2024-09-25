@@ -129,7 +129,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             if (irImage.Formatter == null || irImage.FileName == null) continue;
             virtualImageList[^1].IrImageTime = irImage.Formatter.Timestamp;
             virtualImageList[^1].IrTemperatureInK = irImage.Formatter.TemperatureInK;
-            if (matResults.IrImage?.Execute(x => x.Cols) == 0 || matResults.IrImage?.Execute(x => x.Rows) == 0) continue;
+            if (matResults.IrImage?.Execute(x => x.Size) == default) continue;
             var colorMat = matResults.IrImage?.Execute(x => x.Clone().AsManaged());
             if (matResults.IrImage != null) virtualImageList[^1].IrImageRawData = cropper.CreateRawIr(matResults.IrImage);
             if (colorMat != null) cropper.ApplyIrColorMap(colorMat);

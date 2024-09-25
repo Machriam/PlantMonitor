@@ -28,14 +28,14 @@ public class ImageCropper() : IImageCropper
     public IManagedMat CreateRawIr(IManagedMat irImage)
     {
         var data = irImage.Execute(x => x.GetData(true));
-        var integerMat = new Mat(irImage.Execute(x => x.Rows), irImage.Execute(x => x.Cols), DepthType.Cv8U, 1).AsManaged();
-        integerMat.Execute(x => x.SetTo(new MCvScalar(0)));
-        var zeroMat = new Mat(irImage.Execute(x => x.Rows), irImage.Execute(x => x.Cols), DepthType.Cv8U, 1).AsManaged();
-        zeroMat.Execute(x => x.SetTo(new MCvScalar(0)));
-        var decimalMat = new Mat(irImage.Execute(x => x.Rows), irImage.Execute(x => x.Cols), DepthType.Cv8U, 1).AsManaged();
-        decimalMat.Execute(x => x.SetTo(new MCvScalar(0d)));
         var rowCount = irImage.Execute(x => x.Rows);
         var colCount = irImage.Execute(x => x.Cols);
+        var integerMat = new Mat(rowCount, colCount, DepthType.Cv8U, 1).AsManaged();
+        integerMat.Execute(x => x.SetTo(new MCvScalar(0)));
+        var zeroMat = new Mat(rowCount, colCount, DepthType.Cv8U, 1).AsManaged();
+        zeroMat.Execute(x => x.SetTo(new MCvScalar(0)));
+        var decimalMat = new Mat(rowCount, colCount, DepthType.Cv8U, 1).AsManaged();
+        decimalMat.Execute(x => x.SetTo(new MCvScalar(0d)));
         var integerData = new byte[rowCount * colCount];
         var decimalData = new byte[rowCount * colCount];
         var index = 0;

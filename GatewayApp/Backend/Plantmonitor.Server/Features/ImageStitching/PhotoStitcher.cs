@@ -138,9 +138,9 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
                 if (index < images.Count)
                 {
                     mat.Execute(x => CvInvoke.PutText(x, images[index].Name, new Point(WhiteBorderSize,
-                        mat.Execute(x => x.Height) - (WhiteBorderSize * 2)), FontFace.HersheySimplex, 2d, new MCvScalar(255d, 255d, 255d), thickness: 3));
+                        x.Height - (WhiteBorderSize * 2)), FontFace.HersheySimplex, 2d, new MCvScalar(255d, 255d, 255d), thickness: 3));
                 }
-                finalMatSize = new Size(mat.Execute(x => x.Width), mat.Execute(x => x.Height));
+                finalMatSize = mat.Execute(x => x.Size);
                 concatImages.Add(mat);
             }
             var hConcatMat = new Mat().AsManaged();
