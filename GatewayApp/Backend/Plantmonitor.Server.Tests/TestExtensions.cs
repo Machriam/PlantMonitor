@@ -6,7 +6,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
 {
     public static class TestExtensions
     {
-        public static void ShowImage(this Mat mat, string name, int timeout = 1000, [CallerFilePath] string callerFile = "", [CallerMemberName] string caller = "")
+        public static void ShowImage(this IManagedMat mat, string name, int timeout = 1000, [CallerFilePath] string callerFile = "", [CallerMemberName] string caller = "")
         {
             var build = CvInvoke.BuildInformation;
             var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
@@ -14,11 +14,14 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             Directory.CreateDirectory(cvOut);
             var file = Path.GetFileNameWithoutExtension(callerFile);
             var resultFile = $"{cvOut}/{file}_{caller}_{name}.png";
-            CvInvoke.Imwrite(resultFile, mat);
+            File.WriteAllBytes(resultFile, mat.BytesFromMat());
             if (build.Contains("WIN32UI"))
             {
-                CvInvoke.Imshow(resultFile, mat);
-                CvInvoke.WaitKey(timeout);
+                mat.Execute(x =>
+                {
+                    CvInvoke.Imshow(resultFile, x);
+                    CvInvoke.WaitKey(timeout);
+                });
             }
         }
     }

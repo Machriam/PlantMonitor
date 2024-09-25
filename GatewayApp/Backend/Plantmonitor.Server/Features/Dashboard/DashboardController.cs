@@ -172,7 +172,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix));
         var tempPng = Path.Combine(Directory.CreateTempSubdirectory().FullName, "temp.png");
         File.WriteAllBytes(tempPng, visPicture.Open().ConvertToArray());
-        var visMat = CvInvoke.Imread(tempPng);
+        var visMat = CvInvoke.Imread(tempPng).AsManaged();
         var mask = photoTourSummary.GetPlantMask(visMat, parameter ?? SegmentationTemplate.GetDefault());
         visMat.Dispose();
         var result = mask.BytesFromMat();
