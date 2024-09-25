@@ -53,6 +53,7 @@ sudo systemctl start PlantMonitorStart.service
 # Setup Raspberry Pi Zero 2W performance configuration
 if ! grep -q "$updateComment" "/boot/firmware/config.txt"; then
     echo -e "\n$updateComment\nover_voltage=4\ndtparam=i2c_arm=on\ndtparam=spi=on" | sudo tee -a /boot/firmware/config.txt
+    echo -e " isolcpus=3" | sudo tee -a /boot/firmware/cmdline.txt
     echo -e "\ni2c-dev" | sudo tee -a /etc/modules
 fi
 sudo dphys-swapfile swapoff
