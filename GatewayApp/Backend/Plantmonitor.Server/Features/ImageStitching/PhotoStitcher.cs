@@ -10,10 +10,10 @@ namespace Plantmonitor.Server.Features.ImageStitching;
 
 public interface IPhotoStitcher
 {
-    (Mat VisImage, Mat IrColorImage, Mat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
+    (IManagedMat VisImage, IManagedMat IrColorImage, IManagedMat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
         int width, int height, float pixelSizeInMm);
 
-    Mat CreateCombinedImage(List<Mat> sameSizeSubImages);
+    IManagedMat CreateCombinedImage(List<IManagedMat> sameSizeSubImages);
 }
 
 public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
@@ -23,9 +23,9 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
     public record class PhotoStitchData : IDisposable
     {
         public PhotoStitchData() { }
-        public Mat? VisImage { get; set; }
-        public Mat? IrImageRawData { get; set; }
-        public Mat? ColoredIrImage { get; set; }
+        public IManagedMat? VisImage { get; set; }
+        public IManagedMat? IrImageRawData { get; set; }
+        public IManagedMat? ColoredIrImage { get; set; }
         public string Name { get; init; } = "";
         public DateTime IrImageTime { get; set; }
         public DateTime VisImageTime { get; set; }
@@ -52,7 +52,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         return imagesPerRow.MinBy(ipr => ipr.Ratio).Columns;
     }
 
-    public (Mat VisImage, Mat IrColorImage, Mat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
+    public (IManagedMat VisImage, IManagedMat IrColorImage, IManagedMat IrRawData, VirtualImageMetaDataModel MetaData) CreateVirtualImage(IEnumerable<PhotoStitchData> images,
         int width, int height, float pixelSizeInMm)
     {
         var imageList = images.ToList();
@@ -76,83 +76,79 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         return (visImage, irColorImage, irData, metaData);
     }
 
-    public Mat GetSubImages(Mat image, VirtualImageMetaDataModel metaData, IEnumerable<int> desiredImages)
+    public IManagedMat CreateCombinedImage(List<IManagedMat> sameSizeSubImages)
     {
-        return image;
-    }
-
-    public Mat CreateCombinedImage(List<Mat> sameSizeSubImages)
-    {
-        if (sameSizeSubImages.Count == 0) return new Mat();
-        var imagesPerRow = CalculateImagesPerRow(sameSizeSubImages.Count, sameSizeSubImages[0].Width, sameSizeSubImages[0].Height);
-        var result = new Mat();
-        var horizontalSlices = new List<Mat>();
-        var emptyMat = new Mat(sameSizeSubImages[0].Size, sameSizeSubImages[0].Depth, sameSizeSubImages[0].NumberOfChannels);
+        if (sameSizeSubImages.Count == 0) return new Mat().AsManaged();
+        var imagesPerRow = CalculateImagesPerRow(sameSizeSubImages.Count, sameSizeSubImages[0].LogCall(x => x.Width), sameSizeSubImages[0].LogCall(x => x.Height));
+        var result = new Mat().AsManaged();
+        var horizontalSlices = new List<IManagedMat>();
+        var emptyMat = new Mat(sameSizeSubImages[0].LogCall(x => x.Size), sameSizeSubImages[0].LogCall(x => x.Depth), sameSizeSubImages[0].LogCall(x => x.NumberOfChannels)).AsManaged();
         emptyMat.LogCall(x => x.SetTo(new MCvScalar(0)));
         for (var row = 0; row < (sameSizeSubImages.Count / (float)imagesPerRow); row++)
         {
-            var concatImages = new List<Mat>();
+            var concatImages = new List<IManagedMat>();
             for (var column = 0; column < imagesPerRow; column++)
             {
                 var index = (row * imagesPerRow) + column;
                 if (sameSizeSubImages.Count <= index)
                 {
-                    concatImages.Add(emptyMat.LogCall(x => x.Clone()));
+                    concatImages.Add(emptyMat.LogCall(x => x.Clone().AsManaged()));
                     continue;
                 }
                 concatImages.Add(sameSizeSubImages[index]);
             }
-            var hConcatMat = new Mat();
-            concatImages.LogCall(hConcatMat, (x, y) => CvInvoke.HConcat([.. x], y));
+            var hConcatMat = new Mat().AsManaged();
+            hConcatMat.LogCall(concatImages, (x, y) => CvInvoke.HConcat([.. y], x));
             horizontalSlices.Add(hConcatMat);
             foreach (var image in concatImages) image.LogCall(x => x.Dispose());
         }
-        horizontalSlices.LogCall(result, (x, y) => CvInvoke.VConcat([.. x], y));
+        result.LogCall(horizontalSlices, (x, y) => CvInvoke.VConcat([.. y], x));
         foreach (var slice in horizontalSlices) slice.LogCall(x => x.Dispose());
         emptyMat.LogCall(x => x.Dispose());
         return result;
     }
 
-    private static Mat ConcatImages(int width, int height, int imagesPerRow, IList<PhotoStitchData> images, Func<PhotoStitchData?, Mat?> selector, out Size finalMatSize)
+    private static IManagedMat ConcatImages(int width, int height, int imagesPerRow, IList<PhotoStitchData> images, Func<PhotoStitchData?, IManagedMat?> selector, out Size finalMatSize)
     {
         finalMatSize = new Size(width, height);
         var length = images.Count;
         const DepthType Depth = DepthType.Cv8U;
         const int Channels = 3;
-        var result = new Mat();
+        var result = new Mat().AsManaged();
         var size = new Size(width, height);
-        var emptyMat = new Mat(size, Depth, Channels);
+        var emptyMat = new Mat(size, Depth, Channels).AsManaged();
         emptyMat.LogCall(x => x.SetTo(new MCvScalar(0)));
-        var horizontalSlices = new List<Mat>();
+        var horizontalSlices = new List<IManagedMat>();
         for (var row = 0; row < (length / (float)imagesPerRow); row++)
         {
-            var concatImages = new List<Mat>();
+            var concatImages = new List<IManagedMat>();
             for (var column = 0; column < imagesPerRow; column++)
             {
                 var index = (row * imagesPerRow) + column;
-                Mat mat;
+                IManagedMat mat;
                 var outOfBounds = index >= images.Count || selector(images[index]) == null;
-                if (outOfBounds) mat = emptyMat.LogCall(x => x.Clone());
+                if (outOfBounds) mat = emptyMat.LogCall(x => x.Clone().AsManaged());
                 else mat = selector(images[index])!;
-                var bottomPadding = size.Height - mat.Rows;
-                var rightPadding = size.Width - mat.Cols;
+                var bottomPadding = size.Height - mat.LogCall(x => x.Rows);
+                var rightPadding = size.Width - mat.LogCall(x => x.Cols);
                 var refHeight = size.Height;
                 var textSize = CvInvoke.GetTextSize("test", FontFace.HersheySimplex, 2d, 3, ref refHeight);
                 mat.LogCall(x => CvInvoke.CopyMakeBorder(x, x, 0, bottomPadding + textSize.Height + WhiteBorderSize, 0, rightPadding, BorderType.Constant, new MCvScalar(0d, 0d, 0d)));
                 mat.LogCall(x => CvInvoke.CopyMakeBorder(x, x, WhiteBorderSize, WhiteBorderSize, WhiteBorderSize, WhiteBorderSize, BorderType.Constant, new MCvScalar(255d, 255d, 255d)));
                 if (index < images.Count)
                 {
-                    mat.LogCall(x => CvInvoke.PutText(x, images[index].Name, new Point(WhiteBorderSize, mat.Height - (WhiteBorderSize * 2)), FontFace.HersheySimplex, 2d, new MCvScalar(255d, 255d, 255d), thickness: 3));
+                    mat.LogCall(x => CvInvoke.PutText(x, images[index].Name, new Point(WhiteBorderSize,
+                        mat.LogCall(x => x.Height) - (WhiteBorderSize * 2)), FontFace.HersheySimplex, 2d, new MCvScalar(255d, 255d, 255d), thickness: 3));
                 }
-                finalMatSize = new Size(mat.Width, mat.Height);
+                finalMatSize = new Size(mat.LogCall(x => x.Width), mat.LogCall(x => x.Height));
                 concatImages.Add(mat);
             }
-            var hConcatMat = new Mat();
-            concatImages.LogCall(hConcatMat, (x, y) => CvInvoke.HConcat([.. x], y));
+            var hConcatMat = new Mat().AsManaged();
+            hConcatMat.LogCall(concatImages, (x, y) => CvInvoke.HConcat([.. y], x));
             horizontalSlices.Add(hConcatMat);
             foreach (var image in concatImages) image.LogCall(x => x.Dispose());
         }
-        horizontalSlices.LogCall(result, (x, y) => CvInvoke.VConcat([.. x], y));
+        result.LogCall(horizontalSlices, (x, y) => CvInvoke.VConcat([.. y], x));
         foreach (var slice in horizontalSlices) slice.LogCall(x => x.Dispose());
         emptyMat.LogCall(x => x.Dispose());
         return result;

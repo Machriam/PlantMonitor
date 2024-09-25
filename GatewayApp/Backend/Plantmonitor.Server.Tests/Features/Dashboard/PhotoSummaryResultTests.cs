@@ -26,7 +26,7 @@ public class PhotoSummaryResultTests
         var sut = new PhotoSummaryResult(0.2f);
         var path = Path.Combine(Directory.GetCurrentDirectory().GetApplicationRootGitPath()!, "PlantMonitorControl.Tests", "TestData", "PhotoTourSummaryTest", "St 3.json");
         var json = File.ReadAllText(path).FromJson<List<PixelInfo>>();
-        var image = CreateSubImage(sut, json!);
+        var image = CreateSubImage(sut, json!).AsManaged();
         image.ShowImage("St 3");
     }
 }

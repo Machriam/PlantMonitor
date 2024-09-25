@@ -60,24 +60,6 @@ public class PhotoStitcherTests
     }
 
     [Fact]
-    public void GetSubImages_Shouldwork()
-    {
-        var smallPlants = Path.Combine(Directory.GetCurrentDirectory().GetApplicationRootGitPath()!, "PlantMonitorControl.Tests", "TestData", "PhotoTourSummaryTest", "SmallPlantsTest.zip");
-        using var zip = ZipFile.Open(smallPlants, ZipArchiveMode.Read);
-        var visPicture = zip.Entries.First(e => e.Name.Contains(PhotoTourTrip.VisPrefix)).Open().ConvertToArray();
-        var tempImageFile = Path.Combine(Directory.CreateTempSubdirectory().FullName, "tempimage.png");
-        File.WriteAllBytes(tempImageFile, visPicture);
-        var metaDataTsv = zip.Entries
-            .First(e => e.Name.Contains(PhotoTourTrip.MetaDataPrefix))
-            .Open()
-            .ConvertToArray()
-            .Pipe(Encoding.UTF8.GetString);
-        var mat = CvInvoke.Imread(tempImageFile);
-        var sut = CreatePhotoStitcher();
-        sut.GetSubImages(mat, metaDataTsv.Pipe(VirtualImageMetaDataModel.FromTsvFile), [1, 2, 6, 13]);
-    }
-
-    [Fact]
     public void CreateVirtualImage_ShouldWork()
     {
         var applicationPath = Directory.GetCurrentDirectory().GetApplicationRootGitPath();
@@ -87,19 +69,19 @@ public class PhotoStitcherTests
         var visFile1 = $"{applicationPath}/PlantMonitorControl.Tests/TestData/CropTest/2024-07-22_12-59-14-748_-6000_0.jpg";
         var cropper = new ImageCropper();
         var result1 = cropper.CropImages(visFile1, irFile1, s_singlePlantBottomMiddlePolygon, new(121, 39), 960);
-        var color1 = result1.IrImage!.Clone();
+        var color1 = result1.IrImage!.LogCall(x => x.Clone().AsManaged());
         cropper.ApplyIrColorMap(color1);
         var result2 = cropper.CropImages(visFile2, irFile2, s_singlePlantBottomMiddlePolygon_1WeekLaterAndMoved, new(121, 39), 960);
-        var color2 = result2.IrImage!.Clone();
+        var color2 = result2.IrImage!.LogCall(x => x.Clone().AsManaged());
         cropper.ApplyIrColorMap(color2);
         var sut = CreatePhotoStitcher();
         var images = Enumerable.Range(0, 20).Select(i => new PhotoStitcher.PhotoStitchData()
         {
-            ColoredIrImage = i % 2 == 0 ? color1.Clone() : color2.Clone(),
+            ColoredIrImage = i % 2 == 0 ? color1.LogCall(x => x.Clone().AsManaged()) : color2.LogCall(x => x.Clone().AsManaged()),
             Comment = "Comment",
             IrImageRawData = i % 2 == 0 ? cropper.CreateRawIr(result1.IrImage) : cropper.CreateRawIr(result2.IrImage),
             Name = "Name",
-            VisImage = i % 2 == 0 ? result1.VisImage.Clone() : result2.VisImage.Clone(),
+            VisImage = i % 2 == 0 ? result1.VisImage.LogCall(x => x.Clone().AsManaged()) : result2.VisImage.LogCall(x => x.Clone().AsManaged()),
         });
         var result = sut.CreateVirtualImage(images, 300, 300, 0.2f);
         result.VisImage.ShowImage("VirtualVis", 0);
