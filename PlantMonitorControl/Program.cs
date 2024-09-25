@@ -25,6 +25,7 @@ builder.Configuration
     .AddJsonFile("appsettings.Development.json", optional: true);
 
 builder.Environment.WebRootPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? builder.Environment.WebRootPath : IEnvironmentConfiguration.LinuxStaticFilesFolder;
+Directory.CreateDirectory(builder.Environment.WebRootPath);
 var options = builder.Configuration.GetRequiredSection(ConfigurationOptions.Configuration).Get<ConfigurationOptions>();
 builder.Services.AddSingleton<IEnvironmentConfiguration>(new EnvironmentConfiguration(options, builder.Environment));
 builder.Services.AddTransient<IHealthSettingsEditor, HealthSettingsEditor>();
