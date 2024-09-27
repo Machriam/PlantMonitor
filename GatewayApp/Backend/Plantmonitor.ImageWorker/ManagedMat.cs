@@ -57,37 +57,44 @@ public class ManagedMat : IManagedMat
     public T Execute<T>(Func<Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this);
-        return func(_mat);
+        var result = func(_mat);
+        Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber} Finished");
+        return result;
     }
 
     public void Execute(Action<Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this);
         func(_mat);
+        Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber} Finished");
     }
 
     public void Execute(IManagedMat mat2, Action<Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this, mat2);
         func(_mat, mat2.Pipe(GetMat));
+        Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber} Finished");
     }
 
     public void Execute(IManagedMat mat2, IManagedMat mat3, Action<Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this, mat2, mat3);
         func(_mat, mat2.Pipe(GetMat), mat3.Pipe(GetMat));
+        Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber} Finished");
     }
 
     public void Execute(IEnumerable<IManagedMat> mats, Action<Mat, IEnumerable<Mat>> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, [.. mats, this]);
         func(_mat, mats.Select(m => m.Pipe(GetMat)));
+        Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber} Finished");
     }
 
     public void Execute(IManagedMat mat2, IManagedMat mat3, IManagedMat mat4, Action<Mat, Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
     {
         LogCall(memberName, sourceFilePath, sourceLineNumber, this, mat2, mat3, mat4);
         func(_mat, mat2.Pipe(GetMat), mat3.Pipe(GetMat), mat4.Pipe(GetMat));
+        Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber} Finished");
     }
 
     public byte[] BytesFromMat()
