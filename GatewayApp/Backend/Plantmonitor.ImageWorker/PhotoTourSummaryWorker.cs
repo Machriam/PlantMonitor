@@ -6,10 +6,8 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
-using Plantmonitor.Server.Features.AppConfiguration;
-using Plantmonitor.Server.Features.AutomaticPhotoTour;
 
-namespace Plantmonitor.Server.Features.Dashboard;
+namespace Plantmonitor.ImageWorker;
 
 public interface IPhotoTourSummaryWorker
 {
@@ -22,7 +20,7 @@ public interface IPhotoTourSummaryWorker
     List<IManagedMat> SplitInSubImages(string image, HashSet<string> desiredPlants);
 }
 
-public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
+internal class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
     IServiceScopeFactory scopeFactory, ILogger<PhotoTourSummaryWorker> logger) : IHostedService, IPhotoTourSummaryWorker
 {
     private Timer? _processImageTimer;
@@ -266,7 +264,7 @@ public class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
                 var rValue = (byte)visData.GetValue(row, col, 2)!;
                 var gValue = (byte)visData.GetValue(row, col, 1)!;
                 var bValue = (byte)visData.GetValue(row, col, 0)!;
-                resultData.AddPixelInfo(imageData, col, row, temperatureInteger + (temperatureFraction / 100f), [rValue, gValue, bValue], leafOutOfRange);
+                resultData.AddPixelInfo(imageData, col, row, temperatureInteger + temperatureFraction / 100f, [rValue, gValue, bValue], leafOutOfRange);
             }
         }
         mask.Dispose();

@@ -1,4 +1,4 @@
-﻿namespace Plantmonitor.Server;
+﻿namespace Plantmonitor.Shared;
 
 public static class ImageConstants
 {

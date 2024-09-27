@@ -1,7 +1,7 @@
 ﻿using Emgu.CV;
 using Emgu.CV.CvEnum;
 
-namespace Plantmonitor.Server;
+namespace Plantmonitor.ImageWorker;
 
 public static class MatExtensions
 {

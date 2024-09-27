@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plantmonitor.Shared", "..\P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plantmonitor.DataModel", "..\Plantmonitor.DataModel\Plantmonitor.DataModel.csproj", "{D2C6F77C-A97F-4E7A-9045-1A0317FE23D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plantmonitor.ImageWorker", "..\Plantmonitor.ImageWorker\Plantmonitor.ImageWorker.csproj", "{0CEF53EA-A4CE-437F-8D7C-14D41265391C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,12 @@ Global
 		{D2C6F77C-A97F-4E7A-9045-1A0317FE23D4}.NoSwag|Any CPU.Build.0 = NoSwag|Any CPU
 		{D2C6F77C-A97F-4E7A-9045-1A0317FE23D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2C6F77C-A97F-4E7A-9045-1A0317FE23D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CEF53EA-A4CE-437F-8D7C-14D41265391C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CEF53EA-A4CE-437F-8D7C-14D41265391C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CEF53EA-A4CE-437F-8D7C-14D41265391C}.NoSwag|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CEF53EA-A4CE-437F-8D7C-14D41265391C}.NoSwag|Any CPU.Build.0 = Debug|Any CPU
+		{0CEF53EA-A4CE-437F-8D7C-14D41265391C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CEF53EA-A4CE-437F-8D7C-14D41265391C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

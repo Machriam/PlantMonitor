@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NpgsqlTypes;
 using Plantmonitor.DataModel.DataModel;
-using Plantmonitor.Server.Features.Dashboard;
+using Plantmonitor.ImageWorker;
 using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
@@ -87,7 +87,7 @@ public class PhotoStitchingController(IDataContext context, IVirtualImageWorker 
         if (irFile.FileName == null) throw new Exception($"Ir image for position {template.MotorPosition} could not be found in {photoTrip.IrDataFolder}");
         var irOffset = new NpgsqlPoint(template.IrBoundingBoxOffset.X + xOffset, template.IrBoundingBoxOffset.Y + yOffset);
         var (visImage, irImage) = cropper.CropImages(visFile.FileName, irFile.FileName, [.. template.PhotoBoundingBox],
-            irOffset, VirtualImageWorker.VirtualPlantImageCropHeight);
+            irOffset, IVirtualImageWorker.VirtualPlantImageCropHeight);
         if (visImage == null || irImage == null)
         {
             visImage?.Dispose();
