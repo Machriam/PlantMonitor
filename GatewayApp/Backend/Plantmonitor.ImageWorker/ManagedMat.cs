@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using Emgu.CV;
 using Serilog;
 
-namespace Plantmonitor.Server;
+namespace Plantmonitor.ImageWorker;
 
 public interface IManagedMat : IDisposable
 {

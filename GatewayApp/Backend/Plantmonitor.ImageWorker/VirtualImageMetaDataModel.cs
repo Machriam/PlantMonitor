@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace Plantmonitor.Server.Features.AutomaticPhotoTour;
+namespace Plantmonitor.ImageWorker;
 
 public static class ITsvFormattableExtensions
 {

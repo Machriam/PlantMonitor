@@ -2,12 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using Plantmonitor.DataModel.DataModel;
+using Plantmonitor.ImageWorker;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.AutomaticPhotoTour;
-using Plantmonitor.Server.Features.Dashboard;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
-using Plantmonitor.Server.Features.ImageStitching;
 using Plantmonitor.Server.Features.RestApiFilter;
 using Plantmonitor.Server.Features.TemperatureMonitor;
 using Plantmonitor.Shared.Features.ImageStreaming;
@@ -26,6 +25,7 @@ builder.Host.UseSerilog();
 var configurationStorage = new ConfigurationStorage(builder.Configuration);
 var environmentConfiguration = new EnvironmentConfiguration(builder.Configuration, new ConfigurationStorage(builder.Configuration));
 builder.Services.AddSingleton<IEnvironmentConfiguration>(environmentConfiguration);
+builder.Services.AddSingleton<IImageWorkerConfiguration>(environmentConfiguration);
 builder.Services.AddSingleton<IConfigurationStorage>(configurationStorage);
 builder.Services.AddSingleton<IDeviceConnectionEventBus, DeviceConnectionEventBus>();
 
@@ -44,8 +44,6 @@ builder.Services.AddHostedService<DeviceConnectionWorker>();
 builder.Services.AddHostedService(s => (TemperatureMeasurementWorker)s.GetRequiredService<ITemperatureMeasurementWorker>());
 builder.Services.AddHostedService<AutomaticPhotoTourWorker>();
 builder.Services.AddHostedService<DeviceTemperatureWatcherWorker>();
-builder.Services.AddHostedService<VirtualImageWorker>();
-builder.Services.AddHostedService<PhotoTourSummaryWorker>();
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(environmentConfiguration.DatabaseConnection());
 var dataSource = dataSourceBuilder.Configure().Build();

@@ -6,9 +6,9 @@ using Emgu.CV.Structure;
 using Plantmonitor.Shared.Features.ImageStreaming;
 using Serilog;
 using Emgu.CV.CvEnum;
-using Plantmonitor.Server.Features.AppConfiguration;
+using Plantmonitor.Shared;
 
-namespace Plantmonitor.Server.Features.ImageStitching;
+namespace Plantmonitor.ImageWorker;
 
 public interface IImageCropper
 {
@@ -48,10 +48,10 @@ public class ImageCropper() : IImageCropper
                 if (rawValue is float) value = (int)(float)rawValue;
                 else if (rawValue is int) value = (int)rawValue;
                 if (value != 0) value -= ZeroDegreeCelsius;
-                var intValue = (value / 100);
-                var decimalValue = (int)(((value / 100f) - intValue) * 100);
+                var intValue = value / 100;
+                var decimalValue = (int)((value / 100f - intValue) * 100);
                 integerData[index] = (byte)intValue;
-                decimalData[index] = (byte)(decimalValue);
+                decimalData[index] = (byte)decimalValue;
                 index++;
             }
         }
@@ -147,7 +147,7 @@ public class ImageCropper() : IImageCropper
         var visMat = MatFromFile(visImage, out _) ?? throw new Exception("Could not read vis image file");
         var resizeRatio = scalingHeightInPx / (double)visMat.Execute(x => x.Height);
         visPolygon = visPolygon.Select(vp => new NpgsqlPoint(vp.X * resizeRatio, vp.Y * resizeRatio)).ToArray();
-        irOffset = new NpgsqlPoint(-irOffset.X * scalingHeightInPx / Const.IrScalingHeight, -irOffset.Y * scalingHeightInPx / Const.IrScalingHeight);
+        irOffset = new NpgsqlPoint(-irOffset.X * scalingHeightInPx / ImageConstants.IrScalingHeight, -irOffset.Y * scalingHeightInPx / ImageConstants.IrScalingHeight);
         Resize(visMat, scalingHeightInPx);
         var visCrop = CutImage(visPolygon, visMat);
         if (irImage.IsEmpty())
@@ -190,7 +190,7 @@ public class ImageCropper() : IImageCropper
         {
             for (var col = 0; col < irWidth; col++)
             {
-                var index = ((row + yPadding) * visWidth) + col + xPadding;
+                var index = (row + yPadding) * visWidth + col + xPadding;
                 var irCropValue = irCropData.GetValue(row, col) as float?;
                 resultData[index] = irCropValue ?? 0;
             }

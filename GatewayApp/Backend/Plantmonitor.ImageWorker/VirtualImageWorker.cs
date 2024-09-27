@@ -2,14 +2,14 @@
 using Emgu.CV;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
-using Plantmonitor.Server.Features.AppConfiguration;
-using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Shared.Features.ImageStreaming;
 
-namespace Plantmonitor.Server.Features.ImageStitching;
+namespace Plantmonitor.ImageWorker;
 
 public interface IVirtualImageWorker
 {
+    public const int VirtualPlantImageCropHeight = 960;
+
     void RecalculateTour(long photoTourId);
 
     Task StartAsync(CancellationToken cancellationToken);
@@ -17,14 +17,13 @@ public interface IVirtualImageWorker
     Task StopAsync(CancellationToken cancellationToken);
 }
 
-public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentConfiguration configuration,
+public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IImageWorkerConfiguration configuration,
     ILogger<VirtualImageWorker> logger) : IHostedService, IVirtualImageWorker
 {
     private static readonly HashSet<long> s_tripsToSkip = [];
     private static int s_imageCalculationTimeout = 10;
     private const int MaxImageCalculationTimeout = 60;
     private const int MinImageCalculationTimeout = 1;
-    public const int VirtualPlantImageCropHeight = 960;
     private Timer? _timer;
 
     public void RecalculateTour(long photoTourId)
@@ -59,7 +58,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
         return new Timer(_ => CreateVirtualImage(), default, (int)TimeSpan.FromSeconds(s_imageCalculationTimeout).TotalMilliseconds, Timeout.Infinite);
     }
 
-    public void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IEnvironmentConfiguration configuration)
+    public void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IImageWorkerConfiguration configuration)
     {
         logger.LogInformation("Running virtual image creation");
         var tripsToSkipArray = s_tripsToSkip.ToArray();
@@ -122,7 +121,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
             }
             logger.LogInformation("Using images vis: {vis} and ir: {ir} for cropping", visImage.FileName, irImage.FileName ?? "NA");
             var matResults = cropper.CropImages(visImage.FileName, irImage.FileName, [.. extractionTemplate.PhotoBoundingBox],
-                extractionTemplate.IrBoundingBoxOffset, VirtualPlantImageCropHeight);
+                extractionTemplate.IrBoundingBoxOffset, IVirtualImageWorker.VirtualPlantImageCropHeight);
             virtualImageList[^1].VisImage = matResults.VisImage;
             virtualImageList[^1].VisImageTime = visImage.Formatter.Timestamp;
             virtualImageList[^1].MotorPosition = visImage.Formatter.Steps;
@@ -168,7 +167,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
     }
 
     private VirtualImageMetaDataModel AddAdditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess,
-        DataModel.DataModel.AutomaticPhotoTour photoTour, VirtualImageMetaDataModel metaData)
+        AutomaticPhotoTour photoTour, VirtualImageMetaDataModel metaData)
     {
         var to = tripToProcess.Timestamp;
         var previousTrip = dataContext.PhotoTourTrips

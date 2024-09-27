@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
+using Plantmonitor.Shared;
 using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.CustomTourCreation;

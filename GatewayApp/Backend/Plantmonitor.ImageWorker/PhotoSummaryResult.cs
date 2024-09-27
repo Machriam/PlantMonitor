@@ -4,9 +4,9 @@ using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 using Plantmonitor.DataModel.DataModel;
-using Plantmonitor.Server.Features.AutomaticPhotoTour;
+using Plantmonitor.Shared.Extensions;
 
-namespace Plantmonitor.Server.Features.Dashboard;
+namespace Plantmonitor.ImageWorker;
 
 public class PhotoSummaryResult(float pixelSizeInMm)
 {
@@ -198,7 +198,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 var top = row + topOffset;
                 var pixel = pixelByCoordinate.TryGetValue((left, top), out var pixelResult) ? pixelResult : default;
                 var rgb = pixel == default ? emptyPixel : pixel.PixelColorInRgb;
-                var index = ((row * width) + col) * 3;
+                var index = (row * width + col) * 3;
                 for (var i = 0; i < rgb.Length; i++) subImageData[index + i] = rgb[i];
             }
         }

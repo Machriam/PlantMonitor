@@ -15,9 +15,28 @@ services:
     restart: always
     ports:
       - "8888"
+  plantmonitor-image-worker:
+    container_name: plantmonitor-image-worker
+    depends_on:
+      - plantmonitor
+    build: 
+      context: .
+      dockerfile: ImageWorker.Dockerfile
+    restart: always
+    env_file:
+      - ./database.env
+    volumes:
+      - ./PlantmonitorData:/srv/PlantmonitorData
+      - /srv/secrets:/srv/secrets:ro
+    ports:
+      - "9000"
   plantmonitor:
     container_name: plantmonitor
-    build: .
+    build: 
+      context: .
+      dockerfile: Server.Dockerfile
+    depends_on:
+      - database
     restart: always
     env_file:
       - ./database.env

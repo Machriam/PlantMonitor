@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestPlatform.ObjectModel.Utilities;
 using Npgsql;
 using NSubstitute;
 using Plantmonitor.DataModel.DataModel;
+using Plantmonitor.ImageWorker;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.ImageStitching;

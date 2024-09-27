@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Emgu.CV;
+using Plantmonitor.ImageWorker;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 
 namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests

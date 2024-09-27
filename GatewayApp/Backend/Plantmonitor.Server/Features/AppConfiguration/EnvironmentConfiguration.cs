@@ -1,9 +1,10 @@
 ﻿using System.Text.Encodings.Web;
+using Plantmonitor.ImageWorker;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 
 namespace Plantmonitor.Server.Features.AppConfiguration
 {
-    public interface IEnvironmentConfiguration
+    public interface IEnvironmentConfiguration : IImageWorkerConfiguration
     {
         string IpScanRange_From();
 
@@ -19,19 +20,7 @@ namespace Plantmonitor.Server.Features.AppConfiguration
 
         (string Protocol, string Port) WebSshUrl();
 
-        string PicturePath(string device);
-
-        string DatabaseConnection();
-
         string RepoRootPath();
-
-        IEnumerable<string> PictureFolders();
-
-        string VirtualImagePath(string name, long id);
-
-        IEnumerable<string> VirtualImageFolders();
-
-        string CustomTourDataPath();
     }
 
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration

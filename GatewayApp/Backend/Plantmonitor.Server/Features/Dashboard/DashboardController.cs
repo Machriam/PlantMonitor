@@ -4,9 +4,8 @@ using Emgu.CV;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
+using Plantmonitor.ImageWorker;
 using Plantmonitor.Server.Features.AppConfiguration;
-using Plantmonitor.Server.Features.DeviceConfiguration;
-using Plantmonitor.Server.Features.ImageStitching;
 
 namespace Plantmonitor.Server.Features.Dashboard;
 
