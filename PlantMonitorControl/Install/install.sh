@@ -46,7 +46,7 @@ sudo cp ./Install/Temp2Click/* /srv/pythonClick/temp2ClickPrograms/
 
 sudo mkdir /srv/motorMovement
 sudo cp ./Install/MotorMovement/* /srv/motorMovement
-g++ -o /srv/motorMovement/movemotor /srv/motorMovement/movemotor.cc /srv/motorMovement/Realtime.cc -lpigpio -lpthread
+sudo g++ -o /srv/motorMovement/movemotor /srv/motorMovement/movemotor.cc /srv/motorMovement/Realtime.cc -lpigpio -lpthread
 
 # Setup PlantMonitor Service
 sudo openssl pkcs12 -password pass: -export -out /srv/certs/plantmonitor.pfx -inkey /srv/certs/plantmonitor.key -in /srv/certs/plantmonitor.crt
