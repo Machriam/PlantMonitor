@@ -20,7 +20,7 @@ public interface IPhotoTourSummaryWorker
     List<IManagedMat> SplitInSubImages(string image, HashSet<string> desiredPlants);
 }
 
-internal class PhotoTourSummaryWorker(IEnvironmentConfiguration configuration,
+public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
     IServiceScopeFactory scopeFactory, ILogger<PhotoTourSummaryWorker> logger) : IHostedService, IPhotoTourSummaryWorker
 {
     private Timer? _processImageTimer;

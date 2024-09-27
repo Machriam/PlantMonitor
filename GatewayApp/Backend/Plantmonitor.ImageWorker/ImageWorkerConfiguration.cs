@@ -3,7 +3,7 @@ using Plantmonitor.Shared.Extensions;
 
 namespace Plantmonitor.ImageWorker
 {
-    internal interface IEnvironmentConfiguration
+    public interface IImageWorkerConfiguration
     {
         string PicturePath(string device);
 
@@ -18,7 +18,7 @@ namespace Plantmonitor.ImageWorker
         string CustomTourDataPath();
     }
 
-    internal class EnvironmentConfiguration(IConfiguration configuration) : IEnvironmentConfiguration
+    public class ImageWorkerConfiguration(IConfiguration configuration) : IImageWorkerConfiguration
     {
         private const string CertificateFolder = nameof(CertificateFolder);
         private const string VirtualImageFolderPrefix = "VirtualImages_";

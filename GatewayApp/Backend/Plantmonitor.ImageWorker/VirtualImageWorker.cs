@@ -17,7 +17,7 @@ public interface IVirtualImageWorker
     Task StopAsync(CancellationToken cancellationToken);
 }
 
-internal class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentConfiguration configuration,
+public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IImageWorkerConfiguration configuration,
     ILogger<VirtualImageWorker> logger) : IHostedService, IVirtualImageWorker
 {
     private static readonly HashSet<long> s_tripsToSkip = [];
@@ -58,7 +58,7 @@ internal class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmen
         return new Timer(_ => CreateVirtualImage(), default, (int)TimeSpan.FromSeconds(s_imageCalculationTimeout).TotalMilliseconds, Timeout.Infinite);
     }
 
-    public void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IEnvironmentConfiguration configuration)
+    public void RunImageCreation(IDataContext dataContext, IPhotoStitcher stitcher, IImageCropper cropper, IImageWorkerConfiguration configuration)
     {
         logger.LogInformation("Running virtual image creation");
         var tripsToSkipArray = s_tripsToSkip.ToArray();
@@ -121,7 +121,7 @@ internal class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmen
             }
             logger.LogInformation("Using images vis: {vis} and ir: {ir} for cropping", visImage.FileName, irImage.FileName ?? "NA");
             var matResults = cropper.CropImages(visImage.FileName, irImage.FileName, [.. extractionTemplate.PhotoBoundingBox],
-                extractionTemplate.IrBoundingBoxOffset, VirtualPlantImageCropHeight);
+                extractionTemplate.IrBoundingBoxOffset, IVirtualImageWorker.VirtualPlantImageCropHeight);
             virtualImageList[^1].VisImage = matResults.VisImage;
             virtualImageList[^1].VisImageTime = visImage.Formatter.Timestamp;
             virtualImageList[^1].MotorPosition = visImage.Formatter.Steps;
