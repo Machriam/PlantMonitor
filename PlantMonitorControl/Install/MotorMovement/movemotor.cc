@@ -73,7 +73,8 @@ int main(int argc, char *argv[])
     int directionPin = std::stoi(argv[1]);
     int pulsePin = std::stoi(argv[2]);
     int direction = std::stoi(argv[3]);
-    CurrentPosition currentPosition = readCurrentPosition(argv[4]);
+    char *filePath = argv[4];
+    CurrentPosition currentPosition = readCurrentPosition(filePath);
     int stepUnit = std::stoi(argv[5]);
     int maxPosition = std::stoi(argv[6]);
     int minPosition = std::stoi(argv[7]);
@@ -93,6 +94,7 @@ int main(int argc, char *argv[])
     }
 
     currentPosition.dirty = true;
+    writeCurrentPosition(filePath, currentPosition);
     uint32_t time = Realtime::micros();
     for (int i = 0; i < delays.size(); i++)
     {
@@ -111,7 +113,7 @@ int main(int argc, char *argv[])
         }
     }
     currentPosition.dirty = false;
-    writeCurrentPosition(argv[4], currentPosition);
+    writeCurrentPosition(filePath, currentPosition);
     printf("Movement finished. New Position %d\n", currentPosition.position);
     return 0;
 }

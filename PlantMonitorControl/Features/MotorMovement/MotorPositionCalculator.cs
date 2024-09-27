@@ -45,17 +45,12 @@ public class MotorPositionCalculator : IMotorPositionCalculator
 
     public MotorPositionCalculator(IEnvironmentConfiguration configuration, IGpioInteropFactory gpioFactory, ILogger<MotorPositionCalculator> logger)
     {
+        _configuration = configuration;
+        _gpioFactory = gpioFactory;
+        _logger = logger;
         if (File.Exists(s_filePath))
         {
-            var positionText = File.ReadAllText(s_filePath);
-            logger.LogInformation("Read position from file: {position}", positionText);
-            lock (s_dirtyLock) s_dirtyPosition = false;
-            if (positionText.Contains(DirtyPositionSymbol))
-            {
-                lock (s_dirtyLock) s_dirtyPosition = true;
-                positionText = positionText.Replace(DirtyPositionSymbol, "");
-            }
-            lock (s_positionLock) s_currentPosition = int.Parse(positionText);
+            ReadFromFile();
         }
         else
         {
@@ -63,9 +58,19 @@ public class MotorPositionCalculator : IMotorPositionCalculator
             lock (s_dirtyLock) s_dirtyPosition = true;
         }
         logger.LogInformation("Initialized Motor with: Pos: {position}, Dirty: {dirty}, Engaged: {engaged}", s_currentPosition, s_dirtyPosition, s_isEngaged);
-        _configuration = configuration;
-        _gpioFactory = gpioFactory;
-        _logger = logger;
+    }
+
+    private void ReadFromFile()
+    {
+        var positionText = File.ReadAllText(s_filePath);
+        _logger.LogInformation("Read position from file: {position}", positionText);
+        lock (s_dirtyLock) s_dirtyPosition = false;
+        if (positionText.Contains(DirtyPositionSymbol))
+        {
+            lock (s_dirtyLock) s_dirtyPosition = true;
+            positionText = positionText.Replace(DirtyPositionSymbol, "");
+        }
+        lock (s_positionLock) s_currentPosition = int.Parse(positionText);
     }
 
     public void ToggleMotorEngage(bool shouldEngage)
@@ -86,7 +91,6 @@ public class MotorPositionCalculator : IMotorPositionCalculator
             if (s_dirtyPosition) throw new Exception("Position is dirty. Zeroing must be done or waited until the current movement completes");
             s_dirtyPosition = true;
         }
-        PersistCurrentPosition();
         var pinout = _configuration.MotorPinout;
         var left = 1;
         var right = 0;
@@ -99,8 +103,7 @@ public class MotorPositionCalculator : IMotorPositionCalculator
         await new Process().RunProcess(_configuration.MoveMotorPrograms.MoveMotor,
             MoveMotorPrograms.ConstructArgumentList(pinout.GpioPinNumberDirection, pinout.GpioPinNumberPulse,
             direction, s_filePath, stepUnit, maxAllowedPosition, minAllowedPosition, motorMoveDelays));
-        lock (s_dirtyLock) s_dirtyPosition = false;
-        PersistCurrentPosition();
+        ReadFromFile();
     }
 
     private List<int> EstimatePositionUpdates(int maxAllowedPosition, int minAllowedPosition, int stepsToMove, Func<int, int> rampFunction)
@@ -126,7 +129,7 @@ public class MotorPositionCalculator : IMotorPositionCalculator
         {
             foreach (var update in positionUpdate)
             {
-                await Task.Delay(update.Delay);
+                await Task.Delay((int)(update.Delay * 0.001f));
                 UpdatePosition(update.PositionIncrease, maxAllowedPosition, minAllowedPosition);
             }
         }
