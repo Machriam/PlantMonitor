@@ -21,3 +21,4 @@ Confluence/Dockerfiles/database.env
 **/*.png
 **/*.raw
 !**/Documents/*
+/GatewayApp/Backend/Plantmonitor.ImageWorker/appsettings.Development.json
