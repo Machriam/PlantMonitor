@@ -1,9 +1,6 @@
-﻿using NSubstitute;
-using Plantmonitor.Server.Features.DeviceConfiguration;
+﻿using Plantmonitor.Server.Features.DeviceConfiguration;
 using NpgsqlTypes;
-using Emgu.CV;
 using FluentAssertions;
-using Emgu.CV.Structure;
 using Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests;
 using Plantmonitor.ImageWorker;
 
