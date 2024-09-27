@@ -13,7 +13,7 @@ public record struct IRPrograms(string DeviceHealth, string CaptureImage, string
 public record struct Temp2ClickPrograms(string GetDevices, string WriteThermalData, string PythonExecutable);
 public record struct PowerSwitchPrograms(string SwitchOutlet, string ReceiveTest);
 public record struct PowerSwitchPinout(int TX, int TXIN, int WiringPiTX, int WiringPiTXIN);
-public record struct MotorMovementPrograms(string MoveMotor)
+public record struct MoveMotorPrograms(string MoveMotor)
 {
     public static string ConstructArgumentList(int directionPin, int pulsePin, int direction, string positionFilePath, int stepUnit,
         int maxAllowedPosition, int minAllowedPosition, IEnumerable<int> delays)
@@ -31,5 +31,5 @@ public record struct ConfigurationOptions
     public Temp2ClickPrograms Temp2ClickPrograms { get; set; }
     public PowerSwitchPrograms PowerSwitchPrograms { get; set; }
     public PowerSwitchPinout PowerSwitchPinout { get; set; }
-    public MotorMovementPrograms MotorMovementPrograms { get; set; }
+    public MoveMotorPrograms MoveMotorPrograms { get; set; }
 }

@@ -96,8 +96,8 @@ public class MotorPositionCalculator : IMotorPositionCalculator
 
         var rampFunction = stepsToMove.CreateLogisticRampFunction(minTime, maxTime, rampLength);
         var motorMoveDelays = EstimatePositionUpdates(maxAllowedPosition, minAllowedPosition, stepsToMove, rampFunction);
-        await new Process().RunProcess(_configuration.MotorMovementPrograms.MoveMotor,
-            MotorMovementPrograms.ConstructArgumentList(pinout.GpioPinNumberDirection, pinout.GpioPinNumberPulse,
+        await new Process().RunProcess(_configuration.MoveMotorPrograms.MoveMotor,
+            MoveMotorPrograms.ConstructArgumentList(pinout.GpioPinNumberDirection, pinout.GpioPinNumberPulse,
             direction, s_filePath, stepUnit, maxAllowedPosition, minAllowedPosition, motorMoveDelays));
         lock (s_dirtyLock) s_dirtyPosition = false;
         PersistCurrentPosition();
