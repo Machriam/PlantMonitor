@@ -1,4 +1,5 @@
 ﻿using PlantMonitorControl.Features.AppsettingsConfiguration;
+using PlantMonitorControl.Features.ImageTaking;
 using System.Device.Gpio;
 using System.Diagnostics;
 
@@ -18,7 +19,7 @@ public interface IMotorPositionCalculator
 
     void ToggleMotorEngage(bool shouldEngage);
 
-    void MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition);
+    Task MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition);
 
     MotorPosition CurrentPosition();
 }
@@ -78,7 +79,7 @@ public class MotorPositionCalculator : IMotorPositionCalculator
         lock (s_engageLock) s_isEngaged = shouldEngage;
     }
 
-    public void MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition)
+    public async Task MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition)
     {
         lock (s_dirtyLock)
         {
@@ -86,32 +87,51 @@ public class MotorPositionCalculator : IMotorPositionCalculator
             s_dirtyPosition = true;
         }
         PersistCurrentPosition();
-        var sw = new Stopwatch();
-        var microSecondsPerTick = 1000d * 1000d / Stopwatch.Frequency;
-        using var controller = _gpioFactory.Create();
         var pinout = _configuration.MotorPinout;
-        controller.OpenPin(pinout.Direction, PinMode.Output);
-        controller.OpenPin(pinout.Pulse, PinMode.Output);
-        var left = PinValue.High;
-        var right = PinValue.Low;
-
-        controller.Write(pinout.Direction, steps < 0 ? left : right);
+        var left = 1;
+        var right = 0;
+        var direction = steps < 0 ? left : right;
         var stepUnit = steps < 0 ? -1 : 1;
         var stepsToMove = Math.Abs(steps);
+
         var rampFunction = stepsToMove.CreateLogisticRampFunction(minTime, maxTime, rampLength);
-        for (var i = 0; i < stepsToMove; i++)
-        {
-            controller.Write(pinout.Pulse, PinValue.High);
-            sw.Restart();
-            var delay = (int)(rampFunction(i) * 0.5f);
-            while (sw.ElapsedTicks * microSecondsPerTick < delay) { }
-            controller.Write(pinout.Pulse, PinValue.Low);
-            sw.Restart();
-            UpdatePosition(stepUnit, maxAllowedPosition, minAllowedPosition);
-            while (sw.ElapsedTicks * microSecondsPerTick < delay) { }
-        }
+        var motorMoveDelays = EstimatePositionUpdates(maxAllowedPosition, minAllowedPosition, stepsToMove, rampFunction);
+        await new Process().RunProcess(_configuration.MotorMovementPrograms.MoveMotor,
+            MotorMovementPrograms.ConstructArgumentList(pinout.GpioPinNumberDirection, pinout.GpioPinNumberPulse,
+            direction, s_filePath, stepUnit, maxAllowedPosition, minAllowedPosition, motorMoveDelays));
         lock (s_dirtyLock) s_dirtyPosition = false;
         PersistCurrentPosition();
+    }
+
+    private List<int> EstimatePositionUpdates(int maxAllowedPosition, int minAllowedPosition, int stepsToMove, Func<int, int> rampFunction)
+    {
+        var currentDelay = 0;
+        var currentPosition = 0;
+        var positionUpdate = new List<(int Delay, int PositionIncrease)>();
+        var moveDelays = new List<int>();
+        for (var i = 0; i < stepsToMove; i++)
+        {
+            var delay = rampFunction(i);
+            moveDelays.Add(delay);
+            currentDelay += delay;
+            currentPosition++;
+            if (currentDelay > 10_000 && i < stepsToMove - 1)
+            {
+                positionUpdate.Add((currentDelay, currentPosition));
+                currentDelay = 0;
+                currentPosition = 0;
+            }
+        }
+        async Task UpdatePositionTask()
+        {
+            foreach (var update in positionUpdate)
+            {
+                await Task.Delay(update.Delay);
+                UpdatePosition(update.PositionIncrease, maxAllowedPosition, minAllowedPosition);
+            }
+        }
+        UpdatePositionTask().RunInBackground(ex => ex.LogError());
+        return moveDelays;
     }
 
     public void ZeroPosition()

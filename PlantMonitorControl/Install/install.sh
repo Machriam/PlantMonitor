@@ -42,6 +42,12 @@ sudo /srv/pythonClick/bin/pip3 install smbus2
 sudo mkdir /srv/pythonClick/temp2ClickPrograms
 sudo cp ./Install/Temp2Click/* /srv/pythonClick/temp2ClickPrograms/
 
+# Setup MotorMovement
+
+sudo mkdir /srv/motorMovement
+sudo cp ./Install/MotorMovement/* /srv/motorMovement
+g++ -o /srv/motorMovement/movemotor /srv/motorMovement/movemotor.cc /srv/motorMovement/Realtime.cc -lpigpio -lpthread
+
 # Setup PlantMonitor Service
 sudo openssl pkcs12 -password pass: -export -out /srv/certs/plantmonitor.pfx -inkey /srv/certs/plantmonitor.key -in /srv/certs/plantmonitor.crt
 sudo cp ./Install/PlantMonitorStart.service /lib/systemd/system/

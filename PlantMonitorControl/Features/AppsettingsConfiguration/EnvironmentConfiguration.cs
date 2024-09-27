@@ -9,6 +9,8 @@ public interface IEnvironmentConfiguration
     PowerSwitchPrograms PowerSwitchPrograms { get; }
     string StreamArchivePath { get; }
     string GetDownloadfolder { get; }
+    MotorMovementPrograms MotorMovementPrograms { get; }
+
     public const string DownloadFolderName = "/download/";
     public const string LinuxStaticFilesFolder = "/srv/dist/wwwroot";
 
@@ -23,6 +25,7 @@ public class EnvironmentConfiguration(ConfigurationOptions options, IWebHostEnvi
     public Temp2ClickPrograms Temp2ClickPrograms => options.Temp2ClickPrograms;
     public PowerSwitchPinout PowerSwitchPinout => options.PowerSwitchPinout;
     public PowerSwitchPrograms PowerSwitchPrograms => options.PowerSwitchPrograms;
+    public MotorMovementPrograms MotorMovementPrograms => options.MotorMovementPrograms;
 
     public string StreamArchivePath
     {

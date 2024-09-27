@@ -96,10 +96,8 @@ int main(int argc, char *argv[])
     uint32_t time = Realtime::micros();
     for (int i = 0; i < delays.size(); i++)
     {
-        printf("%u\n", Realtime::micros());
         gpioWrite(pulsePin, 1);
         Realtime::delay(delays[i] * 0.5);
-        printf("%u\n", Realtime::micros());
         gpioWrite(pulsePin, 0);
         Realtime::delay(delays[i] * 0.5);
         currentPosition.position += stepUnit;

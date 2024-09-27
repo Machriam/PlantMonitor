@@ -27,8 +27,8 @@ public class MotorMovementController(IMotorPositionCalculator motorPosition) : C
     }
 
     [HttpPost("movemotor")]
-    public void MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition)
+    public async Task MoveMotor(int steps, int minTime, int maxTime, int rampLength, int maxAllowedPosition, int minAllowedPosition)
     {
-        motorPosition.MoveMotor(steps, minTime, maxTime, rampLength, maxAllowedPosition, minAllowedPosition);
+        await motorPosition.MoveMotor(steps, minTime, maxTime, rampLength, maxAllowedPosition, minAllowedPosition);
     }
 }

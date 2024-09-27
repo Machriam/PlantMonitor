@@ -20,18 +20,18 @@ namespace PlantMonitorControl.Tests.Features.MotorMovement
         }
 
         [Fact]
-        public void EmergencyStop_ShouldWork()
+        public async Task EmergencyStop_ShouldWork()
         {
             var sut = CreateMotorPositionCalculator();
             sut.ZeroPosition();
             var initialPosition = sut.CurrentPosition();
-            sut.MoveMotor(3000, 10, 20, 5000, 2000, 1000);
+            await sut.MoveMotor(3000, 10, 20, 5000, 2000, 1000);
             initialPosition.Engaged.Should().BeTrue();
             initialPosition.Position.Should().Be(0);
             sut.CurrentPosition().Engaged.Should().BeFalse();
             sut.CurrentPosition().Position.Should().Be(0);
             sut.ToggleMotorEngage(true);
-            sut.MoveMotor(3000, 10, 20, 5000, 2500, 0);
+            await sut.MoveMotor(3000, 10, 20, 5000, 2500, 0);
             sut.CurrentPosition().Engaged.Should().BeFalse();
             sut.CurrentPosition().Position.Should().Be(2501);
         }
