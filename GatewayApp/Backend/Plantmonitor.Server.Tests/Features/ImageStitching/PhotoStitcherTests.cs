@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using NpgsqlTypes;
 using NSubstitute;
 using Plantmonitor.DataModel.DataModel;
+using Plantmonitor.ImageWorker;
 using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Server.Features.ImageStitching;

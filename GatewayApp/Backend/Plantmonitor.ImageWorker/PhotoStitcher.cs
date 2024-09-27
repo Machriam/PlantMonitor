@@ -3,10 +3,9 @@ using System.Globalization;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
-using Plantmonitor.Server.Features.AutomaticPhotoTour;
-using static Plantmonitor.Server.Features.ImageStitching.PhotoStitcher;
+using static Plantmonitor.ImageWorker.PhotoStitcher;
 
-namespace Plantmonitor.Server.Features.ImageStitching;
+namespace Plantmonitor.ImageWorker;
 
 public interface IPhotoStitcher
 {
@@ -47,7 +46,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         var imagesPerRow = Enumerable.Range(1, length).Select(columns =>
         {
             var rows = float.Ceiling(length / (float)columns);
-            return (Ratio: Math.Abs(DesiredRatio - (columns * width / (height * rows))), Columns: columns);
+            return (Ratio: Math.Abs(DesiredRatio - columns * width / (height * rows)), Columns: columns);
         });
         return imagesPerRow.MinBy(ipr => ipr.Ratio).Columns;
     }
@@ -84,12 +83,12 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         var horizontalSlices = new List<IManagedMat>();
         var emptyMat = new Mat(sameSizeSubImages[0].Execute(x => x.Size), sameSizeSubImages[0].Execute(x => x.Depth), sameSizeSubImages[0].Execute(x => x.NumberOfChannels)).AsManaged();
         emptyMat.Execute(x => x.SetTo(new MCvScalar(0)));
-        for (var row = 0; row < (sameSizeSubImages.Count / (float)imagesPerRow); row++)
+        for (var row = 0; row < sameSizeSubImages.Count / (float)imagesPerRow; row++)
         {
             var concatImages = new List<IManagedMat>();
             for (var column = 0; column < imagesPerRow; column++)
             {
-                var index = (row * imagesPerRow) + column;
+                var index = row * imagesPerRow + column;
                 if (sameSizeSubImages.Count <= index)
                 {
                     concatImages.Add(emptyMat.Execute(x => x.Clone().AsManaged()));
@@ -119,12 +118,12 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
         var emptyMat = new Mat(size, Depth, Channels).AsManaged();
         emptyMat.Execute(x => x.SetTo(new MCvScalar(0)));
         var horizontalSlices = new List<IManagedMat>();
-        for (var row = 0; row < (length / (float)imagesPerRow); row++)
+        for (var row = 0; row < length / (float)imagesPerRow; row++)
         {
             var concatImages = new List<IManagedMat>();
             for (var column = 0; column < imagesPerRow; column++)
             {
-                var index = (row * imagesPerRow) + column;
+                var index = row * imagesPerRow + column;
                 IManagedMat mat;
                 var outOfBounds = index >= images.Count || selector(images[index]) == null;
                 if (outOfBounds) mat = emptyMat.Execute(x => x.Clone().AsManaged());
@@ -138,7 +137,7 @@ public class PhotoStitcher(ILogger<IPhotoStitcher> logger) : IPhotoStitcher
                 if (index < images.Count)
                 {
                     mat.Execute(x => CvInvoke.PutText(x, images[index].Name, new Point(WhiteBorderSize,
-                        x.Height - (WhiteBorderSize * 2)), FontFace.HersheySimplex, 2d, new MCvScalar(255d, 255d, 255d), thickness: 3));
+                        x.Height - WhiteBorderSize * 2), FontFace.HersheySimplex, 2d, new MCvScalar(255d, 255d, 255d), thickness: 3));
                 }
                 finalMatSize = mat.Execute(x => x.Size);
                 concatImages.Add(mat);

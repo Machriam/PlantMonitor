@@ -2,14 +2,14 @@
 using Emgu.CV;
 using Microsoft.EntityFrameworkCore;
 using Plantmonitor.DataModel.DataModel;
-using Plantmonitor.Server.Features.AppConfiguration;
-using Plantmonitor.Server.Features.AutomaticPhotoTour;
 using Plantmonitor.Shared.Features.ImageStreaming;
 
-namespace Plantmonitor.Server.Features.ImageStitching;
+namespace Plantmonitor.ImageWorker;
 
 public interface IVirtualImageWorker
 {
+    public const int VirtualPlantImageCropHeight = 960;
+
     void RecalculateTour(long photoTourId);
 
     Task StartAsync(CancellationToken cancellationToken);
@@ -17,14 +17,13 @@ public interface IVirtualImageWorker
     Task StopAsync(CancellationToken cancellationToken);
 }
 
-public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentConfiguration configuration,
+internal class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentConfiguration configuration,
     ILogger<VirtualImageWorker> logger) : IHostedService, IVirtualImageWorker
 {
     private static readonly HashSet<long> s_tripsToSkip = [];
     private static int s_imageCalculationTimeout = 10;
     private const int MaxImageCalculationTimeout = 60;
     private const int MinImageCalculationTimeout = 1;
-    public const int VirtualPlantImageCropHeight = 960;
     private Timer? _timer;
 
     public void RecalculateTour(long photoTourId)
@@ -168,7 +167,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IEnvironmentC
     }
 
     private VirtualImageMetaDataModel AddAdditionalMetaData(IDataContext dataContext, PhotoTourTrip tripToProcess,
-        DataModel.DataModel.AutomaticPhotoTour photoTour, VirtualImageMetaDataModel metaData)
+        AutomaticPhotoTour photoTour, VirtualImageMetaDataModel metaData)
     {
         var to = tripToProcess.Timestamp;
         var previousTrip = dataContext.PhotoTourTrips

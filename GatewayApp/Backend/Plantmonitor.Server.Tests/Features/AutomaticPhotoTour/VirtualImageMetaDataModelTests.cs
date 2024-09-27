@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Plantmonitor.Server.Features.AutomaticPhotoTour;
+using Plantmonitor.ImageWorker;
 using Plantmonitor.Server.Features.DeviceConfiguration;
 using Plantmonitor.Shared.Extensions;
 

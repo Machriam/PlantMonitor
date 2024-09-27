@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Plantmonitor.DataModel\Plantmonitor.DataModel.csproj" />
+		<ProjectReference Include="..\Plantmonitor.ImageWorker\Plantmonitor.ImageWorker.csproj" />
 		<ProjectReference Include="..\Plantmonitor.Shared\Plantmonitor.Shared.csproj" />
 	</ItemGroup>
 

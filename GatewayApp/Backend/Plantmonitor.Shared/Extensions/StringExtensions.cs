@@ -7,6 +7,12 @@ namespace Plantmonitor.Shared.Extensions;
 
 public static class StringExtensions
 {
+    public static string SanitizeFileName(this string filename)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        return filename.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Concat("");
+    }
+
     public static decimal? ExtractNumbersFromString(this string text, out string notNumericText)
     {
         var numberText = new StringBuilder();
