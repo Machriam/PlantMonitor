@@ -10,6 +10,7 @@
 #include <pigpio.h>
 #include "Realtime.h"
 int _positionReadFailed = -999999;
+uint32_t _fileUpdateInterval = 50000;
 struct CurrentPosition
 {
     int position;
@@ -92,17 +93,21 @@ int main(int argc, char *argv[])
     }
 
     currentPosition.dirty = true;
+    uint32_t time = Realtime::micros();
     for (int i = 0; i < delays.size(); i++)
     {
+        printf("%u\n", Realtime::micros());
         gpioWrite(pulsePin, 1);
         Realtime::delay(delays[i] * 0.5);
-        printf("%d\n", delays[i]);
+        printf("%u\n", Realtime::micros());
         gpioWrite(pulsePin, 0);
         Realtime::delay(delays[i] * 0.5);
         currentPosition.position += stepUnit;
-        writeCurrentPosition(argv[4], currentPosition);
+        if (Realtime::micros() - time > _fileUpdateInterval)
+            writeCurrentPosition(argv[4], currentPosition);
         if (currentPosition.position > maxPosition || currentPosition.position < minPosition)
         {
+            writeCurrentPosition(argv[4], currentPosition);
             printf("Position out of bounds\n");
             return 0;
         }
