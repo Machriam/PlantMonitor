@@ -12,8 +12,17 @@ Instructions to setup WLAN and the Gateway-Server can be found [here](https://gi
 
 IR- and VIS-photos are taken in specified intervalls for specified positions and can be replayed any time.
 
+<img style="height:300px" src="./Confluence/Gifs/CreateNewPhotoTour.gif"/>
+
+A defined movement can be tested beforehand via the "Start Preview" button and the movement buttons to the right of each step.  
+A photo tour may be stopped and resumed at any time and intervalls between photo trips can be changed for more or less frequent intervalls during heatstress or night time.
+
+
 ### Add named plants to trip and define plant positions
 <img style="height:300px" src="./Confluence/Gifs/CutPolygons.gif"/>
+
+Cutted polygons of plants are used for all following photo trips, unless a new polygon is defined.  
+A trips displays the amount of defined polygons in that trip.  
 
 ### Define IR- and VIS-alignment per plant for optimal temperature measurements
 <img style="height:300px" src="./Confluence/Gifs/GlobalAlignment.gif"/>
@@ -22,7 +31,8 @@ Global alignment of VIS- and IR-image
 
 <img style="height:300px" src="./Confluence/Gifs/IrFineAlignment.gif"/>
 
-Fine alignment of VIS- and IR-image for each plant individually
+Fine alignment of VIS- and IR-image for each plant individually.  
+Fine alignments are used for all following photo trips, unless redefined in another trip.
 
 ### Create virtual photos of all plants 
 <img style="height:300px" src="./Confluence/Gifs/VirtualImage.gif"/>
@@ -66,3 +76,18 @@ Deployments run in background. Even if connection breaks, deployment resumes.
 <img style="height:300px" src="./Confluence/Gifs/DebugDevices.gif"/>
 
 Developer friendly features to diagnose malfunctions of devices via SSH. Each device has multiple buttons to check log entries, test image taking functionality and define custom exposures for phototours.
+
+### Use external measurement devices like ADT7422
+
+<img style="height:300px" src="./Confluence/Gifs/SupportExternalTemperatureDevices.gif"/>
+
+See issue [88](https://github.com/Machriam/PlantMonitor/issues/88) for more information. 
+
+### Create photo tours with minimal delay between trips
+
+<img style="height:300px" src="./Confluence/Gifs/CreateHighResolutionTours.gif"/>
+
+Depending on setup a Raspberry Pi Zero 2W is able to take IR- and VIS-images with around 2-4 FPS.    
+This feature takes images as fast as possible and downloads a zip archive containing the data. For a 30 minutes measurement it downloads a zip of around 7 GB size. Zipping and downloading the zip archive takes between 1 and 2 hours depending on the internet speed.   
+Afterwards a custom photo tour can be created from that archive and all features are supported.
+This feature is highly hackable, as the motor can be moved during the image taking and user supplied FFC-requests can be issued.
