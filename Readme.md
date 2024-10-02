@@ -7,16 +7,10 @@ Instructions for building the arm can be found [here](https://github.com/Machria
 Instructions for using the cameras can be found [here](https://github.com/Machriam/PlantMonitor/blob/main/Confluence/Setup/ImageTaking.md).  
 Instructions for setting up the WLAN and the gateway server can be found [here](https://github.com/Machriam/PlantMonitor/blob/main/Confluence/Setup/Install.md).
 
-### Define photo tours 
+### Review photo tours 
 <img style="height:300px" src="./Confluence/Gifs/IndividualPhotos.gif"/>
 
 IR and VIS photos are taken at specified intervals for specified positions and can be replayed at any time.
-
-<img style="height:300px" src="./Confluence/Gifs/CreateNewPhotoTour.gif"/>
-
-A defined movement can be tested beforehand using the "Start Preview" button and the movement buttons to the right of each step.  
-A photo tour may be stopped and resumed at any time and the interval between photo trips can be changed to be more or less frequent during heat stress or night time.
-
 
 ### Add named plants to trip and define plant positions
 <img style="height:300px" src="./Confluence/Gifs/CutPolygons.gif"/>
@@ -24,16 +18,6 @@ A photo tour may be stopped and resumed at any time and the interval between pho
 Cut polygons of plants will be used for all subsequent photo trips unless a new polygon is defined.  
 A trip shows the number of polygons defined in that trip.  
 The blue frame indicates the field of view of the IR camera defined by the global alignment.
-
-### Define IR and VIS alignment per plant for optimal temperature measurements
-<img style="height:300px" src="./Confluence/Gifs/GlobalAlignment.gif"/>
-
-Global alignment of VIS and IR image
-
-<img style="height:300px" src="./Confluence/Gifs/IrFineAlignment.gif"/>
-
-Fine alignment of VIS and IR image for each individual plant.  
-Fine alignments are used for all subsequent photo trips unless redefined in another trip.
 
 ### Create virtual photos of all plants 
 <img style="height:300px" src="./Confluence/Gifs/VirtualImage.gif"/>
@@ -64,6 +48,22 @@ The dotted black vertical bars in the summary indicate a change in segmentation 
 White areas are used to calculate the image descriptors displayed in the summary. You can recalculate all virtual photos and summaries at any time.  
 A photo tour can define several different segmentation parameters. Different growth stages require different segmentation strategies.  
 New segmentation parameters are applied to all subsequent photo trips within a photo tour.
+
+#### Define Custom Photo Tours
+<img style="height:300px" src="./Confluence/Gifs/CreateNewPhotoTour.gif"/>
+
+A defined movement can be tested beforehand using the "Start Preview" button and the movement buttons to the right of each step.  
+A photo tour may be stopped and resumed at any time and the interval between photo trips can be changed to be more or less frequent during heat stress or night time.
+
+### Define IR and VIS alignment per plant for optimal temperature measurements
+<img style="height:300px" src="./Confluence/Gifs/GlobalAlignment.gif"/>
+
+Global alignment of VIS and IR image
+
+<img style="height:300px" src="./Confluence/Gifs/IrFineAlignment.gif"/>
+
+Fine alignment of VIS and IR image for each individual plant.  
+Fine alignments are used for all subsequent photo trips unless redefined in another trip.
 
 ### Find automatically new devices and deploy with one click
 <img style="height:300px" src="./Confluence/Gifs/SingleClickDeployment.gif"/>
