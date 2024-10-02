@@ -49,7 +49,7 @@ White areas are used to calculate the image descriptors displayed in the summary
 A photo tour can define several different segmentation parameters. Different growth stages require different segmentation strategies.  
 New segmentation parameters are applied to all subsequent photo trips within a photo tour.
 
-#### Define Custom Photo Tours
+### Create Custom Photo Tours
 <img style="height:300px" src="./Confluence/Gifs/CreateNewPhotoTour.gif"/>
 
 A defined movement can be tested beforehand using the "Start Preview" button and the movement buttons to the right of each step.  
