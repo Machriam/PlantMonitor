@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Globalization;
+using Microsoft.AspNetCore.Mvc;
 using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.Server.Features.AppConfiguration;
 using Plantmonitor.Server.Features.DeviceControl;
@@ -6,7 +7,7 @@ using Plantmonitor.Shared.Features.ImageStreaming;
 
 namespace Plantmonitor.Server.Features.ImageStitching;
 
-public record struct PictureSeriesData(int Count, string FolderName, CameraType? Type);
+public record struct PictureSeriesData(int Count, string FolderName, CameraType? Type, DateTime Timestamp);
 public record struct PictureTripData(PictureSeriesData IrData, PictureSeriesData VisData, DateTime TimeStamp, string DeviceId, long TripId);
 public record struct SeriesByDevice(string DeviceId, string FolderName);
 
@@ -37,18 +38,33 @@ public class PictureController(IEnvironmentConfiguration configuration, IDeviceA
     }
 
     [HttpGet("pictureseriesnames")]
-    public IEnumerable<PictureSeriesData> GetPictureSeries(string deviceId)
+    public IEnumerable<PictureSeriesData> GetPictureSeries(string deviceId, DateTime fromTime)
     {
+        if (fromTime == DateTime.MinValue) fromTime = DateTime.UtcNow;
         var path = configuration.PicturePath(deviceId);
-        var directories = Directory.EnumerateDirectories(path).Select(d => Path.GetFileName(d)).Where(x => !x.IsEmpty());
+        var directories = path
+            .Pipe(Directory.EnumerateDirectories)
+            .Select(d => Path.GetFileName(d))
+            .Where(x => !x.IsEmpty());
         return directories.Select(d =>
         {
+            var imageFolderTime = d.Pipe(TimeFromImageFolder);
             var files = Directory.EnumerateFiles(Path.Combine(path, d));
             var firstFile = files.FirstOrDefault();
-            if (firstFile.IsEmpty()) return new PictureSeriesData(files.Count(), d, null);
+            if (firstFile.IsEmpty() || !imageFolderTime.Success) return new PictureSeriesData(files.Count(), d, null, DateTime.MinValue);
             var ending = $".{firstFile!.Split(".").Last()}";
-            return new PictureSeriesData(files.Count(), d, s_cameraTypesByEnding.TryGetValue(ending, out var type) ? type : null);
-        });
+            return new PictureSeriesData(files.Count(), d, s_cameraTypesByEnding.TryGetValue(ending, out var type) ? type : null, imageFolderTime.Time);
+        })
+            .Where(d => d.Timestamp <= fromTime)
+            .OrderByDescending(d => d.Timestamp)
+            .Take(100);
+    }
+
+    private static (bool Success, DateTime Time) TimeFromImageFolder(string imageFolder)
+    {
+        imageFolder = Path.GetFileNameWithoutExtension(imageFolder) ?? "";
+        return (DateTime.TryParseExact(imageFolder, CameraStreamFormatter.PictureDateFormat, CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var time), time);
     }
 
     [HttpGet("pictureseriesoftour")]
@@ -60,8 +76,13 @@ public class PictureController(IEnvironmentConfiguration configuration, IDeviceA
         var directories = trips
             .Select(t => (Trip: t, IrCount: Path.Exists(t.IrDataFolder) ? Directory.GetFiles(t.IrDataFolder).Length : 0,
                           VisCount: Path.Exists(t.VisDataFolder) ? Directory.GetFiles(t.VisDataFolder).Length : 0));
-        return directories.Select(d => new PictureTripData(new(d.IrCount, d.Trip.IrDataFolder, CameraType.IR),
-            new(d.VisCount, d.Trip.VisDataFolder, CameraType.Vis), d.Trip.Timestamp, deviceId, d.Trip.Id))
+        return directories.Select(d =>
+        {
+            var visTime = d.Trip.VisDataFolder.Pipe(TimeFromImageFolder);
+            var irTime = d.Trip.VisDataFolder.Pipe(TimeFromImageFolder);
+            return new PictureTripData(new(d.IrCount, d.Trip.IrDataFolder, CameraType.IR, irTime.Time),
+                new(d.VisCount, d.Trip.VisDataFolder, CameraType.Vis, visTime.Time), d.Trip.Timestamp, deviceId, d.Trip.Id);
+        })
             .OrderBy(d => d.TimeStamp);
     }
 }

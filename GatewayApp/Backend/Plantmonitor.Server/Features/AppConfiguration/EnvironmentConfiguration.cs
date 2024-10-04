@@ -1,6 +1,5 @@
-﻿using System.Text.Encodings.Web;
+﻿using Plantmonitor.DataModel.DataModel;
 using Plantmonitor.ImageWorker;
-using Plantmonitor.Server.Features.DeviceConfiguration;
 
 namespace Plantmonitor.Server.Features.AppConfiguration
 {
@@ -26,9 +25,6 @@ namespace Plantmonitor.Server.Features.AppConfiguration
     public class EnvironmentConfiguration(IConfiguration configuration, IConfigurationStorage configurationStorage) : IEnvironmentConfiguration
     {
         private const string CertificateFolder = nameof(CertificateFolder);
-        private const string VirtualImageFolderPrefix = "VirtualImages_";
-        private const string CustomTourDataPrefix = "CustomTourData_";
-        private const string ImageFolderPrefix = "Images_";
 
         public string RepoRootPath()
         {
@@ -43,13 +39,13 @@ namespace Plantmonitor.Server.Features.AppConfiguration
         {
             var imageFolder = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
                 throw new Exception("No App configuration path found");
-            return Directory.GetDirectories(imageFolder, $"{ImageFolderPrefix}*");
+            return Directory.GetDirectories(imageFolder, $"{PhotoTourTrip.ImageFolderPrefix}*");
         }
 
         public string PicturePath(string device)
         {
             var imageFolder = Path.Combine(Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ??
-                throw new Exception("No App configuration path found"), ImageFolderPrefix + device);
+                throw new Exception("No App configuration path found"), PhotoTourTrip.ImageFolderPrefix + device);
             Directory.CreateDirectory(imageFolder);
             return imageFolder;
         }
@@ -57,19 +53,19 @@ namespace Plantmonitor.Server.Features.AppConfiguration
         public IEnumerable<string> VirtualImageFolders()
         {
             var directory = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ?? throw new Exception("No App configuration path found");
-            return Directory.EnumerateDirectories(directory, VirtualImageFolderPrefix + "*");
+            return Directory.EnumerateDirectories(directory, PhotoTourTrip.VirtualImageFolderPrefix + "*");
         }
 
         public string CustomTourDataPath()
         {
             var directory = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ?? throw new Exception("No App configuration path found");
-            return Directory.EnumerateDirectories(directory, CustomTourDataPrefix + "*").First();
+            return Directory.EnumerateDirectories(directory, PhotoTourTrip.CustomTourDataPrefix + "*").First();
         }
 
         public string VirtualImagePath(string name, long id)
         {
             var directory = Path.GetDirectoryName(configurationStorage.AppConfigurationPath()) ?? throw new Exception("No App configuration path found");
-            var imageFolder = Path.Combine(directory, $"{VirtualImageFolderPrefix}{id}_{name.SanitizeFileName()}");
+            var imageFolder = Path.Combine(directory, $"{PhotoTourTrip.VirtualImageFolderPrefix}{id}_{name.SanitizeFileName()}");
             Directory.CreateDirectory(imageFolder);
             return imageFolder;
         }
