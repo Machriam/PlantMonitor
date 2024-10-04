@@ -100,14 +100,14 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
         }
         Action action = () =>
         {
-            logger.LogInformation("Processing virtual image {image}", nextImage.Key);
+            var tripData = PhotoTourTrip.DataFromVirtualImage(nextImage.Key);
+            logger.LogInformation("Processing virtual image {image}", tripData.AsJson());
             var templatedTrips = context.PhotoTourTrips
-                .Where(ptt => ptt.SegmentationTemplateJson != null)
+                .Where(ptt => ptt.SegmentationTemplateJson != null && ptt.PhotoTourFk == tripData.PhotoTourId)
                 .OrderBy(ptt => ptt.VirtualPicturePath)
                 .ToList();
-            var tripTime = PhotoTourTrip.DateFromVirtualImage(nextImage.Key);
             var segmentationTemplate = templatedTrips
-                .LastOrDefault(tt => tt.Timestamp <= tripTime)?
+                .LastOrDefault(tt => tt.Timestamp <= tripData.Timestamp)?
                 .SegmentationTemplateJson ?? SegmentationTemplate.GetDefault();
             logger.LogInformation("Using template {image}", segmentationTemplate.AsJson());
             var pixelSummary = ProcessImage(nextImage.Key, segmentationTemplate);

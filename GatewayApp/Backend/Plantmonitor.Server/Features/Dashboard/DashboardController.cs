@@ -28,7 +28,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
     {
         var photoTour = context.AutomaticPhotoTours.First(apt => apt.Id == photoTourId);
         return Directory.EnumerateFiles(configuration.VirtualImagePath(photoTour.Name, photoTour.Id))
-            .Select(f => new VirtualImageInfo(Path.GetFileName(f), PhotoTourTrip.DateFromVirtualImage(f)));
+            .Select(f => new VirtualImageInfo(Path.GetFileName(f), PhotoTourTrip.DataFromVirtualImage(f)));
     }
 
     [HttpGet("fullsummaryinformation")]
