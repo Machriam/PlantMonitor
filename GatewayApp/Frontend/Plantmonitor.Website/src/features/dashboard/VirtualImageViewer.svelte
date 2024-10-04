@@ -247,7 +247,7 @@
         {:else if _virtualImage != undefined}
             <img
                 on:wheel={nextImage}
-                style="max-width: 85%;max-height:75vh;min-height:400px"
+                style="max-width: 85%;max-height:75vh;min-height:400px;{_showSegmentedImage ? 'position:absolute' : ''}"
                 alt="Stitched Result"
                 src="data:image/png;base64,{_virtualImage}" />
             <div style="flex:auto;"></div>
