@@ -343,7 +343,7 @@
                         const descriptorValue = x.imageDescriptors.plantDescriptors.find((p) => p.plant.imageName == plant);
                         const value = descriptor.getDescriptor([descriptorValue!]);
                         if (!descriptor.validator(value)) return [];
-                        return [new Date(x.imageDescriptors.tripStart), value];
+                        return [new Date(x.imageDescriptors.tripEnd), value];
                     })
                     .filter((x) => x.length > 0);
                 _descriptorBySeries.set(descriptor.name + " " + plant, descriptor);
@@ -368,7 +368,7 @@
                     const descriptorValue = x.imageDescriptors.plantDescriptors;
                     const value = descriptor.getDescriptor(descriptorValue);
                     if (!descriptor.validator(value)) return [];
-                    return [new Date(x.imageDescriptors.tripStart), value];
+                    return [new Date(x.imageDescriptors.tripEnd), value];
                 })
                 .filter((x) => x.length > 0);
             _chartData.push({
