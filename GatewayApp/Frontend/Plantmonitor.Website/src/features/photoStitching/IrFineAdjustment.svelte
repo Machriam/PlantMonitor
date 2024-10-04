@@ -13,6 +13,7 @@
     import {onMount} from "svelte";
     import type {Unsubscriber} from "svelte/motion";
     import {pipe} from "~/types/Pipe";
+    import {selectedDevice} from "../store";
     export let _selectedTrip: PictureTripData | undefined;
     export let _extractionTemplates: PlantExtractionTemplateModel[] = [];
     let _imageCropPreview: ImageCropPreview | undefined | null;
@@ -133,6 +134,15 @@
                 Previous Offset (X,Y): {_imageCropPreview?.previousOffset.x.toFixed(1)}, {_imageCropPreview?.previousOffset.y.toFixed(
                     1
                 )}</button>
+            <button
+                class="btn btn-dark col-md-3 ms-2"
+                on:click={async () => {
+                    _xOffset = $selectedDevice?.health.cameraOffset?.left ?? 0;
+                    _yOffset = $selectedDevice?.health.cameraOffset?.top ?? 0;
+                    _polygonUpdater();
+                }}
+                >Global Offset (X,Y): {$selectedDevice?.health.cameraOffset?.left ?? 0}
+                {$selectedDevice?.health.cameraOffset?.top ?? 0}</button>
         </div>
     {/if}
     {#if _imageCropPreview != undefined && _imageCropPreview != null}

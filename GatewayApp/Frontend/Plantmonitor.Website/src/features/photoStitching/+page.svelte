@@ -167,18 +167,21 @@
     </div>
     <div class="col-md-2">
         <div class="d-flex flex-row justify-content-center mb-2">
-            <button on:click={recalculateVirtualPictures} class="btn btn-primary">Recalculate Virtual Pictures</button>
+            <button disabled={_selectedTour == undefined} on:click={recalculateVirtualPictures} class="btn btn-primary"
+                >Recalculate Virtual Pictures</button>
         </div>
         <TextInput label="Position" bind:value={_newPlant.position}></TextInput>
         <TextInput label="Name" bind:value={_newPlant.name}></TextInput>
         <TextInput label="Comment" bind:value={_newPlant.comment}></TextInput>
         <div class="d-flex flex-row justify-content-between mt-2">
-            <button on:click={addPlant} class="btn btn-primary">Add Plant</button>
-            <button on:click={removePlant} class="btn btn-danger">Remove Plant</button>
+            <button disabled={_selectedTour == undefined} on:click={addPlant} class="btn btn-primary">Add Plant</button>
+            <button disabled={_selectedTour == undefined} on:click={removePlant} class="btn btn-danger">Remove Plant</button>
         </div>
         <div class="d-flex flex-row justify-content-around mt-2">
-            <button on:click={() => ($selectedPhotoTourPlantInfo = _plants)} class="btn btn-primary"
-                >Show polygons on image</button>
+            <button
+                disabled={_selectedTrip == undefined}
+                on:click={() => ($selectedPhotoTourPlantInfo = _plants)}
+                class="btn btn-primary">Show polygons on image</button>
         </div>
         <div style="overflow-y:auto;height:40vh" class="mt-3">
             {#if _selectedTrip != undefined}
@@ -207,12 +210,14 @@
         </div>
         <div class="col-md-12 row justify-content-between mt-2">
             <button
+                disabled={_selectedTrip == undefined}
                 on:click={() => nextPlant(-1)}
                 style="font-size:40px;width:50px;height:30px;line-height:0px"
                 class="btn btn-dark p-0">
                 <div style="position:relative; top:-3px">&leftarrow;</div>
             </button>
             <button
+                disabled={_selectedTrip == undefined}
                 on:click={() => nextPlant(1)}
                 style="font-size:40px;width:50px;height:30px;line-height:0px"
                 class="btn btn-dark p-0">
