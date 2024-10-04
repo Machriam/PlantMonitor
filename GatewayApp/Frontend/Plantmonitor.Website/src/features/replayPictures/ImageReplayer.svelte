@@ -10,6 +10,7 @@
     import {resizeBase64Img} from "./ImageResizer";
     import type {ReplayedImage} from "./ReplayedImage";
     import {pipe} from "~/types/Pipe";
+    import DateInput from "../reuseableComponents/DateInput.svelte";
 
     let pictureSeries: PictureSeriesData[] = [];
     export const getSelectedImage = () => selectedImage;
@@ -22,6 +23,7 @@
     let tooltip: TooltipCreatorResult | undefined;
     let seriesByDevice: SeriesByDevice[] = [];
     let selectedDeviceId: string | undefined;
+    let _selectedDate: Date = new Date();
     const selectedImageDivId = Math.random().toString(36);
     const cvInterop = new CvInterop();
     onMount(async () => {
@@ -38,8 +40,13 @@
             pictureSeries = [];
             return;
         }
-        pictureSeries = await pictureClient.getPictureSeries(deviceId);
-        pictureSeries = pictureSeries.sort((a, b) => a.folderName.localeCompare(b.folderName)).toReversed();
+        pictureSeries = await pictureClient.getPictureSeries(deviceId, _selectedDate);
+    }
+    async function onDateChanged(date: Date) {
+        if (_selectedDate == date || selectedDeviceId == undefined) return;
+        _selectedDate = date;
+        const pictureClient = new PictureClient();
+        pictureSeries = await pictureClient.getPictureSeries(selectedDeviceId, _selectedDate);
     }
     function onSeriesSelected(series: PictureSeriesData) {
         if (selectedDeviceId == undefined) return;
@@ -106,13 +113,16 @@
 </script>
 
 <div class={$$restProps.class || ""}>
-    <Select
-        initialSelectedItem={$selectedDevice?.health.deviceId}
-        idSelector={(x) => x.deviceId}
-        textSelector={(x) => x.deviceId}
-        selectedItemChanged={(x) => updatePictureSeries(x?.deviceId)}
-        items={seriesByDevice}
-        class="col-md-6"></Select>
+    <div class="col-md-12 row">
+        <Select
+            initialSelectedItem={$selectedDevice?.health.deviceId}
+            idSelector={(x) => x.deviceId}
+            textSelector={(x) => x.deviceId}
+            selectedItemChanged={(x) => updatePictureSeries(x?.deviceId)}
+            items={seriesByDevice}
+            class="col-md-6"></Select>
+        <DateInput class="col-md-4" label="From" valueHasChanged={onDateChanged}></DateInput>
+    </div>
     <div style="height: 10vh;overflow-y:auto;text-align-last:left" class="d-flex flex-column col-md-12">
         {#each pictureSeries as series}
             <button
@@ -121,7 +131,7 @@
                 class="col-md-12 row alert border-0 m-0 p-0 {selectedSeries == series ? 'alert-info' : ''}">
                 <span class="col-md-2">{series.count}</span>
                 <span class="col-md-1">{series.type == CameraType.IR ? "IR" : "Vis"}</span>
-                <span class="col-md-9">{series.folderName}</span>
+                <span class="col-md-9">{series.timestamp.toLocaleString()}</span>
             </button>
         {/each}
     </div>

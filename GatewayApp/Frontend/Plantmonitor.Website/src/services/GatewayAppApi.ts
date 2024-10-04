@@ -739,7 +739,7 @@ export interface IPictureClient {
 
     updateIrOffset(offset: IrCameraOffset, ip?: string | undefined): Promise<void>;
 
-    getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]>;
+    getPictureSeries(deviceId?: string | undefined, fromTime?: Date | undefined): Promise<PictureSeriesData[]>;
 
     pictureSeriesOfTour(photoTour?: number | undefined): Promise<PictureTripData[]>;
 }
@@ -838,12 +838,16 @@ export class PictureClient extends GatewayAppApiBase implements IPictureClient {
         return Promise.resolve<void>(null as any);
     }
 
-    getPictureSeries(deviceId?: string | undefined): Promise<PictureSeriesData[]> {
+    getPictureSeries(deviceId?: string | undefined, fromTime?: Date | undefined): Promise<PictureSeriesData[]> {
         let url_ = this.baseUrl + "/api/Picture/pictureseriesnames?";
         if (deviceId === null)
             throw new Error("The parameter 'deviceId' cannot be null.");
         else if (deviceId !== undefined)
             url_ += "deviceId=" + encodeURIComponent("" + deviceId) + "&";
+        if (fromTime === null)
+            throw new Error("The parameter 'fromTime' cannot be null.");
+        else if (fromTime !== undefined)
+            url_ += "fromTime=" + encodeURIComponent(fromTime ? "" + fromTime.toISOString() : "") + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -4390,6 +4394,7 @@ export class PictureSeriesData implements IPictureSeriesData {
     count!: number;
     folderName!: string;
     type!: CameraType | undefined;
+    timestamp!: Date;
 
     constructor(data?: IPictureSeriesData) {
         if (data) {
@@ -4405,6 +4410,7 @@ export class PictureSeriesData implements IPictureSeriesData {
             this.count = _data["Count"];
             this.folderName = _data["FolderName"];
             this.type = _data["Type"];
+            this.timestamp = _data["Timestamp"] ? new Date(_data["Timestamp"].toString()) : <any>undefined;
         }
     }
 
@@ -4420,6 +4426,7 @@ export class PictureSeriesData implements IPictureSeriesData {
         data["Count"] = this.count;
         data["FolderName"] = this.folderName;
         data["Type"] = this.type;
+        data["Timestamp"] = this.timestamp ? this.timestamp.toISOString() : <any>undefined;
         return data;
     }
 
@@ -4435,6 +4442,7 @@ export interface IPictureSeriesData {
     count: number;
     folderName: string;
     type: CameraType | undefined;
+    timestamp: Date;
 }
 
 export enum CameraType {
