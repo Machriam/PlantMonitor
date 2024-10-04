@@ -30,6 +30,11 @@ services:
       - /srv/secrets:/srv/secrets:ro
     ports:
       - "9000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
   plantmonitor:
     container_name: plantmonitor
     build: 
@@ -45,6 +50,11 @@ services:
       - /srv/secrets:/srv/secrets:ro
     ports:
       - "8000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
   reverse-proxy:
     container_name: proxy
     image: nginx
@@ -57,5 +67,3 @@ services:
       - "443:443"
       - "450:450"
       - "80:80"
-
-  
