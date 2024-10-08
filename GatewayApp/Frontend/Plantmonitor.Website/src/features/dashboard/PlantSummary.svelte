@@ -288,7 +288,7 @@
         _unsubscriber.forEach((u) => u());
     });
     function initChart() {
-        const chart = echarts.init(document.getElementById(_graphId));
+        const chart = echarts.init(document.getElementById(_graphId), null, {renderer: "svg"});
         chart.getZr().on("click", () => {
             _virtualImageFilterByTime.update((x) => {
                 _currentlyHoveredTimes.map((t) => x.add(t.getTime()));
