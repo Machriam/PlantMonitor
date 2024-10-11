@@ -534,6 +534,7 @@
     </div>
     {#if _virtualImageSummaries.length > 0}
         {@const lastGlobalDescriptorIndex = _descriptorsFor.findLastIndex((d) => d.isGlobal)}
+        {@const descriptors = pipe(_virtualImageSummaries).last().imageDescriptors.plantDescriptors}
         <div class="col-md-10 d-flex flex-column">
             <div style="height: 75vh;" id={_graphId}></div>
         </div>
@@ -552,7 +553,10 @@
             {/each}
         </div>
         <div class="col-md-1 d-flex flex-column border-start p-0" style="height: 70vh;overflow-y:auto">
-            {#each _virtualImageSummaries[0].imageDescriptors.plantDescriptors.map((p) => p.plant.imageName).toSorted() as plant}
+            {#each pipe(descriptors)
+                .apply((d) => d.map((p) => p.plant.imageName))
+                .toArray()
+                .toSorted() as plant}
                 <button
                     on:click={() => togglePlant(plant)}
                     class="btn {_selectedPlants.findIndex((p) => p == plant) >= 0 ? 'bg-info bg-opacity-50' : ''}">
