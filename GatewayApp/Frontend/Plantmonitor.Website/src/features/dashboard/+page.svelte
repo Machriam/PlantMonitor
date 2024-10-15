@@ -28,7 +28,7 @@
         _photoTours = await automaticPhototourClient.getPhotoTours();
         _photoTours = pipe(_photoTours)
             .apply((x) => x.filter((pt) => pt.tripCount > 0))
-            .orderByDescending((pt) => pt.tripCount)
+            .orderByDescending((pt) => pt.lastEvent.getTime())
             .toArray();
     });
     function clearFilter() {
