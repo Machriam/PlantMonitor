@@ -57,6 +57,19 @@ class ArrayExtensions<T> {
         this.sortingFunctions = [(a, b) => selector(b) - selector(a)];
         return this;
     }
+    orderByNumericString(selector: (x: T) => string): this {
+        this.sortingFunctions.push((a, b) => {
+            const aData = pipe(selector(a)).extractNumbers();
+            const bData = pipe(selector(b)).extractNumbers();
+            if (aData.text == bData.text) {
+                const diff = aData.number - bData.number;
+                if (diff == 0) return 0;
+                return diff > 0 ? 1 : -1;
+            }
+            return aData.text.localeCompare(bData.text);
+        });
+        return this;
+    }
     thenBy(selector: (x: T) => number): this {
         this.sortingFunctions.push((a, b) => selector(a) - selector(b));
         return this;
@@ -111,6 +124,9 @@ class ArrayExtensions<T> {
         }
         return result;
     }
+    distinct(): ArrayExtensions<T> {
+        return pipe(Array.from(new Set(this.array)));
+    }
     apply<K>(arg: (x: Array<T>) => Array<K>): ArrayExtensions<K> {
         if (this.sortingFunctions.length > 0) return new ArrayExtensions(arg(this.toArray()));
         return new ArrayExtensions(arg(this.array));
@@ -160,6 +176,20 @@ class StringExtensions extends Apply<string> {
     base64ToByteArray() { return Uint8Array.from(atob(this.x), c => c.charCodeAt(0)); }
     urlEncoded() { return pipe(encodeURIComponent(this.x)); }
     toString() { return this.x; }
+    extractNumbers() {
+        let text = "";
+        let numberText = "";
+        const zero = "0".charCodeAt(0);
+        const nine = "9".charCodeAt(0);
+        for (let i = 0; i < this.x.length; i++) {
+            const charcode = this.x[i].charCodeAt(0);
+            if (charcode >= zero && charcode <= nine) numberText += this.x[i];
+            else
+                text += this.x[i];
+        }
+        text = text.trim()
+        return { text, number: parseInt(numberText) };
+    }
     valueOf(): string { return this.x; }
 }
 class NumberExtensions extends Apply<number> {

@@ -17,6 +17,7 @@
     } from "./DashboardContext";
     import type {Unsubscriber} from "svelte/store";
     import {pipe} from "~/types/Pipe";
+    import {map} from "mirada";
     class DescriptorInfo {
         name: string;
         unit: string;
@@ -327,7 +328,7 @@
         _chart ??= initChart();
         const filteredSummaries = _virtualImageSummaries.filter((x) =>
             _selectedPlants.reduce(
-                (a, p) => a && x.imageDescriptors.plantDescriptors.find((pd) => pd.plant.imageName == p) != undefined,
+                (a, p) => a || x.imageDescriptors.plantDescriptors.find((pd) => pd.plant.imageName == p) != undefined,
                 true
             )
         );
@@ -341,7 +342,8 @@
                 const data = filteredSummaries
                     .map((x) => {
                         const descriptorValue = x.imageDescriptors.plantDescriptors.find((p) => p.plant.imageName == plant);
-                        const value = descriptor.getDescriptor([descriptorValue!]);
+                        if (descriptorValue == undefined) return [];
+                        const value = descriptor.getDescriptor([descriptorValue]);
                         if (!descriptor.validator(value)) return [];
                         return [new Date(x.imageDescriptors.tripEnd), value];
                     })
@@ -535,6 +537,10 @@
     {#if _virtualImageSummaries.length > 0}
         {@const lastGlobalDescriptorIndex = _descriptorsFor.findLastIndex((d) => d.isGlobal)}
         {@const descriptors = pipe(_virtualImageSummaries).last().imageDescriptors.plantDescriptors}
+        {@const orderedPlantNames = pipe(descriptors)
+            .apply((d) => d.map((d) => d.plant.imageName))
+            .orderByNumericString((p) => p)
+            .toArray()}
         <div class="col-md-10 d-flex flex-column">
             <div style="height: 75vh;" id={_graphId}></div>
         </div>
@@ -553,10 +559,7 @@
             {/each}
         </div>
         <div class="col-md-1 d-flex flex-column border-start p-0" style="height: 70vh;overflow-y:auto">
-            {#each pipe(descriptors)
-                .apply((d) => d.map((p) => p.plant.imageName))
-                .toArray()
-                .toSorted() as plant}
+            {#each orderedPlantNames as plant}
                 <button
                     on:click={() => togglePlant(plant)}
                     class="btn {_selectedPlants.findIndex((p) => p == plant) >= 0 ? 'bg-info bg-opacity-50' : ''}">
