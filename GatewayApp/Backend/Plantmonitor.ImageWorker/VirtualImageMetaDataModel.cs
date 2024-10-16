@@ -210,7 +210,7 @@ public record struct VirtualImageMetaDataModel()
         };
         var currentTable = tableDataByTableName.First().Value;
         var headers = new List<string>();
-        foreach (var line in tsv.Split('\n', StringSplitOptions.None))
+        foreach (var line in tsv.Split('\n', StringSplitOptions.None).Select(l => l.Trim()))
         {
             if (line.IsEmpty())
             {
