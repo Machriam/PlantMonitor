@@ -2,6 +2,15 @@
 
 public static class EnumerableExtensions
 {
+    public static IEnumerable<T> OrderByNumericString<T>(this IEnumerable<T> source, Func<T, string> selector)
+    {
+        return source
+            .Select(x => (Number: selector(x).ExtractNumbersFromString(out var cleanText), CleanText: cleanText, Item: x))
+            .OrderBy(x => x.CleanText)
+            .ThenBy(x => x.Number)
+            .Select(x => x.Item);
+    }
+
     public static float Deviation<T>(this IEnumerable<T> values, float average, Func<T, float> selector)
     {
         if (!values.Any()) return 0f;

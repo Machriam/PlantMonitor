@@ -93,11 +93,7 @@ public class VirtualImageWorker(IServiceScopeFactory scopeFactory, IImageWorkerC
         var virtualImageFile = currentTrip.VirtualImageFileName(virtualImageFolder);
         logger.LogInformation("Processing virtual image {image} of tour {tour}", virtualImageFile, currentTrip.PhotoTourFkNavigation.Name);
         var virtualImageList = new List<PhotoStitcher.PhotoStitchData>();
-        foreach (var plant in plantsOfTour
-            .Select(pot => (Number: pot.Name.ExtractNumbersFromString(out var cleanText), CleanText: cleanText, Plant: pot))
-            .OrderBy(pot => pot.CleanText)
-            .ThenBy(pot => pot.Number)
-            .Select(pot => pot.Plant))
+        foreach (var plant in plantsOfTour.OrderByNumericString(pot => pot.Name))
         {
             logger.LogInformation("Adding plant {plant} to virtual image {image}", $"{plant.Name} {plant.Comment}", virtualImageFile);
             var extractionTemplate = extractionTemplates

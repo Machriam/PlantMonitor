@@ -31,6 +31,7 @@
     let _newPlant: PhotoTourPlant = new PhotoTourPlant();
     let _unsubscribe: Unsubscriber[] = [];
     let _selectedImage: ImageToCut | undefined;
+    let _warningShown = false;
     let _baseOffset: IIrCameraOffset = {left: 0, top: 0};
     let _uniqueId = Math.random().toString(36).substring(7);
 
@@ -90,6 +91,17 @@
         if (_selectedTour == undefined) return;
         const stitchingClient = new PhotoStitchingClient();
         await stitchingClient.recalculatePhotoTour(_selectedTour.id);
+    }
+    async function onPlantSelected(plant: PhotoTourPlantInfo) {
+        $selectedPhotoTourPlantInfo = [plant];
+        if (_warningShown) return;
+        _warningShown =
+            $selectedDevice?.health.cameraOffset != undefined &&
+            $selectedDevice?.health.cameraOffset?.left != 0 &&
+            $selectedDevice?.health.cameraOffset?.top != 0;
+        if (_warningShown) return;
+        alert("Select a device with defined global alignment for proper ir preview.");
+        _warningShown = true;
     }
     async function addPlant() {
         if (_selectedTour == undefined) return;
@@ -189,7 +201,7 @@
                     {@const template = _extractionTemplatesOfTrip.find((et) => et.photoTourPlantFk == plant.id)}
                     <button
                         id="{_uniqueId}{plant.id}"
-                        on:click={() => ($selectedPhotoTourPlantInfo = [plant])}
+                        on:click={() => onPlantSelected(plant)}
                         class="d-flex flex-column border mb-2 col-md-11 bg-opacity-25
                         {$selectedPhotoTourPlantInfo?.find((p) => p.id == plant.id) != undefined ? 'bg-info' : 'bg-white'}">
                         <div class="d-flex flex-row justify-content-between col-md-12">

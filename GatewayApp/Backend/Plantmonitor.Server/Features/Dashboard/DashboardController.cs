@@ -76,7 +76,7 @@ public class DashboardController(IDataContext context, IEnvironmentConfiguration
         var plantSet = request.PlantNames.ToHashSet();
         if (!Path.Exists(zipFile)) return [];
         var resultList = photoTourSummary.SplitInSubImages(zipFile, plantSet);
-        var resultMat = stitcher.CreateCombinedImage(resultList);
+        var resultMat = stitcher.CreateCombinedImage(resultList.OrderByNumericString(p => p.Name).Select(p => p.Image).ToList());
         if (request.ShowSegmentation)
         {
             var mask = photoTourSummary.GetPlantMask(resultMat, request.Template ?? SegmentationTemplate.GetDefault());

@@ -78,3 +78,10 @@ describe("groupBy should work", () => {
         expect(JSON.stringify(Object.fromEntries(result.entries()))).equal("{}");
     });
 });
+
+describe("numeric sorting should work", () => {
+    test("default case", () => {
+        const result = pipe(["asdf123", "asdf1", "asdf2", "bsdf999", "bsdf1", "asdf99"]).orderByNumericString(x => x).toArray();
+        expect(JSON.stringify(result)).equal('["asdf1","asdf2","asdf99","asdf123","bsdf1","bsdf999"]');
+    });
+});

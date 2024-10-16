@@ -23,6 +23,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
     private static readonly ConcurrentDictionary<Guid, DateTime> s_lastRestarts = [];
     private static readonly ConcurrentDictionary<Guid, int> s_restartRequested = [];
     private const int FailureThreshold = 2;
+    private const int SafetyWaitBeforeRestart = 10000;
 
     public async Task<DeviceHealthResult> CheckDeviceHealth(long photoTourId, IServiceScope scope, IDataContext dataContext)
     {
@@ -137,6 +138,8 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             logEvent("No other devices found capable of switching", PhotoTourEventType.Warning);
             return;
         }
+        logEvent($"Safety wait before switching", PhotoTourEventType.Information);
+        await Task.Delay(SafetyWaitBeforeRestart);
         foreach (var switchDevice in switchingDevices)
         {
             await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOffFkNavigation.Code);
