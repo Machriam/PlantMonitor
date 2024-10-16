@@ -9,7 +9,7 @@ public partial class DataContext
 
     public EventLogger CreatePhotoTourEventLogger(long photourId) => (message, type) => LogEvent(this, message, photourId, type);
 
-    private static void LogEvent(DataContext context, string message, long phototourId, PhotoTourEventType type = PhotoTourEventType.Information)
+    private static void LogEvent(DataContext context, string message, long phototourId, PhotoTourEventType type)
     {
         context.PhotoTourEvents.Add(new PhotoTourEvent()
         {
