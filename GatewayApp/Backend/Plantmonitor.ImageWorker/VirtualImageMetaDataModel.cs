@@ -29,6 +29,7 @@ public record struct VirtualImageMetaDataModel()
 {
     private static readonly string s_minDateString = DateTime.MinValue.ToString(DateFormat, CultureInfo.InvariantCulture);
     private const string DateFormat = "yyyy-MM-dd HH:mm:ss:fff";
+    private const string SecondOnlyDateFormat = "yyyy-MM-dd HH:mm:ss";
     public class ImageDimensions : ITsvFormattable
     {
         public ImageDimensions() { }
@@ -116,7 +117,7 @@ public record struct VirtualImageMetaDataModel()
             nameof(ImageName) or nameof(ImageComment) => text ?? "",
             nameof(HasIr) or nameof(HasVis) => bool.Parse(text ?? "False"),
             nameof(IrTempInC) => float.Parse(text?.Replace("°C", "") ?? "0", CultureInfo.InvariantCulture),
-            nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text ?? s_minDateString, DateFormat, CultureInfo.InvariantCulture),
+            nameof(IrTime) or nameof(VisTime) => DateTime.ParseExact(text ?? s_minDateString, [DateFormat, SecondOnlyDateFormat], CultureInfo.InvariantCulture),
             nameof(ImageIndex) or nameof(MotorPosition) => int.Parse(text ?? "0"),
             _ => text ?? "",
         };
@@ -152,7 +153,7 @@ public record struct VirtualImageMetaDataModel()
 
         public object ParseFromText(string key, string? text) => key switch
         {
-            nameof(StartTime) or nameof(EndTime) => DateTime.ParseExact(text ?? s_minDateString, DateFormat, CultureInfo.InvariantCulture),
+            nameof(StartTime) or nameof(EndTime) => DateTime.ParseExact(text ?? s_minDateString, [DateFormat, SecondOnlyDateFormat], CultureInfo.InvariantCulture),
             nameof(PhotoTripId) or nameof(PhotoTourId) => long.Parse(text ?? "0"),
             _ => text ?? "",
         };
@@ -188,7 +189,7 @@ public record struct VirtualImageMetaDataModel()
         public object ParseFromText(string key, string? text) => key switch
         {
             nameof(TemperatureInC) => float.Parse(text?.Replace("°C", "") ?? "0", CultureInfo.InvariantCulture),
-            nameof(Time) => DateTime.ParseExact(text ?? s_minDateString, DateFormat, CultureInfo.InvariantCulture),
+            nameof(Time) => DateTime.ParseExact(text ?? s_minDateString, [DateFormat, SecondOnlyDateFormat], CultureInfo.InvariantCulture),
             _ => text ?? "",
         };
     }
