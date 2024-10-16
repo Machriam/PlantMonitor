@@ -24,6 +24,10 @@ internal static class ILoggerExtensions
             case PhotoTourEventType.Error:
                 logger.Write(Serilog.Events.LogEventLevel.Error, message);
                 break;
+
+            case PhotoTourEventType.Critical:
+                logger.Write(Serilog.Events.LogEventLevel.Fatal, message);
+                break;
         }
     }
 }

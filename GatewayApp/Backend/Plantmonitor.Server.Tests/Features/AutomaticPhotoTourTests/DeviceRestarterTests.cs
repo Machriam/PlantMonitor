@@ -94,7 +94,7 @@ public class DeviceRestarterTests
         await sut.CheckDeviceHealth(1, _serviceScope, _context);
 
         _context.PhotoTourEvents.Count().Should().Be(3);
-        _context.PhotoTourEvents.Should().AllSatisfy(x => x.Type.Should().Be(PhotoTourEventType.Information));
+        _context.PhotoTourEvents.Should().AllSatisfy(x => x.Type.Should().Be(PhotoTourEventType.Debug));
         _context.PhotoTourEvents.Skip(1).First().Message.Should().Contain("Checking Camera");
         _context.PhotoTourEvents.Last().Message.Should().Contain("Camera working");
     }
@@ -126,9 +126,9 @@ public class DeviceRestarterTests
         await sut.CheckDeviceHealth(1, _serviceScope, _context);
 
         _context.PhotoTourEvents.Count().Should().Be(4);
-        _context.PhotoTourEvents.First().Type.Should().Be(PhotoTourEventType.Information);
+        _context.PhotoTourEvents.First().Type.Should().Be(PhotoTourEventType.Debug);
         _context.PhotoTourEvents.Skip(1).First().Message.Should().Contain("Checking Camera");
-        _context.PhotoTourEvents.Skip(3).Take(1).First().Type.Should().Be(PhotoTourEventType.Information);
+        _context.PhotoTourEvents.Skip(3).Take(1).First().Type.Should().Be(PhotoTourEventType.Warning);
         _context.PhotoTourEvents.Skip(3).Take(1).First().Message.Should().Contain("Restart needs atleast 2 consecutive failures");
     }
 
@@ -215,7 +215,7 @@ public class DeviceRestarterTests
             await client.Received(1).SwitchoutletAsync(1234);
             await client.Received(1).SwitchoutletAsync(5678);
         });
-        _context.PhotoTourEvents.Count().Should().Be(3);
+        _context.PhotoTourEvents.Count().Should().Be(4);
     }
 
     [Fact]
@@ -252,7 +252,7 @@ public class DeviceRestarterTests
             await client.Received(1).SwitchoutletAsync(5678);
             await client.Received(1).SwitchoutletAsync(5678);
         });
-        _context.PhotoTourEvents.Count().Should().Be(5);
+        _context.PhotoTourEvents.Count().Should().Be(6);
     }
 
     [Fact]

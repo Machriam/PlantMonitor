@@ -29,7 +29,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
                 Message = "Phototour was stopped after restart of the Gateway machine",
                 PhotoTourFk = tour.Id,
                 Timestamp = DateTime.UtcNow,
-                Type = PhotoTourEventType.Warning,
+                Type = PhotoTourEventType.Critical,
             });
             tour.Finished = true;
         }
@@ -103,7 +103,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
                 .FirstOrDefault();
             if (previousTrip == null)
             {
-                logger("Previous trip not found", PhotoTourEventType.Information);
+                logger("Previous trip not found", PhotoTourEventType.Warning);
                 lock (s_lock) s_photoTripRunning = false;
                 return;
             }
@@ -121,7 +121,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
     {
         if (!Path.Exists(irFolder) || !Path.Exists(visFolder))
         {
-            logger($"Folders {irFolder} or {visFolder} not found. Assuming errors were already handled.", PhotoTourEventType.Information);
+            logger($"Folders {irFolder} or {visFolder} not found. Assuming errors were already handled.", PhotoTourEventType.Warning);
             return true;
         }
         var irImageCount = Directory.EnumerateFiles(irFolder).Count();
@@ -156,10 +156,10 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         }
         var (maxStop, minStop) = movementPlan.GetSafetyStops();
         var currentPosition = await movementClient.CurrentpositionAsync();
-        if (currentPosition.Engaged != true) logger("Aborting movement, motor is disengaged", PhotoTourEventType.Error);
+        if (currentPosition.Engaged != true) logger("Aborting movement, motor is disengaged", PhotoTourEventType.Critical);
         if (currentPosition.Position != 0)
         {
-            logger($"Trying to zero position with Offset: {-currentPosition.Position}", PhotoTourEventType.Debug);
+            logger($"Trying to zero position with Offset: {-currentPosition.Position}", PhotoTourEventType.Information);
             await movementClient.MovemotorAsync(-currentPosition.Position, 1000, 4000, 400, maxStop, minStop);
         }
         var pointsToReach = new List<int>();
@@ -197,7 +197,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
                  ex.LogError();
                  using var scope = scopeFactory.CreateScope();
                  using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
-                 dataContext.CreatePhotoTourEventLogger(photoTourId)("Ir streaming error: " + ex.Message, PhotoTourEventType.Error);
+                 dataContext.CreatePhotoTourEventLogger(photoTourId)("Ir streaming error: " + ex.Message, PhotoTourEventType.Warning);
              });
         await Task.Delay(10);
         visStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.Vis.GetAttributeOfType<CameraTypeInfo>(),
@@ -208,19 +208,19 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
                  ex.LogError();
                  using var scope = scopeFactory.CreateScope();
                  using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
-                 dataContext.CreatePhotoTourEventLogger(photoTourId)("Vis streaming error: " + ex.Message, PhotoTourEventType.Error);
+                 dataContext.CreatePhotoTourEventLogger(photoTourId)("Vis streaming error: " + ex.Message, PhotoTourEventType.Warning);
              });
         await Task.Delay(_ffcTimeout);
         var irImageCount = await irClient.CountoftakenimagesAsync();
         var visImageCount = await visClient.CountoftakenimagesAsync();
-        logger($"Collected Vis-images: {visImageCount}, collected Ir-images {irImageCount}", PhotoTourEventType.Debug);
+        logger($"Collected Vis-images: {visImageCount}, collected Ir-images {irImageCount}", PhotoTourEventType.Information);
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
             logger($"Moving to position: {currentStep + step.StepOffset}", PhotoTourEventType.Debug);
             await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400, maxStop, minStop);
             currentStep += step.StepOffset;
             while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(_positionCheckTimeout);
-            logger($"Moved to position: {currentStep}, performing FFC", PhotoTourEventType.Debug);
+            logger($"Moved to position: {currentStep}, performing FFC", PhotoTourEventType.Information);
             await irClient.RunffcAsync();
             await Task.Delay(_ffcTimeout);
         }
@@ -231,7 +231,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         currentPosition = await movementClient.CurrentpositionAsync();
         await movementClient.MovemotorAsync(-currentPosition.Position, 1000, 4000, 400, maxStop, minStop);
         while (!irStreamer.StreamingFinished() || !visStreamer.StreamingFinished()) await Task.Delay(_positionCheckTimeout);
-        logger("Streaming of data has finished", PhotoTourEventType.Debug);
+        logger("Streaming of data has finished", PhotoTourEventType.Information);
         return (irFolder, visFolder);
     }
 

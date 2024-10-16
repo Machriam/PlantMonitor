@@ -87,7 +87,7 @@ public class PhotoTourSummaryWorkerTests
             .Where(id => id.LeafOutOfRange)
             .Select(id => id.Plant.ImageName + ":" + id.LeafOutOfRange)
             .Concat("\n");
-        leafsOutOfRange.Should().Be(expectedData);
+        leafsOutOfRange.Should().Be(expectedData.Where(x => x != '\r').Concat(""));
     }
 
     [Fact]
