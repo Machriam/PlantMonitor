@@ -357,19 +357,24 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
         var hideMask = mask.Execute(m => new Mat(m.Height, m.Cols, DepthType.Cv8U, 1)).AsManaged();
         hideMask.Execute(x => x.SetTo(new MCvScalar(255)));
         var components = mask.Execute(labels, stats, centroids, (m, l, s, c) => CvInvoke.ConnectedComponentsWithStats(m, l, s, c));
-        for (var i = 1; i < components; i++)
+        var filteredAreas = new List<Rectangle>();
+        var statsSize = 5;
+        var statsData = new int[components * statsSize];
+        stats.Execute(x => x.CopyTo(statsData));
+        for (var i = statsSize; i < components * statsSize; i += statsSize)
         {
-            var dataArray = stats.Execute(x => x.GetData(true));
-            var area = (int?)dataArray.GetValue(i, (int)ConnectedComponentsTypes.Area);
-            if (area == null || area < parameter.MinimumPixelSize)
-            {
-                var left = (int?)dataArray.GetValue(i, (int)ConnectedComponentsTypes.Left) ?? 0;
-                var top = (int?)dataArray.GetValue(i, (int)ConnectedComponentsTypes.Top) ?? 0;
-                var width = (int?)dataArray.GetValue(i, (int)ConnectedComponentsTypes.Width) ?? 0;
-                var height = (int?)dataArray.GetValue(i, (int)ConnectedComponentsTypes.Height) ?? 0;
-                hideMask.Execute(x => CvInvoke.Rectangle(x, new Rectangle(left, top, width, height), new MCvScalar(0), -1));
-            }
+            var area = statsData[i + (int)ConnectedComponentsTypes.Area];
+            if (area > parameter.MinimumPixelSize) continue;
+            var left = statsData[i + (int)ConnectedComponentsTypes.Left];
+            var top = statsData[i + (int)ConnectedComponentsTypes.Top];
+            var width = statsData[i + (int)ConnectedComponentsTypes.Width];
+            var height = statsData[i + (int)ConnectedComponentsTypes.Height];
+            filteredAreas.Add(new Rectangle(left, top, width, height));
         }
+        hideMask.Execute(x =>
+        {
+            foreach (var area in filteredAreas) CvInvoke.Rectangle(x, area, new MCvScalar(0), -1);
+        });
         mask.Execute(hideMask, (m, h) => CvInvoke.BitwiseAnd(m, h, m));
         hideMask.Dispose();
         labels.Dispose();
