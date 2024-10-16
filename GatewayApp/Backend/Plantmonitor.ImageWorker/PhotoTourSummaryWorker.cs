@@ -17,8 +17,10 @@ public interface IPhotoTourSummaryWorker
 
     PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate);
 
-    List<IManagedMat> SplitInSubImages(string image, HashSet<string> desiredPlants);
+    List<SubImage> SplitInSubImages(string image, HashSet<string> desiredPlants);
 }
+
+public record struct SubImage(string Name, IManagedMat Image);
 
 public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
     IServiceScopeFactory scopeFactory, ILogger<PhotoTourSummaryWorker> logger) : IHostedService, IPhotoTourSummaryWorker
@@ -175,14 +177,14 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
         }
     }
 
-    public List<IManagedMat> SplitInSubImages(string image, HashSet<string> desiredPlants)
+    public List<SubImage> SplitInSubImages(string image, HashSet<string> desiredPlants)
     {
         var (visMat, irMat, metaData) = GetDataFromZip(image);
         var plantIndexByName = metaData.ImageMetaData.OrderBy(im => im.ImageIndex)
             .ToDictionary(im => im.ImageName, im => im.ImageIndex);
         var width = metaData.Dimensions.Width;
         var height = metaData.Dimensions.Height;
-        var result = new List<IManagedMat>();
+        var result = new List<SubImage>();
         foreach (var plant in desiredPlants)
         {
             if (!plantIndexByName.TryGetValue(plant, out var index)) continue;
@@ -190,7 +192,7 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
             var startY = height * (index / metaData.Dimensions.ImagesPerRow);
             var roi = new Rectangle(startX, startY, width, height);
             if (roi.Width <= 0 || roi.Height <= 0) continue;
-            result.Add(visMat.Execute(x => new Mat(x, roi)).AsManaged());
+            result.Add(new(plant, visMat.Execute(x => new Mat(x, roi)).AsManaged()));
         }
         visMat.Dispose();
         irMat.Dispose();
