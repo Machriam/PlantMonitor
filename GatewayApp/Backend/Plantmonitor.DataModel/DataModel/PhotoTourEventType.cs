@@ -5,5 +5,6 @@ public enum PhotoTourEventType
     Debug,
     Information,
     Warning,
-    Error
+    Error,
+    Critical
 }
