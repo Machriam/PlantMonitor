@@ -54,7 +54,7 @@ public class PhotoTourSummaryWorkerTests
     {
         var testZip = s_testZipFolder + "/FailingSummary_HalfDark.zip";
         var sut = CreatePhotoTourSummaryWorker();
-        var result = sut.ProcessImage(testZip, new SegmentationTemplate("Test", 40, 110, 25, 100, 20, 100, false, 0));
+        var result = sut.ProcessImage(testZip, new SegmentationTemplate("Test", 40, 110, 25, 100, 20, 100, false, 0, 5));
         var imageDescriptors = result.GetResults().OrderBy(r => r.Plant.ImageIndex);
     }
 
