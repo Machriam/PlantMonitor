@@ -4,7 +4,7 @@ namespace Plantmonitor.DataModel.DataModel;
 public record class SegmentationTemplate(string Name, double HLow, double HHigh, double SLow, double SHigh,
     double LLow, double LHigh, bool UseOtsu, int OpeningIterations, int MinimumPixelSize)
 {
-    public static SegmentationTemplate GetDefault() => new("Default", 40d, 130d, 5d, 100d, 20d, 100d, true, 2, 5);
+    public static SegmentationTemplate GetDefault() => new("Default", 40d, 130d, 5d, 100d, 20d, 100d, true, 2, 0);
 }
 public record struct VirtualImageFileInfo(string? Path, DateTime Timestamp, long PhotoTourId, string? Name);
 
