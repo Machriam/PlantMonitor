@@ -3552,6 +3552,7 @@ export class SegmentationTemplate implements ISegmentationTemplate {
     lHigh!: number;
     useOtsu!: boolean;
     openingIterations!: number;
+    minimumPixelSize!: number;
 
     constructor(data?: ISegmentationTemplate) {
         if (data) {
@@ -3573,6 +3574,7 @@ export class SegmentationTemplate implements ISegmentationTemplate {
             this.lHigh = _data["LHigh"];
             this.useOtsu = _data["UseOtsu"];
             this.openingIterations = _data["OpeningIterations"];
+            this.minimumPixelSize = _data["MinimumPixelSize"];
         }
     }
 
@@ -3594,6 +3596,7 @@ export class SegmentationTemplate implements ISegmentationTemplate {
         data["LHigh"] = this.lHigh;
         data["UseOtsu"] = this.useOtsu;
         data["OpeningIterations"] = this.openingIterations;
+        data["MinimumPixelSize"] = this.minimumPixelSize;
         return data;
     }
 
@@ -3615,6 +3618,7 @@ export interface ISegmentationTemplate {
     lHigh: number;
     useOtsu: boolean;
     openingIterations: number;
+    minimumPixelSize: number;
 }
 
 export class TemperatureMeasurementValue implements ITemperatureMeasurementValue {
