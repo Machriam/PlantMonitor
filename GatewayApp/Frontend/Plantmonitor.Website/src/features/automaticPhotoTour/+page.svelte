@@ -42,7 +42,8 @@
         _startInfo.temperatureMeasureDevice = [];
         for (let i = 0; i < $allDevices.length; i++) {
             const device = $allDevices[i];
-            if (device.health?.deviceName == undefined || device.health?.deviceId == undefined) continue;
+            if (device.health?.deviceName == undefined || device.health?.deviceId == undefined || pipe(device.ip).isEmpty())
+                continue;
             const name = device.health.deviceName;
             const guid = device.health.deviceId;
             temperatureClient.getDevices(device.ip).then((sensors) => {
