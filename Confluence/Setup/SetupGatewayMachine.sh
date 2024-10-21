@@ -53,6 +53,10 @@ echo -e "POSTGRES_PASSWORD=$postgresMasterPassword" | sudo tee "$envFile"
 echo "$appPassword" | sudo tee "$appPasswordFile"
 
 cd ../Dockerfiles || exit
+echo "Building custom OpenCV image"
+sudo docker build -f BuildEmgu.Dockerfile -t opencv-emgu-net8 .
+
+echo "Building Plantmonitor container"
 sudo docker-compose down
 sudo docker-compose build --no-cache
 sudo docker-compose up --detach
