@@ -119,16 +119,16 @@
 <img style="height:300px" src="./Confluence/Gifs/DebugDevices.gif"/>
 
 - Developer-friendly features for diagnosing device malfunctions via SSH. 
-- In the gif you can see, that you can run any unix command you want in the console for monitoring various things and install additional packages you may require
+- In the gif you can see, that you can run any Unix command you want in the console for monitoring various things and install additional packages you may require.
 - Each device has multiple buttons to check log entries, test image capture functionality, and define custom exposures for photo tours:
-  1. "Preview Image" stops any running VIS video streams and shows a small preview image of the VIS camera
-  2. "Preview Video" stops any running VIS video streams and shows a small preview video of the VIS camera
+  1. "Preview Image" stops any running VIS video streams and shows a small preview image of the VIS camera.
+  2. "Preview Video" stops any running VIS video streams and shows a small preview video of the VIS camera.
   2. "Test Movement" moves the motor 1500 pulses in a direction. Ensure that nothing might break during the movement.   
-   <b>Warning: </b>Verify, that the pulse/revision setting is set correctly.
+   <b>Warning: </b>Verify, that the pulse/revolution setting is set correctly.
   3. "Preview IR Image" stops any running IR video streams and shows a small preview image of the IR camera
   4. "Preview IR Video" stops any running IR video streams and shows a small preview video of the IR camera
   5. "Show Logs" displays the most recent logs below all other windows on the right side.
-  6. "Download All Logs" downloads all logs on the device. Devices are logging many steps, so diagnosing issues might be worthwile.
+  6. "Download All Logs" downloads all logs on the device. Devices are logging many steps, so diagnosing issues might be worthwhile.
   7. "FFC" issues a flat field correction to the IR camera. This improves the resolution of the temperature readings.
   8. "Update Exposure" takes a test image with automatic exposure and stores the automatically determined exposure for all future image taking. This ensures, that during a photo trip each location takes a photo with the same exposure settings.
 
@@ -136,16 +136,22 @@
 
 <img style="height:300px" src="./Confluence/Gifs/SupportExternalTemperatureDevices.gif"/>
 
-See issue [88](https://github.com/Machriam/PlantMonitor/issues/88) for more information. 
+- You can display live temperatures taken from the sensor in a chart by clicking "Temperatures of %Selected-IP%"
+- Under "Existing Phototours" temperature measurements of the corresponding photo tour can be viewed 
+- Custom measurements can be created via clicking "Start Measurement" and aborted at any time. Under "All measurements" stored temperatures from custom measurements can be viewed in the diagram
+
+See issue [88](https://github.com/Machriam/PlantMonitor/issues/88) for more information on implementation details. 
 
 ### Create photo tours with minimal delay between trips - Custom tours
 
 <img style="height:300px" src="./Confluence/Gifs/CreateHighResolutionTours.gif"/>
 
-Depending on the setup, a Raspberry Pi Zero 2W can capture IR and VIS images at around 2-4 FPS.    
-This feature takes images as fast as possible and downloads a zip archive of the data. For a 30 minute measurement at 2 FPS, it will download a zip of about 7 GB. Zipping and downloading the zip archive takes between 1 and 2 hours, depending on internet speed.   
-You can then create a custom photo tour from this archive, and all the features mentioned above are supported.
-This feature is highly hackable, as the motor can be moved while taking pictures and user supplied FFC requests can be issued.
+- Depending on the setup, a Raspberry Pi Zero 2W can capture IR and VIS images at around 2-4 FPS.    
+- You can start a custom tour via clicking "Store Raw Photos". You can see a summary of how many images were taken and the current zipping progress. 
+- As soon as enough images have been taken, click "Stop Preview" to stop the image taking progress and wait until all images are zipped, downloaded to the server and downloaded to the browser.
+- This feature takes images as fast as possible and downloads a zip archive of the data. For a 30 minute measurement at 2 FPS, it will download a zip of about 7 GB. Zipping and downloading the zip archive takes between 1 and 2 hours, depending on internet speed.   
+- The downloaded zip can then be used to create a custom photo tour under "Custom Tour Creation". All features to process a conventional photo tour are supported.
+- This feature is highly hackable, as the motor can be moved while taking pictures and user supplied FFC requests can be issued.
 
 
 ### Glossar
@@ -175,5 +181,14 @@ Implementation details of various features can be found in the issues of the pro
 ### Context Diagram
 <img style="" src="./Confluence/Gifs/ContextDiagram.svg"/>
 
+- It is advised to use a grid like positioning system in the plant cabinet. For example a plywood plate with holes for the plants with coordinate numbers at the sides is beneficial.
+- The guard device is optional, but it makes it possible to run photo tours for several weeks without manual intervention. The guard device needs a RF transmitter and switchable outlets which listen to those RF transmitters. The gateway server automatically restarts not functioning devices, if a guard device is available and properly configured.
+- See this [issue](https://github.com/Machriam/PlantMonitor/issues/93) for instructions on how to build the guard device and how to extract RF codes for switchable outlets.
+
 ### Container Diagram
 <img style="" src="./Confluence/Gifs/ContainerDiagram.svg"/>
+
+- The frontend is implemented as a single page application, which gives an IDE like experience for the user.
+- WebSSH is an embedded package into the frontend. This means authentication is done seperately, as it is the only component, which communicates directly with the devices. All other calls to the devices are proxied by the gateway server.
+- The gateway server consists of multiple workers, which run all independent of each other according to the state of the database/filesystem. Usually those workers poll the database for things to do. Race conditions are not possible, as the state responsible for other workers to start is written at the final stage of each worker.
+- In a development build the API of the gateway server can be tested with Swagger. The typescript client for the frontend is created automatically from the api endpoints.
