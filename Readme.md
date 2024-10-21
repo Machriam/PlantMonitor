@@ -1,10 +1,10 @@
 ## Goal of the project
 
-1. Making it easy to monitor the growth process and plant-specific behaviors like bending of the leaves during heat stress events in real-time.
-2. This is an all-in-one solution, meaning you build the hardware and the software takes care of the calibration, image taking, processing of data, and illustrating the results of the images.
-3. This software can also monitor anything else, as the segmentation is highly customizable and the user decides what to look at.
-4. The Plantmonitor gives easy access to all raw data taken during an experiment.
-5. This is a web-based project and any device with a browser can be used to control the experiment.
+1. **Live Results:** Making it easy to monitor the growth process and plant-specific behaviors like bending of the leaves during heat stress events as soon as they are happing.
+2. **From image to graph:** This is an all-in-one solution, meaning that you build the hardware and the software does the calibration, image acquisition, data processing, and display of the image results.
+3. **Highly customizable:** This software can also monitor anything else, as the segmentation is highly customizable and the user decides what to look at.
+4. **Open Data:** Plantmonitor provides easy access to all raw data collected during an experiment in easily self-describing formats.
+5. **Cross-Platform:** This is a web-based project and any device with a browser can be used to control the experiment and monitor the current status.
 
 ## Features overview
 
@@ -190,4 +190,4 @@ Implementation details of various features can be found in the issues of the pro
 - WebSSH is an embedded package into the frontend. This means authentication is done separately, as it is the only component that communicates directly with the devices. All other calls to the devices are handled by the gateway server.
 - The gateway server consists of several workers, all of which run independently depending on the state of the database/filesystem. Typically, these workers poll the database for things to do. Race conditions are not possible, as the state responsible for other workers to start is written at the final stage of each worker.
 - In a development build, the API of the gateway server can be tested with Swagger. The TypeScript client for the frontend is created automatically from the API endpoints. The database schema is scaffolded via EF Core with an unit testable IDataContext interface.
-- Workers use OpenCV via Emgu CV for image processing. This requires a custom build of OpenCV. The script [SetupGatewayMachine.sh](https://github.com/Machriam/PlantMonitor/blob/main/Confluence/Setup/SetupGatewayMachine.sh) automatically builds a suitable OpenCV image for this. This script also creates a new ssl certificate for the devices and the gateway server. All devices use the same certificate to minimize certificate installation for users. Therefore, the desired IP addresses must be specified during the gateway server setup. By default, all IPs from 192.168.0.0 to 192.168.1.255 are reserved for the gateway server and devices.
+- Workers use OpenCV via Emgu CV for image processing. This requires a custom build of OpenCV. The script [SetupGatewayMachine.sh](https://github.com/Machriam/PlantMonitor/blob/main/Confluence/Setup/SetupGatewayMachine.sh) automatically builds a suitable OpenCV image for this. This script also creates a new ssl certificate for the devices and the gatewayserver. All devices use the same certificate to minimize certificate installation for users. That is why desired IP addresses must be specified during setup of the gateway server. By default all IPs from 192.168.0.0 to 192.168.1.255 are reserved for gateway server and devices.
