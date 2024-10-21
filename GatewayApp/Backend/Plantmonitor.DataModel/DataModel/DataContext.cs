@@ -102,7 +102,7 @@ public partial class DataContext : DbContext, IDataContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresEnum("plantmonitor", "photo_tour_event_type", new[] { "debug", "information", "warning", "error" });
+        modelBuilder.HasPostgresEnum("plantmonitor", "photo_tour_event_type", new[] { "debug", "information", "warning", "error", "critical" });
 
         modelBuilder.Entity<AutomaticPhotoTour>(entity =>
         {
@@ -318,7 +318,9 @@ public partial class DataContext : DbContext, IDataContext
 
             entity.ToTable("virtual_image_summary", "plantmonitor");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .HasIdentityOptions(2000L, null, null, null, null, null)
+                .HasColumnName("id");
             entity.Property(e => e.ImageDescriptorsJson)
                 .HasColumnType("jsonb")
                 .HasColumnName("image_descriptors_json");

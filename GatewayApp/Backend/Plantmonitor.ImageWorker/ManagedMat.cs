@@ -21,6 +21,8 @@ public interface IManagedMat : IDisposable
 
     void Execute(IManagedMat mat2, IManagedMat mat3, IManagedMat mat4, Action<Mat, Mat, Mat, Mat> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
 
+    T Execute<T>(IManagedMat mat2, IManagedMat mat3, IManagedMat mat4, Func<Mat, Mat, Mat, Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
+
     T Execute<T>(Func<Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0);
 }
 
@@ -95,6 +97,14 @@ public class ManagedMat : IManagedMat
         LogCall(memberName, sourceFilePath, sourceLineNumber, this, mat2, mat3, mat4);
         func(_mat, mat2.Pipe(GetMat), mat3.Pipe(GetMat), mat4.Pipe(GetMat));
         Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber} Finished");
+    }
+
+    public T Execute<T>(IManagedMat mat2, IManagedMat mat3, IManagedMat mat4, Func<Mat, Mat, Mat, Mat, T> func, [CallerMemberName] string memberName = "", [CallerFilePath] string sourceFilePath = "", [CallerLineNumber] int sourceLineNumber = 0)
+    {
+        LogCall(memberName, sourceFilePath, sourceLineNumber, this, mat2, mat3, mat4);
+        var result = func(_mat, mat2.Pipe(GetMat), mat3.Pipe(GetMat), mat4.Pipe(GetMat));
+        Log.Logger.Information($"OpenCv Call {memberName} in {sourceFilePath}:{sourceLineNumber} Finished");
+        return result;
     }
 
     public byte[] BytesFromMat()

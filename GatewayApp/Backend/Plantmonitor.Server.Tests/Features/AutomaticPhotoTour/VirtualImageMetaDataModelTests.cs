@@ -35,7 +35,10 @@ public class VirtualImageMetaDataModelTests
         var sut = CreateDefaultTestModel();
         sut.TemperatureReadings = [];
         var sutJson = sut.AsJson();
-        var importedModel = VirtualImageMetaDataModel.FromTsvFile(File.ReadAllText(TestFilePath(TestFileWithEmptyList))).AsJson();
+        var importedModel = TestFilePath(TestFileWithEmptyList)
+            .Pipe(File.ReadAllText)
+            .Pipe(VirtualImageMetaDataModel.FromTsvFile)
+            .AsJson();
         sutJson.Should().BeEquivalentTo(importedModel);
     }
 
@@ -45,7 +48,7 @@ public class VirtualImageMetaDataModelTests
         var sut = CreateDefaultTestModel();
         var result = sut.ExportAsTsv();
         var expected = File.ReadAllText(TestFilePath(DefaultTestFile));
-        result.Should().Be(expected);
+        result.Should().Be(expected.Where(e => e != '\r').Concat(""));
     }
 
     [Fact]
@@ -55,7 +58,7 @@ public class VirtualImageMetaDataModelTests
         sut.TemperatureReadings = [];
         var result = sut.ExportAsTsv();
         var expected = File.ReadAllText(TestFilePath(TestFileWithEmptyList));
-        result.Should().Be(expected);
+        result.Should().Be(expected.Where(e => e != '\r').Concat(""));
     }
 
     private static VirtualImageMetaDataModel CreateDefaultTestModel()

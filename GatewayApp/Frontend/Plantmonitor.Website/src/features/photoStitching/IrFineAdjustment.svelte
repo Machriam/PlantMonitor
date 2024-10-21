@@ -10,7 +10,7 @@
     import {selectedPhotoTourPlantInfo} from "./PhotoStitchingContext";
     import {IrScalingHeight, IrScalingWidth} from "../deviceConfiguration/CvInterop";
     import {Task} from "~/types/Task";
-    import {onMount} from "svelte";
+    import {onDestroy, onMount} from "svelte";
     import type {Unsubscriber} from "svelte/motion";
     import {pipe} from "~/types/Pipe";
     import {selectedDevice} from "../store";
@@ -32,6 +32,9 @@
                 _availableExtractionTemplates = uniqueExtractionOffsets();
             })
         );
+    });
+    onDestroy(() => {
+        _unsubscribe.forEach((u) => u());
     });
     function keyPressed(evt: KeyboardEvent) {
         const target = evt.target as HTMLElement;
@@ -65,7 +68,7 @@
             (et) => et.photoTourPlantFk == $selectedPhotoTourPlantInfo[0].id
         )?.id;
         const client = new PhotoStitchingClient();
-        const result = await client.croppedImageFor(extractionTemplateId, _selectedTrip.tripId, 0, 0);
+        const result = await client.disablePrompts().croppedImageFor(extractionTemplateId, _selectedTrip.tripId, 0, 0);
         _xOffset = 0;
         _yOffset = 0;
         _selectedTemplate == undefined;

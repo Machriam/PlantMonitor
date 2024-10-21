@@ -23,6 +23,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
     private static readonly ConcurrentDictionary<Guid, DateTime> s_lastRestarts = [];
     private static readonly ConcurrentDictionary<Guid, int> s_restartRequested = [];
     private const int FailureThreshold = 2;
+    private const int SafetyWaitBeforeRestart = 10000;
 
     public async Task<DeviceHealthResult> CheckDeviceHealth(long photoTourId, IServiceScope scope, IDataContext dataContext)
     {
@@ -47,15 +48,15 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             return new(null, deviceHealth, hasIrCamera);
         }
         var deviceName = deviceHealth.Health.DeviceName ?? photoTourData.DeviceId.ToString();
-        logEvent($"Checking Motor Position {deviceName}", PhotoTourEventType.Information);
+        logEvent($"Checking Motor Position {deviceName}", PhotoTourEventType.Debug);
         var currentPosition = await deviceApi.MovementClient(deviceHealth.Ip).CurrentpositionAsync();
         if (currentPosition.Dirty == true)
         {
             photoTourData.Finished = true;
-            logEvent($"Motor Position is dirty {deviceName}. Phototour is aborted", PhotoTourEventType.Error);
+            logEvent($"Motor Position is dirty {deviceName}. Phototour is aborted", PhotoTourEventType.Critical);
             return new(false, deviceHealth, hasIrCamera);
         }
-        logEvent($"Checking Camera {deviceName}", PhotoTourEventType.Information);
+        logEvent($"Checking Camera {deviceName}", PhotoTourEventType.Debug);
         var irTest = hasIrCamera ? await deviceApi.IrImageTakingClient(deviceHealth.Ip).PreviewimageAsync().Try() : default;
         var irImage = irTest.Result?.Stream.ConvertToArray() ?? [];
         var visTest = await deviceApi.VisImageTakingClient(deviceHealth.Ip).PreviewimageAsync().Try();
@@ -72,11 +73,11 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             RequestRestartDevice(photoTourData.DeviceId.ToString(), photoTourId, deviceName).RunInBackground(ex => ex.LogError());
             return new(null, deviceHealth, hasIrCamera);
         }
-        logEvent($"Camera working {deviceName}. IR checked: {hasIrCamera}", PhotoTourEventType.Information);
+        logEvent($"Camera working {deviceName}. IR checked: {hasIrCamera}", PhotoTourEventType.Debug);
 
         if (s_restartRequested.TryGetValue(photoTourData.DeviceId, out var restartsRequested) && restartsRequested > 0)
         {
-            logEvent($"Resetting requested restarts of {deviceName} to 0", PhotoTourEventType.Information);
+            logEvent($"Resetting requested restarts of {deviceName} to 0", PhotoTourEventType.Debug);
             s_restartRequested.AddOrUpdate(photoTourData.DeviceId, 0, (_1, _2) => 0);
         }
         return new(true, deviceHealth, hasIrCamera);
@@ -111,12 +112,12 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         s_restartRequested.AddOrUpdate(deviceGuid, 1, (_, r) => r + 1);
         if (s_lastRestarts.TryGetValue(deviceGuid, out var lastRestart) && (DateTime.UtcNow - lastRestart).TotalMinutes < 5)
         {
-            logEvent($"Restart is at most possible every 5 minutes: {deviceName}", PhotoTourEventType.Information);
+            logEvent($"Restart is at most possible every 5 minutes: {deviceName}", PhotoTourEventType.Warning);
             return;
         }
         if (s_restartRequested.TryGetValue(deviceGuid, out var restartRequests) && restartRequests < FailureThreshold)
         {
-            logEvent($"Restart needs atleast {FailureThreshold} consecutive failures. Currently {restartRequests} failures", PhotoTourEventType.Information);
+            logEvent($"Restart needs atleast {FailureThreshold} consecutive failures. Currently {restartRequests} failures", PhotoTourEventType.Warning);
             return;
         }
         var switchData = dataContext.DeviceSwitchAssociations
@@ -137,6 +138,8 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             logEvent("No other devices found capable of switching", PhotoTourEventType.Warning);
             return;
         }
+        logEvent($"Safety wait before switching", PhotoTourEventType.Debug);
+        await Task.Delay(SafetyWaitBeforeRestart);
         foreach (var switchDevice in switchingDevices)
         {
             await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOffFkNavigation.Code);

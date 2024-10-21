@@ -296,11 +296,18 @@
                         label="High Lum."
                         bind:value={_selectedSegmentation.lHigh}></NumberInput>
                 </div>
-                <NumberInput
-                    class="col-md-12"
-                    valueHasChanged={segmentationParameterChanged}
-                    label="Opening Iterations"
-                    bind:value={_selectedSegmentation.openingIterations}></NumberInput>
+                <div class="row">
+                    <NumberInput
+                        class="col-md-6"
+                        valueHasChanged={segmentationParameterChanged}
+                        label="Opening Iterations"
+                        bind:value={_selectedSegmentation.openingIterations}></NumberInput>
+                    <NumberInput
+                        class="col-md-6"
+                        valueHasChanged={segmentationParameterChanged}
+                        label="Min Particle Size"
+                        bind:value={_selectedSegmentation.minimumPixelSize}></NumberInput>
+                </div>
                 <Checkbox
                     valueHasChanged={segmentationParameterChanged}
                     label="Otsu Thresholding"

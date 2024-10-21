@@ -17,8 +17,10 @@ public interface IPhotoTourSummaryWorker
 
     PhotoSummaryResult ProcessImage(string image, SegmentationTemplate segmentationTemplate);
 
-    List<IManagedMat> SplitInSubImages(string image, HashSet<string> desiredPlants);
+    List<SubImage> SplitInSubImages(string image, HashSet<string> desiredPlants);
 }
+
+public record struct SubImage(string Name, IManagedMat Image);
 
 public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
     IServiceScopeFactory scopeFactory, ILogger<PhotoTourSummaryWorker> logger) : IHostedService, IPhotoTourSummaryWorker
@@ -175,14 +177,14 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
         }
     }
 
-    public List<IManagedMat> SplitInSubImages(string image, HashSet<string> desiredPlants)
+    public List<SubImage> SplitInSubImages(string image, HashSet<string> desiredPlants)
     {
         var (visMat, irMat, metaData) = GetDataFromZip(image);
         var plantIndexByName = metaData.ImageMetaData.OrderBy(im => im.ImageIndex)
             .ToDictionary(im => im.ImageName, im => im.ImageIndex);
         var width = metaData.Dimensions.Width;
         var height = metaData.Dimensions.Height;
-        var result = new List<IManagedMat>();
+        var result = new List<SubImage>();
         foreach (var plant in desiredPlants)
         {
             if (!plantIndexByName.TryGetValue(plant, out var index)) continue;
@@ -190,7 +192,7 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
             var startY = height * (index / metaData.Dimensions.ImagesPerRow);
             var roi = new Rectangle(startX, startY, width, height);
             if (roi.Width <= 0 || roi.Height <= 0) continue;
-            result.Add(visMat.Execute(x => new Mat(x, roi)).AsManaged());
+            result.Add(new(plant, visMat.Execute(x => new Mat(x, roi)).AsManaged()));
         }
         visMat.Dispose();
         irMat.Dispose();
@@ -320,6 +322,8 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
         visMat.Execute(hsvMat, (x, y) => CvInvoke.CvtColor(x, y, ColorConversion.Bgr2Hsv));
         logger.LogInformation("Segment HSV Color");
         SegmentHsvColorSpace(hsvMat, mask, parameter);
+        logger.LogInformation("Apply particle filter with {parameter}", parameter.AsJson());
+        ApplyParticleFilter(mask, parameter);
         logger.LogInformation("Apply first Opening with {parameter}", parameter.AsJson());
         MorphologicalOpening(mask, parameter);
         if (parameter.UseOtsu)
@@ -342,6 +346,40 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
         hsvChannels[1].Execute(mask, (x, y) => CvInvoke.Threshold(x, y, 65d, 255d, ThresholdType.Otsu));
         colorMaskedImage.Dispose();
         foreach (var channel in hsvChannels) channel.Dispose();
+    }
+
+    private static void ApplyParticleFilter(IManagedMat mask, SegmentationTemplate parameter)
+    {
+        if (parameter.MinimumPixelSize <= 0) return;
+        var labels = new Mat().AsManaged();
+        var stats = new Mat().AsManaged();
+        var centroids = new Mat().AsManaged();
+        var hideMask = mask.Execute(m => new Mat(m.Height, m.Cols, DepthType.Cv8U, 1)).AsManaged();
+        hideMask.Execute(x => x.SetTo(new MCvScalar(255)));
+        var components = mask.Execute(labels, stats, centroids, (m, l, s, c) => CvInvoke.ConnectedComponentsWithStats(m, l, s, c));
+        var filteredAreas = new List<Rectangle>();
+        var statsSize = 5;
+        var statsData = new int[components * statsSize];
+        stats.Execute(x => x.CopyTo(statsData));
+        for (var i = statsSize; i < components * statsSize; i += statsSize)
+        {
+            var area = statsData[i + (int)ConnectedComponentsTypes.Area];
+            if (area > parameter.MinimumPixelSize) continue;
+            var left = statsData[i + (int)ConnectedComponentsTypes.Left];
+            var top = statsData[i + (int)ConnectedComponentsTypes.Top];
+            var width = statsData[i + (int)ConnectedComponentsTypes.Width];
+            var height = statsData[i + (int)ConnectedComponentsTypes.Height];
+            filteredAreas.Add(new Rectangle(left, top, width, height));
+        }
+        hideMask.Execute(x =>
+        {
+            foreach (var area in filteredAreas) CvInvoke.Rectangle(x, area, new MCvScalar(0), -1);
+        });
+        mask.Execute(hideMask, (m, h) => CvInvoke.BitwiseAnd(m, h, m));
+        hideMask.Dispose();
+        labels.Dispose();
+        stats.Dispose();
+        centroids.Dispose();
     }
 
     private static void MorphologicalOpening(IManagedMat mask, SegmentationTemplate parameter)
