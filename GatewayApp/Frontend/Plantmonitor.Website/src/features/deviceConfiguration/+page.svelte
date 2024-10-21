@@ -235,8 +235,11 @@
                             {/if}
                         </td>
                         <td>
-                            <button on:click={() => configureDevice(device.ip)} class="btn btn-primary"> Configure </button>
-                            {#if device.health !== undefined}
+                            {#if !pipe(device.ip).isEmpty()}
+                                <button on:click={() => configureDevice(device.ip)} class="btn btn-primary"> Configure </button>
+                                <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
+                            {/if}
+                            {#if device.health !== undefined && !pipe(device.ip).isEmpty()}
                                 <button on:click={() => showPreviewImage(device.ip)} class="btn btn-primary">
                                     Preview Image
                                 </button>
@@ -255,22 +258,22 @@
                                 <button on:click={() => runFFC(device.ip)} class="btn btn-primary"> FFC</button>
                                 <button on:click={() => calibrateExposure(device.ip)} class="btn btn-primary">
                                     Update Exposure</button>
-                                {#if device.health.deviceId !== undefined && allOutletsFetched}
-                                    <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
-                                        Associated Outlet:
-                                        <Select
-                                            class="col-md-8"
-                                            initialSelectedItem={outletByDevice[device.health.deviceId]?.switchOnId?.toString()}
-                                            selectedItemChanged={(x) => switchOutlet(x, device.health.deviceId ?? "")}
-                                            textSelector={(x) => `${x.name} Channel ${x.channel} Button ${x.buttonNumber}`}
-                                            idSelector={(x) => x.switchOnId.toString()}
-                                            items={existingOutlets}></Select>
-                                    </div>
-                                {/if}
+
                                 <button class="btn btn-primary" on:click={async () => await checkStatus(device.ip)}
                                     >Check Device</button>
                             {/if}
-                            <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
+                            {#if device.health.deviceId !== undefined && allOutletsFetched}
+                                <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
+                                    Associated Outlet:
+                                    <Select
+                                        class="col-md-8"
+                                        initialSelectedItem={outletByDevice[device.health.deviceId]?.switchOnId?.toString()}
+                                        selectedItemChanged={(x) => switchOutlet(x, device.health.deviceId ?? "")}
+                                        textSelector={(x) => `${x.name} Channel ${x.channel} Button ${x.buttonNumber}`}
+                                        idSelector={(x) => x.switchOnId.toString()}
+                                        items={existingOutlets}></Select>
+                                </div>
+                            {/if}
                         </td>
                     </tr>
                 </tbody>
