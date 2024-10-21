@@ -62,6 +62,6 @@
         background-color: #dbf457;
     }
     .available-5 {
-        background-color: #dbf457;
+        background-color: #cacbc5;
     }
 </style>
