@@ -25,6 +25,7 @@ class Apply<T extends PipePrimitives> {
             default: throw new Error("Invalid type");
         }
     }
+
     valueOf(): T {
         return this.applyArg;
     }
@@ -202,6 +203,11 @@ class NumberExtensions extends Apply<number> {
     }
     roundTo(decimalPlaces: number) {
         return +this.x.toFixed(decimalPlaces);
+    }
+    limit(min: number, max: number) {
+        if (this.x < min) return min;
+        if (this.x > max) return max;
+        return this.x;
     }
 }
 

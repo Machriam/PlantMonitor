@@ -6,26 +6,27 @@
     import {onDestroy, onMount} from "svelte";
     import {DeviceConfigurationClient, DeviceHealthState} from "~/services/GatewayAppApi";
     import {createEventDispatcher} from "svelte";
-    let selectedDevice: DeviceHealthState | undefined;
-    let intervalId: number | undefined;
-    export let refreshTimeInSeconds: number;
+    import {pipe} from "~/types/Pipe";
+    let _selectedDevice: DeviceHealthState | undefined;
+    let _intervalId: number | undefined;
+    export let _refreshTimeInSeconds: number;
 
     const dispatch = createEventDispatcher<IEventMap>();
     let devices: DeviceHealthState[] = [];
     function deviceSelected(device: DeviceHealthState | undefined) {
-        selectedDevice = device;
+        _selectedDevice = device;
         dispatch("select", device);
     }
     onMount(async () => {
-        intervalId = setInterval(async () => {
+        _intervalId = setInterval(async () => {
             const healthClient = new DeviceConfigurationClient();
             devices = await healthClient.getDevices();
             dispatch("allDevices", devices);
-            if (selectedDevice != undefined && !devices.map((d) => d.ip).includes(selectedDevice.ip)) deviceSelected(undefined);
-        }, 1000 * refreshTimeInSeconds);
+            if (_selectedDevice != undefined && !devices.map((d) => d.ip).includes(_selectedDevice.ip)) deviceSelected(undefined);
+        }, 1000 * _refreshTimeInSeconds);
     });
     onDestroy(() => {
-        clearInterval(intervalId);
+        clearInterval(_intervalId);
     });
 </script>
 
@@ -33,7 +34,8 @@
     {#each devices as device}
         <button
             on:click={() => deviceSelected(device)}
-            class="p-0 m-0 ms-3 alert {(selectedDevice?.ip == device.ip ? 'selected' : '') + ` available-${device.retryTimes}`}">
+            class="p-0 m-0 ms-3 alert {(_selectedDevice?.health.deviceId == device.health.deviceId ? 'selected' : '') +
+                ` available-${pipe(device.retryTimes).limit(0, 5)}`}">
             {device.health?.deviceName ?? "not configured"}<br />
             {device.ip}
         </button>
@@ -57,6 +59,9 @@
         background-color: #c4fa55;
     }
     .available-4 {
+        background-color: #dbf457;
+    }
+    .available-5 {
         background-color: #dbf457;
     }
 </style>

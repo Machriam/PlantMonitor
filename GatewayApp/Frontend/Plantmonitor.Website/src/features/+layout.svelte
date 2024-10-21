@@ -14,7 +14,7 @@
     <main>
         <div class="top-row px-4">
             <DeviceSelection
-                refreshTimeInSeconds={2}
+                _refreshTimeInSeconds={2}
                 on:allDevices={(x) => ($allDevices = x.detail)}
                 on:select={(x) => ($selectedDevice = x.detail)}
                 class="col-md-12 d-flex flex-row"></DeviceSelection>
