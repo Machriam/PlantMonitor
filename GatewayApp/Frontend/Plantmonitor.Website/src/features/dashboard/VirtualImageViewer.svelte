@@ -22,6 +22,7 @@
     import Checkbox from "../reuseableComponents/Checkbox.svelte";
     import {pipe} from "~/types/Pipe";
     import TextInput from "../reuseableComponents/TextInput.svelte";
+    import {Task} from "~/types/Task";
     let _selectedTour: PhotoTourInfo | undefined | null;
     let _virtualImages: VirtualImageInfo[] = [];
     export let _selectedImage: VirtualImageInfo | undefined;
@@ -41,6 +42,8 @@
     let _imageCache = new Map<string, {image: string; added: Date}>();
     let _selectedPlants: string[] = [];
     let _onlySelectedPlants = false;
+    let _previousTouch: TouchEvent | undefined;
+    const _unsetTouchEvent = Task.createDebouncer(() => (_previousTouch = undefined), 100);
 
     onMount(async () => {
         _unsubscriber.push(
@@ -130,10 +133,17 @@
         _selectedSegmentation = _selectedSegmentation?.clone();
     }
 
-    async function nextImage(event: WheelEvent) {
+    async function nextImage(event: WheelEvent | TouchEvent) {
         if (_selectedTour == undefined) return;
+        let deltaY = event instanceof WheelEvent ? event.deltaY : event.touches[0].clientX;
+        if (event instanceof TouchEvent) {
+            deltaY = deltaY - (_previousTouch?.touches[0].clientX ?? 0);
+            if (Math.abs(deltaY) < 10) return;
+            _previousTouch = event;
+        }
+        _unsetTouchEvent();
         _currentDateIndex =
-            event.deltaY < 0
+            deltaY < 0
                 ? Math.max(0, (_currentDateIndex ?? 0) - _scrollSkip)
                 : Math.min(_filteredVirtualImages.length - 1, (_currentDateIndex ?? 0) + _scrollSkip);
         await updateVirtualImage(_selectedTour.id, true);
@@ -215,7 +225,7 @@
 <div class="col-md-12 row mt-2">
     <slot />
     <div class="col-md-7">
-        <div style="align-items:center" class="col-md-12 row mt-2">
+        <div on:touchmove={nextImage} style="align-items:center" class="col-md-12 row mt-2">
             <div class="col-md-3">{_selectedImage?.creationDate.toLocaleString()}</div>
             <NumberInput class="col-md-2" bind:value={_scrollSkip} label="Show nth image"></NumberInput>
             <div class="col-md-2">
@@ -240,7 +250,7 @@
                 bind:value={_showSegmentedImage}></Checkbox>
         </div>
     </div>
-    <div style="flex-direction: row;flex:content;display:flex" class="p-0">
+    <div on:touchmove={nextImage} style="flex-direction: row;flex:content;display:flex" class="p-0">
         {#if _virtualImage == ""}
             <div></div>
             <div on:wheel={nextImage} style="flex:auto;width:1000px;height:400px"></div>
