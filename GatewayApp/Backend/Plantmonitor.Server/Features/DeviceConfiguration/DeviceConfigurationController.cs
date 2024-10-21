@@ -46,6 +46,6 @@ public class DeviceConfigurationController(IDeviceConnectionEventBus eventBus, I
     [HttpGet("devices")]
     public IEnumerable<DeviceHealthState> GetDevices()
     {
-        return eventBus.GetDeviceHealthInformation();
+        return eventBus.GetAllSeenDevices();
     }
 }
