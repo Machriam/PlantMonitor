@@ -34,7 +34,7 @@
     {#each devices as device}
         <button
             on:click={() => deviceSelected(device)}
-            class="p-0 m-0 ms-3 alert {(_selectedDevice?.health.deviceId == device.health.deviceId ? 'selected' : '') +
+            class="p-0 m-0 ms-3 alert {(_selectedDevice?.health.deviceId == device.health?.deviceId ? 'selected' : '') +
                 ` available-${pipe(device.retryTimes).limit(0, 5)}`}">
             {device.health?.deviceName ?? "not configured"}<br />
             {device.ip}

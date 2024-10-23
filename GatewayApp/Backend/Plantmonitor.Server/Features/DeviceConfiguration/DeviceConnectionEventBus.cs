@@ -46,7 +46,7 @@ public class DeviceConnectionEventBus(IServiceScopeFactory scopeFactory) : IDevi
     private static void UpdateStoredDevices(IServiceScopeFactory scopeFactory)
     {
         var storedDevices = GetStoredDevices(scopeFactory);
-        var onlineIds = s_deviceHealths.Select(dh => dh.Health.DeviceId).ToHashSet();
+        var onlineIds = s_deviceHealths.Where(dh => dh.Health?.DeviceId != default).Select(dh => dh.Health.DeviceId).ToHashSet();
         var newJson = storedDevices
             .Where(sd => !onlineIds.Contains(sd.Health.DeviceId))
             .Pipe(sd => Enumerable.Concat(sd, s_deviceHealths))
