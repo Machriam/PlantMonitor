@@ -56,6 +56,7 @@
   - `sudo chmod -R +x PlantMonitor`
   - `cd PlantMonitor/Confluence/Setup`
   - `./SetupGatewayMachine.sh`
+  - `./UpdateGatewayMachine.sh`
 - WLAN Hotspot, when WLAN card is available
   - Find names lan interface and wlan interface. Here: `enp0s31f6` and `wlp3s0`
   - `sudo apt-get install hostapd wireless-tools dnsmasq iw`

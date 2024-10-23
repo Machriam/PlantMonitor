@@ -64,3 +64,10 @@ sudo docker-compose up --detach
 ### Optional QTCreator Setup
 # Enables using sudo over XRDP
 xhost si:localuser:root
+
+patchesDir="../../GatewayApp/Backend/Plantmonitor.DataModel/DatabasePatches"
+
+for patch in $(find "$patchesDir"/*.sql | sort); do
+    echo "Applying patch: $patch"
+    cat "$patch" | sudo docker exec -i postgres psql -U postgres -d postgres 
+done

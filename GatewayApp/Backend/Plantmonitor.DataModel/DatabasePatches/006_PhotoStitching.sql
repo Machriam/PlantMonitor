@@ -12,7 +12,7 @@ CREATE TABLE plantmonitor.photo_tour_plant
         ON DELETE NO ACTION
         NOT VALID
 );
-ALTER TABLE IF EXISTS plantmonitor.plant OWNER to postgres;
+ALTER TABLE IF EXISTS plantmonitor.photo_tour_plant OWNER to postgres;
 
 CREATE TABLE plantmonitor.plant_extraction_template
 (
