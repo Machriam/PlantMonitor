@@ -35,7 +35,8 @@ public class DeviceConnectionEventBus(IServiceScopeFactory scopeFactory) : IDevi
         var storedDevices = GetStoredDevices(scopeFactory);
         var onlineDevices = GetDeviceHealthInformation();
         foreach (var device in onlineDevices) yield return device;
-        var onlineDeviceIds = onlineDevices.Select(pd => pd.Health.DeviceId).ToHashSet();
+        var onlineDeviceIds = onlineDevices.Where(pd => pd.Health?.DeviceId != default)
+            .Select(pd => pd.Health.DeviceId).ToHashSet();
         foreach (var device in storedDevices.Where(kd => !onlineDeviceIds.Contains(kd.Health.DeviceId)))
         {
             yield return new DeviceHealthState(device.Health, 999, "");
