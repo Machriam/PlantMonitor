@@ -223,8 +223,8 @@
                         <td class="col-md-3">
                             {#if device.health !== undefined}
                                 <span class="badge bg-success">{device.ip}</span><br />
-                                <span>{device.health.deviceName}</span><br />
-                                <span>{device.health.deviceId}</span><br />
+                                <span>{device.health?.deviceName}</span><br />
+                                <span>{device.health?.deviceId}</span><br />
                                 <span>
                                     {#each formatHealthState(device.health.state ?? HealthState.NA) as state}
                                         <span>{state}<br /></span>
@@ -262,13 +262,13 @@
                                 <button class="btn btn-primary" on:click={async () => await checkStatus(device.ip)}
                                     >Check Device</button>
                             {/if}
-                            {#if device.health.deviceId !== undefined && allOutletsFetched}
+                            {#if device.health?.deviceId !== undefined && allOutletsFetched}
                                 <div style="align-items: center;" class="col-form-label col-md-12 row ps-3">
                                     Associated Outlet:
                                     <Select
                                         class="col-md-8"
-                                        initialSelectedItem={outletByDevice[device.health.deviceId]?.switchOnId?.toString()}
-                                        selectedItemChanged={(x) => switchOutlet(x, device.health.deviceId ?? "")}
+                                        initialSelectedItem={outletByDevice[device.health?.deviceId]?.switchOnId?.toString()}
+                                        selectedItemChanged={(x) => switchOutlet(x, device.health?.deviceId ?? "")}
                                         textSelector={(x) => `${x.name} Channel ${x.channel} Button ${x.buttonNumber}`}
                                         idSelector={(x) => x.switchOnId.toString()}
                                         items={existingOutlets}></Select>
