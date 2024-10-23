@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace Plantmonitor.Server.Features.DeviceConfiguration;
 
-public record struct DeviceHealthState(DeviceHealth Health, int RetryTimes, string Ip);
+public record struct DeviceHealthState(DeviceHealth? Health, int RetryTimes, string Ip);
 
 public class DeviceConnectionWorker(IDeviceConnectionTester tester, IDeviceConnectionEventBus eventBus, ILogger<DeviceConnectionWorker> logger) : IHostedService
 {
