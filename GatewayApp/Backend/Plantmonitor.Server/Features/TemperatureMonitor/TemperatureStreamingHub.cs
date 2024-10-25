@@ -26,7 +26,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
 
         public async Task<ChannelReader<TemperatureStreamData>> StreamTemperature(string[] devices, string ip, CancellationToken token)
         {
-            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
+            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health?.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, ip);
             var channel = Channel.CreateBounded<TemperatureStreamData>(new BoundedChannelOptions(100)
             {

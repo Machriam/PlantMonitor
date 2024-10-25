@@ -40,14 +40,14 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         var hasIrCamera = photoTourData.TemperatureMeasurements.Any(tm => tm.IsThermalCamera());
         var logEvent = dataContext.CreatePhotoTourEventLogger(photoTourId);
         var deviceHealth = eventBus.GetDeviceHealthInformation()
-            .FirstOrDefault(h => h.Health.DeviceId == photoTourData.DeviceId.ToString());
+            .FirstOrDefault(h => h.Health?.DeviceId == photoTourData.DeviceId.ToString());
         if (deviceHealth == default)
         {
             logEvent($"Camera Device {photoTourData.DeviceId} not found. Trying Restart.", PhotoTourEventType.Error);
             RequestRestartDevice(photoTourData.DeviceId.ToString(), photoTourId, photoTourData.DeviceId.ToString()).RunInBackground(ex => ex.LogError());
             return new(null, deviceHealth, hasIrCamera);
         }
-        var deviceName = deviceHealth.Health.DeviceName ?? photoTourData.DeviceId.ToString();
+        var deviceName = deviceHealth.Health?.DeviceName ?? photoTourData.DeviceId.ToString();
         logEvent($"Checking Motor Position {deviceName}", PhotoTourEventType.Debug);
         var currentPosition = await deviceApi.MovementClient(deviceHealth.Ip).CurrentpositionAsync();
         if (currentPosition.Dirty == true)
@@ -131,7 +131,7 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
             return;
         }
         var switchingDevices = eventBus.GetDeviceHealthInformation()
-            .Where(h => h.Health.State?.HasFlag(HealthState.CanSwitchOutlets) == true && h.Health.DeviceId != restartDeviceId);
+            .Where(h => h.Health?.State?.HasFlag(HealthState.CanSwitchOutlets) == true && h.Health.DeviceId != restartDeviceId);
         if (!switchingDevices.Any())
         {
             s_lastRestarts.AddOrUpdate(deviceGuid, DateTime.UtcNow, (_1, _2) => DateTime.UtcNow);
@@ -144,16 +144,16 @@ public class DeviceRestarter(IServiceScopeFactory scopeFactory) : IDeviceRestart
         {
             await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOffFkNavigation.Code);
             await Task.Delay(200);
-            logEvent($"{switchDevice.Health.DeviceName ?? switchDevice.Health.DeviceId} switched {deviceName} off", PhotoTourEventType.Information);
+            logEvent($"{switchDevice.Health?.DeviceName ?? switchDevice.Health?.DeviceId} switched {deviceName} off", PhotoTourEventType.Information);
         }
-        eventBus.UpdateDeviceHealths(eventBus.GetDeviceHealthInformation().Where(d => d.Health.DeviceId != restartDeviceId));
+        eventBus.UpdateDeviceHealths(eventBus.GetDeviceHealthInformation().Where(d => d.Health?.DeviceId != restartDeviceId));
         s_lastRestarts.AddOrUpdate(deviceGuid, DateTime.UtcNow, (_1, _2) => DateTime.UtcNow);
         s_restartRequested.AddOrUpdate(deviceGuid, 0, (_1, _2) => 0);
         foreach (var switchDevice in switchingDevices)
         {
             await deviceApi.SwitchOutletsClient(switchDevice.Ip).SwitchoutletAsync(switchData.OutletOnFkNavigation.Code);
             await Task.Delay(200);
-            logEvent($"{switchDevice.Health.DeviceName ?? switchDevice.Health.DeviceId} switched {deviceName} on", PhotoTourEventType.Information);
+            logEvent($"{switchDevice.Health?.DeviceName ?? switchDevice.Health?.DeviceId} switched {deviceName} on", PhotoTourEventType.Information);
         }
         return;
     }

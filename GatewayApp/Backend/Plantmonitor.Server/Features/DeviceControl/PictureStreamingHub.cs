@@ -26,7 +26,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
 
         public async Task<ChannelReader<StoredDataStream>> CustomStreamAsZip(StreamingMetaData data, string ip, CancellationToken token)
         {
-            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
+            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health?.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, (ip, data));
             var picturePath = data.StoreData && deviceId != null ? configuration.PicturePath(deviceId) : "";
             var channel = Channel.CreateBounded<StoredDataStream>(new BoundedChannelOptions(1)
@@ -47,7 +47,7 @@ namespace Plantmonitor.Server.Features.DeviceControl
 
         public async Task<ChannelReader<CameraStreamData>> StreamPictures(StreamingMetaData data, string ip, CancellationToken token)
         {
-            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health.DeviceId;
+            var deviceId = deviceConnections.GetDeviceHealthInformation().First(h => h.Ip == ip).Health?.DeviceId;
             s_ipByConnectionId.TryAdd(Context.ConnectionId, (ip, data));
             var picturePath = data.StoreData && deviceId != null ? configuration.PicturePath(deviceId) : "";
             var channel = Channel.CreateBounded<CameraStreamData>(new BoundedChannelOptions(1)

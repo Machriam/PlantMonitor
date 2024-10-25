@@ -80,6 +80,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
     public async Task StartAutomaticTour([FromBody] AutomaticTourStartInfo startInfo)
     {
         var (imagingDevice, temperatureDevices) = await CheckStartConditions(context, deviceFactory, startInfo.TemperatureMeasureDevice, startInfo.DeviceGuid, startInfo.MovementPlan, eventBus);
+        if (imagingDevice.Health == null) throw new Exception("Health status of camera device could not be read");
 
         if (!imagingDevice.Health.State.GetValueOrDefault().HasFlag(HealthState.ThermalCameraFunctional) && startInfo.ShouldUseIR)
             throw new Exception("IR camera was requested for photo tour, but not found");
@@ -93,8 +94,8 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
             TemperatureMeasurements = temperatureDevices
             .SelectMany(td => td.Sensors.Select(sensorId => new TemperatureMeasurement()
             {
-                Comment = $"{td.DeviceHealth.Health.DeviceName}: {td.MeasurementInfo.Comment}",
-                DeviceId = Guid.Parse(td.DeviceHealth.Health.DeviceId ?? throw new Exception($"Device {td.DeviceHealth.Ip} has no Device Id")),
+                Comment = $"{td.DeviceHealth.Health?.DeviceName}: {td.MeasurementInfo.Comment}",
+                DeviceId = Guid.Parse(td.DeviceHealth.Health?.DeviceId ?? throw new Exception($"Device {td.DeviceHealth.Ip} has no Device Id")),
                 SensorId = sensorId,
                 StartTime = DateTime.UtcNow
             })).PushIf(new TemperatureMeasurement()
@@ -115,8 +116,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
            IDeviceConnectionEventBus eventBus)
     {
         var deviceById = eventBus.GetDeviceHealthInformation()
-            .Where(d => !d.Health.DeviceId.IsEmpty())
-            .ToDictionary(d => d.Health.DeviceId ?? throw new Exception("DeviceId must not be empty"));
+            .ToDictionary(d => d.Health?.DeviceId ?? throw new Exception("DeviceId must not be empty"));
         if (!deviceById.TryGetValue(deviceGuid, out var imagingDevice)) throw new Exception($"Device {deviceGuid} could not be found");
         var recheckedDeviceHealth = await deviceFactory.HealthClient(imagingDevice.Ip).CheckdevicehealthAsync();
         if (recheckedDeviceHealth == default) throw new Exception("Imaging device could not be checked");
@@ -132,7 +132,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
             var devices = await deviceFactory.TemperatureClient(temperatureDevice.DeviceHealth.Ip).DevicesAsync();
             temperatureDevice.Sensors.AddRange(devices);
         }
-        var devicesWithoutSensor = temperatureDevices.Select(td => td.Sensors.Count == 0 ? $"{td.DeviceHealth.Health.DeviceName} has no temperature sensor" : "");
+        var devicesWithoutSensor = temperatureDevices.Select(td => td.Sensors.Count == 0 ? $"{td.DeviceHealth.Health?.DeviceName} has no temperature sensor" : "");
         if (devicesWithoutSensor.Any(d => !d.IsEmpty())) throw new Exception(devicesWithoutSensor.Concat("\n"));
         var alreadyOccupiedDevices = context.AutomaticPhotoTours
             .Where(pt => !pt.Finished)
@@ -141,7 +141,7 @@ public class AutomaticPhotoTourController(IDataContext context, IDeviceConnectio
         foreach (var device in context.AutomaticPhotoTours.Where(pt => !pt.Finished).Select(pt => pt.DeviceId)) alreadyOccupiedDevices.Add(device);
         if (alreadyOccupiedDevices.Contains(Guid.Parse(deviceGuid))) throw new Exception("The imaging device is already busy with another photo tour");
         var busyTemperatureDevices = temperatureDevices
-            .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health.DeviceId ?? "")) ? $"{td.DeviceHealth.Health.DeviceName} is used in another photo tour" : "");
+            .Select(td => alreadyOccupiedDevices.Contains(Guid.Parse(td.DeviceHealth.Health?.DeviceId ?? "")) ? $"{td.DeviceHealth.Health?.DeviceName} is used in another photo tour" : "");
         if (busyTemperatureDevices.Any(td => !td.IsEmpty())) throw new Exception(busyTemperatureDevices.Concat("\n"));
         return (imagingDevice, temperatureDevices);
     }
