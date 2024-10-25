@@ -5008,9 +5008,10 @@ export enum HealthState {
 }
 
 export class DeviceHealthState implements IDeviceHealthState {
-    health!: DeviceHealth;
+    health!: DeviceHealth | undefined;
     retryTimes!: number;
     ip!: string;
+    currentlyOnline!: boolean;
 
     constructor(data?: IDeviceHealthState) {
         if (data) {
@@ -5026,6 +5027,7 @@ export class DeviceHealthState implements IDeviceHealthState {
             this.health = _data["Health"] ? DeviceHealth.fromJS(_data["Health"]) : <any>undefined;
             this.retryTimes = _data["RetryTimes"];
             this.ip = _data["Ip"];
+            this.currentlyOnline = _data["CurrentlyOnline"];
         }
     }
 
@@ -5041,6 +5043,7 @@ export class DeviceHealthState implements IDeviceHealthState {
         data["Health"] = this.health ? this.health.toJSON() : <any>undefined;
         data["RetryTimes"] = this.retryTimes;
         data["Ip"] = this.ip;
+        data["CurrentlyOnline"] = this.currentlyOnline;
         return data;
     }
 
@@ -5053,9 +5056,10 @@ export class DeviceHealthState implements IDeviceHealthState {
 }
 
 export interface IDeviceHealthState {
-    health: DeviceHealth;
+    health: DeviceHealth | undefined;
     retryTimes: number;
     ip: string;
+    currentlyOnline: boolean;
 }
 
 export class VirtualImageInfo implements IVirtualImageInfo {

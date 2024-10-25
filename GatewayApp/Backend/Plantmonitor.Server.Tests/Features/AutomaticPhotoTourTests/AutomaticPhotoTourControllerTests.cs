@@ -52,7 +52,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
         {
             var sut = CreateAutomaticPhotoTourController();
             const string DeviceId = "ee0d41ca-10f0-4807-b8f3-55546adc1278";
-            var devices = new List<DeviceHealthState>() { new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional), 0, "") };
+            var devices = new List<DeviceHealthState>() { new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional), 0, "", true) };
             var photoTours = new QueryableList<DataModel.DataModel.AutomaticPhotoTour>();
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
@@ -78,7 +78,7 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             const string DeviceId = "ee0d41ca-10f0-4807-b8f3-55546adc1278";
             const string Temp1 = "ef0d41ca-10f0-4807-b8f3-55546adc1278";
             const string Temp2 = "ed0d41ca-10f0-4807-b8f3-55546adc1278";
-            var devices = new List<DeviceHealthState>() { new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional), 0, "") };
+            var devices = new List<DeviceHealthState>() { new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional), 0, "", true) };
             var photoTours = new QueryableList<DataModel.DataModel.AutomaticPhotoTour>();
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
             _eventBus.GetDeviceHealthInformation().ReturnsForAnyArgs(devices);
@@ -99,9 +99,9 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             const string Temp1 = "ef0d41ca-10f0-4807-b8f3-55546adc1278";
             const string Temp2 = "ed0d41ca-10f0-4807-b8f3-55546adc1278";
             var devices = new List<DeviceHealthState>() {
-                new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional), 0, ""),
-                new(new(null, Temp1, "tempDev1", HealthState.NA), 0, ""),
-                new(new(null, Temp2, "tempDev2", HealthState.CanSwitchOutlets), 0, ""),
+                new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional), 0, "",true),
+                new(new(null, Temp1, "tempDev1", HealthState.NA), 0, "",true),
+                new(new(null, Temp2, "tempDev2", HealthState.CanSwitchOutlets), 0, "",true),
             };
             var photoTours = new QueryableList<DataModel.DataModel.AutomaticPhotoTour>();
             _context.AutomaticPhotoTours.ReturnsForAnyArgs(photoTours);
@@ -123,9 +123,9 @@ namespace Plantmonitor.Server.Tests.Features.AutomaticPhotoTourTests
             const string Temp1 = "ef0d41ca-10f0-4807-b8f3-55546adc1278";
             const string Temp2 = "ed0d41ca-10f0-4807-b8f3-55546adc1278";
             var devices = new List<DeviceHealthState>() {
-                new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional | HealthState.ThermalCameraFunctional), 0, ""),
-                new(new(null, Temp1, "tempDev1", HealthState.NA), 0, ""),
-                new(new(null, Temp2, "tempDev2", HealthState.CanSwitchOutlets), 0, ""),
+                new(new(null, DeviceId, "test", HealthState.NoirCameraFunctional | HealthState.ThermalCameraFunctional), 0, "",true),
+                new(new(null, Temp1, "tempDev1", HealthState.NA), 0, "",true),
+                new(new(null, Temp2, "tempDev2", HealthState.CanSwitchOutlets), 0, "",true),
             };
             var photoTours = new QueryableList<DataModel.DataModel.AutomaticPhotoTour>();
             var temperatureClient = Substitute.For<ITemperatureClient>();

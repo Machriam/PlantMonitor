@@ -221,7 +221,7 @@
                 <tbody>
                     <tr>
                         <td class="col-md-3">
-                            {#if device.health !== undefined}
+                            {#if device.health !== undefined && device.currentlyOnline}
                                 <span class="badge bg-success">{device.ip}</span><br />
                                 <span>{device.health?.deviceName}</span><br />
                                 <span>{device.health?.deviceId}</span><br />
@@ -235,11 +235,11 @@
                             {/if}
                         </td>
                         <td>
-                            {#if !pipe(device.ip).isEmpty()}
+                            {#if !pipe(device.ip).isEmpty() && device.currentlyOnline}
                                 <button on:click={() => configureDevice(device.ip)} class="btn btn-primary"> Configure </button>
                                 <button on:click={() => openConsole(device.ip)} class="btn btn-primary"> Open Console </button>
                             {/if}
-                            {#if device.health !== undefined && !pipe(device.ip).isEmpty()}
+                            {#if device.health !== undefined && !pipe(device.ip).isEmpty() && device.currentlyOnline}
                                 <button on:click={() => showPreviewImage(device.ip)} class="btn btn-primary">
                                     Preview Image
                                 </button>
