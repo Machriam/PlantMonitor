@@ -37,18 +37,20 @@ public class DeviceConnectionEventBus(IServiceScopeFactory scopeFactory) : IDevi
         foreach (var device in onlineDevices) yield return device;
         var onlineDeviceIds = onlineDevices.Where(pd => pd.Health?.DeviceId != default)
             .Select(pd => pd.Health?.DeviceId).ToHashSet();
-        foreach (var device in storedDevices.Where(kd => !onlineDeviceIds.Contains(kd.Health?.DeviceId)))
+        foreach (var device in storedDevices.Where(kd => kd.Health?.DeviceId != default && !onlineDeviceIds.Contains(kd.Health?.DeviceId)))
         {
-            yield return new DeviceHealthState(device.Health, 999, "");
+            yield return new DeviceHealthState(device.Health, 999, device.Ip);
         }
     }
 
     private static void UpdateStoredDevices(IServiceScopeFactory scopeFactory)
     {
         var storedDevices = GetStoredDevices(scopeFactory);
-        var onlineIds = s_deviceHealths.Where(dh => dh.Health?.DeviceId != default).Select(dh => dh.Health?.DeviceId).ToHashSet();
+        var onlineIds = s_deviceHealths.Where(dh => dh.Health?.DeviceId != default)
+            .Select(dh => dh.Health?.DeviceId)
+            .ToHashSet();
         var newJson = storedDevices
-            .Where(sd => !onlineIds.Contains(sd.Health?.DeviceId))
+            .Where(sd => !onlineIds.Contains(sd.Health?.DeviceId) && sd.Health?.DeviceId != default)
             .Pipe(sd => Enumerable.Concat(sd, s_deviceHealths))
             .AsJson();
         using var scope = scopeFactory.CreateScope();
