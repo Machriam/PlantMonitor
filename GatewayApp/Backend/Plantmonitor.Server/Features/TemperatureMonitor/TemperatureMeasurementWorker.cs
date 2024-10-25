@@ -52,7 +52,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
             var connectedDevices = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
             var deviceId = measurements.FirstOrDefault()?.DeviceId.ToString();
             var healthInfo = connectedDevices.GetDeviceHealthInformation()
-                .FirstOrDefault(h => h.Health.DeviceId == deviceId);
+                .FirstOrDefault(h => h.Health?.DeviceId == deviceId);
             if (healthInfo == default)
             {
                 if (!deviceId.IsEmpty()) await deviceRestarter.RequestRestartDevice(deviceId!, measurements.FirstOrDefault()?.PhotoTourFk, deviceId ?? "NA");
@@ -94,7 +94,7 @@ namespace Plantmonitor.Server.Features.TemperatureMonitor
             using var scope = scopeFactory.CreateScope();
             var connectedDevices = scope.ServiceProvider.GetRequiredService<IDeviceConnectionEventBus>();
             var healthInfo = connectedDevices.GetDeviceHealthInformation().FirstOrDefault(h => h.Ip == ip);
-            var deviceGuid = Guid.Parse(healthInfo.Health.DeviceId ?? throw new Exception($"Device {ip} has no Device Id"));
+            var deviceGuid = Guid.Parse(healthInfo.Health?.DeviceId ?? throw new Exception($"Device {ip} has no Device Id"));
             var token = new CancellationTokenSource();
             var connection = new HubConnectionBuilder()
                 .WithUrl($"https://{ip}/hub/temperatures")

@@ -167,7 +167,7 @@
             devices = await client.getDevices();
             const outletDevices = devices.filter((d) => d.health?.deviceId != undefined);
             for (let i = 0; i < outletDevices.length; i++) {
-                const deviceId = outletDevices[i].health.deviceId!;
+                const deviceId = outletDevices[i].health!.deviceId!;
                 const {result, error, hasError} = await pipe(outletClient.powerOutletForDevice(deviceId)).try();
                 if (hasError) {
                     console.log(error);

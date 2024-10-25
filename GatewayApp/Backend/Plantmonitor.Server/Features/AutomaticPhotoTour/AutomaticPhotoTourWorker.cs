@@ -111,7 +111,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
             if (TripHasNoPictures(hasIr, previousTrip.IrDataFolder, previousTrip.VisDataFolder, logger))
             {
                 logger("Previous trip was also unsuccessful. Restarting immediately.", PhotoTourEventType.Error);
-                await deviceRestarter.ImmediateRestartDevice(device.Health.DeviceId!, photoTourId, device.Health.DeviceName!);
+                await deviceRestarter.ImmediateRestartDevice(device.Health?.DeviceId ?? "", photoTourId, device.Health?.DeviceName!);
             }
         }
         lock (s_lock) s_photoTripRunning = false;
@@ -136,7 +136,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         IDeviceApiFactory deviceApi, DeviceHealthState device)
     {
         var logger = dataContext.CreatePhotoTourEventLogger(photoTourId);
-        if (device.Health.DeviceId == null || !Guid.TryParse(device.Health.DeviceId, out var deviceGuid))
+        if (device.Health?.DeviceId == null || !Guid.TryParse(device.Health.DeviceId, out var deviceGuid))
         {
             logger("Device Id not a valid Guid", PhotoTourEventType.Error);
             CreateEmptyTrip(photoTourId, dataContext);
