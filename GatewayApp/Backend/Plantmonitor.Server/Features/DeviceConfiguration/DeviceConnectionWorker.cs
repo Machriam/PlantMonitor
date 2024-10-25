@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace Plantmonitor.Server.Features.DeviceConfiguration;
 
-public record struct DeviceHealthState(DeviceHealth? Health, int RetryTimes, string Ip);
+public record struct DeviceHealthState(DeviceHealth? Health, int RetryTimes, string Ip, bool CurrentlyOnline);
 
 public class DeviceConnectionWorker(IDeviceConnectionTester tester, IDeviceConnectionEventBus eventBus, ILogger<DeviceConnectionWorker> logger) : IHostedService
 {
@@ -32,9 +32,9 @@ public class DeviceConnectionWorker(IDeviceConnectionTester tester, IDeviceConne
         }
         foreach (var (ip, healthState) in _deviceList)
         {
-            _deviceList[ip] = new(healthState.Health, healthState.RetryTimes + 1, ip);
+            _deviceList[ip] = new(healthState.Health, healthState.RetryTimes + 1, ip, true);
             var (result, error) = await tester.CheckHealth(ip).Try();
-            if (result != null && error.IsEmpty()) _deviceList[ip] = new(result, 0, ip);
+            if (result != null && error.IsEmpty()) _deviceList[ip] = new(result, 0, ip, true);
             else logger.Log(LogLevel.Information, ErrorTemplate, ip, error);
             if (_deviceList[ip].RetryTimes >= 5)
             {

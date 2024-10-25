@@ -25,7 +25,9 @@ public class DeviceConnectionEventBus(IServiceScopeFactory scopeFactory) : IDevi
     public IEnumerable<DeviceHealthState> GetDeviceHealthInformation()
     {
 #if DEBUG
-        return s_deviceHealths.Append(new DeviceHealthState(new DeviceHealth(new(129, 39), "13be815a-cf95-4b58-b9f7-fd5d9f5431e9", "test", HealthState.NA), 0, "localhost:7006"));
+        return s_deviceHealths
+            .Append(new DeviceHealthState(new DeviceHealth(new(129, 39), "13be815a-cf95-4b58-b9f7-fd5d9f5431e9", "test", HealthState.NA), 0, "localhost:7006", true))
+            .Append(new DeviceHealthState(new DeviceHealth(new(129, 39), "13be815a-cf95-4b58-b9f7-fd5d9f5431e8", "test", HealthState.NA), 0, "localhost:7007", false));
 #endif
         return s_deviceHealths;
     }
@@ -39,7 +41,7 @@ public class DeviceConnectionEventBus(IServiceScopeFactory scopeFactory) : IDevi
             .Select(pd => pd.Health?.DeviceId).ToHashSet();
         foreach (var device in storedDevices.Where(kd => kd.Health?.DeviceId != default && !onlineDeviceIds.Contains(kd.Health?.DeviceId)))
         {
-            yield return new DeviceHealthState(device.Health, 999, device.Ip);
+            yield return new DeviceHealthState(device.Health, 999, device.Ip, false);
         }
     }
 
