@@ -24,7 +24,7 @@ public class DeviceConnectionWorker(IDeviceConnectionTester tester, IDeviceConne
 
     private async Task HttpPingDevices()
     {
-        const string errorTemplate = "{IP} could not be pinged, {Error}";
+        const string ErrorTemplate = "{IP} could not be pinged, {Error}";
         lock (_httpPingLock)
         {
             if (_currentlyDevicePinging) return;
@@ -35,7 +35,7 @@ public class DeviceConnectionWorker(IDeviceConnectionTester tester, IDeviceConne
             _deviceList[ip] = new(healthState.Health, healthState.RetryTimes + 1, ip);
             var (result, error) = await tester.CheckHealth(ip).Try();
             if (result != null && error.IsEmpty()) _deviceList[ip] = new(result, 0, ip);
-            else logger.Log(LogLevel.Information, errorTemplate, ip, error);
+            else logger.Log(LogLevel.Information, ErrorTemplate, ip, error);
             if (_deviceList[ip].RetryTimes >= 5)
             {
                 var (_, success) = await tester.PingIp(ip, 5);
