@@ -59,17 +59,19 @@
   - `./UpdateGatewayMachine.sh`
 - WLAN Hotspot, when WLAN card is available
   - Find names lan interface and wlan interface. Here: `enp0s31f6` and `wlp3s0`
+  - `WlanInterface=wlp3s0`
+    - Change if WLAN interface wlp3s0
   - `sudo apt-get install hostapd wireless-tools dnsmasq iw`
   - `sudo apt-get purge network-manager`
-  - `sudo echo -e "interface=wlp3s0\nssid=HOTSPOTNAME\nhw_mode=g\nchannel=7\nmacaddr_acl=0\nauth_algs=1\nignore_broadcast_ssid=0\nwpa=2\nwpa_passphrase=PASSWORD\nwpa_key_mgmt=WPA-PSK\nwpa_pairwise=TKIP\nrsn_pairwise=CCMP" | sudo tee /etc/hostapd/hostapd.conf`
+  - `sudo echo -e "interface=$WlanInterface\nssid=HOTSPOTNAME\nhw_mode=g\nchannel=7\nmacaddr_acl=0\nauth_algs=1\nignore_broadcast_ssid=0\nwpa=2\nwpa_passphrase=PASSWORD\nwpa_key_mgmt=WPA-PSK\nwpa_pairwise=TKIP\nrsn_pairwise=CCMP" | sudo tee /etc/hostapd/hostapd.conf`
     - Replace HOTSPOTNAME with the WLAN name and PASSWORD with the password. The raspberry pi should be configured to use the same wifi by default
   - `DAEMON_CONF="/etc/hostapd/hostapd.conf"`
-  - `sudo echo -e "\ninterface=wlp3s0\ndhcp-range=192.168.1.100,192.168.1.150,255.255.255.0,infinite" | sudo tee -a /etc/dnsmasq.conf`
-  - `sudo echo -e "\nauto wlp3s0\niface wlp3s0 inet static\n    address 192.168.1.1\n    netmask 255.255.255.0\n" | sudo tee -a /etc/network/interfaces`
+  - `sudo echo -e "\ninterface=$WlanInterface\ndhcp-range=192.168.1.100,192.168.1.150,255.255.255.0,infinite" | sudo tee -a /etc/dnsmasq.conf`
+  - `sudo echo -e "\nauto $WlanInterface\niface $WlanInterface inet static\n    address 192.168.1.1\n    netmask 255.255.255.0\n" | sudo tee -a /etc/network/interfaces`
   - `echo -e "\nnet.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf`
   - `sudo iptables -t nat -A POSTROUTING -o enp0s31f6 -j MASQUERADE`
-  - `sudo iptables -A FORWARD -i enp0s31f6 -o wlp3s0 -m state --state RELATED,ESTABLISHED -j ACCEPT`
-  - `sudo iptables -A FORWARD -i wlp3s0 -o enp0s31f6 -j ACCEPT`
+  - `sudo iptables -A FORWARD -i enp0s31f6 -o $WlanInterface -m state --state RELATED,ESTABLISHED -j ACCEPT`
+  - `sudo iptables -A FORWARD -i $WlanInterface -o enp0s31f6 -j ACCEPT`
   - `sudo apt install iptables-persistent` --> Yes when prompted to save current settings
   - `sudo systemctl unmask hostapd`
   - `sudo systemctl enable hostapd`
