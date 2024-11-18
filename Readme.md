@@ -3,7 +3,7 @@
 1. **Live Results:** Making it easy to monitor the growth process and plant-specific behaviors like bending of the leaves during heat stress events as soon as they are happing.
 2. **From image to graph:** This is an all-in-one solution, meaning that you build the hardware and the software does the calibration, image acquisition, data processing, and display of the image results.
 3. **Highly customizable:** This software can also monitor anything else, as the segmentation is highly customizable and the user decides what to look at.
-4. **Open Data:** Plantmonitor provides easy access to all raw data collected during an experiment in easily self-describing formats.
+4. **Open Data:** Plantmonitor provides easy access to all raw data collected during an experiment in easy self-describing formats.
 5. **Cross-Platform:** This is a web-based project and any device with a browser can be used to control the experiment and monitor the current status.
 
 ## Features overview
