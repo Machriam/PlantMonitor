@@ -221,7 +221,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
             await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400, maxStop, minStop);
             currentStep += step.StepOffset;
             while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(_positionCheckTimeout);
-            logger($"Moved to position: {currentStep}, performing FFC", PhotoTourEventType.Information);
+            logger($"Moved to position: {currentStep}, no FFC, just waiting", PhotoTourEventType.Information);
             //await irClient.RunffcAsync();
             await Task.Delay(_ffcTimeout);
         }
