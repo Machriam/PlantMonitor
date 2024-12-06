@@ -216,8 +216,8 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         logger($"Collected Vis-images: {visImageCount}, collected Ir-images {irImageCount}", PhotoTourEventType.Information);
         logger($"Running FFC", PhotoTourEventType.Information);
         await irClient.RunffcAsync();
-        logger($"Waiting 1 minute", PhotoTourEventType.Information);
-        await Task.Delay((int)TimeSpan.FromMinutes(1).TotalMilliseconds);
+        logger($"Waiting 40 seconds", PhotoTourEventType.Information);
+        await Task.Delay((int)TimeSpan.FromSeconds(40).TotalMilliseconds);
         logger($"Finished waiting", PhotoTourEventType.Information);
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
