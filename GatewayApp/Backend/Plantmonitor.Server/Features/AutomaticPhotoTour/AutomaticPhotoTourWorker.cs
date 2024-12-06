@@ -215,6 +215,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         var visImageCount = await visClient.CountoftakenimagesAsync();
         logger($"Collected Vis-images: {visImageCount}, collected Ir-images {irImageCount}", PhotoTourEventType.Information);
         await irClient.RunffcAsync();
+        await Task.Delay((int)TimeSpan.FromMinutes(1).TotalMilliseconds);
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
             logger($"Moving to position: {currentStep + step.StepOffset}", PhotoTourEventType.Debug);
