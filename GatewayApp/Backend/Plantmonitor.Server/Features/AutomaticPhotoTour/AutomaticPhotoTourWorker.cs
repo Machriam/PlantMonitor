@@ -164,6 +164,11 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         }
         var pointsToReach = new List<int>();
         foreach (var point in movementPlan.MovementPlan.StepPoints) pointsToReach.Add(pointsToReach.LastOrDefault() + point.StepOffset);
+        logger($"Running FFC", PhotoTourEventType.Information);
+        await irClient.RunffcAsync();
+        logger($"Waiting 40 seconds", PhotoTourEventType.Information);
+        await Task.Delay((int)TimeSpan.FromSeconds(40).TotalMilliseconds);
+        logger($"Finished waiting", PhotoTourEventType.Information);
         var currentStep = 0;
         var visPosition = 0;
         var irPosition = 0;
@@ -214,11 +219,6 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         var irImageCount = await irClient.CountoftakenimagesAsync();
         var visImageCount = await visClient.CountoftakenimagesAsync();
         logger($"Collected Vis-images: {visImageCount}, collected Ir-images {irImageCount}", PhotoTourEventType.Information);
-        logger($"Running FFC", PhotoTourEventType.Information);
-        await irClient.RunffcAsync();
-        logger($"Waiting 40 seconds", PhotoTourEventType.Information);
-        await Task.Delay((int)TimeSpan.FromSeconds(40).TotalMilliseconds);
-        logger($"Finished waiting", PhotoTourEventType.Information);
         foreach (var step in movementPlan.MovementPlan.StepPoints)
         {
             logger($"Moving to position: {currentStep + step.StepOffset}", PhotoTourEventType.Debug);
