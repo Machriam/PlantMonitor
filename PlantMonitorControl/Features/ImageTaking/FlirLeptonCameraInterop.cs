@@ -64,14 +64,21 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration, IL
         s_cameraIsRunning = false;
     }
 
-    public Task CalibrateCamera()
+    public async Task CalibrateCamera()
     {
-        if (s_streamProcess == null) return Task.CompletedTask;
+        var wasNotRunning = false;
+        if (s_streamProcess == null)
+        {
+            wasNotRunning = true;
+            await StreamPictureDataToFolder(1f, 100, 100);
+            await Task.Delay(5000);
+        }
+        if (s_streamProcess == null) return;
         s_streamProcess.SendSignal(ProcessExtensions.Signum.SIGUSR1);
         if (s_lastCalibrationTimes.Count >= MaxCalibrationItems) s_lastCalibrationTimes.RemoveAt(0);
         s_lastCalibrationTimes.Add(DateTime.UtcNow);
         logger.LogInformation("Added calibration time {time}", s_lastCalibrationTimes.Last().ToString("HH:mm:ss"));
-        return Task.CompletedTask;
+        if (wasNotRunning) await KillImageTaking();
     }
 
     public async Task<string> StreamPictureDataToFolder(float resolutionDivider, int quality, float distanceInM)
