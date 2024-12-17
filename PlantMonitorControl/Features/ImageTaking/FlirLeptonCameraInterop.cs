@@ -67,11 +67,11 @@ public class FlirLeptonCameraInterop(IEnvironmentConfiguration configuration, IL
     public async Task CalibrateCamera()
     {
         var wasNotRunning = false;
-        if (s_streamProcess == null)
+        if (s_streamProcess == null || !s_cameraIsRunning)
         {
             wasNotRunning = true;
             await StreamPictureDataToFolder(1f, 100, 100);
-            await Task.Delay(5000);
+            await Task.Delay(2000);
         }
         if (s_streamProcess == null) return;
         s_streamProcess.SendSignal(ProcessExtensions.Signum.SIGUSR1);
