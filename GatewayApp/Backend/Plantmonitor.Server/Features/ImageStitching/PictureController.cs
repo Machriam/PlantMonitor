@@ -57,7 +57,7 @@ public class PictureController(IEnvironmentConfiguration configuration, IDeviceA
         })
             .Where(d => d.Timestamp <= fromTime)
             .OrderByDescending(d => d.Timestamp)
-            .Take(100);
+            .Take(500);
     }
 
     private static (bool Success, DateTime Time) TimeFromImageFolder(string imageFolder)

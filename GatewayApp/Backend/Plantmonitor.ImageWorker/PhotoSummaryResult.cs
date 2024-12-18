@@ -109,13 +109,14 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 hslValues.Deviation(result.HslAverage[0], hsl => hsl[0]),
                 hslValues.Deviation(result.HslAverage[1], hsl => hsl[1]),
                 hslValues.Deviation(result.HslAverage[2], hsl => hsl[2])];
-            result.AverageTemperature = pixelList.Average(p => p.Temperature);
             result.LeafOutOfRange = pixelList.Any(pl => pl.LeafOutOfRange);
-            result.MedianTemperature = pixelList.OrderBy(p => p.Temperature).Median(p => p.Temperature);
-            result.MaxTemperature = pixelList.MaxBy(p => p.Temperature).Temperature;
-            result.MinTemperature = pixelList.MinBy(p => p.Temperature).Temperature;
+            var temperatureList = pixelList.Select(pl => pl.Temperature).Where(t => t > 1 && t < 100).ToList();
+            result.AverageTemperature = temperatureList.Average();
+            result.MedianTemperature = temperatureList.Order().Median(p => p);
+            result.MaxTemperature = temperatureList.Max();
+            result.MinTemperature = temperatureList.Min();
+            result.TemperatureDev = temperatureList.Deviation(result.AverageTemperature, pi => pi);
             result.PixelCount = pixelList.Count;
-            result.TemperatureDev = pixelList.Deviation(result.AverageTemperature, pi => pi.Temperature);
             result.HeightInMm = subImage.Execute(x => x.Rows * pixelSizeInMm);
             result.WidthInMm = subImage.Execute(x => x.Cols * pixelSizeInMm);
             result.SizeInMm2 = pixelList.Count * pixelSizeInMm * pixelSizeInMm;
