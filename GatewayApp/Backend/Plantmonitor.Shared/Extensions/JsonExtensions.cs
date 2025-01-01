@@ -5,16 +5,17 @@ namespace Plantmonitor.Shared.Extensions;
 
 public static class JsonExtensions
 {
-    private static readonly Dictionary<(bool, bool, bool), JsonSerializerOptions> _readOptionsCache = [];
-    private static readonly Dictionary<(bool, bool), JsonSerializerOptions> _writeOptionsCache = [];
+    private static readonly Dictionary<string, JsonSerializerOptions> _readOptionsCache = [];
+    private static readonly Dictionary<string, JsonSerializerOptions> _writeOptionsCache = [];
 
-    private static JsonSerializerOptions GetWriteOptions(bool includeFields = true, bool ignoreCycles = true, bool writeIndented = false)
+    private static JsonSerializerOptions GetWriteOptions(bool includeFields = true, bool ignoreCycles = true, bool writeIndented = false, bool writeInfinity = false)
     {
-        var key = (includeFields, ignoreCycles);
+        var key = new[] { includeFields, ignoreCycles, writeIndented, writeInfinity }.Concat(",");
         if (_writeOptionsCache.TryGetValue(key, out var options)) return options;
         _writeOptionsCache.Add(key, new JsonSerializerOptions()
         {
             IncludeFields = includeFields,
+            NumberHandling = writeInfinity ? JsonNumberHandling.AllowNamedFloatingPointLiterals : JsonNumberHandling.Strict,
             ReferenceHandler = ignoreCycles ? ReferenceHandler.IgnoreCycles : ReferenceHandler.Preserve,
             WriteIndented = writeIndented
         });
@@ -23,7 +24,7 @@ public static class JsonExtensions
 
     private static JsonSerializerOptions GetReadOptions(bool includeFields = true, bool ignoreCycles = true, bool allowNumberReadingFromString = false)
     {
-        var key = (includeFields, ignoreCycles, allowNumberReadingFromString);
+        var key = new[] { includeFields, ignoreCycles, allowNumberReadingFromString }.Concat(",");
         if (_readOptionsCache.TryGetValue(key, out var options)) return options;
         _readOptionsCache.Add(key, new JsonSerializerOptions()
         {
@@ -57,8 +58,8 @@ public static class JsonExtensions
         }
     }
 
-    public static string AsJson<T>(this T obj, bool includeFields = true, bool ignoreCycles = true, bool writeIndented = false)
+    public static string AsJson<T>(this T obj, bool includeFields = true, bool ignoreCycles = true, bool writeIndented = false, bool writeInfinity = false)
     {
-        return JsonSerializer.Serialize(obj, GetWriteOptions(includeFields, ignoreCycles, writeIndented));
+        return JsonSerializer.Serialize(obj, GetWriteOptions(includeFields, ignoreCycles, writeIndented, writeInfinity));
     }
 }

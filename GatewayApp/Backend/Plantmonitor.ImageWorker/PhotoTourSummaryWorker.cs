@@ -142,7 +142,7 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
                 },
                 VirtualImagePath = nextImage.Key
             };
-            logger.LogInformation("Adding summary for {image}:\n\n{summary}", nextImage.Key, newSummary.AsJson());
+            logger.LogInformation("Adding summary for {image}:\n\n{summary}", nextImage.Key, newSummary.AsJson(writeInfinity: true));
             context.VirtualImageSummaries.Add(newSummary);
             context.SaveChanges();
             logger.LogInformation("Summary for {image} was added successfully", nextImage.Key);
