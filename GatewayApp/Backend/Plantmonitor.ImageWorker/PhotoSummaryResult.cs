@@ -125,7 +125,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
             result.LeafCount = CalculateLeafCount(grayImage);
             var convexHullArea = GetConvexHull(grayImage);
             result.ConvexHullAreaInMm2 = convexHullArea * pixelSizeInMm * pixelSizeInMm;
-            result.Solidity = (float)(pixelList.Count / convexHullArea);
+            result.Solidity = convexHullArea > 0f ? (float)(pixelList.Count / convexHullArea) : 0f;
             resultList.Add(result);
             subImage.Dispose();
             grayImage.Dispose();
