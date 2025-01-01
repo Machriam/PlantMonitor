@@ -41,7 +41,7 @@ public class ManagedMat : IManagedMat
     public void Dispose()
     {
         if (_disposed) return;
-        Log.Logger.Information($"Disposing Mat {_guid}");
+        //Log.Logger.Information($"Disposing Mat {_guid}");
         _disposed = true;
         _mat.Dispose();
     }
