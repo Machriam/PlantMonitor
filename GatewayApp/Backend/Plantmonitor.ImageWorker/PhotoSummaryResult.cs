@@ -111,6 +111,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
                 hslValues.Deviation(result.HslAverage[2], hsl => hsl[2])];
             result.LeafOutOfRange = pixelList.Any(pl => pl.LeafOutOfRange);
             var temperatureList = pixelList.Select(pl => pl.Temperature).Where(t => t > 1 && t < 100).ToList();
+            if (temperatureList.Count == 0) temperatureList.Add(-1f);
             result.AverageTemperature = temperatureList.Average();
             result.MedianTemperature = temperatureList.Order().Median(p => p);
             result.MaxTemperature = temperatureList.Max();
