@@ -116,7 +116,7 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
             logger.LogInformation("Calculating Image Descriptors");
             var imageResults = pixelSummary.GetResults();
             RemoveExistingSummary(logger, context, nextImage);
-            context.VirtualImageSummaries.Add(new VirtualImageSummary()
+            var newSummary = new VirtualImageSummary()
             {
                 VirtualImageCreationDate = nextImage.Value,
                 ImageDescriptors = new PhotoTourDescriptor()
@@ -141,7 +141,9 @@ public class PhotoTourSummaryWorker(IImageWorkerConfiguration configuration,
                     })
                 },
                 VirtualImagePath = nextImage.Key
-            });
+            };
+            logger.LogInformation("Adding summary for {image}:\n\n{summary}", nextImage.Key, newSummary.AsJson());
+            context.VirtualImageSummaries.Add(newSummary);
             context.SaveChanges();
             logger.LogInformation("Summary for {image} was added successfully", nextImage.Key);
         };
