@@ -9,7 +9,7 @@ namespace Plantmonitor.Server.Features.ImageStitching;
 
 public record struct PictureSeriesData(int Count, string FolderName, CameraType? Type, DateTime Timestamp);
 public record struct PictureTripData(PictureSeriesData IrData, PictureSeriesData VisData, DateTime TimeStamp, string DeviceId, long TripId);
-public record struct SeriesByDevice(string DeviceId, string FolderName);
+public record struct SeriesByDevice(string DeviceId, string FolderName, DateTime FolderDate);
 
 [ApiController]
 [Route("api/[controller]")]
@@ -27,7 +27,7 @@ public class PictureController(IEnvironmentConfiguration configuration, IDeviceA
             var folderName = Path.GetFileName(folder);
             var split = folderName.Split('_');
             if (!Guid.TryParse(split[1], out var guid)) continue;
-            yield return new(guid.ToString(), folderName);
+            yield return new(guid.ToString(), folderName, Directory.GetCreationTimeUtc(folder));
         }
     }
 

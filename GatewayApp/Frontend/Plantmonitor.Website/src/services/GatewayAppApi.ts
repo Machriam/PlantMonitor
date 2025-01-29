@@ -4304,6 +4304,7 @@ export interface IPlantModel {
 export class SeriesByDevice implements ISeriesByDevice {
     deviceId!: string;
     folderName!: string;
+    folderDate!: Date;
 
     constructor(data?: ISeriesByDevice) {
         if (data) {
@@ -4318,6 +4319,7 @@ export class SeriesByDevice implements ISeriesByDevice {
         if (_data) {
             this.deviceId = _data["DeviceId"];
             this.folderName = _data["FolderName"];
+            this.folderDate = _data["FolderDate"] ? new Date(_data["FolderDate"].toString()) : <any>undefined;
         }
     }
 
@@ -4332,6 +4334,7 @@ export class SeriesByDevice implements ISeriesByDevice {
         data = typeof data === 'object' ? data : {};
         data["DeviceId"] = this.deviceId;
         data["FolderName"] = this.folderName;
+        data["FolderDate"] = this.folderDate ? this.folderDate.toISOString() : <any>undefined;
         return data;
     }
 
@@ -4346,6 +4349,7 @@ export class SeriesByDevice implements ISeriesByDevice {
 export interface ISeriesByDevice {
     deviceId: string;
     folderName: string;
+    folderDate: Date;
 }
 
 export class IrCameraOffset implements IIrCameraOffset {

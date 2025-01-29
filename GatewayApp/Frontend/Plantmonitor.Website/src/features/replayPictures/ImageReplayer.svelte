@@ -35,6 +35,9 @@
     async function updatePictureSeries(deviceId: string | undefined) {
         const pictureClient = new PictureClient();
         _seriesByDevice = await pictureClient.getAllPicturedDevices();
+        _seriesByDevice = pipe(_seriesByDevice)
+            .orderByDescending((x) => x.folderDate.getTime())
+            .toArray();
         _selectedDeviceId = deviceId;
         if (deviceId == undefined) {
             _pictureSeries = [];
@@ -117,7 +120,7 @@
         <Select
             initialSelectedItem={$selectedDevice?.health.deviceId}
             idSelector={(x) => x.deviceId}
-            textSelector={(x) => x.deviceId}
+            textSelector={(x) => x.folderDate.toLocaleString() + ": " + x.deviceId.substring(0, 8)}
             selectedItemChanged={(x) => updatePictureSeries(x?.deviceId)}
             items={_seriesByDevice}
             class="col-md-6"></Select>
