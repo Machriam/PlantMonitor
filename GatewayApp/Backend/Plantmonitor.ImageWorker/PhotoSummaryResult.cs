@@ -138,6 +138,7 @@ public class PhotoSummaryResult(float pixelSizeInMm)
         using var contours = new VectorOfVectorOfPoint();
         grayImage.Execute(x => CvInvoke.FindContours(x, contours, null, RetrType.External, ChainApproxMethod.ChainApproxSimple));
         var pointArray = new List<Point>();
+        if (contours.Size == 0) return 0f;
         for (var i = 0; i < contours.Size; i++)
         {
             for (var j = 0; j < contours[i].Size; j++) pointArray.Add(contours[i][j]);
