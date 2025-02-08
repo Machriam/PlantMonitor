@@ -138,9 +138,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         var logger = dataContext.CreatePhotoTourEventLogger(photoTourId);
         if (device.Health?.DeviceId == null || !Guid.TryParse(device.Health.DeviceId, out var deviceGuid))
         {
-            logger("Device Id not a valid Guid", PhotoTourEventType.Error);
-            CreateEmptyTrip(photoTourId, dataContext);
-            return ("", "");
+            return AbortPhotoTaking("Device Id not a valid Guid");
         }
         var irFolder = "";
         var visFolder = "";
@@ -150,9 +148,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         var movementPlan = dataContext.DeviceMovements.FirstOrDefault(dm => dm.DeviceId == deviceGuid);
         if (movementPlan == null)
         {
-            logger("No Movementplan found. Aborting", PhotoTourEventType.Error);
-            CreateEmptyTrip(photoTourId, dataContext);
-            return ("", "");
+            return AbortPhotoTaking("No Movementplan found. Aborting");
         }
         var (maxStop, minStop) = movementPlan.GetSafetyStops();
         var currentPosition = await movementClient.CurrentpositionAsync();
@@ -189,11 +185,13 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
             }
             return Task.CompletedTask;
         }
+        var (visHealthy, irHealthy) = (true, true);
         irStreamer.StartStreamingToDisc(device.Ip, device.Health.DeviceId ?? "", CameraType.IR.GetAttributeOfType<CameraTypeInfo>(),
              StreamingMetaData.Create(1, 100, default, true, [.. pointsToReach], CameraType.IR),
              x => irFolder = x, x => DataReceived(x, CameraType.IR), CancellationToken.None)
             .RunInBackground(ex =>
              {
+                 irHealthy = false;
                  ex.LogError();
                  using var scope = scopeFactory.CreateScope();
                  using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
@@ -205,6 +203,7 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
              x => visFolder = x, x => DataReceived(x, CameraType.Vis), CancellationToken.None)
             .RunInBackground(ex =>
              {
+                 visHealthy = false;
                  ex.LogError();
                  using var scope = scopeFactory.CreateScope();
                  using var dataContext = scope.ServiceProvider.GetRequiredService<IDataContext>();
@@ -219,7 +218,11 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
             logger($"Moving to position: {currentStep + step.StepOffset}", PhotoTourEventType.Debug);
             await deviceApi.MovementClient(device.Ip).MovemotorAsync(step.StepOffset, 1000, 4000, 400, maxStop, minStop);
             currentStep += step.StepOffset;
-            while (currentStep != irPosition || currentStep != visPosition) await Task.Delay(_positionCheckTimeout);
+            while (currentStep != irPosition || currentStep != visPosition)
+            {
+                if (!visHealthy || !irHealthy) return AbortPhotoTaking("Streaming error during motor movement has occured. Aborting trip.");
+                await Task.Delay(_positionCheckTimeout);
+            }
             logger($"Moved to position: {currentStep}, performing FFC", PhotoTourEventType.Information);
             await irClient.RunffcAsync();
             await Task.Delay(_ffcTimeout);
@@ -233,6 +236,13 @@ public class AutomaticPhotoTourWorker(IServiceScopeFactory scopeFactory) : IHost
         while (!irStreamer.StreamingFinished() || !visStreamer.StreamingFinished()) await Task.Delay(_positionCheckTimeout);
         logger("Streaming of data has finished", PhotoTourEventType.Information);
         return (irFolder, visFolder);
+
+        (string IrFolder, string VisFolder) AbortPhotoTaking(string reason)
+        {
+            logger(reason, PhotoTourEventType.Error);
+            CreateEmptyTrip(photoTourId, dataContext);
+            return ("", "");
+        }
     }
 
     private static void CreateEmptyTrip(long photoTourId, IDataContext dataContext)
